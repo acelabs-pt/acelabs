@@ -1,0 +1,156 @@
+<title>Ace Labs - Pacote de Serviços</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Arial,sans-serif;
+    color:#1d1d1f;
+    font-size:11.5px;
+    line-height:1.5;
+  }
+  .amber{color:#a84e08;}
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:-0.01em;}
+  p{margin:0;}
+
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px solid #1d1d1f;padding-bottom:10px;margin-bottom:18px;
+  }
+  .wordmark{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;}
+  .wordmark .spark{width:10px;height:10px;background:#d9670c;transform:rotate(45deg);}
+  header .meta{font-size:10px;color:#6e6e73;text-align:right;}
+
+  .hero{margin-bottom:20px;}
+  .hero h1{font-size:24px;line-height:1.2;max-width:34ch;}
+  .hero p{margin-top:8px;font-size:12.5px;color:#3a3a3c;max-width:70ch;}
+
+  .roi{
+    background:#fdf2e7;border:1px solid #e8b782;border-radius:8px;
+    padding:10px 14px;margin:16px 0 22px;font-size:11px;color:#7a3d05;
+  }
+
+  .ladder{display:flex;gap:10px;margin-bottom:24px;}
+  .ladder .step{
+    flex:1;border:1px solid #d8dcd4;border-radius:8px;padding:12px 14px;background:#f9f9f9;
+  }
+  .ladder .step .n{font-size:10px;color:#a84e08;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;}
+  .ladder .step h3{font-size:13px;margin-top:4px;}
+  .ladder .step p{font-size:10.5px;color:#6e6e73;margin-top:5px;}
+  .ladder .arrow{align-self:center;font-size:16px;color:#a1a1a6;}
+
+  .section-title{
+    font-size:13px;text-transform:uppercase;letter-spacing:0.06em;color:#1d1d1f;
+    border-bottom:1px solid #1d1d1f;padding-bottom:5px;margin:22px 0 12px;
+  }
+
+  table.svc{width:100%;border-collapse:collapse;margin-bottom:6px;}
+  table.svc th{
+    text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.05em;color:#6e6e73;
+    padding:5px 8px;border-bottom:1px solid #1d1d1f;
+  }
+  table.svc td{padding:9px 8px;border-bottom:1px solid #e4e4e6;vertical-align:top;font-size:11px;}
+  table.svc td.name{font-weight:700;width:22%;}
+  table.svc td.desc{color:#3a3a3c;width:44%;}
+  table.svc td.price{font-weight:600;white-space:nowrap;width:34%;}
+  table.svc tr.bundle td{background:#fdf2e7;font-weight:700;}
+
+  .guarantee{
+    margin-top:20px;background:#1d1d1f;color:#fff;border-radius:10px;
+    padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;
+  }
+  .guarantee h3{color:#fff;font-size:15px;}
+  .guarantee p{color:#c7c7cc;font-size:10.5px;margin-top:4px;max-width:48ch;}
+  .guarantee .badge{
+    font-size:11px;font-weight:700;background:#d9670c;color:#fff;
+    padding:8px 14px;border-radius:999px;white-space:nowrap;
+  }
+
+  footer{
+    margin-top:24px;padding-top:10px;border-top:1px solid #d8dcd4;
+    display:flex;justify-content:space-between;font-size:9.5px;color:#6e6e73;
+  }
+
+  .pagebreak{page-break-before:always;}
+</style>
+
+<header>
+  <div class="wordmark"><span class="spark"></span>Ace Labs</div>
+  <div class="meta">Pacote de Serviços · 2026<br>acelabs.pt · Braga, Portugal</div>
+</header>
+
+<div class="hero">
+  <h1>Automação e AI que se pagam a si próprias em meses, não em anos.</h1>
+  <p>Instalamos sistemas de automação dentro da sua empresa: leads respondidos sozinhos, dashboards em tempo real, processos sem papelada, e uma equipa a usar AI todos os dias. Preço fixo, nunca por hora. Garantia de 12 meses.</p>
+</div>
+
+<div class="roi">Empresas que investem em automação com AI reportam, em média, <b>340% de retorno no primeiro ano</b> (McKinsey, relatório de automação 2025); projetos de resposta automática a leads recuperam o investimento em meses, não em anos.</div>
+
+<div class="section-title">Como trabalhamos</div>
+<div class="ladder">
+  <div class="step"><div class="n">Passo 1</div><h3>Diagnóstico</h3><p>Mapeamos o processo atual e o ROI esperado. Pago, creditado no projeto.</p></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="n">Passo 2</div><h3>Construção</h3><p>Entregamos o sistema completo, testado com a sua equipa, em 3 a 6 semanas.</p></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="n">Passo 3</div><h3>Acompanhamento</h3><p>Avença mensal: monitorização, ajustes, e evolução contínua.</p></div>
+</div>
+
+<div class="section-title">Serviços e investimento</div>
+<table class="svc">
+  <thead><tr><th>Serviço</th><th>O que resolve</th><th>Investimento</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="name">Lead Engine</td>
+      <td class="desc">Resposta automática a leads em minutos, qualificação e encaminhamento para o comercial certo. B2B e B2C.</td>
+      <td class="price">3.500–5.500 € + 400–700 €/mês</td>
+    </tr>
+    <tr>
+      <td class="name">Painel de Gestão</td>
+      <td class="desc">Dashboard ao vivo: pipeline, conversão por agente, stock parado, relatório automático à segunda-feira.</td>
+      <td class="price">4.500–8.000 € + 500–900 €/mês</td>
+    </tr>
+    <tr>
+      <td class="name">Compliance Pack</td>
+      <td class="desc">Checklists AML/RGPD, geração de dossiês, registo de auditoria pronto a mostrar.</td>
+      <td class="price">5.000–9.000 € + 600–1.200 €/mês</td>
+    </tr>
+    <tr>
+      <td class="name">Automação de Processos</td>
+      <td class="desc">Faturação, onboarding de cliente, contratos e outros processos repetitivos, sem toque manual.</td>
+      <td class="price">3.000–7.000 € + 300–600 €/mês</td>
+    </tr>
+    <tr>
+      <td class="name">Dashboards &amp; 365</td>
+      <td class="desc">Ligação de Microsoft 365, CRM e Excel a um único painel, sem exportar ficheiros à mão.</td>
+      <td class="price">1.500–3.000 € setup</td>
+    </tr>
+    <tr>
+      <td class="name">Cibersegurança</td>
+      <td class="desc">Auditoria de acessos, MFA, plano de resposta a incidentes.</td>
+      <td class="price">Mediante orçamento (auditoria desde 1.500 €)</td>
+    </tr>
+    <tr>
+      <td class="name">Formação &amp; Estratégia AI</td>
+      <td class="desc">Workshop prático para a equipa, plano estratégico de adoção de AI a 12 meses.</td>
+      <td class="price">1.200–4.000 € + 400–800 €/mês</td>
+    </tr>
+    <tr class="bundle">
+      <td class="name">Bundle Lead Engine + Painel</td>
+      <td class="desc">Os dois produtos mais vendidos, num único projeto.</td>
+      <td class="price">7.500–11.000 € + 900–1.400 €/mês</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guarantee">
+  <div>
+    <h3>Garantia de 12 meses</h3>
+    <p>Se ao final de um ano não estiver satisfeito com os resultados, devolvemos o investimento. Sem letras pequenas.</p>
+  </div>
+  <div class="badge">Devolução garantida</div>
+</div>
+
+<footer>
+  <span>Ace Labs · acelabs.pt</span>
+  <span>Proposta válida por 30 dias. Valores +IVA. Documento não vinculativo, sujeito a diagnóstico.</span>
+</footer>

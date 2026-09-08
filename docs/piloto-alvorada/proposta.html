@@ -1,0 +1,336 @@
+<title>Piloto Alvorada Imóveis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f6f7f6;
+    --surface:#ffffff;
+    --surface-2:#eceeec;
+    --ink:#0f1412;
+    --ink-2:#4b524d;
+    --muted:#868c86;
+    --border:rgba(15,20,18,0.12);
+    --accent:#1c5c56;
+    --accent-ink:#ffffff;
+    --accent-soft:#dfe9e7;
+    --amber:#c67d1f;
+    --good:#0ca30c;
+    --good-soft:#e3f5e1;
+    --critical:#d03b3b;
+    --critical-soft:#fbe6e4;
+    --funnel-1:#86b6ef;
+    --funnel-2:#5598e7;
+    --funnel-3:#2a78d6;
+    --funnel-4:#1c5cab;
+    --funnel-5:#104281;
+    --shadow: 0 1px 2px rgba(15,20,18,0.06), 0 8px 24px -12px rgba(15,20,18,0.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d100f;
+      --surface:#161a18;
+      --surface-2:#1e2321;
+      --ink:#f2f3ef;
+      --ink-2:#c4c9c2;
+      --muted:#83897f;
+      --border:rgba(255,255,255,0.12);
+      --accent:#3fa89a;
+      --accent-ink:#06120f;
+      --accent-soft:#1c2f2c;
+      --amber:#e8a33d;
+      --good:#3fbf3f;
+      --good-soft:#12331a;
+      --critical:#e66767;
+      --critical-soft:#3a1b1a;
+      --funnel-1:#184f95;
+      --funnel-2:#1c5cab;
+      --funnel-3:#2a78d6;
+      --funnel-4:#5598e7;
+      --funnel-5:#86b6ef;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d100f;
+    --surface:#161a18;
+    --surface-2:#1e2321;
+    --ink:#f2f3ef;
+    --ink-2:#c4c9c2;
+    --muted:#83897f;
+    --border:rgba(255,255,255,0.12);
+    --accent:#3fa89a;
+    --accent-ink:#06120f;
+    --accent-soft:#1c2f2c;
+    --amber:#e8a33d;
+    --good:#3fbf3f;
+    --good-soft:#12331a;
+    --critical:#e66767;
+    --critical-soft:#3a1b1a;
+    --funnel-1:#184f95;
+    --funnel-2:#1c5cab;
+    --funnel-3:#2a78d6;
+    --funnel-4:#5598e7;
+    --funnel-5:#86b6ef;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; line-height:1.5;}
+  .wrap{max-width:920px; margin:0 auto; padding:0 28px;}
+  h1,h2,h3{font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0; font-weight:500;}
+  .mono{font-family:"IBM Plex Mono", ui-monospace, monospace;}
+  .eyebrow{font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:0.09em; text-transform:uppercase; color:var(--muted);}
+  a{color:inherit;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  /* top bar */
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:22px 0; border-bottom:1px solid var(--border);}
+  .brandmark{display:flex; align-items:center; gap:10px; font-family:"IBM Plex Mono", monospace; font-weight:600; letter-spacing:0.02em;}
+  .brandmark .dot{width:9px; height:9px; border-radius:50%; background:linear-gradient(135deg, var(--amber), var(--accent)); flex:none;}
+  .topbar .meta{font-size:12px; color:var(--muted); font-family:"IBM Plex Mono", monospace; text-align:right;}
+
+  /* hero */
+  .hero{padding:64px 0 48px; border-bottom:1px solid var(--border);}
+  .hero h1{font-size:clamp(32px, 5vw, 48px); line-height:1.08; max-width:14ch;}
+  .hero .sub{margin-top:18px; font-size:18px; color:var(--ink-2); max-width:56ch;}
+  .hero-tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:24px;}
+  .tag{font-family:"IBM Plex Mono", monospace; font-size:11.5px; letter-spacing:0.03em; padding:5px 10px; border-radius:100px; border:1px solid var(--border); color:var(--ink-2); background:var(--surface);}
+
+  section{padding:56px 0; border-bottom:1px solid var(--border);}
+  section:last-of-type{border-bottom:none;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:28px; flex-wrap:wrap;}
+  .section-head h2{font-size:28px;}
+  .section-num{font-family:"IBM Plex Mono", monospace; font-size:13px; color:var(--muted);}
+
+  /* problem stats */
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .stat-card{background:var(--surface); padding:22px 20px;}
+  .stat-card .figure{font-family:"Fraunces", serif; font-size:34px; font-weight:500;}
+  .stat-card .label{font-size:13px; color:var(--ink-2); margin-top:6px;}
+  .stat-card .cap{font-size:11.5px; color:var(--muted); margin-top:10px;}
+
+  p.lede{font-size:16px; color:var(--ink-2); max-width:66ch; margin:0 0 24px;}
+
+  /* pipeline */
+  .pipeline{display:flex; gap:0; overflow-x:auto; padding-bottom:8px; margin-top:8px;}
+  .stage{flex:1 1 0; min-width:150px; position:relative; padding:20px 16px 18px; border:1px solid var(--border); background:var(--surface); }
+  .stage + .stage{border-left:none;}
+  .stage:first-child{border-radius:12px 0 0 12px;}
+  .stage:last-child{border-radius:0 12px 12px 0;}
+  .stage .idx{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); font-weight:600;}
+  .stage h3{font-size:15.5px; margin-top:8px; font-family:"IBM Plex Sans", sans-serif; font-weight:600;}
+  .stage p{font-size:12.5px; color:var(--ink-2); margin:8px 0 0;}
+  .stage .arrow{position:absolute; right:-1px; top:50%; transform:translate(50%,-50%); width:18px; height:18px; border-radius:50%; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); z-index:2;}
+  .stage:last-child .arrow{display:none;}
+
+  /* dashboard */
+  .dash-note{display:inline-flex; align-items:center; gap:6px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--amber); background:color-mix(in srgb, var(--amber) 14%, transparent); border:1px solid color-mix(in srgb, var(--amber) 35%, transparent); padding:4px 10px; border-radius:100px; margin-bottom:20px;}
+  .dash-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; box-shadow:var(--shadow);}
+  .panel h3{font-family:"IBM Plex Sans"; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-2); margin-bottom:18px;}
+
+  .funnel-row{display:grid; grid-template-columns:120px 1fr 56px; align-items:center; gap:12px; margin-bottom:10px;}
+  .funnel-row .flabel{font-size:13px; color:var(--ink-2);}
+  .funnel-track{height:26px; background:var(--surface-2); border-radius:6px; overflow:hidden;}
+  .funnel-fill{height:100%; border-radius:6px 0 0 6px; display:flex; align-items:center;}
+  .funnel-row .fval{font-family:"IBM Plex Mono",monospace; font-size:13px; text-align:right; font-weight:600;}
+
+  .flow-stats{display:flex; flex-direction:column; gap:14px;}
+  .flow-stat{display:flex; align-items:center; gap:12px; padding:14px; border-radius:10px; background:var(--surface-2);}
+  .flow-stat .pill{width:34px; height:34px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:15px;}
+  .flow-stat.before .pill{background:var(--critical-soft); color:var(--critical);}
+  .flow-stat.after .pill{background:var(--good-soft); color:var(--good);}
+  .flow-stat .fs-label{font-size:11.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:0.04em;}
+  .flow-stat .fs-value{font-family:"Fraunces",serif; font-size:22px; font-weight:500; margin-top:2px;}
+
+  /* timeline */
+  .timeline{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .week{border:1px solid var(--border); border-radius:12px; padding:18px; background:var(--surface);}
+  .week .eyebrow{color:var(--accent);}
+  .week h3{font-size:15.5px; margin-top:6px; font-weight:600; font-family:"IBM Plex Sans";}
+  .week ul{margin:10px 0 0; padding-left:18px; font-size:12.5px; color:var(--ink-2);}
+  .week li{margin-bottom:4px;}
+
+  /* pricing */
+  .price-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .price-card{border:1px solid var(--border); border-radius:14px; padding:26px; background:var(--surface);}
+  .price-card.highlight{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .price-card .ptitle{font-family:"IBM Plex Mono",monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);}
+  .price-card .pval{font-family:"Fraunces",serif; font-size:36px; margin-top:8px;}
+  .price-card .pval span{font-size:14px; font-family:"IBM Plex Sans"; color:var(--ink-2); font-weight:400;}
+  .price-card ul{margin:16px 0 0; padding-left:18px; font-size:13px; color:var(--ink-2);}
+  .price-card li{margin-bottom:6px;}
+  .roi-box{margin-top:20px; padding:18px 20px; border-radius:12px; background:var(--accent-soft); font-size:13.5px; color:var(--ink);}
+  .roi-box b{font-family:"IBM Plex Mono",monospace;}
+
+  footer{padding:44px 0 60px;}
+  .cta{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; padding:30px; border-radius:16px; background:var(--ink); color:var(--bg);}
+  :root[data-theme="dark"] .cta, :root:not([data-theme="light"]) .cta{background:var(--surface-2); color:var(--ink);}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cta{ background:var(--surface-2); color:var(--ink);} }
+  .cta h3{font-family:"Fraunces",serif; font-size:22px; color:inherit;}
+  .cta p{margin:6px 0 0; opacity:0.75; font-size:13.5px;}
+  .btn{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600; padding:12px 20px; border-radius:8px; background:var(--accent); color:var(--accent-ink); white-space:nowrap;}
+  .fineprint{margin-top:20px; font-size:11.5px; color:var(--muted); text-align:center;}
+
+  @media (max-width:760px){
+    .stat-row{grid-template-columns:1fr;}
+    .dash-grid{grid-template-columns:1fr;}
+    .timeline{grid-template-columns:1fr 1fr;}
+    .price-grid{grid-template-columns:1fr;}
+    .pipeline{flex-wrap:wrap;}
+    .stage{border-radius:12px !important; border-left:1px solid var(--border) !important;}
+    .stage .arrow{display:none;}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brandmark"><span class="dot"></span>Ace Labs</div>
+    <div class="meta">PROPOSTA COMERCIAL<br>preparado para Alvorada Imóveis · set. 2026</div>
+  </div>
+
+  <div class="hero">
+    <p class="eyebrow">Gestão de leads com agentes de IA</p>
+    <h1>De contacto a visita marcada, sem um lead a arrefecer na caixa de entrada.</h1>
+    <p class="sub">Diagnóstico de 1 semana seguido do Lead Engine para a Alvorada Imóveis: seis agentes de IA que captam, qualificam, respondem e distribuem os seus leads em minutos, com um painel para a gerência acompanhar tudo em tempo real.</p>
+    <div class="hero-tags">
+      <span class="tag">Diagnóstico → Lead Engine</span>
+      <span class="tag">WhatsApp + Idealista + OLX + site</span>
+      <span class="tag">Sem alterar o CRM atual</span>
+    </div>
+  </div>
+
+  <section id="problema">
+    <div class="section-head">
+      <div><p class="eyebrow">O ponto de partida</p><h2>Onde a Alvorada perde negócio hoje</h2></div>
+      <span class="section-num">01</span>
+    </div>
+    <p class="lede">Um cenário comum em agências de 3 a 15 corretores: os leads chegam por cinco canais diferentes e a resposta depende de alguém estar disponível naquele momento.</p>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="figure tabular">5</div>
+        <div class="label">canais de entrada separados</div>
+        <div class="cap">Idealista, OLX, Facebook Ads, formulário do site, WhatsApp direto</div>
+      </div>
+      <div class="stat-card">
+        <div class="figure tabular">6–8h</div>
+        <div class="label">tempo médio até 1ª resposta</div>
+        <div class="cap">Estimativa para uma agência sem automação, fora do horário comercial</div>
+      </div>
+      <div class="stat-card">
+        <div class="figure tabular">~35%</div>
+        <div class="label">leads sem qualquer resposta</div>
+        <div class="cap">Ficam esquecidos entre canais ou perdem-se na correria do dia a dia</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="solucao">
+    <div class="section-head">
+      <div><p class="eyebrow">A proposta</p><h2>Seis agentes, um único fluxo</h2></div>
+      <span class="section-num">02</span>
+    </div>
+    <p class="lede">Cada agente tem uma função só sua. Juntos substituem o trabalho manual de triagem, sem substituir os corretores &mdash; eles passam a receber apenas leads já qualificados e prontos para falar.</p>
+    <div class="pipeline">
+      <div class="stage"><span class="idx">01</span><h3>Captação</h3><p>Recolhe leads de Idealista, OLX, Facebook e site num único fluxo, em tempo real.</p><span class="arrow">→</span></div>
+      <div class="stage"><span class="idx">02</span><h3>Qualificação</h3><p>Lê a mensagem, cruza orçamento, zona e tipo de imóvel, atribui uma pontuação.</p><span class="arrow">→</span></div>
+      <div class="stage"><span class="idx">03</span><h3>Resposta</h3><p>Responde por WhatsApp em menos de 2 minutos, com as perguntas certas.</p><span class="arrow">→</span></div>
+      <div class="stage"><span class="idx">04</span><h3>Distribuição</h3><p>Atribui o lead ao corretor certo, por zona e carga de trabalho atual.</p><span class="arrow">→</span></div>
+      <div class="stage"><span class="idx">05</span><h3>Acompanhamento</h3><p>Reactiva leads que não respondem em 48h, sem intervenção manual.</p><span class="arrow">→</span></div>
+      <div class="stage"><span class="idx">06</span><h3>Relatório</h3><p>Envia à gerência um resumo semanal: volume, tempos e conversão.</p></div>
+    </div>
+  </section>
+
+  <section id="painel">
+    <div class="section-head">
+      <div><p class="eyebrow">O que a Alvorada vê</p><h2>Painel do piloto</h2></div>
+      <span class="section-num">03</span>
+    </div>
+    <div class="dash-note">● dados de exemplo, para ilustrar o que o painel real mostraria</div>
+    <div class="dash-grid">
+      <div class="panel">
+        <h3>Funil da semana 3 do Lead Engine</h3>
+        <div class="funnel-row">
+          <span class="flabel">Leads recebidos</span>
+          <div class="funnel-track"><div class="funnel-fill" style="width:100%; background:var(--funnel-1);"></div></div>
+          <span class="fval tabular">142</span>
+        </div>
+        <div class="funnel-row">
+          <span class="flabel">Contactados &lt;5min</span>
+          <div class="funnel-track"><div class="funnel-fill" style="width:97%; background:var(--funnel-2);"></div></div>
+          <span class="fval tabular">138</span>
+        </div>
+        <div class="funnel-row">
+          <span class="flabel">Qualificados</span>
+          <div class="funnel-track"><div class="funnel-fill" style="width:54%; background:var(--funnel-3);"></div></div>
+          <span class="fval tabular">76</span>
+        </div>
+        <div class="funnel-row">
+          <span class="flabel">Visitas marcadas</span>
+          <div class="funnel-track"><div class="funnel-fill" style="width:29%; background:var(--funnel-4);"></div></div>
+          <span class="fval tabular">41</span>
+        </div>
+        <div class="funnel-row">
+          <span class="flabel">Propostas enviadas</span>
+          <div class="funnel-track"><div class="funnel-fill" style="width:10%; background:var(--funnel-5);"></div></div>
+          <span class="fval tabular">14</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Tempo até 1ª resposta</h3>
+        <div class="flow-stats">
+          <div class="flow-stat before">
+            <div class="pill">✕</div>
+            <div><div class="fs-label">Antes do piloto</div><div class="fs-value tabular">6h 40m</div></div>
+          </div>
+          <div class="flow-stat after">
+            <div class="pill">✓</div>
+            <div><div class="fs-label">Com os agentes Ace Labs</div><div class="fs-value tabular">1m 50s</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="plano">
+    <div class="section-head">
+      <div><p class="eyebrow">Como corre</p><h2>Diagnóstico + arranque do Lead Engine</h2></div>
+      <span class="section-num">04</span>
+    </div>
+    <div class="timeline">
+      <div class="week"><span class="eyebrow">Semana 1</span><h3>Ligação</h3><ul><li>Ligar Idealista, OLX, Facebook e site</li><li>Configurar número de WhatsApp Business</li><li>Definir critérios de qualificação com a gerência</li></ul></div>
+      <div class="week"><span class="eyebrow">Semana 2</span><h3>Afinação</h3><ul><li>Agentes em modo assistido, corretor valida antes de enviar</li><li>Ajuste do tom de resposta à marca Alvorada</li></ul></div>
+      <div class="week"><span class="eyebrow">Semana 3</span><h3>Autonomia</h3><ul><li>Resposta e distribuição totalmente automáticas</li><li>Painel semanal ativo para a gerência</li></ul></div>
+      <div class="week"><span class="eyebrow">Semana 4</span><h3>Balanço</h3><ul><li>Relatório de resultados vs. mês anterior</li><li>Decisão de continuidade e expansão</li></ul></div>
+    </div>
+  </section>
+
+  <section id="investimento">
+    <div class="section-head">
+      <div><p class="eyebrow">Investimento</p><h2>Preço do piloto e retorno esperado</h2></div>
+      <span class="section-num">05</span>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="ptitle">Fase 1 · Diagnóstico</div>
+        <div class="pval">€900–1.500 <span>1 semana, valor creditado no build</span></div>
+        <ul><li>Mapeamento dos 5 canais de leads e do processo atual</li><li>Critérios de qualificação definidos com a gerência</li><li>Plano de implementação dos 6 agentes</li></ul>
+      </div>
+      <div class="price-card highlight">
+        <div class="ptitle">Fase 2 · Lead Engine</div>
+        <div class="pval">€3.500–5.500 <span>+ €400–700/mês de acompanhamento</span></div>
+        <ul><li>Os 6 agentes em produção, ligados aos 5 canais</li><li>Painel semanal + suporte direto</li><li>Garantia: reembolso se insatisfeito ao fim de 12 meses</li></ul>
+      </div>
+    </div>
+    <div class="roi-box">Exemplo ilustrativo: com uma comissão média de <b>€4.500</b> por escritura, <b>1 venda adicional</b> por trimestre, resultante de leads que hoje se perdem, já cobre o acompanhamento mensal <b>várias vezes</b>.</div>
+  </section>
+
+  <footer>
+    <div class="cta">
+      <div><h3>Vamos ligar isto à Alvorada?</h3><p>Reunião de 20 minutos para confirmar canais e critérios de qualificação.</p></div>
+      <span class="btn">Marcar reunião →</span>
+    </div>
+    <p class="fineprint">Ace Labs — automação e agentes de IA para PMEs · Proposta preparada para Alvorada Imóveis (exemplo hipotético) · nomes e valores ilustrativos</p>
+  </footer>
+
+</div>

@@ -1,0 +1,246 @@
+<title>Painel de Leads Alvorada</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f6f7f6; --surface:#ffffff; --surface-2:#eceeec; --surface-3:#e2e5e2;
+    --ink:#0f1412; --ink-2:#4b524d; --muted:#868c86; --border:rgba(15,20,18,0.12);
+    --accent:#1c5c56; --accent-ink:#ffffff; --accent-soft:#dfe9e7; --amber:#c67d1f;
+    --good:#0ca30c; --good-soft:#e3f5e1; --warning:#9a6a00; --warning-soft:#fdf1d6;
+    --critical:#d03b3b; --critical-soft:#fbe6e4;
+    --shadow: 0 1px 2px rgba(15,20,18,0.06), 0 8px 24px -14px rgba(15,20,18,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d100f; --surface:#161a18; --surface-2:#1e2321; --surface-3:#262b28;
+      --ink:#f2f3ef; --ink-2:#c4c9c2; --muted:#83897f; --border:rgba(255,255,255,0.12);
+      --accent:#3fa89a; --accent-ink:#06120f; --accent-soft:#1c2f2c; --amber:#e8a33d;
+      --good:#3fbf3f; --good-soft:#12331a; --warning:#e0b13a; --warning-soft:#332a10;
+      --critical:#e66767; --critical-soft:#3a1b1a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d100f; --surface:#161a18; --surface-2:#1e2321; --surface-3:#262b28;
+    --ink:#f2f3ef; --ink-2:#c4c9c2; --muted:#83897f; --border:rgba(255,255,255,0.12);
+    --accent:#3fa89a; --accent-ink:#06120f; --accent-soft:#1c2f2c; --amber:#e8a33d;
+    --good:#3fbf3f; --good-soft:#12331a; --warning:#e0b13a; --warning-soft:#332a10;
+    --critical:#e66767; --critical-soft:#3a1b1a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px -14px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif;}
+  .mono{font-family:"IBM Plex Mono", ui-monospace, monospace;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  .app{display:flex; flex-direction:column; height:100vh; min-height:640px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--surface); flex:none;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .dot{width:9px; height:9px; border-radius:50%; background:linear-gradient(135deg,var(--amber),var(--accent));}
+  .brand .name{font-family:"Fraunces",serif; font-weight:600; font-size:16px;}
+  .brand .sep{color:var(--border); font-family:"IBM Plex Mono",monospace;}
+  .brand .badge{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:0.04em; color:var(--accent); background:var(--accent-soft); padding:3px 8px; border-radius:100px;}
+  .proto-tag{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);}
+
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); flex:none;}
+  .stat{background:var(--surface); padding:14px 22px;}
+  .stat .lbl{font-size:11px; font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);}
+  .stat .val{font-family:"Fraunces",serif; font-size:24px; margin-top:4px;}
+  .stat .val small{font-family:"IBM Plex Sans"; font-size:12px; color:var(--ink-2); font-weight:400;}
+
+  .body{display:flex; flex:1; min-height:0;}
+  .board-wrap{flex:1; display:flex; flex-direction:column; min-width:0;}
+  .board-head{display:flex; align-items:center; justify-content:space-between; padding:16px 22px 10px;}
+  .board-head h1{font-family:"Fraunces",serif; font-size:18px; font-weight:600; margin:0;}
+  .sim-btn{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600; background:var(--accent); color:var(--accent-ink); border:none; padding:10px 16px; border-radius:8px; cursor:pointer;}
+  .sim-btn:active{transform:translateY(1px);}
+  .sim-btn:disabled{opacity:0.55; cursor:default;}
+
+  .board{flex:1; display:flex; gap:14px; padding:6px 22px 20px; overflow-x:auto; overflow-y:hidden;}
+  .col{flex:1 1 0; min-width:220px; display:flex; flex-direction:column; background:var(--surface-2); border-radius:12px; min-height:0;}
+  .col-head{display:flex; align-items:center; justify-content:space-between; padding:12px 14px 8px;}
+  .col-head .t{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-2);}
+  .col-head .n{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); background:var(--surface-3); padding:1px 7px; border-radius:100px;}
+  .col-cards{flex:1; overflow-y:auto; padding:0 10px 10px; display:flex; flex-direction:column; gap:8px;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 12px; box-shadow:var(--shadow); animation:pop .28s ease;}
+  @keyframes pop{from{opacity:0; transform:translateY(-6px) scale(.98);} to{opacity:1; transform:none;}}
+  .card .top{display:flex; align-items:flex-start; justify-content:space-between; gap:6px;}
+  .card .who{font-size:13.5px; font-weight:600;}
+  .card .canal{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--muted);}
+  .card .imv{font-size:12px; color:var(--ink-2); margin-top:4px;}
+  .card .foot{display:flex; align-items:center; justify-content:space-between; margin-top:8px;}
+  .card .time{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted);}
+  .score{font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:100px; display:inline-flex; align-items:center; gap:4px;}
+  .score.alto{color:var(--good); background:var(--good-soft);}
+  .score.medio{color:var(--warning); background:var(--warning-soft);}
+  .score.baixo{color:var(--critical); background:var(--critical-soft);}
+  .col-cards:empty::after{content:"sem leads nesta fase"; font-size:11.5px; color:var(--muted); font-style:italic; padding:20px 4px; display:block; text-align:center;}
+
+  .activity{width:300px; flex:none; border-left:1px solid var(--border); background:var(--surface); display:flex; flex-direction:column; min-height:0;}
+  .activity-head{padding:16px 18px 10px;}
+  .activity-head h2{font-family:"Fraunces",serif; font-size:15px; margin:0;}
+  .activity-head p{font-size:11.5px; color:var(--muted); margin:4px 0 0;}
+  .log{flex:1; overflow-y:auto; padding:6px 18px 18px; display:flex; flex-direction:column-reverse; gap:10px;}
+  .log-item{font-size:12px; line-height:1.45;}
+  .log-item .lt{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--muted); display:block;}
+  .log-item .lx{color:var(--ink-2);}
+  .log-item b{color:var(--ink); font-weight:600;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+
+  @media (max-width:820px){ .activity{display:none;} .stats{grid-template-columns:1fr 1fr;} .stats .stat:last-child{grid-column:1/-1;} }
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span><span class="name">Alvorada Imóveis</span>
+      <span class="sep">/</span>
+      <span class="badge">motorizado por agentes Ace Labs</span>
+    </div>
+    <span class="proto-tag">protótipo interativo · dados de exemplo</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">Leads hoje</div><div class="val tabular" id="statLeads">8</div></div>
+    <div class="stat"><div class="lbl">Tempo médio 1ª resposta</div><div class="val tabular" id="statTime">1m 47s</div></div>
+    <div class="stat"><div class="lbl">Taxa de qualificação</div><div class="val tabular" id="statRate">62<small>%</small></div></div>
+  </div>
+
+  <div class="body">
+    <div class="board-wrap">
+      <div class="board-head">
+        <h1>Funil de leads</h1>
+        <button class="sim-btn" id="simBtn">+ Simular novo lead</button>
+      </div>
+      <div class="board" id="board">
+        <div class="col" data-col="novo"><div class="col-head"><span class="t">Novo</span><span class="n" data-count>0</span></div><div class="col-cards" data-cards></div></div>
+        <div class="col" data-col="qualificado"><div class="col-head"><span class="t">Qualificado</span><span class="n" data-count>0</span></div><div class="col-cards" data-cards></div></div>
+        <div class="col" data-col="contactado"><div class="col-head"><span class="t">Contactado</span><span class="n" data-count>0</span></div><div class="col-cards" data-cards></div></div>
+        <div class="col" data-col="visita"><div class="col-head"><span class="t">Visita marcada</span><span class="n" data-count>0</span></div><div class="col-cards" data-cards></div></div>
+        <div class="col" data-col="descartado"><div class="col-head"><span class="t">Sem resposta 48h</span><span class="n" data-count>0</span></div><div class="col-cards" data-cards></div></div>
+      </div>
+    </div>
+    <div class="activity">
+      <div class="activity-head"><h2>Registo dos agentes</h2><p>ações em tempo real, mais recente no topo</p></div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var names = ["Rui Almeida","Sofia Marques","Tiago Costa","Beatriz Lopes","André Ferreira","Inês Carvalho","Miguel Santos","Carla Pinto","Nuno Ribeiro","Joana Teixeira"];
+  var canais = ["Idealista","OLX","Facebook Ads","Site Alvorada","WhatsApp"];
+  var imoveis = ["T2 em Cedofeita, até €220k","T3 em Matosinhos, até €310k","Apartamento V.N.Gaia, arrendamento","Moradia em Valongo, até €450k","T1 no Porto centro, investimento","T2 em Gondomar, até €180k"];
+  var tiers = [
+    {k:"alto", label:"Alto", crit:"orçamento confirmado + zona alvo"},
+    {k:"medio", label:"Médio", crit:"zona alvo, orçamento por confirmar"},
+    {k:"baixo", label:"Baixo", crit:"fora do perfil habitual"}
+  ];
+
+  var seed = [
+    {col:"contactado", nome:"Marta Sousa", canal:"Idealista", im:"T2 em Cedofeita, até €220k", tier:"alto", t:"09:14"},
+    {col:"contactado", nome:"Hugo Pereira", canal:"WhatsApp", im:"T1 no Porto centro, investimento", tier:"medio", t:"09:32"},
+    {col:"visita", nome:"Ana Rodrigues", canal:"Site Alvorada", im:"T3 em Matosinhos, até €310k", tier:"alto", t:"08:51"},
+    {col:"visita", nome:"Paulo Nunes", canal:"OLX", im:"Moradia em Valongo, até €450k", tier:"alto", t:"08:20"},
+    {col:"qualificado", nome:"Filipa Cruz", canal:"Facebook Ads", im:"T2 em Gondomar, até €180k", tier:"medio", t:"10:02"},
+    {col:"descartado", nome:"Ricardo Melo", canal:"OLX", im:"Apartamento V.N.Gaia, arrendamento", tier:"baixo", t:"07:40"}
+  ];
+
+  var board = document.getElementById('board');
+  var log = document.getElementById('log');
+  var simBtn = document.getElementById('simBtn');
+  var counter = seed.length;
+
+  function colEl(col){ return board.querySelector('.col[data-col="'+col+'"] [data-cards]'); }
+  function updateCounts(){
+    board.querySelectorAll('.col').forEach(function(c){
+      c.querySelector('[data-count]').textContent = c.querySelectorAll('.card').length;
+    });
+  }
+  function addLog(html){
+    var item = document.createElement('div');
+    item.className = 'log-item';
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
+    item.innerHTML = '<span class="lt">'+hh+':'+mm+':'+ss+'</span><span class="lx">'+html+'</span>';
+    log.prepend(item);
+  }
+
+  function makeCard(id, nome, canal, im, t){
+    var el = document.createElement('div');
+    el.className = 'card';
+    el.id = 'card-'+id;
+    el.innerHTML =
+      '<div class="top"><span class="who">'+nome+'</span><span class="canal">'+canal+'</span></div>' +
+      '<div class="imv">'+im+'</div>' +
+      '<div class="foot"><span class="time">'+t+'</span><span class="tierslot"></span></div>';
+    return el;
+  }
+  function setTier(cardEl, tier){
+    var t = tiers.filter(function(x){return x.k===tier;})[0];
+    cardEl.querySelector('.tierslot').outerHTML = '<span class="score '+t.k+'">'+t.label+'</span>';
+  }
+
+  seed.forEach(function(s){
+    counter++;
+    var el = makeCard(counter, s.nome, s.canal, s.im, s.t);
+    setTier(el, s.tier);
+    colEl(s.col).appendChild(el);
+  });
+  updateCounts();
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function runSimulation(){
+    simBtn.disabled = true;
+    counter++;
+    var id = counter;
+    var nome = pick(names), canal = pick(canais), im = pick(imoveis);
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0');
+    var t = hh+':'+mm;
+
+    var el = makeCard(id, nome, canal, im, t);
+    colEl('novo').appendChild(el);
+    updateCounts();
+    addLog('🔵 Novo lead recebido via <b>'+canal+'</b> — '+nome);
+
+    setTimeout(function(){
+      addLog('🤖 Agente de qualificação a analisar a mensagem de <b>'+nome+'</b>...');
+    }, 700);
+
+    setTimeout(function(){
+      var tier = Math.random() < 0.55 ? tiers[0] : (Math.random() < 0.7 ? tiers[1] : tiers[2]);
+      setTier(el, tier.k);
+      colEl('qualificado').appendChild(el);
+      updateCounts();
+      addLog('✅ Qualificado como <b>'+tier.label+'</b> ('+tier.crit+')');
+
+      setTimeout(function(){
+        var secs = 30 + Math.floor(Math.random()*90);
+        colEl('contactado').appendChild(el);
+        updateCounts();
+        addLog('💬 Resposta automática enviada por WhatsApp em '+secs+'s, atribuída ao corretor de zona');
+
+        setTimeout(function(){
+          if(tier.k !== 'baixo' && Math.random() < 0.6){
+            colEl('visita').appendChild(el);
+            addLog('📅 Visita marcada com <b>'+nome+'</b>');
+          } else if (Math.random() < 0.25) {
+            colEl('descartado').appendChild(el);
+            addLog('⏳ Sem resposta do lead em 48h — agente agendou novo contacto');
+          }
+          updateCounts();
+          document.getElementById('statLeads').textContent = (parseInt(document.getElementById('statLeads').textContent,10)+1);
+          simBtn.disabled = false;
+        }, 1400);
+      }, 1300);
+    }, 1600);
+  }
+
+  simBtn.addEventListener('click', runSimulation);
+})();
+</script>

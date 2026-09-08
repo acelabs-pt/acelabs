@@ -1,0 +1,296 @@
+<title>Briefing Ace Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --amber:#d9670c;
+    --amber-dark:#a84e08;
+    --amber-tint:rgba(217,103,12,.1);
+    --line:rgba(0,0,0,.08);
+    --black:#0e0e0f;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --white:#1d1d1f; --gray-bg:#161617; --ink:#f5f5f7; --ink-2:#a1a1a6;
+      --amber:#ff9142; --amber-dark:#ffb066; --amber-tint:rgba(255,145,66,.14);
+      --line:rgba(255,255,255,.1); --black:#000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --white:#1d1d1f; --gray-bg:#161617; --ink:#f5f5f7; --ink-2:#a1a1a6;
+    --amber:#ff9142; --amber-dark:#ffb066; --amber-tint:rgba(255,145,66,.14);
+    --line:rgba(255,255,255,.1); --black:#000;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-snap-type:y proximity;}
+  body{
+    margin:0;background:var(--white);color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:-0.015em;text-wrap:balance;}
+  p{margin:0;}
+  a{color:var(--amber-dark);}
+  .num{font-variant-numeric:tabular-nums;}
+
+  .deck{position:relative;}
+  .slide{
+    scroll-snap-align:start;
+    min-height:100vh;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:64px 8vw;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .slide.alt{background:var(--gray-bg);}
+  .slide.dark{background:var(--black);color:#fff;}
+  .slide.dark .ink-2{color:#a1a1a6;}
+  .slide .kicker{
+    font-family:var(--mono);font-size:12px;color:var(--amber-dark);
+    text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;
+  }
+  .slide.dark .kicker{color:var(--amber);}
+  .slide h2{font-size:clamp(26px,3.4vw,42px);max-width:22ch;}
+  .slide .lede{margin-top:14px;font-size:17px;color:var(--ink-2);max-width:62ch;line-height:1.55;}
+  .slide-index{
+    position:absolute;top:24px;right:8vw;font-family:var(--mono);font-size:12px;color:var(--ink-2);
+  }
+
+  /* COVER */
+  .cover{justify-content:space-between;}
+  .cover .wordmark{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;}
+  .cover .wordmark .spark{width:10px;height:10px;background:var(--amber);transform:rotate(45deg);}
+  .cover h1{font-size:clamp(34px,5.5vw,58px);margin-top:60px;max-width:16ch;}
+  .cover .sub{margin-top:16px;font-size:18px;color:var(--ink-2);max-width:48ch;}
+  .cover .meta{
+    display:flex;gap:32px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);
+    border-top:1px solid var(--line);padding-top:18px;
+  }
+  .cover .meta b{color:var(--ink);font-weight:600;}
+
+  /* CHIP LIST */
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;}
+  .chip{
+    font-family:var(--mono);font-size:12.5px;background:var(--white);border:1px solid var(--line);
+    border-radius:999px;padding:8px 14px;color:var(--ink-2);
+  }
+  .chip b{color:var(--ink);font-weight:600;}
+  .slide.dark .chip{background:#1d1d1f;border-color:rgba(255,255,255,.12);}
+  .slide.dark .chip b{color:#fff;}
+
+  /* CARD GRID */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;}
+  .card{
+    background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+    box-shadow:0 16px 34px -22px rgba(0,0,0,.18);
+  }
+  .card .k{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-2);margin-bottom:8px;}
+  .card h3{font-size:17px;}
+  .card p{margin-top:8px;font-size:14px;color:var(--ink-2);line-height:1.5;}
+  .card a.link{font-family:var(--mono);font-size:13px;display:inline-block;margin-top:12px;}
+
+  /* SERVICE TABLE */
+  table.svc{width:100%;border-collapse:collapse;margin-top:24px;font-size:14.5px;}
+  table.svc th{
+    text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;
+    color:var(--ink-2);padding:8px 10px;border-bottom:1px solid var(--ink);
+  }
+  table.svc td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.svc td.price{font-family:var(--mono);white-space:nowrap;font-weight:600;text-align:right;}
+  table.svc tr.new td{background:var(--amber-tint);}
+
+  /* STAT ROW */
+  .stat-row{display:flex;gap:14px;margin-top:26px;flex-wrap:wrap;}
+  .stat{background:var(--black);color:#fff;border-radius:14px;padding:18px 22px;flex:1;min-width:180px;}
+  .stat .n{font-size:26px;font-weight:800;color:var(--amber);}
+  .stat .l{margin-top:6px;font-size:12.5px;color:#a1a1a6;}
+
+  /* CHECKLIST */
+  .checklist{list-style:none;padding:0;margin:24px 0 0;max-width:64ch;}
+  .checklist li{
+    display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px;align-items:flex-start;
+  }
+  .checklist li .box{
+    flex:none;width:18px;height:18px;margin-top:2px;border-radius:4px;border:1.5px solid var(--ink-2);
+  }
+  .checklist li.done .box{background:var(--amber);border-color:var(--amber);position:relative;}
+  .checklist li.done .box::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;}
+  .checklist li b{display:block;}
+  .checklist li span.sub{color:var(--ink-2);font-size:13px;}
+
+  /* ASK LIST */
+  .ask{list-style:none;padding:0;margin-top:24px;counter-reset:ask;max-width:66ch;}
+  .ask li{
+    counter-increment:ask;display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .ask li::before{
+    content:counter(ask);font-family:var(--mono);color:var(--amber);font-weight:700;font-size:14px;
+    width:24px;flex:none;
+  }
+  .ask li p{margin:0;font-size:15px;}
+  .ask li span.sub{display:block;margin-top:4px;font-size:13px;color:#a1a1a6;}
+
+  footer.slide-footer{
+    display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);
+    padding-top:18px;margin-top:auto;
+  }
+
+  @media (max-width:760px){
+    .grid2{grid-template-columns:1fr;}
+    .slide{padding:56px 6vw;}
+  }
+
+  @media print{
+    @page{ size: 297mm 167mm; margin: 0; }
+    html{scroll-snap-type:none;}
+    .slide{
+      min-height:167mm; height:167mm;
+      page-break-after: always; break-after: page;
+      padding:14mm 9mm;
+    }
+    .slide:last-child{page-break-after:auto;}
+    a.link{text-decoration:none;}
+  }
+</style>
+
+<div class="deck">
+
+  <section class="slide cover">
+    <div class="wordmark"><span class="spark"></span>Ace Labs</div>
+    <div>
+      <div class="kicker">Briefing · ponto de situação</div>
+      <h1>Conclusões de hoje e próximos passos</h1>
+      <p class="sub">Resumo rápido para leres antes da conversa. 8 pontos, cinco minutos.</p>
+    </div>
+    <div class="meta">
+      <span>Data <b>08/09/2026</b></span>
+      <span>De <b>Pedro</b></span>
+      <span>Para <b>Sócio</b></span>
+      <span>Slides <b>8</b></span>
+    </div>
+  </section>
+
+  <section class="slide alt">
+    <div class="slide-index">01 / 08</div>
+    <div class="kicker">Decisões fechadas hoje</div>
+    <h2>Marca e domínio, sem voltar atrás</h2>
+    <p class="lede">Fechámos o nome e o posicionamento. Isto deixa de estar em aberto.</p>
+    <div class="chips">
+      <div class="chip">Marca <b>Ace Labs</b></div>
+      <div class="chip">Domínio <b>acelabs.pt</b></div>
+      <div class="chip">Sem "AI" nem "Automation" no nome</div>
+      <div class="chip">Estrutura inicial <b>recibos verdes</b></div>
+      <div class="chip">Preço <b>sempre fixo</b>, nunca à hora</div>
+      <div class="chip">Formação (2.000 €) → <b>despesa da empresa</b>, reembolsada da 1.ª receita</div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-index">02 / 08</div>
+    <div class="kicker">O que ficou construído</div>
+    <h2>Site e proposta comercial, já online</h2>
+    <p class="lede">Dois materiais prontos a mostrar a um cliente amanhã, se for preciso.</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="k">Site institucional</div>
+        <h3>acelabs.pt (Vercel)</h3>
+        <p>5 áreas de serviço, caso real com números, secção "porquê nós", FAQ, garantia de 12 meses.</p>
+        <a class="link" href="https://temporary-sonic-acacia-tnf7duw.vercel.app">temporary-sonic-acacia-tnf7duw.vercel.app</a>
+      </div>
+      <div class="card">
+        <div class="k">Pacote de serviços</div>
+        <h3>PDF pronto a enviar</h3>
+        <p>Ladder diagnóstico → construção → acompanhamento, 7 serviços com preço, garantia.</p>
+        <a class="link" href="#">C:\Users\pedro\ace-labs\docs\pacote-servicos.pdf</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide alt">
+    <div class="slide-index">03 / 08</div>
+    <div class="kicker">Estrutura de serviços</div>
+    <h2>Cinco linhas de serviço, preço por linha</h2>
+    <p class="lede">As três de sempre, mais duas novas que saíram da pesquisa de mercado de hoje.</p>
+    <table class="svc">
+      <thead><tr><th>Serviço</th><th>Estado</th><th>Investimento</th></tr></thead>
+      <tbody>
+        <tr><td>Lead Engine</td><td>Base</td><td class="price">3.500-5.500 € + 400-700 €/mês</td></tr>
+        <tr><td>Painel de Gestão</td><td>Base</td><td class="price">4.500-8.000 € + 500-900 €/mês</td></tr>
+        <tr><td>Compliance Pack</td><td>Base</td><td class="price">5.000-9.000 € + 600-1.200 €/mês</td></tr>
+        <tr class="new"><td>Automação de Processos</td><td>Novo hoje</td><td class="price">3.000-7.000 € + 300-600 €/mês</td></tr>
+        <tr class="new"><td>Formação &amp; Estratégia AI</td><td>Novo hoje</td><td class="price">1.200-4.000 € + 400-800 €/mês</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="slide">
+    <div class="slide-index">04 / 08</div>
+    <div class="kicker">Pesquisa de mercado</div>
+    <h2>O que agências de automação AI estão a cobrar em 2026</h2>
+    <p class="lede">Validação externa de que o nosso modelo de preço fixo por resultado está alinhado com o mercado.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="n">340%</div><div class="l">ROI médio no 1.º ano em automação com AI (McKinsey, 2025)</div></div>
+      <div class="stat"><div class="n">2.500-6.000 €</div><div class="l">Preço de mercado para automação de resposta a leads</div></div>
+      <div class="stat"><div class="n">4.000-12.000 €</div><div class="l">Preço de mercado para automação de documentos/processos</div></div>
+    </div>
+  </section>
+
+  <section class="slide alt">
+    <div class="slide-index">05 / 08</div>
+    <div class="kicker">Diferenciador</div>
+    <h2>Garantia de 12 meses, dita em público</h2>
+    <p class="lede">Se ao fim de um ano não houver resultado, devolvemos o investimento. Já está no site e no PDF.</p>
+    <div class="checklist">
+      <li class="done"><span class="box"></span><div><b>Cliente é dono do código</b><span class="sub">Dito por escrito, desde o início de cada contrato.</span></div></li>
+      <li class="done"><span class="box"></span><div><b>Preço fixo, nunca por hora</b><span class="sub">Consistente em todos os materiais.</span></div></li>
+      <li class="done"><span class="box"></span><div><b>Devolução garantida a 12 meses</b><span class="sub">Argumento central de venda, já publicado.</span></div></li>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-index">06 / 08</div>
+    <div class="kicker">Ainda por fazer</div>
+    <h2>O que falta antes do primeiro cliente real</h2>
+    <div class="checklist">
+      <li><span class="box"></span><div><b>Reclamar o site no Vercel</b><span class="sub">Login numa conta, para deixar de ser um link temporário.</span></div></li>
+      <li><span class="box"></span><div><b>Página Ace Labs no LinkedIn</b><span class="sub">Kit de texto já pronto, falta o login pessoal para publicar.</span></div></li>
+      <li><span class="box"></span><div><b>Vídeo de demonstração de 4 minutos</b><span class="sub">Continua a ser o ativo de venda mais importante, ainda por gravar.</span></div></li>
+      <li><span class="box"></span><div><b>Contratos legais (prestação de serviços, RGPD, parassocial)</b><span class="sub">Modelo revisto por advogado, antes do 1.º cliente.</span></div></li>
+    </div>
+  </section>
+
+  <section class="slide dark">
+    <div class="slide-index">07 / 08</div>
+    <div class="kicker">Como arrancar</div>
+    <h2>Cinco passos até à primeira fatura</h2>
+    <ol class="ask">
+      <li><p><b>Escolher o cliente de referência, já esta semana.</b><span class="sub">Uma agência que já conhecemos. Diagnóstico e build com desconto, a troco de caso de estudo e referências.</span></p></li>
+      <li><p><b>Gravar o vídeo de demonstração, 4 minutos.</b><span class="sub">Lead Engine a responder a um lead sozinho. É o que mais vende, ainda por gravar.</span></p></li>
+      <li><p><b>Lista de 60 agências alvo perto de Braga, Porto e Guimarães.</b><span class="sub">Nome do dono em cada linha, para contacto direto.</span></p></li>
+      <li><p><b>10 diagnósticos gratuitos de 30 min, converter 3 em pagos.</b><span class="sub">Contacto dono-a-dono, não email frio. É aqui que entra a primeira fatura.</span></p></li>
+      <li><p><b>Entregar os 2 primeiros builds, converter ambos em avença.</b><span class="sub">A partir daqui a faturação passa a ser recorrente, não só pontual.</span></p></li>
+    </ol>
+    <div class="chips" style="margin-top:20px;">
+      <div class="chip">Ainda em aberto entre sócios: <b>equity</b>, <b>papéis</b>, <b>horas/semana</b>, <b>vesting</b></div>
+      <div class="chip">Rever preços novos (Documentos, Formação AI) antes de mostrar a um cliente</div>
+    </div>
+  </section>
+
+  <section class="slide cover">
+    <div class="wordmark"><span class="spark"></span>Ace Labs</div>
+    <div>
+      <div class="kicker">08 / 08 · fecho</div>
+      <h2 style="font-size:clamp(28px,4.4vw,44px);max-width:20ch;">Amanhã, 15 minutos, e saímos com uma data marcada.</h2>
+    </div>
+    <div class="meta">
+      <span>Site <b>temporary-sonic-acacia-tnf7duw.vercel.app</b></span>
+      <span>Docs <b>C:\Users\pedro\ace-labs\docs</b></span>
+    </div>
+  </section>
+
+</div>

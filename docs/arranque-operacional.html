@@ -1,0 +1,590 @@
+<title>Arranque Ace Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --amber:#d9670c;
+    --amber-dark:#a84e08;
+    --amber-tint:rgba(217,103,12,.1);
+    --line:rgba(0,0,0,.08);
+    --good:#1fae5a;
+    --pending:#ff9f0a;
+    --black:#000000;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --white:#1d1d1f;
+      --gray-bg:#161617;
+      --ink:#f5f5f7;
+      --ink-2:#a1a1a6;
+      --amber:#ff9142;
+      --amber-dark:#ffb066;
+      --amber-tint:rgba(255,145,66,.14);
+      --line:rgba(255,255,255,.1);
+      --black:#000000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --white:#1d1d1f;
+    --gray-bg:#161617;
+    --ink:#f5f5f7;
+    --ink-2:#a1a1a6;
+    --amber:#ff9142;
+    --amber-dark:#ffb066;
+    --amber-tint:rgba(255,145,66,.14);
+    --line:rgba(255,255,255,.1);
+    --black:#000000;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--white);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-0.015em;text-wrap:balance;}
+  p{margin:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* NAV */
+  nav{
+    position:fixed;top:0;left:0;right:0;
+    height:52px;
+    background:color-mix(in srgb, var(--white) 80%, transparent);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--line);
+    z-index:100;
+  }
+  nav .wrap{height:52px;display:flex;align-items:center;justify-content:space-between;gap:24px;}
+  .logo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;letter-spacing:0.01em;}
+  .logo .spark{width:8px;height:8px;background:var(--amber);transform:rotate(45deg);flex:none;}
+  .navlinks{display:flex;gap:26px;overflow-x:auto;}
+  .navlinks a{font-size:12px;color:var(--ink);opacity:.75;white-space:nowrap;}
+  .navlinks a:hover{opacity:1;}
+  .nav-tag{
+    font-size:11px;font-family:var(--mono);
+    color:var(--ink-2);
+    background:var(--gray-bg);
+    padding:6px 12px;
+    border-radius:980px;
+    white-space:nowrap;
+  }
+
+  /* BUTTONS */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:12px 22px;
+    background:var(--amber);
+    color:#fff;
+    border-radius:980px;
+    font-size:15px;
+    font-weight:500;
+    border:none;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn:hover{background:var(--amber-dark);}
+  .btn-link{color:var(--amber);font-size:15px;font-weight:500;display:inline-flex;align-items:center;gap:4px;}
+  .btn-link:hover{text-decoration:underline;}
+  .btn-link .chev{transition:transform .15s ease;}
+  .btn-link:hover .chev{transform:translateX(2px);}
+
+  /* HERO */
+  .hero{padding:120px 0 80px;}
+  .hero-inner{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;}
+  .eyebrow{font-family:var(--mono);font-size:12px;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
+  .hero h1{font-size:42px;line-height:1.12;}
+  .hero .sub{margin:18px 0 0;max-width:44ch;font-size:17px;color:var(--ink-2);font-weight:400;line-height:1.5;}
+  .hero-ctas{margin-top:26px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+  .chipbar{margin-top:28px;display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--gray-bg);border:1px solid var(--line);border-radius:980px;padding:6px 12px;color:var(--ink-2);}
+  .chip b{color:var(--ink);font-weight:600;}
+
+  /* DECISION CARDS (right column, apple-card grid) */
+  .dcard-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .dcard{
+    background:var(--white);
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 16px 34px -20px rgba(0,0,0,.16), 0 0 0 1px var(--line);
+    opacity:0;transform:translateY(14px);
+    animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .dcard-icon{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--amber-tint);color:var(--amber-dark);
+    display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+  }
+  .dcard-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .dcard h4{font-size:13px;font-weight:600;margin:0 0 4px;letter-spacing:-0.01em;}
+  .dcard p{font-size:11.5px;color:var(--ink-2);line-height:1.4;font-weight:400;}
+  @keyframes rise{to{opacity:1;transform:translateY(0);}}
+
+  /* SECTION */
+  .section{padding:88px 0;border-top:1px solid var(--line);}
+  .section.alt{background:var(--gray-bg);}
+  .section-head{max-width:640px;margin:0 0 44px;}
+  .section-head .eyebrow{margin-bottom:10px;}
+  .section-head h2{font-size:32px;line-height:1.15;}
+  .section-head p{margin-top:12px;font-size:16px;color:var(--ink-2);line-height:1.5;}
+
+  h3{font-size:17px;margin:34px 0 10px;}
+  .section > .wrap > h3:first-of-type{margin-top:0;}
+  p.body{margin:0 0 14px;max-width:66ch;color:var(--ink);font-size:15px;line-height:1.6;}
+  ul.plain{margin:0 0 16px;padding-left:20px;}
+  ul.plain li{margin-bottom:7px;max-width:64ch;font-size:15px;line-height:1.55;color:var(--ink);}
+
+  /* checklist w/ amber marks, apple style */
+  .checklist{list-style:none;padding:0;margin:20px 0;}
+  .checklist li{display:flex;gap:10px;padding:10px 0;font-size:15px;border-bottom:1px solid var(--line);}
+  .checklist li:last-child{border-bottom:none;}
+  .checklist li .mark{color:var(--amber);font-weight:700;flex-shrink:0;}
+
+  .callout{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:16px 18px;
+    font-size:14.5px;
+    color:var(--ink-2);
+    margin:18px 0;
+    max-width:66ch;
+    box-shadow:0 10px 26px -20px rgba(0,0,0,.16);
+  }
+  .callout b{color:var(--ink);}
+  .section.alt .callout{background:var(--white);}
+
+  /* mockup card (ledger / tables) */
+  .mockup{
+    background:var(--white);
+    border-radius:20px;
+    box-shadow:0 20px 45px -18px rgba(0,0,0,.18), 0 0 0 1px var(--line);
+    padding:22px 24px;
+    margin:18px 0 22px;
+  }
+  .mock-title{
+    font-size:12.5px;color:var(--ink-2);margin-bottom:14px;padding-bottom:12px;
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+  }
+  .ledger-row{
+    display:grid;grid-template-columns:1fr auto 26px;gap:14px;align-items:center;
+    padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px;
+  }
+  .ledger-row:last-child{border-bottom:none;}
+  .ledger-row .label{color:var(--ink);}
+  .ledger-row .value{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-family:var(--mono);font-size:13.5px;white-space:nowrap;}
+  .check{width:20px;height:20px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;justify-self:end;}
+  .ledger-row.total{border-top:2px solid var(--ink);border-bottom:none;padding-top:14px;margin-top:2px;}
+  .ledger-row.total .label{font-weight:700;}
+  .ledger-row.total .value{color:var(--amber-dark);font-size:14.5px;}
+
+  .table-wrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:14px;}
+  th,td{text-align:left;padding:10px 4px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-2);font-weight:600;}
+  td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  tr:last-child td{border-bottom:none;}
+
+  /* steps row (orçamento method) */
+  .steps-row{display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap;}
+  .step-col{flex:1;min-width:180px;}
+  .step-arrow{padding-top:14px;font-size:20px;color:var(--ink-2);flex-shrink:0;}
+  .step-circle{
+    width:32px;height:32px;border-radius:50%;background:var(--amber);color:#fff;
+    font-weight:700;font-size:13px;font-family:var(--mono);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+  }
+  .step-col h3{font-size:16.5px;line-height:1.25;margin:0;}
+  .step-col p{margin-top:10px;font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+
+  /* case card */
+  .case-grid{display:grid;grid-template-columns:1fr;gap:6px 18px;font-size:14.5px;}
+  .case-row{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .case-row:last-child{border-bottom:none;}
+  .case-row .k{color:var(--ink-2);}
+  .case-row .v{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;font-weight:600;}
+
+  /* doc frame (proposal template) */
+  .doc-frame{background:var(--white);border-radius:20px;box-shadow:0 20px 45px -18px rgba(0,0,0,.18), 0 0 0 1px var(--line);overflow:hidden;margin:18px 0 22px;}
+  .doc-head{background:var(--black);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;}
+  .doc-head .wm{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;}
+  .doc-head .wm .spark{width:7px;height:7px;background:var(--amber);transform:rotate(45deg);}
+  .doc-head .tag{font-family:var(--mono);font-size:11px;opacity:.7;}
+  .doc-body{padding:24px 26px;font-family:var(--mono);font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--ink);}
+  .doc-body .h{color:var(--amber-dark);font-weight:600;}
+  .doc-body .fill{color:var(--ink-2);font-style:italic;}
+
+  /* presence list */
+  .presence-list{list-style:none;padding:0;margin:20px 0;counter-reset:pl;}
+  .presence-list li{counter-increment:pl;display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .presence-list li:last-child{border-bottom:none;}
+  .presence-list li::before{
+    content:counter(pl);font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;
+    background:var(--amber);width:26px;height:26px;flex:none;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .presence-list p{margin:0;font-size:15px;line-height:1.5;}
+  .presence-list strong{color:var(--ink);}
+
+  /* brand grid */
+  .brand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0;}
+  .brand-card{background:var(--white);border-radius:16px;padding:18px 20px;box-shadow:0 16px 34px -20px rgba(0,0,0,.16), 0 0 0 1px var(--line);}
+  .brand-card .k{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-2);margin-bottom:6px;}
+  .brand-card .v{font-size:15px;font-weight:700;}
+
+  .superseded{margin-top:24px;font-size:13.5px;color:var(--ink-2);}
+  .superseded .names{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .superseded .badge{
+    font-size:12px;padding:5px 12px;background:var(--gray-bg);color:var(--ink-2);border-radius:980px;font-weight:500;
+    text-decoration:line-through;text-decoration-color:var(--ink-2);
+  }
+  .section.alt .superseded .badge{background:var(--white);}
+
+  /* closing */
+  .closing{background:var(--black);color:#fff;padding:100px 0;text-align:center;}
+  .closing h2{font-size:36px;max-width:20ch;margin:0 auto;color:#fff;}
+  .closing p{margin-top:16px;font-size:16px;color:#a1a1a6;max-width:52ch;margin-left:auto;margin-right:auto;line-height:1.55;}
+  .closing .checklist{max-width:440px;margin:28px auto 0;text-align:left;}
+  .closing .checklist li{border-bottom-color:rgba(255,255,255,.12);color:#e6e6e6;}
+  .closing .hero-ctas{margin-top:30px;justify-content:center;}
+
+  footer{padding:36px 0;font-size:12px;color:var(--ink-2);display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);flex-wrap:wrap;gap:8px;}
+  footer .logo{opacity:.8;}
+
+  @media (max-width:860px){
+    .hero{padding:96px 0 60px;}
+    .hero h1{font-size:32px;}
+    .hero-inner{grid-template-columns:1fr;gap:36px;}
+    .steps-row{flex-direction:column;gap:28px;}
+    .step-arrow{display:none;}
+    .navlinks{display:none;}
+    .section-head h2{font-size:26px;}
+    .closing h2{font-size:28px;}
+    .section{padding:64px 0;}
+  }
+  @media (max-width:520px){
+    .dcard-grid{grid-template-columns:1fr;}
+  }
+</style>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="spark"></span>Ace Labs</div>
+    <div class="navlinks">
+      <a href="#legal">Legal</a>
+      <a href="#custos">Custos</a>
+      <a href="#orcamento">Orçamento</a>
+      <a href="#proposta">Proposta</a>
+      <a href="#presenca">Presença</a>
+      <a href="#marca">Marca</a>
+    </div>
+    <div class="nav-tag">acelabs.pt · uso interno</div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Documento de trabalho · reunião de sócios</div>
+        <h1>Arranque operacional, do zero ao primeiro contrato.</h1>
+        <p class="sub">Checklist legal, custos reais, e o modelo de proposta que vamos usar com o primeiro cliente. Valores fiscais a confirmar com contabilista certificado.</p>
+        <div class="hero-ctas">
+          <a href="#legal" class="btn">Ver checklist legal</a>
+          <a href="#proposta" class="btn-link">Ir para o modelo de proposta <span class="chev">›</span></a>
+        </div>
+        <div class="chipbar">
+          <div class="chip">Estrutura <b>recibos verdes</b></div>
+          <div class="chip">Lda a partir do <b>2.º/3.º cliente</b></div>
+          <div class="chip">Preço <b>fixo, nunca à hora</b></div>
+        </div>
+      </div>
+
+      <div class="dcard-grid">
+        <div class="dcard" style="animation-delay:.05s">
+          <div class="dcard-icon"><svg viewBox="0 0 24 24"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div>
+          <h4>Marca</h4>
+          <p>Ace Labs, domínio acelabs.pt. Sem "AI" no nome, só no domínio.</p>
+        </div>
+        <div class="dcard" style="animation-delay:.12s">
+          <div class="dcard-icon"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 19V9l6-5 6 5v10"/><path d="M10 19v-6h4v6"/></svg></div>
+          <h4>Estrutura</h4>
+          <p>Recibos verdes já, Lda só a partir do 2.º ou 3.º cliente pago.</p>
+        </div>
+        <div class="dcard" style="animation-delay:.19s">
+          <div class="dcard-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <h4>Preço</h4>
+          <p>Fixo por resultado, nunca à hora. 10 a 20% do valor anual gerado.</p>
+        </div>
+        <div class="dcard" style="animation-delay:.26s">
+          <div class="dcard-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+          <h4>Produtos</h4>
+          <p>Lead Engine, Painel de Gestão, Compliance. Três ofertas, não consultoria aberta.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="section" id="legal">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">01 · Legal</div>
+      <h2>Checklist de arranque legal</h2>
+      <p>Duas fases: primeiro sem estrutura, depois com Lda a partir do 2.º ou 3.º cliente.</p>
+    </div>
+
+    <h3>Fase 1 - primeiros 2 a 3 clientes (custo: zero)</h3>
+    <p class="body">Não abrir empresa já. Abrir atividade como trabalhador independente:</p>
+    <ul class="checklist">
+      <li><span class="mark">✓</span><span>Portal das Finanças, Declaração de Início de Atividade. Online, gratuito, 15 minutos.</span></li>
+      <li><span class="mark">✓</span><span>CAE a considerar: 62010 (programação informática) ou 62020 (consultoria em informática). O contabilista confirma qual serve melhor.</span></li>
+      <li><span class="mark">✓</span><span>Optar pelo regime de isenção de IVA do artigo 53.º se a previsão anualizada ficar abaixo de 15.000 €. Fórmula: VnAc = previsão × 12 / meses de atividade até dezembro.</span></li>
+      <li><span class="mark">✓</span><span>Primeiro ano de atividade: dispensa de contribuições para a Segurança Social durante 12 meses.</span></li>
+      <li><span class="mark">✓</span><span>Faturas emitidas no Portal das Finanças ou em software de faturação (InvoiceXpress, Vendus, Moloni, a partir de ~10 €/mês).</span></li>
+    </ul>
+
+    <div class="callout"><b>Atenção ao teto.</b> 15.000 € são cerca de dois projetos. Acima de 18.750 € no ano, a mudança para regime normal é imediata e a fatura que ultrapassa já leva IVA. Esta fase dura meses, não anos: planear a saída desde o início.</div>
+
+    <h3>Fase 2 - a partir do segundo ou terceiro cliente</h3>
+    <p class="body">Constituir Sociedade por Quotas (Lda):</p>
+    <div class="mockup">
+      <div class="mock-title"><span>Constituição da Lda</span><span>Empresa na Hora</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo</th><th>Prazo</th><th class="num">Custo</th></tr></thead>
+          <tbody>
+            <tr><td>Certificado de Admissibilidade no RNPC (nome próprio)</td><td>1 a 5 dias</td><td class="num">~75 €</td></tr>
+            <tr><td>Constituição via Empresa na Hora</td><td>1 hora, no balcão</td><td class="num">360 € base</td></tr>
+            <tr><td>Depósito do capital social</td><td>5 dias úteis após constituição</td><td class="num">mín. 1 €/sócio</td></tr>
+            <tr><td>Declaração de início de atividade</td><td>15 dias</td><td class="num">via contabilista</td></tr>
+            <tr><td>Registo do Beneficiário Efetivo (RCBE)</td><td>30 dias</td><td class="num">gratuito</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="callout">Desconto de 60 € nos emolumentos quando a atividade principal é informática (o CAE 62010 deve qualificar), e redução de 50% se o processo for feito online (Empresa Online). Capital social mínimo legal é 1 €/sócio, mas 5.000 € lê-se melhor num contrato com cliente empresarial, ao mesmo custo em emolumentos. Contabilista certificado passa a obrigatório: orçamentar 120 a 180 €/mês. Marca no INPI é processo separado e opcional no arranque.</div>
+
+    <h3>Contratos a ter antes do primeiro cliente</h3>
+    <ul class="plain">
+      <li>Contrato de prestação de serviços com escopo, prazos e condições de pagamento.</li>
+      <li>Acordo de subcontratação RGPD (a Ace Labs trata dados pessoais de compradores, vendedores e inquilinos).</li>
+      <li>Acordo parassocial entre os dois sócios: equity, vesting, saída, deadlock, propriedade do código.</li>
+    </ul>
+    <p class="body">Os dois primeiros podem ser modelos revistos por advogado uma vez (~300 a 600 €) e servem para sempre. O terceiro vale cada cêntimo.</p>
+  </div>
+</section>
+
+<section class="section alt" id="custos">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">02 · Custos</div>
+      <h2>Custos de operação</h2>
+      <p>Alvo definido: 150 a 250 €/mês em fase inicial.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="mock-title"><span>Custo mensal estimado</span><span>Fase Lda</span></div>
+      <div class="ledger-row"><span class="label">Subscrição Claude - Pedro, quem constrói</span><span class="value">~90 €</span><span class="check">✓</span></div>
+      <div class="ledger-row"><span class="label">Subscrição Claude - sócio comercial</span><span class="value">~18 €</span><span class="check">✓</span></div>
+      <div class="ledger-row"><span class="label">Alojamento e infraestrutura</span><span class="value">50–100 €</span><span class="check">✓</span></div>
+      <div class="ledger-row"><span class="label">Software de faturação</span><span class="value">10–20 €</span><span class="check">✓</span></div>
+      <div class="ledger-row"><span class="label">Domínio acelabs.pt e email profissional</span><span class="value">~10 €</span><span class="check">✓</span></div>
+      <div class="ledger-row"><span class="label">Contabilista certificado</span><span class="value">120–180 €</span><span class="check pending" style="background:var(--pending)">•</span></div>
+      <div class="ledger-row total"><span class="label">Total</span><span class="value">~300–420 €</span><span></span></div>
+    </div>
+    <p class="body">Fase 1, sem contabilista e sem infraestrutura pesada: menos de 150 €/mês.</p>
+
+    <div class="callout">O ponto que interessa: a ferramenta custa cerca de 100 €/mês e um projeto vende-se a 5.000 €. O custo não é o problema do negócio. O tempo de entrega e a capacidade de vender é que são.</div>
+  </div>
+</section>
+
+<section class="section" id="orcamento">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">03 · Preço</div>
+      <h2>Como fazer o orçamento</h2>
+      <p>Regra: 10 a 20% do valor anual entregue ao cliente. Nunca por hora, por horas somos castigados por sermos rápidos, que é exatamente a vantagem.</p>
+    </div>
+
+    <div class="steps-row">
+      <div class="step-col">
+        <div class="step-circle">1</div>
+        <h3>Quantificar o tempo perdido</h3>
+        <p>Horas por semana que a agência gasta no processo, × custo/hora real (salário bruto × 1,25, ÷ horas úteis).</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-col">
+        <div class="step-circle">2</div>
+        <h3>Quantificar o negócio perdido</h3>
+        <p>Leads/mês, taxa de resposta, taxa de conversão. Negócios extra ao responder em 5 min em vez de 4 horas.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-col">
+        <div class="step-circle">3</div>
+        <h3>Somar o valor anual</h3>
+        <p>Horas poupadas + margem dos negócios extra = valor gerado no primeiro ano.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-col">
+        <div class="step-circle">4</div>
+        <h3>Pedir 10 a 20% desse valor</h3>
+        <p>Valor anual de 40.000 € → projeto de 5.000 a 8.000 €. O cliente recupera o investimento em meses.</p>
+      </div>
+    </div>
+
+    <div class="mockup" style="margin-top:36px;">
+      <div class="mock-title"><span>Exemplo - caso Lead Engine</span><span>números a substituir pelos reais</span></div>
+      <p class="body" style="margin-bottom:6px;">Agência com 10 consultores, 150 leads de portal por mês.</p>
+      <div class="case-grid">
+        <div class="case-row"><span class="k">Tempo perdido</span><span class="v">6 h/sem × 15 €/h ≈ 4.500 €/ano</span></div>
+        <div class="case-row"><span class="k">Conversão</span><span class="v">2% → 2,8% = 14 negócios × 2.000 € ≈ 28.000 €/ano</span></div>
+        <div class="case-row"><span class="k">Valor ano 1</span><span class="v">~32.500 €</span></div>
+        <div class="case-row"><span class="k">Preço do projeto</span><span class="v">5.500 € + 500 €/mês</span></div>
+      </div>
+    </div>
+    <p class="body">O cliente consegue validar ou corrigir cada uma destas linhas de cabeça. Isso é ouro: uma proposta construída com os números dele é uma proposta que não se discute.</p>
+
+    <h3>Condições a fixar sempre</h3>
+    <ul class="plain">
+      <li>50% na adjudicação, 50% na entrega. Acima de 8.000 €: 40 / 30 / 30.</li>
+      <li>Validade da proposta: 30 dias.</li>
+      <li>Escopo fechado e escrito. Uma secção "não incluído" evita 90% dos conflitos.</li>
+      <li>Avença de acompanhamento incluída na proposta como parte do pacote, não como venda posterior.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section alt" id="proposta">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">04 · Vendas</div>
+      <h2>Modelo de proposta</h2>
+      <p>Duas a três páginas. Um empresário de mediação não lê vinte slides.</p>
+    </div>
+
+    <div class="doc-frame">
+      <div class="doc-head"><div class="wm"><span class="spark"></span>Ace Labs</div><div class="tag">PROPOSTA COMERCIAL</div></div>
+      <div class="doc-body">PROPOSTA - <span class="fill">[Nome do cliente]</span>
+Data <span class="fill">[data]</span> | Validade: 30 dias
+
+<span class="h">1. O QUE OBSERVÁMOS</span>
+Três a cinco linhas sobre o processo atual. Factos, não opiniões.
+Ex.: "Os leads dos portais entram em 3 caixas de email diferentes.
+O tempo médio de primeira resposta é de 4 horas.
+Não existe registo centralizado de origem de lead."
+
+<span class="h">2. O QUE PROPOMOS</span>
+Descrição do sistema em linguagem de negócio, sem jargão técnico.
+O que passa a acontecer automaticamente, e o que a equipa deixa de fazer.
+
+<span class="h">3. RESULTADO ESPERADO</span>
+- X horas por semana devolvidas à equipa
+- Tempo de primeira resposta: de 4h para menos de 5 min
+- Visibilidade total sobre origem e conversão de leads
+(números do ponto 3 do orçamento)
+
+<span class="h">4. FASES E PRAZOS</span>
+Fase 1, Levantamento e desenho: semana 1
+Fase 2, Construção: semanas 2 a 4
+Fase 3, Testes e formação da equipa: semana 5
+Arranque: semana 6
+
+<span class="h">5. INVESTIMENTO</span>
+Projeto: <span class="fill">X €</span> (+IVA)
+Acompanhamento mensal: <span class="fill">Y €/mês</span> (+IVA)
+Pagamento: 50% na adjudicação, 50% na entrega
+
+<span class="h">6. NÃO INCLUÍDO</span>
+Licenças de software de terceiros, migração de dados históricos
+anteriores a <span class="fill">[data]</span>, integrações não listadas no ponto 2.
+
+<span class="h">7. PROPRIEDADE</span>
+Todo o código e configuração desenvolvidos são propriedade do cliente.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="presenca">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">05 · Presença</div>
+      <h2>O que é mesmo preciso</h2>
+      <p>Por ordem de importância real: a venda é por rede de contactos, não por pesquisa no Google.</p>
+    </div>
+
+    <ol class="presence-list">
+      <li><p><strong>Vídeo de demonstração, 4 minutos.</strong> Ecrã gravado a mostrar um lead a entrar e a ser tratado pelo Lead Engine sozinho. É isto que vende, vale mais do que tudo o resto junto.</p></li>
+      <li><p><strong>Domínio e email profissional.</strong> Nada de gmail numa proposta de 6.000 €. acelabs.pt já resolve isto.</p></li>
+      <li><p><strong>Perfil de LinkedIn do sócio comercial, atualizado.</strong> Vinte anos de mediação e uma rede de centenas de colegas do setor. É o ativo de distribuição do negócio, vale mais do que a página da empresa.</p></li>
+      <li><p><strong>Página Ace Labs no LinkedIn.</strong> Gratuita, 30 minutos. Serve como prova de existência quando alguém procura.</p></li>
+      <li><p><strong>Website de uma página em acelabs.pt.</strong> Um scroll: o que fazemos, para quem, três resultados, formulário de contacto. Constrói-se num fim de semana e é a primeira demonstração de capacidade.</p></li>
+    </ol>
+
+    <div class="callout">Não fazer no arranque: logótipo caro, brochuras, anúncios pagos, blog. Nada disso fecha o primeiro cliente.</div>
+  </div>
+</section>
+
+<section class="section alt" id="marca">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">06 · Marca</div>
+      <h2>Marca Ace Labs</h2>
+      <p>Decisão tomada: Ace Labs, domínio acelabs.pt. Substitui as opções em aberto abaixo.</p>
+    </div>
+
+    <div class="brand-grid">
+      <div class="brand-card"><div class="k">Nome</div><div class="v">Ace Labs</div></div>
+      <div class="brand-card"><div class="k">Domínio</div><div class="v">acelabs.pt</div></div>
+      <div class="brand-card"><div class="k">"AI" no nome</div><div class="v">Não - só no domínio</div></div>
+      <div class="brand-card"><div class="k">Preso ao imobiliário</div><div class="v">Não, por desenho</div></div>
+    </div>
+
+    <ul class="plain">
+      <li><b>Pronunciável ao telefone</b> e reconhecível depois de ouvida uma vez.</li>
+      <li><b>Não preso ao imobiliário</b> no nome. O segundo mercado (PME em geral) vai chegar e o nome não estorva.</li>
+      <li><b>Sem "AI" nem "Automation" no nome</b> da empresa ou dos produtos. O "ai" só aparece como TLD do domínio, o cliente não compra AI, compra resultados.</li>
+      <li><b>Domínio disponível e coerente</b>: acelabs.pt reserva a marca no espaço onde os concorrentes de automação vão competir.</li>
+    </ul>
+
+    <div class="superseded">
+      Opções consideradas antes de fechar em Ace Labs, mantidas aqui só como registo:
+      <div class="names">
+        <span class="badge">Fluxo</span><span class="badge">Cadência</span><span class="badge">Alavanca</span><span class="badge">Método</span><span class="badge">Andaime</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <h2>Antes do primeiro cliente</h2>
+    <p>Três contratos, uma vez revistos por advogado, servem para todos os clientes seguintes.</p>
+    <ul class="checklist">
+      <li><span class="mark">✓</span><span>Contrato de prestação de serviços</span></li>
+      <li><span class="mark">✓</span><span>Acordo de subcontratação RGPD</span></li>
+      <li><span class="mark">✓</span><span>Acordo parassocial entre os sócios</span></li>
+    </ul>
+    <div class="hero-ctas"><a href="#legal" class="btn">Rever checklist completo</a></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:wrap;gap:8px;">
+    <div class="logo"><span class="spark"></span>Ace Labs</div>
+    <span>Documento de trabalho, não é aconselhamento legal ou fiscal.</span>
+  </div>
+</footer>
