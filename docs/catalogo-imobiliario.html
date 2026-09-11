@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Catálogo Ace Labs Imobiliário</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1d1d1f;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .serif { font-family: 'Source Serif 4', Georgia, serif; }
+  h1, h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; margin: 0; }
+  .page { page-break-after: always; width: 210mm; height: 297mm; padding: 18mm 16mm; position: relative; }
+  .page:last-child { page-break-after: auto; }
+
+  /* cover */
+  .cover { background: #0a1620; color: #fff; display: flex; flex-direction: column; justify-content: space-between; }
+  .cover .brand { display: flex; align-items: center; gap: 9px; font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 15pt; color: #fff; }
+  .cover .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff9f0a; }
+  .cover .eyebrow { font-size: 10pt; letter-spacing: 0.08em; text-transform: uppercase; color: #8f9aa8; margin-bottom: 16px; font-weight: 600; }
+  .cover h1 { font-size: 32pt; line-height: 1.15; max-width: 15ch; color: #fff; }
+  .cover .sub { font-size: 12pt; color: #c3cbd6; max-width: 40ch; margin-top: 18px; font-family: 'Inter'; }
+  .cover .footer { display: flex; justify-content: space-between; font-size: 9pt; color: #6e7a89; border-top: 1px solid #1c2733; padding-top: 12px; }
+
+  /* content */
+  .kicker { font-size: 9.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: #0071e3; margin-bottom: 6px; font-weight: 700; }
+  .page h2 { font-size: 22pt; margin-bottom: 6px; color: #1d1d1f; }
+  .page .dek { font-size: 10.5pt; color: #6e6e73; max-width: 66ch; margin: 0 0 20px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 30px 1fr 190px;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eceeee;
+  }
+  .row:first-of-type { border-top: 1px solid #eceeee; }
+  .row .idx { font-family: 'Source Serif 4', serif; font-size: 15pt; font-weight: 600; color: #d8dce0; }
+  .row h3 { font-size: 12.5pt; font-weight: 700; margin: 0 0 3px; }
+  .row p { margin: 0; font-size: 9.3pt; color: #6e6e73; }
+  .row .tag { display: inline-block; margin-top: 5px; font-size: 7.6pt; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #9a5b00; background: #fff4e5; padding: 2px 7px; border-radius: 100px; }
+
+  .ab { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .ab .box { text-align: right; }
+  .ab .lbl { font-size: 7.2pt; letter-spacing: 0.05em; text-transform: uppercase; color: #9aa0a6; font-weight: 700; }
+  .ab .val { font-size: 12pt; font-weight: 700; }
+  .ab .before .val { color: #9aa0a6; text-decoration: line-through; text-decoration-color: #d8dce0; }
+  .ab .after .val { color: #0071e3; }
+  .ab .arrow { color: #d8dce0; font-size: 13pt; }
+
+  .cta-box { background: #0a1620; color: #fff; border-radius: 14px; padding: 22px 24px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .cta-box h3 { font-size: 15pt; color: #fff; font-weight: 700; font-family: 'Inter'; }
+  .cta-box p { color: #c3cbd6; font-size: 9.3pt; margin: 6px 0 0; }
+  .cta-box .price { font-size: 9.3pt; color: #ff9f0a; font-weight: 700; white-space: nowrap; }
+
+  .footnote { margin-top: 14px; font-size: 7.8pt; color: #9aa0a6; line-height: 1.6; }
+  .footnote b { color: #6e6e73; }
+
+  .pagefoot { position: absolute; bottom: 16mm; left: 16mm; right: 16mm; display: flex; justify-content: space-between; font-size: 8pt; color: #9aa0a6; border-top: 1px solid #eceeee; padding-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div class="brand"><span class="dot"></span>Ace Labs·</div>
+  <div>
+    <div class="eyebrow">Catálogo de automações &middot; Imobiliário</div>
+  </div>
+  <div>
+    <h1>Isto já dá para automatizar?</h1>
+    <p class="sub">Seis coisas que uma imobiliária faz hoje à mão, e o antes e o depois de as automatizar.</p>
+  </div>
+  <div class="footer">
+    <span>Ace Labs &middot; acelabs.pt</span>
+    <span>Setembro de 2026</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="page">
+  <div class="kicker">Imobiliário</div>
+  <h2>Seis automações, uma pergunta cada</h2>
+  <p class="dek">Para cada uma: dá para automatizar isto? Sim. Aqui está quanto tempo isso poupa.</p>
+
+  <div class="row">
+    <span class="idx">01</span>
+    <div><h3>Resposta a um lead novo</h3><p>WhatsApp ou chat responde de imediato, qualifica e agenda.</p></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">6&ndash;15h</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">&lt;2 min</div></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="idx">02</span>
+    <div><h3>Agendar uma visita</h3><p>O sistema propõe horários e marca sozinho, sem troca de mensagens.</p><span class="tag">Estimativa</span></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">~15 min</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">Instantâneo</div></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="idx">03</span>
+    <div><h3>Escrever o anúncio do imóvel</h3><p>Descrição gerada a partir da área, tipologia e zona.</p><span class="tag">Estimativa</span></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">~30 min</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">~5 min</div></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="idx">04</span>
+    <div><h3>Publicar num portal novo</h3><p>Idealista, OLX e site atualizados a partir de um só lugar.</p><span class="tag">Estimativa</span></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">~20 min</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">1 clique</div></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="idx">05</span>
+    <div><h3>Voltar a contactar um lead frio</h3><p>Sequência automática em vez de depender de alguém se lembrar.</p><span class="tag">Estimativa</span></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">Raramente</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">Sempre</div></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="idx">06</span>
+    <div><h3>Relatório semanal de vendas</h3><p>Funil, origem dos leads e conversão, gerados sozinhos.</p><span class="tag">Estimativa</span></div>
+    <div class="ab">
+      <div class="box before"><div class="lbl">Antes</div><div class="val">~2h</div></div>
+      <span class="arrow">&rarr;</span>
+      <div class="box after"><div class="lbl">Depois</div><div class="val">Automático</div></div>
+    </div>
+  </div>
+
+  <div class="cta-box">
+    <div><h3>Quer isto na sua imobiliária?</h3><p>Começamos com um diagnóstico de uma semana.</p></div>
+    <div class="price">900 a 1.500 EUR &middot; pedro@acelabs.pt</div>
+  </div>
+
+  <p class="footnote"><b>Fontes e rigor:</b> o item 01 (resposta a leads) usa dados amplamente citados no setor (MIT / InsideSales.com, via Harvard Business Review, e o INE sobre adoção de IA em Portugal). Os restantes itens estão marcados como "Estimativa": são tempos típicos de uma tarefa manual comum, não um estudo publicado, e servem para dar a escala do ganho, não um número exato.</p>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>Imobiliário</span></div>
+</div>
+
+</body>
+</html>
