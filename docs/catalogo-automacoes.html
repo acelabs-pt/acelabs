@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Catalogo Ace Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    color: #14181f;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .mono { font-family: "IBM Plex Mono", monospace; }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; margin: 0; }
+  .page { page-break-after: always; min-height: 257mm; position: relative; }
+  .page:last-child { page-break-after: auto; }
+
+  /* cover */
+  .cover { display: flex; flex-direction: column; justify-content: space-between; height: 257mm; }
+  .cover .brand { display: flex; align-items: center; gap: 10px; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13pt; }
+  .cover .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg,#c67d1f,#1c5c56); }
+  .cover .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 9.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: #868c86; margin-bottom: 14px; }
+  .cover h1 { font-size: 30pt; line-height: 1.12; max-width: 15ch; }
+  .cover .sub { font-size: 12pt; color: #4b524d; max-width: 42ch; margin-top: 16px; }
+  .cover .footer { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 9pt; color: #868c86; border-top: 1px solid #e1e0d9; padding-top: 12px; }
+
+  /* section pages */
+  .kicker { font-family: "IBM Plex Mono", monospace; font-size: 9.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: #1c5c56; margin-bottom: 8px; }
+  .page h2 { font-size: 22pt; margin-bottom: 4px; }
+  .page .dek { font-size: 11pt; color: #4b524d; max-width: 60ch; margin: 8px 0 22px; }
+
+  .stat-strip { display: flex; gap: 0; border: 1px solid #e1e0d9; border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+  .stat-box { flex: 1; padding: 14px 16px; border-right: 1px solid #e1e0d9; }
+  .stat-box:last-child { border-right: none; }
+  .stat-box .n { font-family: "Fraunces", serif; font-size: 20pt; font-weight: 600; color: #1c5c56; }
+  .stat-box .l { font-size: 8.8pt; color: #4b524d; margin-top: 3px; }
+
+  .item { display: grid; grid-template-columns: 26px 1fr; gap: 10px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #eceeec; }
+  .item:last-child { border-bottom: none; }
+  .item .idx { font-family: "IBM Plex Mono", monospace; font-size: 10pt; color: #c67d1f; font-weight: 600; padding-top: 2px; }
+  .item h3 { font-size: 12pt; font-weight: 600; font-family: "IBM Plex Sans"; margin-bottom: 3px; }
+  .item p { margin: 0; font-size: 9.7pt; color: #33362f; }
+  .item .src { display: block; margin-top: 4px; font-size: 8.3pt; color: #868c86; font-family: "IBM Plex Mono", monospace; }
+
+  .callout { background: #f1f4f3; border-left: 3px solid #1c5c56; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 9.3pt; color: #33362f; margin: 18px 0; }
+  .callout b { color: #14181f; }
+
+  table.sources { width: 100%; border-collapse: collapse; font-size: 8.6pt; }
+  table.sources th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: 0.04em; font-size: 7.8pt; color: #868c86; border-bottom: 1px solid #c3c2b7; padding: 4px 8px 6px 0; }
+  table.sources td { padding: 7px 8px 7px 0; border-bottom: 1px solid #eceeec; vertical-align: top; }
+
+  .cta-box { background: #14181f; color: #f6f7f6; border-radius: 14px; padding: 26px 28px; margin-top: 20px; }
+  .cta-box h3 { color: #f6f7f6; font-size: 16pt; }
+  .cta-box p { color: #c4c9c2; font-size: 9.7pt; margin: 8px 0 14px; }
+  .cta-box .price { font-family: "IBM Plex Mono", monospace; font-size: 9.5pt; color: #f6f7f6; }
+  .cta-box .price b { color: #e8a33d; }
+
+  .pagefoot { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 7.8pt; color: #868c86; border-top: 1px solid #e1e0d9; padding-top: 6px; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div>
+    <div class="brand"><span class="dot"></span>ACE LABS</div>
+  </div>
+  <div>
+    <div class="eyebrow">Catalogo de automacoes 2026</div>
+    <h1>O que ja e possivel automatizar no imobiliario, na contabilidade e na gestao financeira</h1>
+    <p class="sub">Um levantamento do que agencias, escritorios de contabilidade e PME ja estao a implementar hoje, com as fontes que sustentam cada numero, e onde Portugal ainda esta atrasado face a media europeia.</p>
+  </div>
+  <div class="footer">
+    <span>Ace Labs &middot; acelabs.pt</span>
+    <span>Setembro 2026</span>
+  </div>
+</div>
+
+<!-- WHY NOW -->
+<div class="page">
+  <div class="kicker">Porque agora</div>
+  <h2>Portugal esta atras, e isso e a oportunidade</h2>
+  <p class="dek">Os dados oficiais mostram um hiato real entre a adocao de IA em Portugal e a media europeia, sobretudo nas PME e no setor imobiliario. Quem automatizar primeiro fica com uma vantagem que ainda e rara no mercado.</p>
+
+  <div class="stat-strip">
+    <div class="stat-box"><div class="n">11,5%</div><div class="l">das empresas em Portugal usam IA (INE, nov. 2025)</div></div>
+    <div class="stat-box"><div class="n">5,5%</div><div class="l">e a adocao no setor "Construcao e atividades imobiliarias", a mais baixa de todos os setores medidos</div></div>
+    <div class="stat-box"><div class="n">~20%</div><div class="l">e a media de adocao de IA nas empresas da Uniao Europeia (Eurostat, 2025)</div></div>
+  </div>
+
+  <div class="item"><span class="idx">01</span><div><h3>PME portuguesas: adocao baixa, mas apetite alto</h3><p>Um inquerito a 400 PME portuguesas encontrou apenas 8,6% a usar IA atualmente, mas 27,8% ja disponiveis para investir em IA nos proximos 12 meses.</p><span class="src">Fonte: PME Magazine / Sapo, 2026</span></div></div>
+  <div class="item"><span class="idx">02</span><div><h3>A barreira nao e o preco, e o conhecimento</h3><p>Entre 50% e 71% das empresas que ainda nao adotaram IA apontam a falta de competencias internas como o principal obstaculo, mais do que o custo ou a regulacao.</p><span class="src">Fonte: OCDE, "AI adoption by SMEs", dez. 2025</span></div></div>
+  <div class="item"><span class="idx">03</span><div><h3>Onde a IA ja entra nas PME portuguesas</h3><p>As duas areas de aplicacao mais comuns hoje sao organizacao de processos administrativos (40,8%) e marketing ou vendas (36,9%), duas areas diretamente ligadas a captacao de leads e a gestao do dia a dia.</p><span class="src">Fonte: INE, Destaque 707462458, nov. 2025</span></div></div>
+
+  <div class="callout"><b>Leitura para o negocio:</b> o setor imobiliario tem a adocao mais baixa de todos, e a maioria das PME que ainda nao automatizaram dizem que e por falta de saber como, nao por falta de vontade. Isto e exatamente o espaco onde um diagnostico pago de uma semana resolve o primeiro obstaculo.</div>
+</div>
+
+<!-- IMOBILIARIO -->
+<div class="page">
+  <div class="kicker">Setor 1 &middot; Imobiliario</div>
+  <h2>As automacoes com maior impacto comprovado</h2>
+  <p class="dek">O ganho mais documentado do setor, de longe, e a velocidade de resposta a um lead. Os numeros abaixo vem de estudos amplamente citados na industria (MIT / InsideSales.com, via Harvard Business Review).</p>
+
+  <div class="stat-strip">
+    <div class="stat-box"><div class="n">21x</div><div class="l">mais provavel qualificar um lead contactado em 5 min vs. 30 min</div></div>
+    <div class="stat-box"><div class="n">23,4%</div><div class="l">taxa de conversao ao contactar em 60s, vs. 4,8% com 30 min de atraso</div></div>
+    <div class="stat-box"><div class="n">78%</div><div class="l">dos compradores acabam por fechar com o primeiro agente que lhes responde</div></div>
+  </div>
+
+  <div class="item"><span class="idx">01</span><div><h3>Resposta automatica a leads (WhatsApp / chatbot)</h3><p>Responder em segundos em vez de horas. O agente comercial humano ainda demora, em media, mais de 15 horas a responder a um lead, e leads fora de horario (41% do volume mensal) esperam uma mediana de 14,2 horas.</p><span class="src">Fonte: Hyperleap / Kyzo AI, dados de tempo de resposta em imobiliario, 2026</span></div></div>
+  <div class="item"><span class="idx">02</span><div><h3>Follow-up automatico ao longo do funil</h3><p>Sequencias automaticas de contacto que substituem o follow-up manual esporadico, mantendo o lead "quente" sem depender da disponibilidade de um agente.</p><span class="src">Descricao de mecanismo; impacto quantificado depende de cada operacao</span></div></div>
+  <div class="item"><span class="idx">03</span><div><h3>Agendamento automatico de visitas</h3><p>Marcacao de visitas sem intervencao humana, com lembretes automaticos para reduzir faltas.</p><span class="src">Mecanismo amplamente comercializado; sem estatistica independente de impacto confirmada</span></div></div>
+  <div class="item"><span class="idx">04</span><div><h3>Geracao de descricoes de imoveis com IA</h3><p>Texto de anuncio gerado automaticamente a partir dos dados estruturados do imovel (area, tipologia, zona), reduzindo o tempo de preparacao de um anuncio.</p><span class="src">Zillow, Redfin e Realtor.com ja testam ou usam geracao de descricoes por IA</span></div></div>
+  <div class="item"><span class="idx">05</span><div><h3>Sincronizacao automatica entre portais</h3><p>Publicacao e atualizacao automatica de anuncios em Idealista, OLX e outros portais a partir de um unico sistema.</p><span class="src">Funcionalidade estabelecida no mercado (Jetimob, CVCRM e outros)</span></div></div>
+  <div class="item"><span class="idx">06</span><div><h3>Relatorios automaticos de desempenho comercial</h3><p>Funil, origem de leads e taxa de conversao consolidados automaticamente, sem depender de reporting manual em Excel.</p><span class="src">Descricao de mecanismo</span></div></div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; Catalogo de automacoes</span><span>1/3 &middot; Imobiliario</span></div>
+</div>
+
+<!-- CONTABILIDADE -->
+<div class="page">
+  <div class="kicker">Setor 2 &middot; Contabilidade</div>
+  <h2>Da fatura em papel ao fecho de mes sem tarefas repetidas</h2>
+  <p class="dek">Aqui o motor da automacao e sobretudo regulatorio: o SAF-T e outras obrigacoes fiscais empurram os escritorios de contabilidade a digitalizar processos que ainda hoje sao manuais.</p>
+
+  <div class="item"><span class="idx">01</span><div><h3>OCR e classificacao automatica de faturas</h3><p>Captura de faturas e recibos, extracao de fornecedor, data, valor e IVA, com classificacao contabilistica e envio direto ao ERP.</p><span class="src">Sage Portugal, Okticket; sem estatistica independente de tempo poupado confirmada</span></div></div>
+  <div class="item"><span class="idx">02</span><div><h3>Conciliacao bancaria automatica</h3><p>Cruzamento automatico entre movimentos bancarios e registos contabilisticos, eliminando a verificacao linha a linha.</p><span class="src">Sage Advice Portugal</span></div></div>
+  <div class="item"><span class="idx">03</span><div><h3>SAF-T e obrigacoes fiscais automatizadas</h3><p>Geracao automatica dos ficheiros SAF-T de faturacao (mensal, ate ao dia 5) e de contabilidade, incluindo pre-preenchimento da IES.</p><span class="src">Obrigacao legal em vigor; SAF-T de contabilidade podera ser adiado ate 2028</span></div></div>
+  <div class="item"><span class="idx">04</span><div><h3>Pedido automatico de documentos em falta</h3><p>Comunicacao automatica com clientes para reclamar documentos pendentes antes do fecho, sem depender de um email manual da equipa.</p><span class="src">Descricao de mecanismo</span></div></div>
+  <div class="item"><span class="idx">05</span><div><h3>Dashboards automaticos de fecho de mes</h3><p>Substituicao do reporting manual em Excel por um painel que se atualiza sozinho a partir dos dados ja lancados.</p><span class="src">Descricao de mecanismo</span></div></div>
+
+  <div class="callout"><b>Nota de rigor:</b> varios fornecedores anunciam percentagens especificas de tempo poupado (por exemplo "reducao de 70%") atribuidas a consultoras como a Deloitte ou a Thomson Reuters. Nao encontramos os relatorios originais com esses numeros, por isso nao os usamos aqui. Preferimos nao ter um numero a citar um numero que nao conseguimos confirmar.</div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; Catalogo de automacoes</span><span>2/3 &middot; Contabilidade</span></div>
+</div>
+
+<!-- CONTROLO DE GESTAO -->
+<div class="page">
+  <div class="kicker">Setor 3 &middot; Controlo de gestao</div>
+  <h2>De relatorio mensal a visibilidade continua</h2>
+  <p class="dek">Em PME, o controlo de gestao ainda vive sobretudo em folhas de calculo atualizadas manualmente. A automacao aqui nao substitui a analise, liberta tempo para ela.</p>
+
+  <div class="item"><span class="idx">01</span><div><h3>Dashboards financeiros em tempo real</h3><p>Painel ligado diretamente ao ERP e a contabilidade, com saldo, cashflow e prazos sempre atualizados, em vez de um relatorio fechado uma vez por mes.</p><span class="src">Descricao de mecanismo</span></div></div>
+  <div class="item"><span class="idx">02</span><div><h3>Alertas automaticos de desvio orcamental</h3><p>Notificacao imediata quando uma despesa ultrapassa o limite definido por departamento, projeto ou fornecedor.</p><span class="src">Funcionalidade estabelecida em ferramentas de FP&amp;A (Cube, Vena, FloQast)</span></div></div>
+  <div class="item"><span class="idx">03</span><div><h3>Previsao automatica de cashflow</h3><p>Modelo que projeta entradas e saidas de caixa a partir do historico e da faturacao, para antecipar apertos de tesouraria.</p><span class="src">Mecanismo estabelecido; percentagens de precisao divulgadas por fornecedores nao sao verificaveis de forma independente</span></div></div>
+  <div class="item"><span class="idx">04</span><div><h3>Relatorios de gestao automaticos</h3><p>Substitui o relatorio manual em Excel por um documento gerado automaticamente a partir dos dados operacionais ja existentes.</p><span class="src">Descricao de mecanismo</span></div></div>
+  <div class="item"><span class="idx">05</span><div><h3>Integracao de vendas e despesas numa so vista</h3><p>Agregacao automatica de dados do CRM, da faturacao e das despesas, sem depender de exportar e juntar ficheiros a mao.</p><span class="src">Descricao de mecanismo</span></div></div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; Catalogo de automacoes</span><span>3/3 &middot; Controlo de gestao</span></div>
+</div>
+
+<!-- FONTES + CTA -->
+<div class="page">
+  <div class="kicker">Metodologia</div>
+  <h2>Fontes</h2>
+  <p class="dek">Usamos apenas estatisticas com fonte identificavel. Onde nao encontramos um numero fiavel, descrevemos o mecanismo sem inventar um valor.</p>
+
+  <table class="sources">
+    <tr><th>Dado</th><th>Fonte</th></tr>
+    <tr><td>Adocao de IA em Portugal por setor e dimensao (11,5%, 5,5% no imobiliario)</td><td>INE, Destaque 707462458, novembro 2025</td></tr>
+    <tr><td>Adocao de IA nas empresas da UE (~20%, por dimensao)</td><td>Eurostat, "Use of artificial intelligence in enterprises", 2025</td></tr>
+    <tr><td>Barreiras a adocao de IA em PME (falta de competencias)</td><td>OCDE, "AI adoption by small and medium-sized enterprises", dezembro 2025</td></tr>
+    <tr><td>Adocao de IA em 400 PME portuguesas (8,6% atual, 27,8% disponiveis)</td><td>PME Magazine / Sapo, 2026</td></tr>
+    <tr><td>Impacto do tempo de resposta a leads imobiliarios (21x, 391%, 23,4% vs 4,8%, 78%)</td><td>Amplamente citado na industria a partir de MIT / InsideSales.com, via Harvard Business Review; nao confirmamos o estudo primario diretamente</td></tr>
+    <tr><td>Obrigatoriedade e calendario do SAF-T</td><td>Tickelia e Odiverse, guias SAF-T/ATCUD 2025-2026</td></tr>
+  </table>
+
+  <div class="cta-box">
+    <h3>Quer ver isto aplicado ao seu negocio?</h3>
+    <p>Comecamos sempre por um diagnostico de uma semana: mapeamos os seus processos atuais e dizemos exatamente onde a automacao paga por si propria primeiro.</p>
+    <div class="price">Diagnostico: <b>900 a 1.500 EUR</b>, creditado no projeto seguinte &middot; pedro@acelabs.pt &middot; acelabs.pt</div>
+  </div>
+</div>
+
+</body>
+</html>
