@@ -35,6 +35,18 @@ a apontar para a sua copia local. Antes de mexer: `git pull`. Depois de terminar
 - Nunca usar travessao (-) em textos escritos para este projeto (documentos, copy do site,
   propostas); usar hifen (-) no lugar. Isto aplica-se mesmo a ficheiros que outra pessoa tenha
   escrito, sinalizar em vez de reescrever sem avisar.
+- Portugues de Portugal, com acentos e cedilhas corretos sempre (nao escrever "nao", "acao",
+  "imoveis", etc. sem acento). Reler o texto final a procura de acentos em falta antes de dar
+  como terminado, ja aconteceu um documento inteiro sair sem nenhum acento.
+
+## Identidade visual (extraida de site/index.html, a fonte da verdade)
+
+- Cores: fundo claro #ffffff / #f5f5f7, bege quente #EDEBE5, tinta #1d1d1f, texto secundario
+  #6e6e73, azul de marca #0071e3 (escuro #0059b3), seccoes escuras #0a1620, verde #1fae5a,
+  ambar #ff9f0a (par suave: fundo #fff4e5, texto #9a5b00).
+- Tipografia: Inter (sans, corpo e titulos) + Source Serif 4 (serifada, usada no logo "Ace Labs·"
+  e em titulos de destaque).
+- Qualquer novo documento/pagina desta marca deve usar estas cores e fontes, nao inventar outras.
 
 ## Backend / dados
 
