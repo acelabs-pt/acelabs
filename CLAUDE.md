@@ -15,6 +15,10 @@ Nome da empresa: **Ace Labs** (nao usar "IGNITE", nome antigo, descontinuado). D
 
 ## Fluxo de git
 
+Repositorio principal (org): **github.com/acelabs-pt/acelabs** (mudou de
+github.com/pedroroque98/acelabs a 13/09/2026; o antigo fica acessivel como remote
+`pedro-pessoal` na copia do Pedro, mas deixa de receber pushes novos).
+
 Este repositorio e partilhado entre o Pedro e o Miguel, cada um com o seu proprio Claude Code
 a apontar para a sua copia local. Antes de mexer: `git pull`. Depois de terminar: `git add -A
 && git commit -m "..." && git push`. Nao ha edicao em tempo real, e sincronizacao assincrona.
