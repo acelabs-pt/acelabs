@@ -16,6 +16,10 @@ Nome da empresa: **Ace Labs** (nao usar "IGNITE", nome antigo, descontinuado). D
 - `docs/` - plano de negocio, briefing, pacote de servicos (html/pdf/md).
 - `docs/piloto-alvorada/` - proposta, app demo e powerpoint de um piloto para um cliente
   hipotetico ("Alvorada Imoveis"), usado como material de vendas de exemplo.
+- `painel-gestao-base/` - esqueleto Next.js/Supabase reutilizavel para o produto "Painel de
+  Gestao" (ver preçario abaixo), extraido de um painel real construido para um cliente do setor
+  imobiliario. Sem nomes, marca ou dados desse cliente - so a arquitetura e os padroes, com o
+  contexto explicado no README.md dentro da pasta.
 
 ## Arquitetura
 
