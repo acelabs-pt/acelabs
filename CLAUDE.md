@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Ace Labs - contexto do projeto
 
 Empresa de automacao/IA para PMEs (Pedro + Miguel), foco de arranque no setor imobiliario.
@@ -12,6 +16,23 @@ Nome da empresa: **Ace Labs** (nao usar "IGNITE", nome antigo, descontinuado). D
 - `docs/` - plano de negocio, briefing, pacote de servicos (html/pdf/md).
 - `docs/piloto-alvorada/` - proposta, app demo e powerpoint de um piloto para um cliente
   hipotetico ("Alvorada Imoveis"), usado como material de vendas de exemplo.
+
+## Arquitetura
+
+Nao ha build step nem package.json - e um site estatico puro. `site/index.html` e um unico
+ficheiro auto-contido (HTML + CSS inline em `<style>` + JS inline), sem dependencias externas
+para alem de Google Fonts. Deploy no Vercel serve o ficheiro diretamente; nao ha comando de
+build/lint/test a correr, so editar o HTML e verificar no browser (ou com o MCP do Playwright,
+ja configurado em `.mcp.json`, para screenshots/navegacao automatizados).
+
+Os ficheiros HTML em `docs/` (briefing, pacote-servicos, arranque-operacional,
+catalogo-imobiliario) e em `docs/piloto-alvorada/` seguem o mesmo padrao de ficheiro unico
+auto-contido, e a mesma identidade visual descrita abaixo. As versoes `.pdf` sao exports desses
+HTML, gerados manualmente (nao ha script de geracao no repo) - ao editar um `.html` aqui,
+assinalar ao utilizador que o `.pdf` correspondente ficou desatualizado.
+
+`site/.vercel/` guarda credenciais de deployment (token) e esta corretamente no `.gitignore` -
+nunca remover essa entrada nem commitar esse diretorio.
 
 ## Fluxo de git
 
