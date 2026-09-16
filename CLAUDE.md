@@ -91,8 +91,12 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
 - Cores: fundo claro #ffffff / #f5f5f7, bege quente #EDEBE5, tinta #1d1d1f, texto secundário
   #6e6e73, azul de marca #0071e3 (escuro #0059b3), secções escuras #0a1620, verde #1fae5a,
   âmbar #ff9f0a (par suave: fundo #fff4e5, texto #9a5b00).
-- Tipografia: Inter (sans, corpo e títulos) + Source Serif 4 (serifada, usada no logo "Ace Labs·"
-  e em títulos de destaque).
+- Tipografia: stack de sistema `-apple-system, BlinkMacSystemFont, 'SF Pro Text'/'SF Pro Display',
+  'Inter', 'Segoe UI', Roboto, sans-serif` (corpo e títulos) + Source Serif 4 (serifada, usada no
+  logo "Ace Labs·" e em títulos de destaque). Mostra SF Pro real em Mac/iPhone/iPad; nos outros
+  sistemas cai para Inter (carregada via Google Fonts), a alternativa gratuita mais próxima do SF
+  Pro. Não incorporar ficheiros do SF Pro no site — a licença da Apple não cobre uso público fora
+  do ecossistema Apple.
 - Qualquer novo documento/página desta marca deve usar estas cores e fontes, não inventar outras.
 
 ## Backend / dados
