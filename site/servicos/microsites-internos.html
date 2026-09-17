@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ace Labs — Dashboards em tempo real</title>
-<meta name="description" content="Transformamos informação dispersa em dashboards inteligentes, com os indicadores mais importantes da sua empresa numa única plataforma.">
+<title>Ace Labs - Microsites internos</title>
+<meta name="description" content="Microsites internos para centralizar informação, facilitar a comunicação entre equipas e ganhar autonomia sem depender de suporte técnico.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
 <style>
@@ -15,6 +15,7 @@
     --ink-2:#6e6e73;
     --blue:#0071e3;
     --blue-dark:#0059b3;
+    --blue-soft-bg:#eaf2fd;
     --line:rgba(0,0,0,.08);
   }
   *{box-sizing:border-box;}
@@ -104,36 +105,81 @@
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
-  /* ARTIGO DE SERVIÇO — imagem + texto lado a lado */
+  /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
   .article-hero{padding:100px 0 60px;}
   .article-grid{
     display:grid;
-    grid-template-columns:1.7fr 1fr;
-    gap:44px;
+    grid-template-columns:1fr 1.25fr;
+    gap:56px;
     align-items:center;
   }
   .article-media img{width:100%;display:block;}
   .back-link{
     display:inline-flex;align-items:center;gap:8px;
     font-size:13.5px;font-weight:500;color:var(--ink-2);
-    margin-bottom:28px;
+    margin-bottom:24px;
   }
   .back-link:hover{color:var(--ink);}
+
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    margin-bottom:22px;
+  }
+  .kicker span{
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.14em;
+    color:var(--ink-2);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .kicker i{
+    flex:1;
+    height:1px;
+    background:var(--line);
+    max-width:120px;
+  }
+
   .article-body h1{
-    font-size:clamp(28px,3.2vw,38px);
-    line-height:1.12;
+    font-size:clamp(34px,4.4vw,50px);
+    line-height:1.05;
     letter-spacing:-0.02em;
     color:#0e0e10;
   }
-  .article-body h1 .muted{color:#9a9ca0;}
-  .article-body p{
-    font-size:16px;
-    line-height:1.65;
+  .article-tagline{
+    font-size:clamp(19px,2vw,23px);
+    line-height:1.4;
     color:var(--ink-2);
-    margin-top:18px;
+    font-weight:500;
+    margin-top:20px;
+    max-width:26ch;
   }
+
+  .feature-list{margin-top:44px;display:flex;flex-direction:column;gap:26px;}
+  .feature-item{display:flex;gap:16px;align-items:flex-start;}
+  .feature-icon{
+    flex:none;
+    width:52px;height:52px;
+    border-radius:14px;
+    background:var(--blue-soft-bg);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-icon svg{width:24px;height:24px;display:block;}
+  .feature-text h3{
+    font-size:16.5px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .feature-text p{
+    margin-top:5px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-2);
+  }
+
   .article-divider{
-    margin-top:28px;
+    margin-top:36px;
     border-top:1px solid var(--line);
   }
   .article-ctas{margin-top:28px;}
@@ -159,9 +205,9 @@
 
   @media (max-width:860px){
     .article-hero{padding:130px 0 70px;}
-    .article-grid{grid-template-columns:1fr;gap:36px;}
+    .article-grid{grid-template-columns:1fr;gap:40px;}
     .article-body{order:1;}
-    .article-media{order:2;max-width:420px;}
+    .article-media{order:2;}
   }
   @media (max-width:640px){
     .closing{padding:80px 0;}
@@ -186,19 +232,58 @@
 
 <header class="article-hero">
   <div class="wrap article-grid">
-    <div class="article-media">
-      <img src="dashboards-tempo-real.png" alt="Dashboard Ace Labs com visão geral de receitas, clientes, leads e margem, a juntar dados do Excel, Google Ads, Meta Ads, Shopify, HubSpot e outras fontes numa única plataforma.">
-    </div>
     <div class="article-body">
       <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <h1>Os dados da sua empresa. Finalmente, <span class="muted">todos no mesmo lugar.</span></h1>
-      <p>A sua empresa gera informação todos os dias. Vendas, faturação, clientes, produtividade, objetivos e resultados.</p>
-      <p>Mas quantas folhas de Excel precisa de abrir para perceber como está realmente o seu negócio?</p>
-      <p>Na Ace Labs, transformamos informação dispersa em dashboards inteligentes, que reúnem os indicadores mais importantes da sua empresa numa única plataforma.</p>
+      <div class="kicker"><span>Microsites internos</span><i aria-hidden="true"></i></div>
+      <h1>Microsites internos</h1>
+      <p class="article-tagline">Informação certa, sempre no mesmo lugar.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Centraliza informação</h3>
+            <p>Documentos, procedimentos e recursos sempre acessíveis.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16 20v-.8a4.2 4.2 0 0 0-2-3.6"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Facilita a comunicação</h3>
+            <p>Páginas dedicadas para equipas, departamentos, campanhas ou produtos.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>100% personalizado</h3>
+            <p>Design e estrutura adaptados à sua empresa.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M11 20V4"/><path d="M18 20v-7"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Mais autonomia e eficiência</h3>
+            <p>Atualizações simples e rápidas, sem depender de suporte técnico.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="article-divider"></div>
       <div class="hero-ctas article-ctas">
         <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
       </div>
+    </div>
+    <div class="article-media">
+      <img src="microsites-internos.png" alt="Quatro microsites internos (Recursos Humanos, Lançamento Nova Coleção, Campanha de Verão e Onboarding) e um portátil a mostrar o microsite de Operações, com secções de procedimentos, checklists, ferramentas e suporte.">
     </div>
   </div>
 </header>
@@ -206,7 +291,7 @@
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
-    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado — connosco ou sem nós.</p>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
       <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ace Labs — Dashboards em tempo real</title>
-<meta name="description" content="Transformamos informação dispersa em dashboards inteligentes, com os indicadores mais importantes da sua empresa numa única plataforma.">
+<title>Ace Labs - Workflows à medida</title>
+<meta name="description" content="Automatizamos os seus processos para que a sua equipa faça mais, com menos esforço.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
 <style>
@@ -15,6 +15,7 @@
     --ink-2:#6e6e73;
     --blue:#0071e3;
     --blue-dark:#0059b3;
+    --blue-soft-bg:#eaf2fd;
     --line:rgba(0,0,0,.08);
   }
   *{box-sizing:border-box;}
@@ -104,36 +105,63 @@
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
-  /* ARTIGO DE SERVIÇO — imagem + texto lado a lado */
+  /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
   .article-hero{padding:100px 0 60px;}
   .article-grid{
     display:grid;
-    grid-template-columns:1.7fr 1fr;
-    gap:44px;
+    grid-template-columns:1fr 1.25fr;
+    gap:56px;
     align-items:center;
   }
   .article-media img{width:100%;display:block;}
   .back-link{
     display:inline-flex;align-items:center;gap:8px;
     font-size:13.5px;font-weight:500;color:var(--ink-2);
-    margin-bottom:28px;
+    margin-bottom:24px;
   }
   .back-link:hover{color:var(--ink);}
+
   .article-body h1{
-    font-size:clamp(28px,3.2vw,38px);
-    line-height:1.12;
+    font-size:clamp(34px,4.4vw,50px);
+    line-height:1.05;
     letter-spacing:-0.02em;
     color:#0e0e10;
   }
   .article-body h1 .muted{color:#9a9ca0;}
-  .article-body p{
-    font-size:16px;
-    line-height:1.65;
+  .article-tagline{
+    font-size:clamp(19px,2vw,23px);
+    line-height:1.4;
     color:var(--ink-2);
-    margin-top:18px;
+    font-weight:500;
+    margin-top:20px;
+    max-width:30ch;
   }
+
+  .feature-list{margin-top:44px;display:flex;flex-direction:column;gap:26px;}
+  .feature-item{display:flex;gap:16px;align-items:flex-start;}
+  .feature-icon{
+    flex:none;
+    width:52px;height:52px;
+    border-radius:14px;
+    background:var(--blue-soft-bg);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-icon svg{width:24px;height:24px;display:block;}
+  .feature-text h3{
+    font-size:16.5px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .feature-text p{
+    margin-top:5px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-2);
+  }
+
   .article-divider{
-    margin-top:28px;
+    margin-top:36px;
     border-top:1px solid var(--line);
   }
   .article-ctas{margin-top:28px;}
@@ -159,9 +187,9 @@
 
   @media (max-width:860px){
     .article-hero{padding:130px 0 70px;}
-    .article-grid{grid-template-columns:1fr;gap:36px;}
+    .article-grid{grid-template-columns:1fr;gap:40px;}
     .article-body{order:1;}
-    .article-media{order:2;max-width:420px;}
+    .article-media{order:2;}
   }
   @media (max-width:640px){
     .closing{padding:80px 0;}
@@ -186,19 +214,57 @@
 
 <header class="article-hero">
   <div class="wrap article-grid">
-    <div class="article-media">
-      <img src="dashboards-tempo-real.png" alt="Dashboard Ace Labs com visão geral de receitas, clientes, leads e margem, a juntar dados do Excel, Google Ads, Meta Ads, Shopify, HubSpot e outras fontes numa única plataforma.">
-    </div>
     <div class="article-body">
       <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <h1>Os dados da sua empresa. Finalmente, <span class="muted">todos no mesmo lugar.</span></h1>
-      <p>A sua empresa gera informação todos os dias. Vendas, faturação, clientes, produtividade, objetivos e resultados.</p>
-      <p>Mas quantas folhas de Excel precisa de abrir para perceber como está realmente o seu negócio?</p>
-      <p>Na Ace Labs, transformamos informação dispersa em dashboards inteligentes, que reúnem os indicadores mais importantes da sua empresa numa única plataforma.</p>
+      <h1>Workflows <span class="muted">à medida</span></h1>
+      <p class="article-tagline">Automatizamos os seus processos para que a sua equipa faça mais, com menos esforço.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Automatização inteligente</h3>
+            <p>Ligamos as suas ferramentas e criamos fluxos adaptados ao seu negócio.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16 20v-.8a4.2 4.2 0 0 0-2-3.6"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Menos tarefas manuais</h3>
+            <p>Eliminamos trabalho repetitivo e libertamos a sua equipa para o que realmente importa.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Maior controlo</h3>
+            <p>Tudo o que acontece fica registado, com total visibilidade e acompanhamento.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Escalável e flexível</h3>
+            <p>Começamos pelo que precisa hoje e evoluímos à medida que o seu negócio cresce.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="article-divider"></div>
       <div class="hero-ctas article-ctas">
         <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
       </div>
+    </div>
+    <div class="article-media">
+      <img src="workflows-a-medida.png" alt="Diagrama de um workflow automatizado com as etapas Novo pedido, Processar dados, Atribuir tarefa e Concluir processo, ligado a um cartão de processos automatizados e a uma app Ace Labs com a lista de workflows ativos.">
     </div>
   </div>
 </header>
@@ -206,7 +272,7 @@
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
-    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado — connosco ou sem nós.</p>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
       <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
