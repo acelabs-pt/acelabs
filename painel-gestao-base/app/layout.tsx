@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AppLayout from "@/components/AppLayout";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -15,10 +15,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookieStore = await cookies();
   const isAuthenticated = !!cookieStore.get("auth_token");
 
+  // /cpcv/** tem o seu próprio layout e sessão (Supabase Auth) - nunca meter
+  // a sidebar genérica por cima, mesmo que haja também uma sessão do painel
+  // genérico activa ao mesmo tempo.
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const isCpcv = pathname.startsWith("/cpcv");
+
   return (
     <html lang="pt" className={inter.variable}>
       <body className="antialiased font-sans bg-[#F4F3EF]">
-        {isAuthenticated ? (
+        {isAuthenticated && !isCpcv ? (
           <AppLayout>{children}</AppLayout>
         ) : (
           children
