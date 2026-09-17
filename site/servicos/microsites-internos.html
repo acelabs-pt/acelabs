@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ace Labs - Microsites internos</title>
+<meta name="description" content="Microsites internos para centralizar informação, facilitar a comunicação entre equipas e ganhar autonomia sem depender de suporte técnico.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --blue:#0071e3;
+    --blue-dark:#0059b3;
+    --blue-soft-bg:#eaf2fd;
+    --line:rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background:linear-gradient(180deg, #ffffff 0%, #f4f5f7 55%, #eef0f3 100%);
+  }
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.015em;}
+  p{margin:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  .serif{font-family:'Source Serif 4',Georgia,serif;}
+
+  /* NAV (igual ao site principal) */
+  body > nav{
+    position:fixed;top:0;left:0;right:0;
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition:background .25s ease, border-color .25s ease;
+    z-index:100;
+  }
+  body > nav.scrolled{
+    background:rgba(250,250,250,.82);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom-color:rgba(0,0,0,.07);
+  }
+  body > nav .wrap{
+    height:70px;
+    max-width:1520px;
+    padding:0 clamp(24px,4vw,64px);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;
+  }
+  .logo{display:flex;align-items:center;}
+  .logo img{height:20px;width:auto;display:block;}
+  .navlinks{display:flex;gap:38px;}
+  .navlinks a{
+    font-size:14.5px;
+    color:#3d3d40;
+    font-weight:450;
+    letter-spacing:-0.005em;
+    transition:color .15s ease;
+  }
+  .navlinks a:hover{color:#000;}
+  .nav-cta{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:14px;
+    font-weight:500;
+    background:#141414;
+    color:#fff;
+    padding:12px 22px;
+    border-radius:980px;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:#000;}
+  a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
+
+  /* BOTOES-PILULA */
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-dark{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:#141414;color:#fff;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease;
+  }
+  .btn-dark:hover{background:#000;}
+  .btn-outline{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:rgba(255,255,255,.7);
+    border:1px solid rgba(20,20,20,.16);
+    color:#1c1c1e;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
+
+  /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
+  .article-hero{padding:100px 0 60px;}
+  .article-grid{
+    display:grid;
+    grid-template-columns:1fr 1.25fr;
+    gap:56px;
+    align-items:center;
+  }
+  .article-media img{width:100%;display:block;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13.5px;font-weight:500;color:var(--ink-2);
+    margin-bottom:24px;
+  }
+  .back-link:hover{color:var(--ink);}
+
+  .kicker{
+    display:flex;align-items:center;gap:14px;
+    margin-bottom:22px;
+  }
+  .kicker span{
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.14em;
+    color:var(--ink-2);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .kicker i{
+    flex:1;
+    height:1px;
+    background:var(--line);
+    max-width:120px;
+  }
+
+  .article-body h1{
+    font-size:clamp(34px,4.4vw,50px);
+    line-height:1.05;
+    letter-spacing:-0.02em;
+    color:#0e0e10;
+  }
+  .article-tagline{
+    font-size:clamp(19px,2vw,23px);
+    line-height:1.4;
+    color:var(--ink-2);
+    font-weight:500;
+    margin-top:20px;
+    max-width:26ch;
+  }
+
+  .feature-list{margin-top:44px;display:flex;flex-direction:column;gap:26px;}
+  .feature-item{display:flex;gap:16px;align-items:flex-start;}
+  .feature-icon{
+    flex:none;
+    width:52px;height:52px;
+    border-radius:14px;
+    background:var(--blue-soft-bg);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-icon svg{width:24px;height:24px;display:block;}
+  .feature-text h3{
+    font-size:16.5px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .feature-text p{
+    margin-top:5px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-2);
+  }
+
+  .article-divider{
+    margin-top:36px;
+    border-top:1px solid var(--line);
+  }
+  .article-ctas{margin-top:28px;}
+
+  /* CLOSING CTA (igual ao site principal) */
+  .closing{padding:120px 0;text-align:center;}
+  .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
+  .closing p{margin-top:18px;font-size:19px;color:var(--ink-2);max-width:40ch;margin-left:auto;margin-right:auto;}
+  .closing .hero-ctas{margin-top:34px;justify-content:center;}
+  .closing .btn-dark{background:var(--ink);color:#fff;}
+  .closing .btn-dark:hover{background:#000;}
+
+  footer{
+    padding:40px 0;
+    font-size:12px;
+    color:var(--ink-2);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:1px solid var(--line);
+  }
+  footer img{height:16px;width:auto;display:block;opacity:.85;}
+
+  @media (max-width:860px){
+    .article-hero{padding:130px 0 70px;}
+    .article-grid{grid-template-columns:1fr;gap:40px;}
+    .article-body{order:1;}
+    .article-media{order:2;}
+  }
+  @media (max-width:640px){
+    .closing{padding:80px 0;}
+    .closing h2{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <div class="navlinks">
+      <a href="../index.html#servicos">Serviços</a>
+      <a href="../index.html#como-funciona">Como funciona</a>
+      <a href="../index.html#recursos">Recursos</a>
+      <a href="../index.html#empresa">Empresa</a>
+    </div>
+    <a href="../index.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<header class="article-hero">
+  <div class="wrap article-grid">
+    <div class="article-body">
+      <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <div class="kicker"><span>Microsites internos</span><i aria-hidden="true"></i></div>
+      <h1>Microsites internos</h1>
+      <p class="article-tagline">Informação certa, sempre no mesmo lugar.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Centraliza informação</h3>
+            <p>Documentos, procedimentos e recursos sempre acessíveis.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="17.5" cy="9.5" r="2.3"/><path d="M16 20v-.8a4.2 4.2 0 0 0-2-3.6"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Facilita a comunicação</h3>
+            <p>Páginas dedicadas para equipas, departamentos, campanhas ou produtos.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>100% personalizado</h3>
+            <p>Design e estrutura adaptados à sua empresa.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M11 20V4"/><path d="M18 20v-7"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Mais autonomia e eficiência</h3>
+            <p>Atualizações simples e rápidas, sem depender de suporte técnico.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-divider"></div>
+      <div class="hero-ctas article-ctas">
+        <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
+      </div>
+    </div>
+    <div class="article-media">
+      <img src="microsites-internos.png" alt="Quatro microsites internos (Recursos Humanos, Lançamento Nova Coleção, Campanha de Verão e Onboarding) e um portátil a mostrar o microsite de Operações, com secções de procedimentos, checklists, ferramentas e suporte.">
+    </div>
+  </div>
+</header>
+
+<section class="closing" id="contacto">
+  <div class="wrap">
+    <h2>Vamos ver onde está a perder mais tempo?</h2>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
+    <div class="hero-ctas">
+      <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+    <a href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <span>Braga · Guimarães</span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var n=document.querySelector("nav");
+    var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
+    f();window.addEventListener("scroll",f,{passive:true});
+  })();
+</script>
+
+</body>
+</html>

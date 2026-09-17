@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ace Labs - Serviços personalizados</title>
+<meta name="description" content="Soluções à medida dos seus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a sua empresa precisa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --blue:#147afd;
+    --blue-dark:#0f5fc7;
+    --blue-soft-bg:#eaf2fd;
+    --muted-2:#6c6d7c;
+    --line:rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background:linear-gradient(180deg, #ffffff 0%, #f4f5f7 55%, #eef0f3 100%);
+  }
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.015em;}
+  p{margin:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  .serif{font-family:'Source Serif 4',Georgia,serif;}
+
+  /* NAV (igual ao site principal) */
+  body > nav{
+    position:fixed;top:0;left:0;right:0;
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition:background .25s ease, border-color .25s ease;
+    z-index:100;
+  }
+  body > nav.scrolled{
+    background:rgba(250,250,250,.82);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom-color:rgba(0,0,0,.07);
+  }
+  body > nav .wrap{
+    height:70px;
+    max-width:1520px;
+    padding:0 clamp(24px,4vw,64px);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;
+  }
+  .logo{display:flex;align-items:center;}
+  .logo img{height:20px;width:auto;display:block;}
+  .navlinks{display:flex;gap:38px;}
+  .navlinks a{
+    font-size:14.5px;
+    color:#3d3d40;
+    font-weight:450;
+    letter-spacing:-0.005em;
+    transition:color .15s ease;
+  }
+  .navlinks a:hover{color:#000;}
+  .nav-cta{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:14px;
+    font-weight:500;
+    background:#141414;
+    color:#fff;
+    padding:12px 22px;
+    border-radius:980px;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:#000;}
+  a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
+
+  /* BOTOES-PILULA */
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-dark{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:#141414;color:#fff;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease;
+  }
+  .btn-dark:hover{background:#000;}
+  .btn-outline{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:rgba(255,255,255,.7);
+    border:1px solid rgba(20,20,20,.16);
+    color:#1c1c1e;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
+
+  /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
+  .article-hero{padding:86px 0 24px;}
+  .article-grid{
+    display:grid;
+    grid-template-columns:0.95fr 1.4fr;
+    gap:40px;
+    align-items:center;
+  }
+  .article-media{overflow:visible;}
+  .article-media img{
+    width:100%;
+    display:block;
+    transform:scale(1.14);
+    transform-origin:center;
+    mask-image:radial-gradient(ellipse 68% 68% at 50% 50%, #000 58%, transparent 100%);
+    -webkit-mask-image:radial-gradient(ellipse 68% 68% at 50% 50%, #000 58%, transparent 100%);
+  }
+  .back-link{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13.5px;font-weight:500;color:var(--ink-2);
+    margin-bottom:24px;
+  }
+  .back-link:hover{color:var(--ink);}
+
+  .article-body h1{
+    font-size:clamp(34px,4.4vw,50px);
+    line-height:1.05;
+    letter-spacing:-0.02em;
+    color:#0e0e10;
+  }
+  .article-body h1 .muted{color:var(--muted-2);}
+  .article-tagline{
+    font-size:clamp(18px,1.8vw,21px);
+    line-height:1.4;
+    color:#15161c;
+    font-weight:500;
+    margin-top:20px;
+    max-width:34ch;
+  }
+
+  .feature-list{margin-top:28px;display:flex;flex-direction:column;gap:16px;}
+  .feature-item{display:flex;gap:16px;align-items:flex-start;}
+  .feature-icon{
+    flex:none;
+    width:44px;height:44px;
+    border-radius:12px;
+    background:var(--blue-soft-bg);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-icon svg{width:21px;height:21px;display:block;}
+  .feature-text h3{
+    font-size:16.5px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .feature-text p{
+    margin-top:5px;
+    font-size:14.5px;
+    line-height:1.45;
+    color:var(--muted-2);
+  }
+
+  /* EXEMPLOS DE SOLUÇÕES À MEDIDA */
+  .examples{
+    padding:32px 0 40px;
+    border-top:1px solid var(--line);
+  }
+  .examples-eyebrow{
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.14em;
+    color:var(--muted-2);
+    text-transform:uppercase;
+  }
+  .examples-grid{
+    margin-top:22px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:28px 32px;
+  }
+  .example-item .feature-icon{width:44px;height:44px;border-radius:12px;margin-bottom:12px;}
+  .example-item .feature-icon svg{width:22px;height:22px;}
+  .example-item h3{
+    font-size:16px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .example-item p{
+    margin-top:7px;
+    font-size:14px;
+    line-height:1.45;
+    color:var(--muted-2);
+  }
+
+  .examples-footer{
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  .examples-quote{
+    font-family:'Source Serif 4',Georgia,serif;
+    font-style:italic;
+    font-size:20px;
+    color:var(--ink);
+  }
+  .examples-tag{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.12em;
+    color:var(--ink-2);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+
+  /* CLOSING CTA (igual ao site principal) */
+  .closing{padding:120px 0;text-align:center;}
+  .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
+  .closing p{margin-top:18px;font-size:19px;color:var(--ink-2);max-width:40ch;margin-left:auto;margin-right:auto;}
+  .closing .hero-ctas{margin-top:34px;justify-content:center;}
+  .closing .btn-dark{background:var(--ink);color:#fff;}
+  .closing .btn-dark:hover{background:#000;}
+
+  footer{
+    padding:40px 0;
+    font-size:12px;
+    color:var(--ink-2);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:1px solid var(--line);
+  }
+  footer img{height:16px;width:auto;display:block;opacity:.85;}
+
+  @media (max-width:860px){
+    .article-hero{padding:130px 0 70px;}
+    .article-grid{grid-template-columns:1fr;gap:40px;}
+    .article-body{order:1;}
+    .article-media{order:2;}
+    .examples-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:640px){
+    .closing{padding:80px 0;}
+    .closing h2{font-size:30px;}
+    .examples-grid{grid-template-columns:1fr;}
+    .examples-footer{align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <div class="navlinks">
+      <a href="../index.html#servicos">Serviços</a>
+      <a href="../index.html#como-funciona">Como funciona</a>
+      <a href="../index.html#recursos">Recursos</a>
+      <a href="../index.html#empresa">Empresa</a>
+    </div>
+    <a href="../index.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+
+<header class="article-hero">
+  <div class="wrap article-grid">
+    <div class="article-body">
+      <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <h1>Serviços <span class="muted">personalizados</span></h1>
+      <p class="article-tagline">Soluções à medida dos seus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a sua empresa precisa.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Foco no seu negócio</h3>
+            <p>Soluções alinhadas com as suas prioridades.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Totalmente à medida</h3>
+            <p>Adaptamos ferramentas, processos e integrações.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Resultados reais</h3>
+            <p>Mais eficiência, controlo e crescimento.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="article-media">
+      <img src="servicos-personalizados.png" alt="Mockup de uma solução à medida com etapas Analisar necessidades, Desenhar solução, Implementar e Acompanhar e evoluir, ligado a cartões de IA e automação, integrações e solução única.">
+    </div>
+  </div>
+</header>
+
+<section class="examples">
+  <div class="wrap">
+    <span class="examples-eyebrow">Exemplos de soluções à medida</span>
+    <div class="examples-grid">
+      <div class="example-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h3>Integrações específicas</h3>
+        <p>Ligação a ferramentas e sistemas da sua empresa.</p>
+      </div>
+      <div class="example-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>Automatizações avançadas</h3>
+        <p>Processos adaptados à sua realidade.</p>
+      </div>
+      <div class="example-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+        </div>
+        <h3>Soluções com IA</h3>
+        <p>Desde análise de dados a assistentes virtuais personalizados.</p>
+      </div>
+      <div class="example-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#147afd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>
+        </div>
+        <h3>Outros projetos</h3>
+        <p>Se o seu desafio não está na lista, fazemos a solução certa para si.</p>
+      </div>
+    </div>
+    <div class="examples-footer">
+      <span class="examples-quote">Ideias sem limites.</span>
+      <span class="examples-tag">Soluções que fazem a diferença.</span>
+    </div>
+  </div>
+</section>
+
+<section class="closing" id="contacto">
+  <div class="wrap">
+    <h2>Vamos ver onde está a perder mais tempo?</h2>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
+    <div class="hero-ctas">
+      <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+    <a href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <span>Braga · Guimarães</span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var n=document.querySelector("nav");
+    var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
+    f();window.addEventListener("scroll",f,{passive:true});
+  })();
+</script>
+
+</body>
+</html>
