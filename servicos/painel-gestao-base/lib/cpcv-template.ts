@@ -59,9 +59,24 @@ type Processo = Record<string, unknown> & {
   observacoes_adicionais: string | null;
 };
 
+// Todo o texto livre (extraído pela IA ou escrito pela gestora - morada, observações,
+// nome das partes, etc.) acaba nesta string HTML que é passada directamente a
+// page.setContent() do Playwright para gerar o PDF - sem escaping, uma morada ou
+// observação com "<b>", "<script>" ou "&" era interpretada como markup real (testado:
+// alterava mesmo o aspecto do documento gerado). v() é o ponto central por onde passa
+// quase todo o texto, por isso escapa aqui em vez de em cada local de interpolação.
+function escapeHtml(texto: string): string {
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function v(value: unknown, fallback = "____________"): string {
   if (value === null || value === undefined || value === "") return fallback;
-  return String(value);
+  return escapeHtml(String(value));
 }
 
 function euros(value: number | null): string {
@@ -76,7 +91,7 @@ function valorPorExtenso(value: number): string {
 function dataPT(iso: string | null): string {
   if (!iso) return "____________";
   const [ano, mes, dia] = iso.split("-");
-  if (!ano || !mes || !dia) return iso;
+  if (!ano || !mes || !dia) return escapeHtml(iso);
   return `${dia}/${mes}/${ano}`;
 }
 
@@ -98,7 +113,7 @@ function identificacaoParte(p: Parte): string {
     }, aqui representada por ${v(p.representante_nome, "representante com poderes para o acto")}`;
   }
   return `${v(p.nome)}, ${v(p.estado_civil, "estado civil não indicado")}${
-    regimeBensValido(p.regime_bens) ? `, casado sob o regime de ${p.regime_bens}` : ""
+    regimeBensValido(p.regime_bens) ? `, casado sob o regime de ${v(p.regime_bens)}` : ""
   }${p.naturalidade ? `, natural de ${p.naturalidade}` : ""}, de nacionalidade ${v(
     p.nacionalidade,
     "não indicada"

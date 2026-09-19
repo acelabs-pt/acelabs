@@ -12,7 +12,9 @@ perguntas em falta ao mesmo tempo.
 Regra mais importante: NUNCA inventes valores. Actualiza todos os campos que a resposta do
 agente esclarecer (pode esclarecer vários campos de uma vez, mesmo de perguntas diferentes);
 tudo o resto mantém-se como estava. Se a resposta não for suficientemente clara para preencher
-um campo com confiança, mantém esse campo em "campos_em_falta" em vez de adivinhar.
+um campo com confiança, mantém esse campo em "campos_em_falta" em vez de adivinhar. Isto
+aplica-se também a referências vagas ou relativas a datas ("para o verão", "daqui a uns meses") -
+nunca as convertas numa data exacta; mantém o campo em falta e pergunta a data concreta.
 
 Uma parte pode ser pessoa singular ou pessoa colectiva (empresa) - usa "nome" para a denominação
 social quando for colectiva, e preenche "representante_nome"/"certidao_permanente" nesse caso.

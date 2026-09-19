@@ -21,20 +21,38 @@ tentar registar).
 - `docs/` - plano de negócio, briefing, pacote de serviços (html/pdf/md).
 - `docs/piloto-alvorada/` - proposta, app demo e powerpoint de um piloto para um cliente
   hipotético ("Alvorada Imóveis"), usado como material de vendas de exemplo.
-- `painel-gestao-base/` - esqueleto Next.js/Supabase reutilizável para o produto "Painel de
-  Gestão" (ver preçário abaixo), extraído de um painel real construído para um cliente do setor
+- `servicos/` - o código dos serviços que vendemos, um subdiretório por serviço.
+- `servicos/painel-gestao-base/` - esqueleto Next.js/Supabase reutilizável para o produto "Painel
+  de Gestão" (ver preçário abaixo), extraído de um painel real construído para um cliente do setor
   imobiliário. Sem nomes, marca ou dados desse cliente - só a arquitetura e os padrões, com o
-  contexto explicado no README.md dentro da pasta.
+  contexto explicado no README.md dentro da pasta. Contém também o serviço "CPCV com IA" (ver
+  secção abaixo); tem um CLAUDE.md próprio com a arquitetura detalhada dessa parte.
 - `business-center/` - pasta local, no `.gitignore`, não deve ir para o GitHub (repositório
   público).
 
+## Serviços em construção
+
+**CPCV com IA** (dentro de `servicos/painel-gestao-base`, secção `/cpcv`) - geração assistida de
+Contratos-Promessa de Compra e Venda para agências imobiliárias. O agente imobiliário larga
+documentos/texto, a IA (Claude Haiku) extrai os dados e pergunta o que falta por chat, a gestora
+de processos aprova, e a plataforma gera o CPCV em PDF e Word. É um serviço a oferecer a clientes
+do setor imobiliário, não só uma demo - encaixa no produto "Painel de Gestão" / "Automação de
+Processos" do preçário.
+
+Dados sensíveis desta secção que **nunca** vão para o repositório (público):
+- `servicos/painel-gestao-base/minutas/` - minutas reais de clientes, com nomes, NIFs e moradas
+  de pessoas reais. Está no `.gitignore` da pasta; serve só de referência local para alinhar o
+  gerador de documentos com os modelos reais.
+- `.env.local` - chaves Supabase, chave da API da Anthropic, códigos de convite.
+
 ## Arquitetura
 
-Não há build step nem package.json - é um site estático puro. `site/index.html` é um único
-ficheiro auto-contido (HTML + CSS inline em `<style>` + JS inline), sem dependências externas
-para além de Google Fonts. Deploy no Vercel serve o ficheiro diretamente; não há comando de
-build/lint/test a correr, só editar o HTML e verificar no browser (ou com o MCP do Playwright,
-já configurado em `.mcp.json`, para screenshots/navegação automatizados).
+O `site/` não tem build step nem package.json - é um site estático puro. `site/index.html` é um
+único ficheiro auto-contido (HTML + CSS inline em `<style>` + JS inline), sem dependências
+externas para além de Google Fonts. Deploy no Vercel serve o ficheiro diretamente; não há comando
+de build/lint/test a correr, só editar o HTML e verificar no browser (ver secção seguinte sobre
+como verificar no browser). As aplicações em `servicos/` são projetos Next.js normais, cada um
+com o seu `package.json` (`npm run dev` / `npm run build` / `npm run lint`).
 
 Deploy: projeto Vercel "ace-labs", com Root Directory definido como `site`, ligado ao domínio
 acelabs.pt. Push para `main` despoleta deploy automático em produção.
@@ -47,6 +65,22 @@ assinalar ao utilizador que o `.pdf` correspondente ficou desatualizado.
 
 `site/.vercel/` guarda credenciais de deployment (token) e está corretamente no `.gitignore` -
 nunca remover essa entrada nem commitar esse diretório.
+
+## Verificação no browser (sem MCP)
+
+Este repositório **não tem nenhum MCP de browser configurado, e não deve voltar a ter** - não
+criar `.mcp.json` com playwright/chrome-devtools. Um servidor MCP de browser sempre ligado
+devolve a árvore de acessibilidade inteira da página a cada interação, o que numa sessão de
+testes consome a maior parte da janela de contexto sem necessidade (medido: ~8.850 bytes por um
+simples login, contra 38 bytes a fazer o mesmo com um script; ordem de ~230x).
+
+Em vez disso usar a skill **`browser-check`** (`.claude/skills/browser-check/SKILL.md`): escrever
+um script Playwright descartável no scratchpad, correr com o Bash, e imprimir só o que interessa
+(um `textContent`, um screenshot para ficheiro, um pequeno JSON). O Playwright já está instalado
+em `servicos/painel-gestao-base/node_modules`. Regras a manter:
+- Nunca fazer `page.content()` nem `page.accessibility.snapshot()` para "ver a página".
+- Nunca despejar HTML, logs de consola em bruto ou listagens completas para o contexto.
+- Para ver o aspeto de uma página, tirar screenshot para ficheiro e ler o ficheiro.
 
 ## Conteúdo do site
 
@@ -95,17 +129,18 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
   'Inter', 'Segoe UI', Roboto, sans-serif` (corpo e títulos) + Source Serif 4 (serifada, usada no
   logo "Ace Labs·" e em títulos de destaque). Mostra SF Pro real em Mac/iPhone/iPad; nos outros
   sistemas cai para Inter (carregada via Google Fonts), a alternativa gratuita mais próxima do SF
-  Pro. Não incorporar ficheiros do SF Pro no site — a licença da Apple não cobre uso público fora
+  Pro. Não incorporar ficheiros do SF Pro no site - a licença da Apple não cobre uso público fora
   do ecossistema Apple.
 - Qualquer novo documento/página desta marca deve usar estas cores e fontes, não inventar outras.
 
 ## Backend / dados
 
-Supabase está a ser adotado como base de dados/backend do projeto (ainda em configuração,
-setembro 2026). Quando existir schema definido, documentar aqui as tabelas principais.
+Supabase é a base de dados/backend do projeto. O schema em uso está nos ficheiros SQL dentro de
+`servicos/painel-gestao-base/` (`create_tables_base.sql`, `create_tables_cpcv.sql`,
+`migration_fase2.sql`) e as tabelas do CPCV estão explicadas no CLAUDE.md dessa pasta. Um projeto
+Supabase por cliente, nunca reutilizar o mesmo entre projetos.
 
 ## Regras de resposta (Claude Code)
 
 - Responder sempre em português de Portugal.
 - Respostas diretas e concisas.
-</content>

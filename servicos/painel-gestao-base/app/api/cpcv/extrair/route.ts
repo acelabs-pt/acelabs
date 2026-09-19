@@ -45,7 +45,10 @@ altura (mais documentos, mais texto, um link de um anúncio).
 
 Regra mais importante: NUNCA inventes valores (nomes, NIFs, moradas, preços, datas). Só extrais o
 que está mesmo presente nos documentos/texto/página fornecidos. Tudo o resto entra em
-"campos_em_falta" com uma pergunta em português simples e directa para perguntar ao agente.
+"campos_em_falta" com uma pergunta em português simples e directa para perguntar ao agente. Isto
+aplica-se também a referências vagas ou relativas a datas ("para o verão", "daqui a uns meses",
+"em breve") - nunca as convertas numa data exacta (ex.: "verão" não é dia 31 de Julho); deixa o
+campo em falta e pergunta a data concreta.
 
 Regra igualmente importante: se já havia dados de uma análise anterior (indicados abaixo em
 "Estado actual"), NUNCA os apagues nem os substituas por null - mantém-nos, e só actualizas um

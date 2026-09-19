@@ -73,6 +73,15 @@ async function cpcvMiddleware(req: NextRequest, requestHeaders: Headers) {
   } = await supabase.auth.getUser();
 
   if (!user && !isPublic) {
+    // Rotas de API nunca devem ser redireccionadas para uma página HTML - o
+    // frontend faz sempre res.json() na resposta, e um redirect para /cpcv/login
+    // devolve 200 com HTML, o que rebenta esse parse em vez de mostrar um erro
+    // limpo de "sessão expirada" (apanhado a testar sessão expirada a meio de
+    // uma acção).
+    if (req.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Sessão inválida ou expirada." }, { status: 401 });
+    }
+
     const url = req.nextUrl.clone();
     url.pathname = "/cpcv/login";
     return NextResponse.redirect(url);

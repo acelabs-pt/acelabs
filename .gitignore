@@ -4,3 +4,7 @@ node_modules
 Thumbs.db
 .playwright-mcp/
 business-center/
+
+# estado local do Claude Code (as skills em .claude/skills/ são partilhadas, o resto não)
+.claude/scheduled_tasks.lock
+.claude/settings.local.json

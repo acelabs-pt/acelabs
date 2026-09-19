@@ -28,6 +28,10 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# minutas reais de clientes (dados pessoais - nomes, NIFs, moradas - nunca vão para o
+# repositório público; ficam só localmente para servir de referência ao gerador de documentos)
+/minutas
+
 # vercel
 .vercel
 
