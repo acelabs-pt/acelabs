@@ -15,6 +15,7 @@ import {
   financiamentoAvaliacaoAtivo,
   clausulaFinanciamentoAvaliacao,
   clausulaDeclaracaoCondominio,
+  textoFormaPagamentoSinal,
   ORDINAIS,
   type ClausulaTexto,
 } from "./cpcv-clausulas";
@@ -124,10 +125,9 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
           METODO_PAGAMENTO_LABEL[processo.metodo_pagamento ?? ""],
           "meio de pagamento a definir"
         )}, da seguinte forma:`,
-        `a) A título de sinal e princípio de pagamento, a quantia de ${euros(processo.valor_sinal)}, paga ${v(
-          processo.forma_pagamento_sinal,
-          "na data da assinatura do presente contrato"
-        )}${processo.prazo_pagamento_sinal ? `, ${v(processo.prazo_pagamento_sinal)}` : ""}${
+        `a) A título de sinal e princípio de pagamento, a quantia de ${euros(
+          processo.valor_sinal
+        )}, paga ${textoFormaPagamentoSinal(helpers, processo)}${
           processo.iban_sinal ? `, para o IBAN ${v(processo.iban_sinal)}` : ""
         }${processo.reforco_sinal ? `, com reforço de sinal de ${v(processo.reforco_sinal)}` : ""};`,
         "b) O remanescente do preço será pago na data da celebração da escritura pública de compra e venda, através de meio de pagamento idóneo.",

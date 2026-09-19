@@ -17,7 +17,7 @@ export function identificacaoParte(h: Helpers, p: Parte): string {
     }`;
   }
   return `${h.v(p.nome)}, ${h.v(p.estado_civil, "estado civil não indicado")}${
-    regimeBensValido(p.regime_bens) ? `, casado sob o regime de ${h.v(p.regime_bens)}` : ""
+    regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
   }${p.naturalidade ? `, natural de ${p.naturalidade}` : ""}, de nacionalidade ${h.v(
     p.nacionalidade,
     "não indicada"
@@ -74,6 +74,22 @@ export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
     return [identificacaoCasal(h, partes[0], partes[1])];
   }
   return partes.map((p) => identificacaoParte(h, p));
+}
+
+// "paga [forma], [prazo]" (ex.: "paga por transferência bancária, no acto da assinatura").
+// forma_pagamento_sinal (como) e prazo_pagamento_sinal (quando) só existem se a IA os extraiu
+// de texto livre - não há formulário estruturado para eles. Quando só "prazo" está preenchido,
+// concatenar directamente com o fallback antigo de "forma" ("na data da assinatura do presente
+// contrato") produzia frases com o tempo mencionado duas vezes (ex.: "paga na data da assinatura
+// do presente contrato, na assinatura do CPCV"); o fallback só entra em jogo quando não há nem
+// forma nem prazo.
+export function textoFormaPagamentoSinal(h: Helpers, processo: Processo): string {
+  const forma = processo.forma_pagamento_sinal as string | null;
+  const prazo = processo.prazo_pagamento_sinal as string | null;
+  if (forma && prazo) return `${h.v(forma)}, ${h.v(prazo)}`;
+  if (forma) return h.v(forma);
+  if (prazo) return h.v(prazo);
+  return "na data da assinatura do presente contrato";
 }
 
 export function clausulaCondicoesSuspensivas(h: Helpers, processo: Processo): string {
