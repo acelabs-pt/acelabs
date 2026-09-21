@@ -49,15 +49,16 @@ function corpo(text: string): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.JUSTIFIED,
     spacing: { after: 200, line: 360, lineRule: "auto" },
-    children: [new TextRun({ text })],
+    children: [new TextRun({ text, font: "Segoe UI", color: "000000" })],
   });
 }
 
 function titulo(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
+    alignment: AlignmentType.CENTER,
     spacing: { before: 300, after: 150, line: 360, lineRule: "auto" },
-    children: [new TextRun({ text, bold: true })],
+    children: [new TextRun({ text, bold: true, font: "Segoe UI", color: "000000" })],
   });
 }
 
@@ -75,7 +76,9 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
       heading: HeadingLevel.HEADING_1,
       alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
-      children: [new TextRun({ text: "Contrato-Promessa de Compra e Venda", bold: true, size: 28 })],
+      children: [
+        new TextRun({ text: "Contrato-Promessa de Compra e Venda", bold: true, size: 28, font: "Segoe UI", color: "000000" }),
+      ],
     }),
     corpo("Entre:"),
     ...identificacoesVendedores.map((texto, i) =>
@@ -239,25 +242,31 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
     new Paragraph({ spacing: { before: 600 }, children: [new TextRun({ text: "" })] }),
     new Paragraph({
       spacing: { before: 600 },
-      children: [new TextRun({ text: "_______________________________________" })],
+      children: [new TextRun({ text: "_______________________________________", font: "Segoe UI", color: "000000" })],
     }),
     corpo("O(s) Promitente(s) Vendedor(a/es)"),
     new Paragraph({
       spacing: { before: 600 },
-      children: [new TextRun({ text: "_______________________________________" })],
+      children: [new TextRun({ text: "_______________________________________", font: "Segoe UI", color: "000000" })],
     }),
     corpo("O(s) Promitente(s) Comprador(a/es)")
   );
 
+  // O Word tem cor azul e por vezes uma fonte diferente embutidos como omissão
+  // interna dos estilos "Heading 1"/"Heading 2" (não vem do ficheiro - é o próprio
+  // Word a aplicar o template dele quando a cor/fonte não está explícita no
+  // estilo) - por isso a cor tem de ser posta a preto e a fonte repetida em cada
+  // nível de heading, não chega só o "default.document".
+  const corTexto = "000000";
   const doc = new Document({
     styles: {
       default: {
         document: {
-          run: { font: "Segoe UI", size: 22 },
+          run: { font: "Segoe UI", size: 22, color: corTexto },
           paragraph: { spacing: { line: 360, lineRule: "auto" } },
         },
-        heading1: { run: { font: "Segoe UI", bold: true } },
-        heading2: { run: { font: "Segoe UI", bold: true, size: 22 } },
+        heading1: { run: { font: "Segoe UI", bold: true, color: corTexto } },
+        heading2: { run: { font: "Segoe UI", bold: true, size: 22, color: corTexto } },
       },
     },
     sections: [{ children }],
