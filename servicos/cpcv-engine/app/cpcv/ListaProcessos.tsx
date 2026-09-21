@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DeleteProcessoButton from "./DeleteProcessoButton";
 import { btnLink } from "./ui";
@@ -36,6 +36,7 @@ type Processo = {
   estado: string;
   imovel_morada: string | null;
   criado_em: string;
+  atualizado_em: string;
 };
 
 function formatarData(iso: string): string {
@@ -48,22 +49,56 @@ function formatarData(iso: string): string {
   });
 }
 
+function tempoDesde(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = ms / 1000 / 60;
+  if (min < 60) return `${Math.max(0, Math.round(min))} min`;
+  const horas = min / 60;
+  if (horas < 24) return `${horas.toFixed(1)} h`;
+  return `${(horas / 24).toFixed(1)} dias`;
+}
+
 export default function ListaProcessos({
   lista,
   isGestora,
   nomesPorAgente,
+  filtroInicial,
 }: {
   lista: Processo[];
   isGestora: boolean;
   nomesPorAgente: Record<string, string>;
+  filtroInicial?: string;
 }) {
-  const [filtro, setFiltro] = useState("todos");
+  const [filtro, setFiltro] = useState(
+    filtroInicial && FILTROS.some((f) => f.value === filtroInicial) ? filtroInicial : "todos"
+  );
+  const [pesquisa, setPesquisa] = useState("");
 
-  const listaFiltrada = filtro === "todos" ? lista : lista.filter((p) => p.estado === filtro);
+  useEffect(() => {
+    if (filtroInicial && FILTROS.some((f) => f.value === filtroInicial)) {
+      setFiltro(filtroInicial);
+    }
+  }, [filtroInicial]);
+
+  const listaFiltrada = (filtro === "todos" ? lista : lista.filter((p) => p.estado === filtro))
+    .filter((p) => {
+      if (!pesquisa.trim()) return true;
+      const termo = pesquisa.toLowerCase();
+      const morada = (p.imovel_morada ?? "").toLowerCase();
+      const agente = (nomesPorAgente[p.criado_por] ?? "").toLowerCase();
+      return morada.includes(termo) || agente.includes(termo);
+    })
+    .sort((a, b) => {
+      // Na fila "pronto para aprovação" mostra os mais antigos primeiro (os mais urgentes).
+      if (filtro === "pronto_para_aprovacao") {
+        return new Date(a.atualizado_em).getTime() - new Date(b.atualizado_em).getTime();
+      }
+      return 0;
+    });
 
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-      <div className="flex flex-wrap gap-2 p-4 border-b border-[#F1F5F9]">
+      <div className="flex flex-wrap items-center gap-2 p-4 border-b border-[#F1F5F9]">
         {FILTROS.map((f) => (
           <button
             key={f.value}
@@ -78,6 +113,13 @@ export default function ListaProcessos({
             {f.value !== "todos" && ` (${lista.filter((p) => p.estado === f.value).length})`}
           </button>
         ))}
+        <input
+          type="text"
+          value={pesquisa}
+          onChange={(e) => setPesquisa(e.target.value)}
+          placeholder={isGestora ? "Pesquisar por morada ou agente..." : "Pesquisar por morada..."}
+          className="ml-auto w-full sm:w-56 border border-[#E2E8F0] rounded-full px-4 py-1.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+        />
       </div>
 
       {listaFiltrada.length === 0 ? (
@@ -89,6 +131,7 @@ export default function ListaProcessos({
               {isGestora && <th className="px-5 py-3 font-medium">Agente</th>}
               <th className="px-5 py-3 font-medium">Imóvel</th>
               <th className="px-5 py-3 font-medium">Estado</th>
+              {isGestora && <th className="px-5 py-3 font-medium">À espera há</th>}
               <th className="px-5 py-3 font-medium">Criado em</th>
               <th className="px-5 py-3 font-medium"></th>
             </tr>
@@ -105,6 +148,11 @@ export default function ListaProcessos({
                     {ESTADO_LABEL[p.estado] ?? p.estado}
                   </span>
                 </td>
+                {isGestora && (
+                  <td className="px-5 py-3 text-[#94A3B8]">
+                    {p.estado === "pronto_para_aprovacao" ? tempoDesde(p.atualizado_em) : "-"}
+                  </td>
+                )}
                 <td className="px-5 py-3 text-[#94A3B8]">{formatarData(p.criado_em)}</td>
                 <td className="px-5 py-3 text-right">
                   <div className="flex items-center justify-end gap-3">

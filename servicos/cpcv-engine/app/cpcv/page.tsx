@@ -56,7 +56,12 @@ function processosPorDia(processos: Processo[]): { dias: string[]; contagens: nu
   return { dias: diasOrdenados, contagens: diasOrdenados.map((d) => porDia.get(d) ?? 0) };
 }
 
-export default async function CpcvHomePage() {
+export default async function CpcvHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>;
+}) {
+  const { estado: estadoInicial } = await searchParams;
   const supabase = await sbUserServer();
   const {
     data: { user },
@@ -120,10 +125,11 @@ export default async function CpcvHomePage() {
 
       {isGestora && (
         <>
-          <div
-            className={`rounded-2xl border p-5 flex items-center justify-between ${
+          <Link
+            href="/cpcv?estado=pronto_para_aprovacao"
+            className={`rounded-2xl border p-5 flex items-center justify-between transition-shadow ${
               contagens.pronto_para_aprovacao > 0
-                ? "bg-[#E8F1FC] border-[#0059B3]"
+                ? "bg-[#E8F1FC] border-[#0059B3] hover:shadow-md"
                 : "bg-white border-[#E2E8F0]"
             }`}
           >
@@ -133,10 +139,10 @@ export default async function CpcvHomePage() {
             </div>
             {contagens.pronto_para_aprovacao > 0 && (
               <p className="text-xs text-[#0059B3] max-w-[50%] text-right">
-                À espera da tua aprovação - vê a tabela abaixo.
+                À espera da tua aprovação - ver os mais antigos primeiro →
               </p>
             )}
-          </div>
+          </Link>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm hover:shadow-md transition-shadow p-5">
@@ -208,7 +214,12 @@ export default async function CpcvHomePage() {
         </>
       )}
 
-      <ListaProcessos lista={lista} isGestora={isGestora} nomesPorAgente={nomesPorAgente} />
+      <ListaProcessos
+        lista={lista}
+        isGestora={isGestora}
+        nomesPorAgente={nomesPorAgente}
+        filtroInicial={estadoInicial}
+      />
     </div>
   );
 }
