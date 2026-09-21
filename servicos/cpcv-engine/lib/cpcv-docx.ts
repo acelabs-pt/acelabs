@@ -41,19 +41,23 @@ const helpers: Helpers = { v, euros, dataPT };
 const clausulaCondicoesSuspensivas = (processo: Processo) =>
   clausulaCondicoesSuspensivasBase(helpers, processo);
 
+// Tipografia igual às minutas reais da agência (confirmado a abrir uma e a ler o
+// document.xml): Segoe UI, 11pt (sz 22 - a unidade do docx é meio-ponto), espaçamento
+// de linha 1.5 (line: 360, lineRule "auto" - 240 seria espaçamento simples). Definido
+// como estilo "default" do documento em gerarDocxCpcv(), não por parágrafo.
 function corpo(text: string): Paragraph {
   return new Paragraph({
     alignment: AlignmentType.JUSTIFIED,
-    spacing: { after: 200 },
-    children: [new TextRun({ text, size: 24 })],
+    spacing: { after: 200, line: 360, lineRule: "auto" },
+    children: [new TextRun({ text })],
   });
 }
 
 function titulo(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
-    spacing: { before: 300, after: 150 },
-    children: [new TextRun({ text, bold: true, size: 24 })],
+    spacing: { before: 300, after: 150, line: 360, lineRule: "auto" },
+    children: [new TextRun({ text, bold: true })],
   });
 }
 
@@ -71,7 +75,7 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
       heading: HeadingLevel.HEADING_1,
       alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
-      children: [new TextRun({ text: "Contrato-Promessa de Compra e Venda", bold: true, size: 32 })],
+      children: [new TextRun({ text: "Contrato-Promessa de Compra e Venda", bold: true, size: 28 })],
     }),
     corpo("Entre:"),
     ...identificacoesVendedores.map((texto, i) =>
@@ -235,17 +239,29 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
     new Paragraph({ spacing: { before: 600 }, children: [new TextRun({ text: "" })] }),
     new Paragraph({
       spacing: { before: 600 },
-      children: [new TextRun({ text: "_______________________________________", size: 24 })],
+      children: [new TextRun({ text: "_______________________________________" })],
     }),
     corpo("O(s) Promitente(s) Vendedor(a/es)"),
     new Paragraph({
       spacing: { before: 600 },
-      children: [new TextRun({ text: "_______________________________________", size: 24 })],
+      children: [new TextRun({ text: "_______________________________________" })],
     }),
     corpo("O(s) Promitente(s) Comprador(a/es)")
   );
 
-  const doc = new Document({ sections: [{ children }] });
+  const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: { font: "Segoe UI", size: 22 },
+          paragraph: { spacing: { line: 360, lineRule: "auto" } },
+        },
+        heading1: { run: { font: "Segoe UI", bold: true } },
+        heading2: { run: { font: "Segoe UI", bold: true, size: 22 } },
+      },
+    },
+    sections: [{ children }],
+  });
 
   return Packer.toBuffer(doc);
 }

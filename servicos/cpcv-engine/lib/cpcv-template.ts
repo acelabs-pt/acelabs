@@ -227,10 +227,13 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[]): string {
 <meta charset="utf-8" />
 <title>Contrato-Promessa de Compra e Venda</title>
 <style>
+  /* Mesma tipografia das minutas reais da agência (confirmado no document.xml de uma
+     minuta real): Segoe UI, 11pt, espaçamento de linha 1.5 - para o PDF e o Word
+     ficarem visualmente iguais, ainda que gerados por dois motores diferentes. */
   @page { size: A4; margin: 25mm 20mm; }
-  body { font-family: "Times New Roman", serif; font-size: 12pt; line-height: 1.6; color: #111; }
-  h1 { text-align: center; font-size: 15pt; text-transform: uppercase; margin-bottom: 4mm; }
-  h2 { font-size: 12pt; text-transform: uppercase; margin-top: 8mm; margin-bottom: 2mm; }
+  body { font-family: "Segoe UI", Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; }
+  h1 { text-align: center; font-size: 14pt; text-transform: uppercase; margin-bottom: 4mm; }
+  h2 { font-size: 11pt; text-transform: uppercase; margin-top: 8mm; margin-bottom: 2mm; }
   p { text-align: justify; margin: 2mm 0; }
   .clausula { margin-top: 4mm; }
   .assinaturas { margin-top: 20mm; display: flex; justify-content: space-between; }
