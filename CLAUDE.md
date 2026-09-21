@@ -22,17 +22,17 @@ tentar registar).
 - `docs/piloto-alvorada/` - proposta, app demo e powerpoint de um piloto para um cliente
   hipotético ("Alvorada Imóveis"), usado como material de vendas de exemplo.
 - `servicos/` - o código dos serviços que vendemos, um subdiretório por serviço.
-- `servicos/painel-gestao-base/` - esqueleto Next.js/Supabase reutilizável para o produto "Painel
-  de Gestão" (ver preçário abaixo), extraído de um painel real construído para um cliente do setor
-  imobiliário. Sem nomes, marca ou dados desse cliente - só a arquitetura e os padrões, com o
-  contexto explicado no README.md dentro da pasta. Contém também o serviço "CPCV com IA" (ver
-  secção abaixo); tem um CLAUDE.md próprio com a arquitetura detalhada dessa parte.
+- `servicos/cpcv-engine/` - projecto Next.js/Supabase do serviço "CPCV com IA" (ver secção
+  abaixo), com um painel de gestão simples por cima (login por password partilhada, `/api/data`,
+  `/api/write`) extraído de um painel real construído para um cliente do setor imobiliário. Sem
+  nomes, marca ou dados desse cliente - só a arquitectura e os padrões, com o contexto explicado
+  no README.md dentro da pasta. Tem um CLAUDE.md próprio com a arquitectura detalhada.
 - `business-center/` - pasta local, no `.gitignore`, não deve ir para o GitHub (repositório
   público).
 
 ## Serviços em construção
 
-**CPCV com IA** (dentro de `servicos/painel-gestao-base`, secção `/cpcv`) - geração assistida de
+**CPCV com IA** (dentro de `servicos/cpcv-engine`, secção `/cpcv`) - geração assistida de
 Contratos-Promessa de Compra e Venda para agências imobiliárias. O agente imobiliário larga
 documentos/texto, a IA (Claude Haiku) extrai os dados e pergunta o que falta por chat, a gestora
 de processos aprova, e a plataforma gera o CPCV em PDF e Word. É um serviço a oferecer a clientes
@@ -40,7 +40,7 @@ do setor imobiliário, não só uma demo - encaixa no produto "Painel de Gestão
 Processos" do preçário.
 
 Dados sensíveis desta secção que **nunca** vão para o repositório (público):
-- `servicos/painel-gestao-base/minutas/` - minutas reais de clientes, com nomes, NIFs e moradas
+- `servicos/cpcv-engine/minutas/` - minutas reais de clientes, com nomes, NIFs e moradas
   de pessoas reais. Está no `.gitignore` da pasta; serve só de referência local para alinhar o
   gerador de documentos com os modelos reais.
 - `.env.local` - chaves Supabase, chave da API da Anthropic, códigos de convite.
@@ -77,7 +77,7 @@ simples login, contra 38 bytes a fazer o mesmo com um script; ordem de ~230x).
 Em vez disso usar a skill **`browser-check`** (`.claude/skills/browser-check/SKILL.md`): escrever
 um script Playwright descartável no scratchpad, correr com o Bash, e imprimir só o que interessa
 (um `textContent`, um screenshot para ficheiro, um pequeno JSON). O Playwright já está instalado
-em `servicos/painel-gestao-base/node_modules`. Regras a manter:
+em `servicos/cpcv-engine/node_modules`. Regras a manter:
 - Nunca fazer `page.content()` nem `page.accessibility.snapshot()` para "ver a página".
 - Nunca despejar HTML, logs de consola em bruto ou listagens completas para o contexto.
 - Para ver o aspeto de uma página, tirar screenshot para ficheiro e ler o ficheiro.
@@ -136,7 +136,7 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
 ## Backend / dados
 
 Supabase é a base de dados/backend do projeto. O schema em uso está nos ficheiros SQL dentro de
-`servicos/painel-gestao-base/` (`create_tables_base.sql`, `create_tables_cpcv.sql`,
+`servicos/cpcv-engine/` (`create_tables_base.sql`, `create_tables_cpcv.sql`,
 `migration_fase2.sql`) e as tabelas do CPCV estão explicadas no CLAUDE.md dessa pasta. Um projeto
 Supabase por cliente, nunca reutilizar o mesmo entre projetos.
 

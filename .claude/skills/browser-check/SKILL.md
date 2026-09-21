@@ -1,6 +1,6 @@
 ---
 name: browser-check
-description: Use this skill whenever you need to open a browser to test, navigate, click through, fill forms, take screenshots, or verify a web page/app in this repository - the site estático em site/, os ficheiros HTML de docs/, ou a app Next.js em servicos/painel-gestao-base/. Substitui um MCP de browser sempre ligado: em vez disso, escreve e corre um script Playwright descartável.
+description: Use this skill whenever you need to open a browser to test, navigate, click through, fill forms, take screenshots, or verify a web page/app in this repository - the site estático em site/, os ficheiros HTML de docs/, ou a app Next.js em servicos/cpcv-engine/. Substitui um MCP de browser sempre ligado: em vez disso, escreve e corre um script Playwright descartável.
 ---
 
 # Verificação em browser sem MCP
@@ -15,7 +15,7 @@ maior parte da janela de contexto sem necessidade. A alternativa é mais simples
 ## Quando usar
 
 - Confirmar visualmente que uma alteração resultou (`site/index.html`, páginas em `docs/`,
-  qualquer página em `servicos/painel-gestao-base/app/**`).
+  qualquer página em `servicos/cpcv-engine/app/**`).
 - Percorrer um fluxo (login, preencher um formulário, submeter, verificar o resultado).
 - Descarregar e inspeccionar um ficheiro gerado pela app (ex.: PDF/DOCX do CPCV).
 - Apanhar erros de consola ou verificar um pedido de rede específico.
@@ -24,9 +24,9 @@ maior parte da janela de contexto sem necessidade. A alternativa é mais simples
 
 1. **Escreve o script no scratchpad da sessão** (nunca no repositório), um ficheiro `.mjs`. O
    Playwright já está instalado (com os browsers já descarregados) em
-   `servicos/painel-gestao-base/node_modules`, mas a resolução de módulos ESM do Node segue a
+   `servicos/cpcv-engine/node_modules`, mas a resolução de módulos ESM do Node segue a
    localização do *ficheiro que faz o import*, não o directório de trabalho onde correste `node`
-   - por isso nem `cd servicos/painel-gestao-base && node /caminho/scratchpad/script.mjs` resolve
+   - por isso nem `cd servicos/cpcv-engine && node /caminho/scratchpad/script.mjs` resolve
    (confirmado por teste: `ERR_MODULE_NOT_FOUND`), nem um import por caminho absoluto tipo
    `import ... from "C:/.../playwright/index.mjs"` (falha com `ERR_UNSUPPORTED_ESM_URL_SCHEME` -
    o loader ESM não aceita `C:` como esquema de URL). **Usa sempre `createRequire` ancorado ao
@@ -44,7 +44,7 @@ maior parte da janela de contexto sem necessidade. A alternativa é mais simples
 // scratchpad/check.mjs - correr com: node /caminho/absoluto/scratchpad/check.mjs (de qualquer directório)
 import { createRequire } from "node:module";
 const require = createRequire(
-  "C:/Users/pedro/Acelabs_main_repo/acelabs/servicos/painel-gestao-base/package.json"
+  "C:/Users/pedro/Acelabs_main_repo/acelabs/servicos/cpcv-engine/package.json"
 );
 const { chromium } = require("playwright");
 
@@ -76,7 +76,7 @@ texto devolvido ao contexto para a mesma tarefa.
 Nota: `page.fill()` do Playwright já dispara os eventos `input`/`change` correctamente através do
 setter nativo - ao contrário de definir `.value` directamente em JS no browser, não tens o
 problema de o estado do React ficar dessincronizado do DOM (ver `CLAUDE.md` de
-`servicos/painel-gestao-base` sobre esse cuidado).
+`servicos/cpcv-engine` sobre esse cuidado).
 
 ### Exemplo - screenshot para verificação visual
 
@@ -142,7 +142,7 @@ const res = await pageAgente.request.post(`${BASE}/api/cpcv/gerar`, {
 console.log(JSON.stringify({ status: res.status(), body: await res.json() }));
 ```
 
-Testado contra este projecto depois da mudança de pasta para `servicos/painel-gestao-base`:
+Testado contra este projecto depois da mudança de pasta para `servicos/cpcv-engine`:
 confirma 403 (role errado) e 404 (RLS - IDOR noutro `processo_id`) em duas chamadas, ~250 bytes de
 output no total.
 
