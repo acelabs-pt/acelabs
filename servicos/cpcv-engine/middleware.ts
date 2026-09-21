@@ -25,8 +25,17 @@ export async function middleware(req: NextRequest) {
     return cpcvMiddleware(req, requestHeaders);
   }
 
+  // O painel genérico (herdado do esqueleto original) não tem uso neste projecto
+  // dedicado ao CPCV - manda a raiz e o login genérico para o /cpcv em vez de
+  // apagar o código (fica disponível se um dia for preciso reutilizá-lo).
+  if (pathname === "/" || pathname.startsWith("/login")) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/cpcv";
+    return NextResponse.redirect(url);
+  }
+
   // Rotas publicas do painel genérico
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/login")) {
+  if (pathname.startsWith("/api/login")) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
