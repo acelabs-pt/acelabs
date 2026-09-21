@@ -20,6 +20,30 @@ const TIPOS_CONTRATO = [
   { value: "comprador_nosso_angariacao_externa", label: "Comprador nosso - angariação de outra agência" },
 ];
 
+const PERFIS_PARTE = [
+  { value: "", label: "Não sei - a IA pergunta" },
+  { value: "singular", label: "Pessoa solteira" },
+  { value: "casal", label: "Casal" },
+  { value: "empresa", label: "Empresa" },
+  { value: "varios", label: "Vários (ex.: herdeiros)" },
+];
+
+function fraseParte(sujeito: "vendedor" | "comprador", perfil: string): string | null {
+  const plural = sujeito === "vendedor" ? "vendedores" : "compradores";
+  switch (perfil) {
+    case "singular":
+      return `O ${sujeito} é uma pessoa solteira.`;
+    case "casal":
+      return `O ${sujeito} é um casal (duas pessoas singulares, casadas entre si).`;
+    case "empresa":
+      return `O ${sujeito} é uma empresa (pessoa colectiva).`;
+    case "varios":
+      return `Há vários ${plural} (ex.: herdeiros) - confirma quantos e os dados de cada um.`;
+    default:
+      return null;
+  }
+}
+
 type FicheiroPendente = { file: File; tipo: string };
 type Agente = { id: string; nome: string };
 
@@ -31,6 +55,8 @@ export default function NovoProcessoPage() {
   const [listaAberta, setListaAberta] = useState(false);
 
   const [tipoContrato, setTipoContrato] = useState("angariacao_nossa_comprador_nosso");
+  const [perfilVendedor, setPerfilVendedor] = useState("");
+  const [perfilComprador, setPerfilComprador] = useState("");
   const [ficheiros, setFicheiros] = useState<FicheiroPendente[]>([]);
   const [texto, setTexto] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +66,13 @@ export default function NovoProcessoPage() {
 
   const angariacaoExterna = tipoContrato === "comprador_nosso_angariacao_externa";
   const tiposDisponiveis = angariacaoExterna ? TIPOS.filter((t) => t.value !== "cc_vendedor") : TIPOS;
+
+  const perfilTexto = [
+    !angariacaoExterna ? fraseParte("vendedor", perfilVendedor) : null,
+    fraseParte("comprador", perfilComprador),
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   useEffect(() => {
     async function carregar() {
@@ -96,7 +129,7 @@ export default function NovoProcessoPage() {
   }
 
   async function handleSubmit() {
-    if (ficheiros.length === 0 && !texto.trim()) {
+    if (ficheiros.length === 0 && !texto.trim() && !perfilTexto) {
       setError("Junta pelo menos um documento ou escreve alguma informação.");
       return;
     }
@@ -149,10 +182,11 @@ export default function NovoProcessoPage() {
       }
 
       setEtapa("A analisar...");
+      const textoFinal = [perfilTexto, texto.trim()].filter(Boolean).join("\n\n");
       const res = await fetch("/api/cpcv/extrair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ processo_id: processo.id, texto }),
+        body: JSON.stringify({ processo_id: processo.id, texto: textoFinal }),
       });
 
       if (!res.ok) {
@@ -200,7 +234,7 @@ export default function NovoProcessoPage() {
       const res = await fetch("/api/cpcv/extrair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ processo_id: processo.id, texto: "" }),
+        body: JSON.stringify({ processo_id: processo.id, texto: perfilTexto }),
       });
 
       if (!res.ok) {
@@ -285,6 +319,44 @@ export default function NovoProcessoPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-[#475569] mb-2">
+            Perfil do negócio (opcional - ajuda a IA a fazer menos perguntas)
+          </label>
+          <div className={`grid gap-3 ${angariacaoExterna ? "grid-cols-1" : "grid-cols-2"}`}>
+            {!angariacaoExterna && (
+              <div>
+                <span className="block text-[11px] text-[#94A3B8] mb-1">Vendedor</span>
+                <select
+                  value={perfilVendedor}
+                  onChange={(e) => setPerfilVendedor(e.target.value)}
+                  className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+                >
+                  {PERFIS_PARTE.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <span className="block text-[11px] text-[#94A3B8] mb-1">Comprador</span>
+              <select
+                value={perfilComprador}
+                onChange={(e) => setPerfilComprador(e.target.value)}
+                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+              >
+                {PERFIS_PARTE.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div>
