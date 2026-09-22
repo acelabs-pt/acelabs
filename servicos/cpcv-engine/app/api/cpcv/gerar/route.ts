@@ -4,6 +4,7 @@ import { gerarHtmlCpcv } from "@/lib/cpcv-template";
 import { gerarDocxCpcv } from "@/lib/cpcv-docx";
 import { launchChromium } from "@/lib/cpcv-browser";
 import { enviarCpcvParaDrive } from "@/lib/google-drive";
+import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { processo_id } = await req.json();
+  const { processo_id, forcar } = await req.json();
 
   const { data: processo } = await supabase
     .from("cpcv_processos")
@@ -37,15 +38,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 });
   }
 
-  // Gerar é sempre permitido, mesmo com campos por preencher - os campos em falta ficam
-  // como espaços em branco no documento (é o que permite pedir "só um template", sem IA
-  // nenhuma envolvida, ou gerar uma versão de rascunho a meio da conversa).
+  // Licença de utilização e certificado energético são obrigações legais para um CPCV -
+  // ao contrário dos outros campos em falta (que ficam em branco no documento), estes
+  // dois nunca podem faltar num documento gerado para assinatura.
+  const camposObrigatoriosEmFalta: string[] = [];
+  if (!processo.imovel_licenca_utilizacao) camposObrigatoriosEmFalta.push("licença de utilização");
+  if (!processo.imovel_certificado_energetico) camposObrigatoriosEmFalta.push("certificado energético");
+  if (camposObrigatoriosEmFalta.length > 0) {
+    return NextResponse.json(
+      {
+        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche em "Imóvel e negócio" antes de aprovar.`,
+      },
+      { status: 400 }
+    );
+  }
+
   const { data: partes } = await supabase
     .from("cpcv_partes")
     .select(
       "papel, tipo_pessoa, nome, estado_civil, regime_bens, nacionalidade, naturalidade, nif, morada, documento_tipo, documento_numero, documento_validade, representante_nome, certidao_permanente"
     )
     .eq("processo_id", processo_id);
+
+  if (!forcar) {
+    const avisos = await reverAntesDeGerar(processo, partes ?? []);
+    if (avisos.length > 0) {
+      return NextResponse.json({ precisaConfirmacao: true, avisos });
+    }
+  }
 
   const html = gerarHtmlCpcv(processo, partes ?? []);
 

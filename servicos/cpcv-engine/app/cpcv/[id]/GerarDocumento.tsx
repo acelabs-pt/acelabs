@@ -14,19 +14,26 @@ export function GerarButton({
   const router = useRouter();
   const [aGerar, setAGerar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [avisos, setAvisos] = useState<string[] | null>(null);
 
-  async function gerar() {
+  async function gerar(forcar = false) {
     setAGerar(true);
     setErro(null);
     try {
       const res = await fetch("/api/cpcv/gerar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ processo_id: processoId }),
+        body: JSON.stringify({ processo_id: processoId, forcar }),
       });
       const data = await res.json();
       if (!res.ok) {
         setErro(data.error ?? "Erro desconhecido.");
+        setAvisos(null);
+        setAGerar(false);
+        return;
+      }
+      if (data.precisaConfirmacao) {
+        setAvisos(data.avisos);
         setAGerar(false);
         return;
       }
@@ -37,6 +44,33 @@ export function GerarButton({
     }
   }
 
+  if (avisos) {
+    return (
+      <div className="flex flex-col items-end gap-2 max-w-md">
+        <div className="w-full bg-[#FFF4E5] border border-[#F5D9A8] rounded-xl p-3 text-left">
+          <p className="text-xs font-semibold text-[#9A5B00] mb-1.5">
+            A IA encontrou possíveis problemas a confirmar antes de gerar:
+          </p>
+          <ul className="text-xs text-[#9A5B00] list-disc pl-4 space-y-1">
+            {avisos.map((a, i) => (
+              <li key={i}>{a}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => setAvisos(null)} className={btnGhost}>
+            Voltar
+          </button>
+          <button onClick={() => gerar(true)} disabled={aGerar} className={btnAccent}>
+            {aGerar && <Spinner className="h-3.5 w-3.5" />}
+            {aGerar ? "A gerar..." : "Gerar mesmo assim"}
+          </button>
+        </div>
+        {erro && <p className="text-xs text-red-600">{erro}</p>}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-end gap-2">
       {temCamposEmFalta && (
@@ -44,9 +78,9 @@ export function GerarButton({
           Ainda há campos por preencher - ficam em branco no documento gerado.
         </p>
       )}
-      <button onClick={gerar} disabled={aGerar} className={btnAccent}>
+      <button onClick={() => gerar(false)} disabled={aGerar} className={btnAccent}>
         {aGerar && <Spinner className="h-3.5 w-3.5" />}
-        {aGerar ? "A aprovar e gerar..." : "Aprovar e gerar CPCV"}
+        {aGerar ? "A rever e gerar..." : "Aprovar e gerar CPCV"}
       </button>
       {erro && <p className="text-xs text-red-600">{erro}</p>}
     </div>

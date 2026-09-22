@@ -169,15 +169,28 @@ export async function POST(req: NextRequest) {
 
   const novoEstado = extraido.campos_em_falta?.length ? "em_preenchimento" : "pronto_para_aprovacao";
 
+  // Faz merge com o que já lá estava - nunca apaga um campo já confirmado só porque esta
+  // ronda não o devolveu (a IA já é instruída a preservar, mas isto garante que uma
+  // resposta incompleta da IA nunca faz o processo andar para trás). Mesma lógica de
+  // /api/cpcv/extrair - manter os dois sítios alinhados.
+  const imovelMesclado: Record<string, unknown> = { ...imovelAtual };
+  for (const [k, v] of Object.entries(extraido.imovel ?? {})) {
+    if (v !== null && v !== undefined && v !== "") imovelMesclado[k] = v;
+  }
+  const negocioMesclado: Record<string, unknown> = { ...negocioAtual };
+  for (const [k, v] of Object.entries(extraido.negocio ?? {})) {
+    if (v !== null && v !== undefined && v !== "") negocioMesclado[k] = v;
+  }
+
   const imovelColunas = Object.fromEntries(
-    Object.entries(extraido.imovel ?? {}).map(([k, v]) => [`imovel_${k}`, v])
+    Object.entries(imovelMesclado).map(([k, v]) => [`imovel_${k}`, v])
   );
 
   const { error: updateError } = await supabase
     .from("cpcv_processos")
     .update({
       ...imovelColunas,
-      ...extraido.negocio,
+      ...negocioMesclado,
       campos_em_falta: extraido.campos_em_falta ?? [],
       estado: novoEstado,
       atualizado_em: new Date().toISOString(),
