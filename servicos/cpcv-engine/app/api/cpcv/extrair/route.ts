@@ -66,7 +66,12 @@ etc.) ficam null nesse caso. Se a pessoa for solteira (ou o regime de bens não 
 
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
 (avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
-são preenchidos à parte, num formulário próprio, não fazem parte desta conversa.
+são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Isto inclui o
+campo "condicoes_suspensivas": se a única condição suspensiva mencionada for financiamento
+bancário e/ou avaliação do imóvel, deixa "condicoes_suspensivas" a null (isso fica coberto pelo
+formulário estruturado) - só preenches este campo quando houver uma condição suspensiva
+diferente dessas duas, e sempre como frase completa e juridicamente clara (nunca um fragmento
+solto tipo "financiamento bancário", que fica com má cadência num documento legal).
 
 Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, exactamente com esta forma:
 

@@ -16,12 +16,11 @@ export function identificacaoParte(h: Helpers, p: Parte): string {
       p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""
     }`;
   }
-  return `${h.v(p.nome)}, ${h.v(p.estado_civil, "estado civil não indicado")}${
+  return `${h.v(p.nome)}${p.estado_civil ? `, ${p.estado_civil}` : ""}${
     regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
-  }${p.naturalidade ? `, natural de ${p.naturalidade}` : ""}, de nacionalidade ${h.v(
-    p.nacionalidade,
-    "não indicada"
-  )}, contribuinte fiscal n.º ${h.v(p.nif)}, residente em ${h.v(
+  }${p.naturalidade ? `, natural de ${p.naturalidade}` : ""}${
+    p.nacionalidade ? `, de nacionalidade ${p.nacionalidade}` : ""
+  }, contribuinte fiscal n.º ${h.v(p.nif)}, residente em ${h.v(
     p.morada
   )}, titular do ${h.v(p.documento_tipo, "documento de identificação")} n.º ${h.v(
     p.documento_numero
@@ -59,10 +58,9 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
   )}, válido até ${h.dataPT(a.documento_validade)}, e do ${h.v(
     b.documento_tipo,
     "documento de identificação"
-  )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}, ambos de nacionalidade ${h.v(
-    a.nacionalidade,
-    "não indicada"
-  )}, residentes em ${h.v(a.morada)}`;
+  )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}${
+    a.nacionalidade ? `, ambos de nacionalidade ${a.nacionalidade}` : ""
+  }, residentes em ${h.v(a.morada)}`;
 }
 
 // Devolve uma identificação por "unidade": um casal casado entre si conta como uma única

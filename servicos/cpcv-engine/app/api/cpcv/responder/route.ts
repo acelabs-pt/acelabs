@@ -34,7 +34,11 @@ NUNCA perguntes por método de pagamento, reserva, condições suspensivas estru
 (avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
 são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Se uma das
 "perguntas que foram feitas" for sobre um desses temas, ignora-a - não voltes a incluí-la em
-"campos_em_falta".
+"campos_em_falta". Isto inclui o campo "condicoes_suspensivas": se a única condição suspensiva
+mencionada for financiamento bancário e/ou avaliação do imóvel, deixa "condicoes_suspensivas" a
+null (isso fica coberto pelo formulário estruturado) - só preenches este campo quando houver uma
+condição suspensiva diferente dessas duas, e sempre como frase completa e juridicamente clara
+(nunca um fragmento solto tipo "financiamento bancário").
 
 Excepção importante: se o "tipo_contrato" indicado no estado actual for
 "comprador_nosso_angariacao_externa", o CPCV em si vem da agência externa - nunca perguntes pelos

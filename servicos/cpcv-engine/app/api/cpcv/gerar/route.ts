@@ -61,7 +61,22 @@ export async function POST(req: NextRequest) {
     .eq("processo_id", processo_id);
 
   if (!forcar) {
-    const avisos = await reverAntesDeGerar(processo, partes ?? []);
+    // Verificações determinísticas primeiro - "sinal >= preço" é um cálculo exacto, não faz
+    // sentido depender de a IA reparar nisso de cada vez (testado: numa ronda de simulação com
+    // sinal de 150.000€ e preço de 100.000€, a revisão por IA não gerou nenhum aviso).
+    const avisosDeterministicos: string[] = [];
+    if (
+      typeof processo.preco_total === "number" &&
+      typeof processo.valor_sinal === "number" &&
+      processo.valor_sinal >= processo.preco_total
+    ) {
+      avisosDeterministicos.push(
+        `O sinal (${processo.valor_sinal} €) é maior ou igual ao preço total (${processo.preco_total} €) - confirma antes de gerar.`
+      );
+    }
+
+    const avisosIA = await reverAntesDeGerar(processo, partes ?? []);
+    const avisos = [...avisosDeterministicos, ...avisosIA];
     if (avisos.length > 0) {
       return NextResponse.json({ precisaConfirmacao: true, avisos });
     }
