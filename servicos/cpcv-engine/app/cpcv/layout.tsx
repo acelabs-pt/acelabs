@@ -31,7 +31,7 @@ export default async function CpcvLayout({ children }: { children: React.ReactNo
   return (
     <div className="min-h-screen bg-[#F4F3EF]">
       <header className="h-14 flex items-center justify-between px-6 bg-[#0F172A] text-white">
-        <span className="font-bold text-sm tracking-wide">CPCV com IA</span>
+        <span className="font-bold text-sm tracking-wide">cpcv_engine</span>
         <div className="flex items-center gap-4 text-xs">
           {perfil && (
             <span className="text-white/70">

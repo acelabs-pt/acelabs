@@ -67,7 +67,7 @@ export default function FecharProcesso({ processoId, estado }: { processoId: str
         {estado === "aprovado" && (
           <button onClick={() => fechar("concluir")} disabled={aEnviar} className={btnAccent}>
             {aEnviar && <Spinner className="h-3.5 w-3.5" />}
-            {aEnviar ? "A marcar..." : "Marcar como concluído (escritura realizada)"}
+            {aEnviar ? "A marcar..." : "Marcar como concluído"}
           </button>
         )}
         <button onClick={() => setACancelar(true)} disabled={aEnviar} className={btnSecondary}>

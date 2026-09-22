@@ -41,7 +41,7 @@ export default function CpcvLoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <div className="text-2xl font-extrabold text-[#0F172A] tracking-tight leading-none">
-            CPCV com IA
+            cpcv_engine
           </div>
         </div>
 

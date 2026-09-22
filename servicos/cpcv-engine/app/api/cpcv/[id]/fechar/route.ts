@@ -38,9 +38,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Este processo já está fechado." }, { status: 400 });
   }
 
-  // "Concluído" (escritura realizada) só faz sentido depois de o CPCV ter sido gerado -
-  // é a prova documental do que foi prometido. "Cancelado" pode acontecer em qualquer
-  // altura antes disso (o negócio pode cair mesmo antes de haver documento nenhum).
+  // "Concluído" só faz sentido depois de o CPCV ter sido gerado - é a prova documental
+  // do que foi prometido. "Cancelado" pode acontecer em qualquer altura antes disso (o
+  // negócio pode cair mesmo antes de haver documento nenhum).
   if (acao === "concluir" && processo.estado !== "aprovado") {
     return NextResponse.json(
       { error: "Só é possível marcar como concluído depois de o CPCV estar aprovado e gerado." },
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const novoEstado = acao === "concluir" ? "concluido" : "cancelado";
   const mensagem =
     acao === "concluir"
-      ? "Processo marcado como concluído - escritura realizada."
+      ? "Processo marcado como concluído."
       : `Processo cancelado.${motivo?.trim() ? ` Motivo: ${motivo.trim()}` : ""}`;
 
   const { error: updateError } = await supabase

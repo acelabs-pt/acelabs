@@ -54,7 +54,7 @@ export default function RegistoPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <div className="text-2xl font-extrabold text-[#0F172A] tracking-tight leading-none">
-            CPCV com IA
+            cpcv_engine
           </div>
           <p className="text-xs text-[#94A3B8] mt-1">Criar conta</p>
         </div>
