@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { anthropicClient, EXTRACTION_MODEL } from "@/lib/anthropic";
+import { anthropicClient, EXTRACTION_MODEL, dataDeHojePT } from "@/lib/anthropic";
 import { mensagemPerguntas } from "@/lib/cpcv-mensagens";
 import { filtrarCamposEmFalta } from "@/lib/cpcv-perguntas-filtro";
 
-const SYSTEM_PROMPT = `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
-de imóveis em Portugal. Já tens um estado parcial do processo (partes, imóvel, negócio,
-campos em falta) e o agente acabou de responder - normalmente numa única mensagem - a várias das
-perguntas em falta ao mesmo tempo.
+function systemPrompt(): string {
+  return `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
+de imóveis em Portugal. Hoje é ${dataDeHojePT()}. Já tens um estado parcial do processo (partes,
+imóvel, negócio, campos em falta) e o agente acabou de responder - normalmente numa única
+mensagem - a várias das perguntas em falta ao mesmo tempo.
 
 Regra mais importante: NUNCA inventes valores. Actualiza todos os campos que a resposta do
 agente esclarecer (pode esclarecer vários campos de uma vez, mesmo de perguntas diferentes);
 tudo o resto mantém-se como estava. Se a resposta não for suficientemente clara para preencher
 um campo com confiança, mantém esse campo em "campos_em_falta" em vez de adivinhar. Isto
 aplica-se também a referências vagas ou relativas a datas ("para o verão", "daqui a uns meses") -
-nunca as convertas numa data exacta; mantém o campo em falta e pergunta a data concreta.
+nunca as convertas numa data exacta; mantém o campo em falta e pergunta a data concreta. Quando o
+agente der só o dia e o mês de uma data (sem ano, ex. "15 de abril"), usa a data de hoje acima
+para escolher o ano certo - a próxima ocorrência futura dessa data, nunca uma já passada.
+
+Regra igualmente importante: se o agente disser explicitamente que não sabe, não tem essa
+informação, ou pedir para deixar em aberto/para a gestora decidir, trata a pergunta como
+respondida - remove-a de "campos_em_falta" e deixa o campo correspondente null. NUNCA voltes a
+fazer a mesma pergunta depois de o agente já ter dito que não sabe a resposta; isso prende o
+processo num ciclo sem saída.
 
 Uma parte pode ser pessoa singular ou pessoa colectiva (empresa) - usa "nome" para a denominação
 social quando for colectiva, e preenche "representante_nome"/"certidao_permanente" nesse caso.
@@ -60,6 +69,7 @@ esta forma (a mesma estrutura do estado que recebeste, já actualizada):
 Remove de "campos_em_falta" a pergunta que acabou de ser respondida (e qualquer outra que a
 resposta já tenha esclarecido). Se ainda faltar informação essencial, mantém/acrescenta a
 pergunta correspondente. Se já não faltar nada, devolve "campos_em_falta": [].`;
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -133,7 +143,7 @@ export async function POST(req: NextRequest) {
     const response = await anthropic.messages.create({
       model: EXTRACTION_MODEL,
       max_tokens: 4000,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt(),
       messages: [
         {
           role: "user",

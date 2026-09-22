@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { anthropicClient, EXTRACTION_MODEL } from "@/lib/anthropic";
+import { anthropicClient, EXTRACTION_MODEL, dataDeHojePT } from "@/lib/anthropic";
 import { mensagemPerguntas } from "@/lib/cpcv-mensagens";
 import { filtrarCamposEmFalta } from "@/lib/cpcv-perguntas-filtro";
 
@@ -37,18 +37,21 @@ async function textoDaPagina(url: string): Promise<string | null> {
   }
 }
 
-const SYSTEM_PROMPT = `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
+function systemPrompt(): string {
+  return `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
 de imóveis em Portugal a partir de documentos, texto e páginas de imóveis fornecidos por um
-agente imobiliário ou por uma gestora de processos. Já podes ter um estado parcial do processo
-(partes, imóvel, negócio) de uma análise anterior - a informação nova pode chegar em qualquer
-altura (mais documentos, mais texto, um link de um anúncio).
+agente imobiliário ou por uma gestora de processos. Hoje é ${dataDeHojePT()}. Já podes ter um
+estado parcial do processo (partes, imóvel, negócio) de uma análise anterior - a informação nova
+pode chegar em qualquer altura (mais documentos, mais texto, um link de um anúncio).
 
 Regra mais importante: NUNCA inventes valores (nomes, NIFs, moradas, preços, datas). Só extrais o
 que está mesmo presente nos documentos/texto/página fornecidos. Tudo o resto entra em
 "campos_em_falta" com uma pergunta em português simples e directa para perguntar ao agente. Isto
 aplica-se também a referências vagas ou relativas a datas ("para o verão", "daqui a uns meses",
 "em breve") - nunca as convertas numa data exacta (ex.: "verão" não é dia 31 de Julho); deixa o
-campo em falta e pergunta a data concreta.
+campo em falta e pergunta a data concreta. Quando o texto der só o dia e o mês de uma data (sem
+ano, ex. "15 de abril"), usa a data de hoje acima para escolher o ano certo - a próxima ocorrência
+futura dessa data, nunca uma já passada.
 
 Regra igualmente importante: se já havia dados de uma análise anterior (indicados abaixo em
 "Estado actual"), NUNCA os apagues nem os substituas por null - mantém-nos, e só actualizas um
@@ -105,6 +108,7 @@ Excepção importante: se o "tipo_contrato" indicado no estado actual for
 "comprador_nosso_angariacao_externa", o CPCV em si vem da agência externa - nunca perguntes pelos
 dados do vendedor (nome, NIF, morada, documento). Não crias sequer uma parte "vendedor" nesse caso.
 Pergunta apenas pelos dados do comprador e pelos dados do imóvel e do negócio.`;
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -229,7 +233,7 @@ export async function POST(req: NextRequest) {
     const response = await anthropic.messages.create({
       model: EXTRACTION_MODEL,
       max_tokens: 4000,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt(),
       messages: [{ role: "user", content: documentBlocks }],
     });
 

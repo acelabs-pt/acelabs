@@ -175,45 +175,57 @@ export function clausulaDeclaracaoCondominio(): string[] {
 const AGENCIA_NOME = process.env.CPCV_AGENCIA_NOME || "____________";
 const AGENCIA_AMI = process.env.CPCV_AGENCIA_AMI || "____________";
 
+// Texto abaixo copiado verbatim de minutas/_extraido/*.txt (via analise-boilerplate.md) - a
+// versão anterior destas cláusulas tinha sido parafraseada por engano (ex.: citava o
+// Regulamento 2016/679/GDPR em vez do Regulamento 276/2019 que as minutas reais usam, uma
+// referência legal diferente, não só uma diferença de redacção). `npm run verificar:clausulas`
+// compara estas funções contra o texto canónico - correr depois de qualquer alteração aqui.
 export function clausulaProtecaoDados(): string[] {
   return [
-    "Os dados pessoais, recolhidos no presente documento, destinam-se ao cumprimento do dever de identificação previsto na Lei n.º 83/2017, de 18 de Agosto, e Lei n.º 58/2019, de 8 de Agosto, e no Regulamento 2016/679, de 27 de Abril de 2016, e serão processados informaticamente e conservados pelo período de 7 (sete) anos.",
-    "As partes, enquanto titulares dos dados, têm o direito de aceder a todos os seus dados e o direito de exigir a sua limitação, rectificação, oposição ou apagamento nos limites legalmente impostos.",
-    "As partes declaram, para os devidos efeitos, sob compromisso de honra:",
-    "a) Que são verdadeiros os elementos indicados; e",
-    "b) Que autorizam a reprodução dos documentos de identificação, bem como de qualquer outro documento necessário à concretização do negócio, em suporte físico e/ou electrónico.",
+    "Os dados pessoais, recolhidos no presente documento destinam-se ao cumprimento do dever de identificação previsto na Lei nº83/2017, de 18 de agosto e Lei nº58/2019 de 08 de agosto e no Regulamento 276/2019, de 26 de Março e serão processados informaticamente e conservados pelo período de 7 anos.",
+    "As partes, enquanto titulares dos dados, têm o direito de aceder a todos os seus dados e o direito de exigir a sua limitação, retificação, oposição ou apagamento nos limites legalmente impostos.",
+    "As partes declaram para os devidos efeitos, sob o compromisso de honra:",
+    "a. Que são verdadeiros os elementos indicados, e",
+    "b. Que autorizam a reprodução dos documentos de identificação bem como qualquer outro documento necessário à concretização do negócio, em suporte físico e/ou eletrónico.",
   ];
 }
 
 export function clausulaAlteracoes(): string[] {
   return [
-    "Eventuais alterações, anulações, aditamentos ou acordos de revogação do presente contrato só serão válidos se forem efectuados por escrito e assinados por todos os outorgantes, sendo nulos, ineficazes e sem qualquer validade jurídica os acordos verbais.",
+    "Eventuais alterações, anulações, aditamentos ou acordos de revogação do presente contrato só serão válidos se forem efetuados por escrito e assinados por todos os outorgantes, sendo nulos e ineficazes e sem qualquer validade jurídica acordos verbais.",
   ];
 }
 
 export function clausulaNotificacoes(): string[] {
   return [
-    "Todas as notificações que venham a ser necessárias fazer na vigência do presente contrato serão feitas para as moradas supra indicadas e, em caso de alteração, devem ser comunicadas por escrito, através de carta registada com aviso de recepção, à contraparte, no prazo máximo de 5 (cinco) dias contados da data em que ocorrer a respectiva alteração.",
-    "O envio de carta registada com aviso de recepção para a morada das partes será prova bastante para demonstrar que se efectuou qualquer notificação, designadamente a interpelação para a realização da escritura definitiva de compra e venda.",
+    "Todas as notificações que venham a ser necessárias fazer na vigência do presente contrato, serão feitas para as moradas supra indicadas e em caso de alteração, devem ser comunicadas por escrito, através de carta registada com aviso de receção, à contraparte, no prazo máximo de 5 dias contados da data em que ocorrer a respetiva alteração.",
+    "O envio de carta registada com aviso de receção para a morada das partes será prova bastante para demonstrar que se efetuou qualquer notificação, ou seja se realizou a interpelação daquela para a realização da escritura definitiva de compra e venda, sendo este o caso.",
+  ];
+}
+
+export function clausulaEncargosDespesas(): string[] {
+  return [
+    "Compete ao(s) PRIMEIRO(S) OUTORGANTE(S) a organização e entrega ao(s) SEGUNDO(S) OUTORGANTE(S) de toda a documentação necessária à celebração da escritura de compra e venda, nomeadamente registo predial, caderneta predial, licença de utilização, plantas e certificado energético.",
+    "São por conta do(s) SEGUNDO(S) OUTORGANTE(S) todos os encargos notariais, registais e fiscais inerentes à qualidade de adquirente(s).",
   ];
 }
 
 export function clausulaLeiAplicavelForo(): string[] {
   return [
-    "Para a resolução de qualquer litígio eventualmente decorrente do presente contrato, e que as partes não consigam resolver por mútuo acordo, fica desde já convencionado, com exclusão de qualquer outro, que é competente o foro da comarca do Imóvel.",
-    "O presente contrato-promessa é exclusivamente regulado pela legislação portuguesa em vigor, nomeadamente pelo Código Civil.",
+    "Para a resolução de qualquer litígio eventualmente decorrente do presente contrato, e que as partes não consigam resolver por mútuo acordo, fica desde já convencionado, com a exclusão de qualquer outro, que é competente o foro da comarca do imóvel.",
+    "O presente contrato promessa é exclusivamente regulado pela legislação portuguesa em vigor, nomeadamente pelo Código Civil.",
   ];
 }
 
 export function clausulaReconhecimentoAssinaturas(): string[] {
   return [
-    "Os outorgantes acordam em prescindir livre e mutuamente das formalidades exigidas pelo artigo 410.º, n.º 3, do Código Civil, abdicando assim do reconhecimento presencial das respectivas assinaturas, renunciando expressamente a invocar a nulidade deste contrato pela omissão de tais requisitos para todos os efeitos legais, tendo sido informados pela Mediadora Imobiliária das consequências inerentes.",
+    "Os outorgantes acordam em prescindir livre e mutuamente das formalidades exigidas pelo artigo 410.º, nº 3 do Código Civil, abdicando assim do reconhecimento presencial das respetivas assinaturas, renunciando expressamente a invocar a nulidade deste contrato pela omissão de tais requisitos para todos os efeitos legais, tendo sido informados pela Mediadora Imobiliária das consequências inerentes.",
   ];
 }
 
 export function clausulaPreviaAnalise(): string[] {
   return [
-    "As cláusulas que integram o presente Contrato-Promessa de Compra e Venda resultaram de um modelo prévio e atempadamente apresentado e discutido entre as partes, a quem foi dada a possibilidade de alterar, adaptar ou de qualquer forma influenciar a sua redacção final.",
+    "As cláusulas que integram o presente Contrato Promessa de Compra e Venda de imóveis resultaram de um modelo prévio e atempadamente apresentado e discutido entre as partes, a quem foi dada a possibilidade de alterar, adaptar ou de qualquer forma influenciar a sua redação final.",
   ];
 }
 
@@ -222,15 +234,15 @@ export function clausulaPreviaAnalise(): string[] {
 // suportado como campo próprio (plano, fase de variantes por tipo de imóvel).
 export function clausulaDireitoPreferencia(): string[] {
   return [
-    "Considerando que diversas entidades públicas são titulares de direito de preferência na aquisição do Imóvel objecto deste contrato, fica acordado pelos outorgantes que, caso o referido direito seja exercido, o presente contrato cessa automaticamente os seus efeitos, obrigando-se o(s) PRIMEIRO(S) OUTORGANTE(S) a devolver, no prazo máximo de 8 (oito) dias contados da data da comunicação ou ofício da entidade respectiva, ao(s) SEGUNDO(S) OUTORGANTE(S), a quantia total entregue a título de sinal, não havendo lugar a qualquer outra indemnização ou compensação.",
+    "Considerando que diversas entidades públicas são titulares de direito de preferência na aquisição do Imóvel objeto deste contrato, fica acordado pelos outorgantes que, caso o referido direito seja exercido, o presente contrato cessa automaticamente os seus efeitos, obrigando-se o(s) PRIMEIRO(S) OUTORGANTE(S) a devolver, no prazo máximo de 8 (oito) dias contados da data da comunicação ou ofício da entidade respetiva, ao(s) SEGUNDO(S) OUTORGANTE(S), a quantia total entregue a título de sinal, não havendo lugar a qualquer outra indemnização ou compensação.",
     "Sendo o caso disso, compete ao(s) PRIMEIRO(S) OUTORGANTE(S) a instrução do anúncio destinado à comunicação das condições da presente promessa às entidades preferentes através do site www.casapronta.mj.pt.",
   ];
 }
 
 export function clausulaIntervencaoImobiliaria(): string[] {
   return [
-    `O presente negócio teve intervenção imobiliária levada a cabo pela ${AGENCIA_NOME}, titular da licença AMI n.º ${AGENCIA_AMI}.`,
-    "As partes declaram expressamente que foram informadas da obrigação de utilização de meio de pagamento específico por se tratar de transacção de montante igual ou superior a 3.000,00 € (três mil euros), para residentes em Portugal, ou 10.000,00 € (dez mil euros), para não residentes, conforme estipulado na Lei n.º 92/2017, de 22 de Agosto.",
+    `O presente negócio teve intervenção imobiliária levada a cabo pela ${AGENCIA_NOME}, titular da licença AMI ${AGENCIA_AMI}.`,
+    "As partes declaram expressamente que foram informadas da obrigação de utilização de meio de pagamento específico por se tratar de transação de montante igual ou superior a 3.000,00€ (Três Mil Euros), para residentes em Portugal ou 10.000,00€ (Dez Mil Euros), para não residentes, conforme estipulado na Lei nº 92/2017 de 22/08/2017.",
   ];
 }
 

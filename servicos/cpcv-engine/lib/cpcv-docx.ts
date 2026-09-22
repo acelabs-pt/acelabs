@@ -6,6 +6,7 @@ import {
   clausulaCondicoesSuspensivas as clausulaCondicoesSuspensivasBase,
   clausulaAlteracoes,
   clausulaNotificacoes,
+  clausulaEncargosDespesas,
   clausulaProtecaoDados,
   clausulaDireitoPreferencia,
   clausulaLeiAplicavelForo,
@@ -164,6 +165,7 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
     !processo.condicionado_outra_situacao
       ? null
       : { titulo: "Condições Suspensivas", paragrafos: [clausulaCondicoesSuspensivas(processo)] },
+    { titulo: "Encargos e Despesas", paragrafos: clausulaEncargosDespesas() },
     {
       titulo: "Incumprimento",
       paragrafos: [

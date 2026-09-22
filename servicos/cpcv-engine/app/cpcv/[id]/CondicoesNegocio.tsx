@@ -10,6 +10,8 @@ type Processo = {
   tipo_contrato: string;
   id_angariacao: string | null;
   email_processual_agencia: string | null;
+  imovel_licenca_utilizacao: string | null;
+  imovel_certificado_energetico: string | null;
   metodo_pagamento: string | null;
   tem_fracoes_multiplas: boolean | null;
   valor_fracao_principal: number | null;
@@ -49,6 +51,8 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
   const [idAngariacao, setIdAngariacao] = useState(processo.id_angariacao ?? "");
   const [emailProcessual, setEmailProcessual] = useState(processo.email_processual_agencia ?? "");
+  const [licencaUtilizacao, setLicencaUtilizacao] = useState(processo.imovel_licenca_utilizacao ?? "");
+  const [certificadoEnergetico, setCertificadoEnergetico] = useState(processo.imovel_certificado_energetico ?? "");
   const [metodoPagamento, setMetodoPagamento] = useState(processo.metodo_pagamento ?? "");
   const [temFracoes, setTemFracoes] = useState(processo.tem_fracoes_multiplas ?? false);
   const [valorFracaoPrincipal, setValorFracaoPrincipal] = useState(processo.valor_fracao_principal?.toString() ?? "");
@@ -85,6 +89,8 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
       .update({
         id_angariacao: idAngariacao || null,
         email_processual_agencia: emailProcessual || null,
+        imovel_licenca_utilizacao: licencaUtilizacao || null,
+        imovel_certificado_energetico: certificadoEnergetico || null,
         metodo_pagamento: metodoPagamento || null,
         tem_fracoes_multiplas: temFracoes,
         valor_fracao_principal: temFracoes && valorFracaoPrincipal ? Number(valorFracaoPrincipal) : null,
@@ -171,6 +177,22 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             <div>
               <label className={labelClass}>Valor atribuído à mobília</label>
               <input type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Licença de utilização (obrigatória para gerar o CPCV)</label>
+              <input
+                value={licencaUtilizacao}
+                onChange={(e) => setLicencaUtilizacao(e.target.value)}
+                className={campoClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Certificado energético (obrigatório para gerar o CPCV)</label>
+              <input
+                value={certificadoEnergetico}
+                onChange={(e) => setCertificadoEnergetico(e.target.value)}
+                className={campoClass}
+              />
             </div>
           </div>
 

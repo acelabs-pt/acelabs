@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (camposObrigatoriosEmFalta.length > 0) {
     return NextResponse.json(
       {
-        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche em "Imóvel e negócio" antes de aprovar.`,
+        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche em "Condições do negócio" antes de aprovar.`,
       },
       { status: 400 }
     );

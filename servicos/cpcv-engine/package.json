@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verificar:clausulas": "tsx scripts/comparar-clausulas-minutas.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -32,6 +33,7 @@
     "playwright": "^1.63.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
