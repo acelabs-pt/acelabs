@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Manual de Utilização · CPCV com IA · Ace Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1d1d1f;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    margin: 0;
+    background: #fff;
+  }
+  .serif { font-family: 'Source Serif 4', Georgia, serif; }
+  h1, h2, h3, h4 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; margin: 0; }
+  .page { page-break-after: always; width: 210mm; min-height: 297mm; padding: 18mm 16mm 22mm; position: relative; }
+  .page:last-child { page-break-after: auto; }
+
+  /* cover */
+  .cover { background: #0a1620; color: #fff; display: flex; flex-direction: column; justify-content: space-between; height: 297mm; }
+  .cover .brand { display: flex; align-items: center; gap: 9px; font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 15pt; color: #fff; }
+  .cover .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff9f0a; }
+  .cover .eyebrow { font-size: 10pt; letter-spacing: 0.08em; text-transform: uppercase; color: #8f9aa8; margin-bottom: 16px; font-weight: 600; }
+  .cover h1 { font-size: 34pt; line-height: 1.15; max-width: 15ch; color: #fff; }
+  .cover .sub { font-size: 12pt; color: #c3cbd6; max-width: 42ch; margin-top: 18px; font-family: 'Inter'; }
+  .cover .footer { display: flex; justify-content: space-between; font-size: 9pt; color: #6e7a89; border-top: 1px solid #1c2733; padding-top: 12px; }
+
+  /* content headers */
+  .kicker { font-size: 9.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: #0071e3; margin-bottom: 6px; font-weight: 700; }
+  .page h2 { font-size: 21pt; margin-bottom: 6px; color: #1d1d1f; }
+  .page h3 { font-size: 13pt; margin-bottom: 4px; color: #1d1d1f; }
+  .page .dek { font-size: 10.3pt; color: #6e6e73; max-width: 68ch; margin: 0 0 20px; }
+  .section-gap { margin-top: 24px; }
+
+  /* step rows (como funciona) */
+  .steprow { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 13px 0; border-bottom: 1px solid #eceeee; break-inside: avoid; }
+  .steprow:first-of-type { border-top: 1px solid #eceeee; }
+  .steprow .idx { font-family: 'Source Serif 4', serif; font-size: 15pt; font-weight: 600; color: #0071e3; }
+  .steprow h4 { font-size: 11.5pt; font-weight: 700; margin: 0 0 3px; font-family: 'Inter'; }
+  .steprow p { margin: 0; font-size: 9.5pt; color: #6e6e73; }
+
+  /* feature list */
+  .feat-list { margin-top: 2px; }
+  .feat { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eceeee; align-items: flex-start; break-inside: avoid; }
+  .feat:first-child { border-top: 1px solid #eceeee; }
+  .feat .dot { width: 6px; height: 6px; border-radius: 50%; background: #0071e3; margin-top: 6px; flex: none; }
+  .feat h4 { font-family: 'Inter'; font-size: 10.3pt; font-weight: 700; margin: 0 0 2px; }
+  .feat p { margin: 0; font-size: 9pt; color: #6e6e73; }
+
+  /* callout boxes */
+  .box { border-radius: 12px; padding: 16px 18px; margin-top: 18px; break-inside: avoid; }
+  .box-info { background: #f0f6ff; border: 1px solid #cfe3fb; }
+  .box-info .box-title { font-size: 9.5pt; font-weight: 700; color: #0059b3; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .box-info p { margin: 0; font-size: 9pt; color: #33475a; line-height: 1.6; }
+
+  .box-warn { background: #fff4e5; border: 1px solid #f3d6a3; }
+  .box-warn .box-title { font-size: 9.5pt; font-weight: 700; color: #9a5b00; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+
+  .know-list { margin: 0; padding: 0; list-style: none; }
+  .know-list li { position: relative; padding: 6px 0 6px 16px; font-size: 9.6pt; color: #4a4a4e; line-height: 1.55; }
+  .know-list li::before { content: '·'; position: absolute; left: 0; top: 5px; color: #9a5b00; font-weight: 800; font-size: 13pt; line-height: 1; }
+
+  .box-dark { background: #0a1620; color: #fff; border-radius: 14px; padding: 24px 26px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .box-dark h3 { color: #fff; font-family: 'Inter'; font-size: 14pt; font-weight: 700; }
+  .box-dark p { color: #c3cbd6; font-size: 9.5pt; margin: 6px 0 0; }
+  .box-dark .brand-mark { display: flex; align-items: center; gap: 8px; font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 13pt; color: #fff; white-space: nowrap; }
+  .box-dark .brand-mark .dot { width: 7px; height: 7px; border-radius: 50%; background: #ff9f0a; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin-top: 2px; }
+  .two-col .feat { border-bottom: 1px solid #eceeee; }
+
+  .footnote { margin-top: 16px; font-size: 8pt; color: #9aa0a6; line-height: 1.6; }
+
+  .pagefoot { margin-top: 20px; display: flex; justify-content: space-between; font-size: 8pt; color: #9aa0a6; border-top: 1px solid #eceeee; padding-top: 8px; position: absolute; bottom: 12mm; left: 16mm; right: 16mm; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div class="brand"><span class="dot"></span>Ace Labs·</div>
+  <div>
+    <div class="eyebrow">Manual de utilização</div>
+  </div>
+  <div>
+    <h1>CPCV com IA</h1>
+    <p class="sub">Guia para agentes imobiliários e gestoras de processos: como criar, acompanhar e aprovar Contratos-Promessa de Compra e Venda com apoio de inteligência artificial.</p>
+  </div>
+  <div class="footer">
+    <span>Ace Labs &middot; acelabs.pt</span>
+    <span>Setembro de 2026</span>
+  </div>
+</div>
+
+<!-- PAGE 2: O QUE É + COMO FUNCIONA -->
+<div class="page">
+  <div class="kicker">CPCV com IA</div>
+  <h2>O que é isto, e para quem é</h2>
+  <p class="dek">O CPCV com IA gera Contratos-Promessa de Compra e Venda a partir dos documentos, texto ou links que o agente junta a um processo. Uma inteligência artificial extrai os dados e pergunta pelo chat o que ainda falta; a gestora de processos revê e aprova. Feito para agências imobiliárias, com dois perfis de utilizador: agente e gestora.</p>
+
+  <div class="section-gap">
+    <div class="kicker">Passo a passo</div>
+    <h3>Como funciona</h3>
+  </div>
+
+  <div class="steprow">
+    <span class="idx">01</span>
+    <div>
+      <h4>O agente cria o processo</h4>
+      <p>Escolhe o tipo de contrato (angariação nossa com comprador nosso; angariação nossa com comprador de outra agência; ou comprador nosso com angariação de outra agência) e junta o que tiver: documentos, texto livre ou o link do imóvel. Também pode começar do zero.</p>
+    </div>
+  </div>
+  <div class="steprow">
+    <span class="idx">02</span>
+    <div>
+      <h4>A IA extrai os dados</h4>
+      <p>Lê tudo o que foi enviado e identifica o que já sabe. O que falta fica registado como pergunta pendente, numa conversa tipo chat.</p>
+    </div>
+  </div>
+  <div class="steprow">
+    <span class="idx">03</span>
+    <div>
+      <h4>O agente responde às perguntas</h4>
+      <p>Pode responder a várias perguntas de uma só vez, ou dizer "não sei" e seguir em frente sem travar o processo.</p>
+    </div>
+  </div>
+  <div class="steprow">
+    <span class="idx">04</span>
+    <div>
+      <h4>A gestora revê o processo</h4>
+      <p>Confirma os dados, pode pedir alterações (o processo volta ao agente) ou aprovar diretamente.</p>
+    </div>
+  </div>
+  <div class="steprow">
+    <span class="idx">05</span>
+    <div>
+      <h4>O documento é gerado</h4>
+      <p>Ao aprovar, a plataforma gera automaticamente o CPCV em PDF e em Word, prontos a descarregar.</p>
+    </div>
+  </div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
+</div>
+
+<!-- PAGE 3: PARA O AGENTE -->
+<div class="page">
+  <div class="kicker">Para o agente</div>
+  <h2>Para o agente imobiliário</h2>
+  <p class="dek">Tudo o que precisa para abrir e acompanhar um processo, do primeiro documento até à aprovação.</p>
+
+  <div class="feat-list">
+    <div class="feat"><span class="dot"></span><div><h4>Três tipos de contrato</h4><p>Angariação nossa com comprador nosso, angariação nossa com comprador de outra agência, ou comprador nosso com angariação de outra agência. Neste último caso a aplicação nunca pede nem guarda dados do vendedor, porque o CPCV vem da outra agência.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Perfil do negócio</h4><p>Indicar se o vendedor e o comprador são pessoa solteira, casal, empresa ou vários/herdeiros ajuda a IA a fazer menos perguntas.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Documentos, texto ou link</h4><p>Anexe Cartão de Cidadão, caderneta predial ou certificado energético (PDF ou imagem), cole texto livre com o que sabe do negócio, ou cole o link da página do imóvel para a IA ler.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Começar do zero</h4><p>Sem nenhum documento em mãos, a IA pergunta primeiro o essencial.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>A IA nunca inventa</h4><p>Só extrai o que está mesmo nos documentos ou no texto enviado. O que não sabe fica registado como pergunta pendente.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Datas sempre exactas</h4><p>Se disser "para o verão" ou "daqui a uns meses", a IA pergunta a data concreta. Se só der dia e mês, assume o próximo ano em que essa data ainda esteja no futuro.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Pessoa singular ou empresa</h4><p>A IA reconhece automaticamente e, sendo empresa, formata a identificação com NIF, sede, representante e certidão permanente.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Casais reconhecidos</h4><p>Quando duas partes são um casal casado entre si, a IA junta a identificação deles numa frase só, como nas minutas reais da agência.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>"Não sei" é uma resposta válida</h4><p>Ou "deixa em branco para a gestora decidir". A IA aceita e não volta a fazer a mesma pergunta; o campo fica em branco, sem travar o processo.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Várias respostas de uma vez</h4><p>Pode responder a todas as perguntas pendentes numa única mensagem.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Sem perguntas fora do sítio</h4><p>A IA nunca pergunta por método de pagamento, reserva, condições suspensivas, comodato, IBAN do sinal ou emails de contacto. Esses campos preenchem-se à parte, em "Condições do negócio" (ver caixa abaixo).</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Adicionar informação mais tarde</h4><p>Pode voltar a qualquer processo e juntar mais documentos, texto ou o link do imóvel; a IA reanalisa e actualiza o que faltava sem apagar o que já estava confirmado.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Conversa sempre registada</h4><p>Tudo o que é dito fica guardado por escrito no processo, com etiqueta de quem disse o quê: IA, agente ou gestora.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Eliminar ou não</h4><p>Só é possível eliminar um processo que ainda não foi aprovado. Depois de aprovado, um processo só se cancela, nunca se elimina.</p></div></div>
+  </div>
+
+  <div class="box box-info">
+    <div class="box-title">Condições do negócio (formulário à parte)</div>
+    <p>Método de pagamento, valor da mobília, se há duas fracções (por exemplo apartamento e garagem), reforço de sinal, IBAN para o sinal, se há reserva, se está condicionado a avaliação bancária e/ou financiamento (com prazo, em dias úteis ou corridos), se há comodato (o vendedor fica no imóvel depois da escritura), o que fica incluído no imóvel, emails de contacto para o contrato, data de assinatura e observações adicionais. Inclui também a licença de utilização e o certificado energético do imóvel, obrigatórios por lei antes de gerar o documento final. Estes campos não fazem parte da conversa com a IA; preenchem-se directamente neste formulário.</p>
+  </div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
+</div>
+
+<!-- PAGE 4: PARA A GESTORA -->
+<div class="page">
+  <div class="kicker">Para a gestora</div>
+  <h2>Para a gestora de processos</h2>
+  <p class="dek">Visão sobre todos os processos da agência, revisão antes de aprovar, e geração automática dos documentos finais.</p>
+
+  <div class="feat-list">
+    <div class="feat"><span class="dot"></span><div><h4>Vê tudo</h4><p>Todos os processos, de todos os agentes. O agente só vê os seus próprios.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Dashboard</h4><p>Número total de processos, por estado (em preenchimento, pronto para aprovação, aprovado, concluído, cancelado), tempo médio até aprovar, e gráficos de processos por estado e por dia de criação.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Fila "Por aprovar"</h4><p>Em destaque, ordenada pelos processos mais antigos primeiro: os mais urgentes.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Rascunho a qualquer momento</h4><p>Gera um PDF ou Word de pré-visualização a qualquer momento, só para ver como está, sem gravar nada.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Segunda revisão por IA</h4><p>Antes de aprovar, verifica inconsistências óbvias: datas de documentos já caducadas, sinal maior ou igual ao preço total (isto é sempre verificado por cálculo directo, mesmo que a IA falhe), NIFs com o número errado de dígitos, ou vendedor e comprador com o mesmo nome. Mostra avisos antes de gerar, com a opção de gerar mesmo assim.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Pedir alterações</h4><p>Reabre a conversa com uma nota da gestora; o agente responde e o processo volta à fila de aprovação.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Aprovação gera o documento</h4><p>Ao aprovar, a plataforma cria automaticamente o CPCV em PDF e em Word, seguindo o texto legal e a estrutura das minutas reais da agência: identificação das partes, objecto, promessa, preço e condições de pagamento, escritura pública, condições suspensivas, encargos e despesas, incumprimento, estado do imóvel e licenciamento, alterações, notificações, protecção de dados, direito de preferência, lei aplicável e foro, reconhecimento de assinaturas, e cláusulas condicionais consoante o caso (condomínio, comodato, observações).</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Bloqueio obrigatório</h4><p>Não é possível gerar o documento final sem a licença de utilização e o certificado energético preenchidos.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Cópia para o Google Drive</h4><p>Opcionalmente, os documentos gerados são copiados automaticamente para uma pasta no Drive da agência.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Concluir ou cancelar</h4><p>Pode marcar um processo aprovado como concluído, ou cancelá-lo com um motivo, em qualquer altura antes de estar concluído. Cancelar preserva o histórico; eliminar (só possível antes de aprovado) não.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Contas próprias</h4><p>Cada utilizador tem a sua conta, nunca uma password partilhada. As permissões de agente e de gestora são verificadas tanto no que se vê como no servidor.</p></div></div>
+  </div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
+</div>
+
+<!-- PAGE 5: EM COMUM + COISAS A SABER -->
+<div class="page">
+  <div class="kicker">Em comum</div>
+  <h2>Disponível para os dois perfis</h2>
+  <p class="dek">Estas funcionalidades estão sempre presentes, seja o utilizador agente ou gestora.</p>
+
+  <div class="two-col">
+    <div class="feat"><span class="dot"></span><div><h4>Lista de processos</h4><p>Filtros por estado (todos, em preenchimento, pronto para aprovação, aprovado, concluído, cancelado, com contagem em cada separador), pesquisa por morada (e por agente, para a gestora), e indicação de quantos campos ainda faltam preencher em cada processo, sem abrir. Paginada, 20 de cada vez, com "Carregar mais".</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Resumo para WhatsApp</h4><p>Um botão em cada processo gera um texto curto e pronto a copiar: partes envolvidas, preço, sinal, prazo da escritura e o que ainda falta confirmar (ou a confirmação de que já está aprovado). Não precisa de nenhuma app instalada, é só texto para colar.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Acesso e segurança</h4><p>Contas reais por utilizador, dois perfis com permissões diferentes. Um agente nunca vê nem mexe nos processos de outro agente; só a gestora vê tudo.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Compatível com telemóvel</h4><p>A aplicação funciona bem em ecrã de telemóvel, para os agentes poderem trabalhar no terreno, entre visitas.</p></div></div>
+  </div>
+
+  <div class="section-gap">
+    <div class="box box-warn">
+      <div class="box-title">Coisas a saber</div>
+      <ul class="know-list">
+        <li>A IA nunca inventa datas vagas: se disser "para o verão", vai perguntar a data exacta.</li>
+        <li>Documentos legalmente obrigatórios, como a licença de utilização e o certificado energético, têm de estar preenchidos antes de gerar o CPCV final. É um bloqueio, não um aviso.</li>
+        <li>Antes de aprovar, há sempre uma segunda verificação de inconsistências (por IA e por cálculo directo), mas a decisão final é sempre da gestora.</li>
+        <li>Um processo cancelado fica no histórico; um processo eliminado não. Depois de aprovado, um processo só se cancela.</li>
+        <li>Responder "não sei" é uma resposta válida: o processo não fica bloqueado à espera de uma resposta que ainda não existe.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box-dark">
+    <div>
+      <h3>Dúvidas sobre a aplicação?</h3>
+      <p>Fale com a Ace Labs para esclarecer qualquer funcionalidade deste manual.</p>
+    </div>
+    <div class="brand-mark"><span class="dot"></span>acelabs.pt</div>
+  </div>
+
+  <p class="footnote">CPCV com IA é um serviço Ace Labs de automação de processos para agências imobiliárias. Este manual descreve o funcionamento da aplicação tal como disponibilizada ao cliente; funcionalidades podem evoluir.</p>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
+</div>
+
+</body>
+</html>
