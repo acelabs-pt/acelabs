@@ -39,6 +39,7 @@ type Processo = {
   imovel_morada: string | null;
   criado_em: string;
   atualizado_em: string;
+  campos_em_falta: { campo: string; pergunta: string }[] | null;
 };
 
 function formatarData(iso: string): string {
@@ -160,6 +161,11 @@ export default function ListaProcessos({
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${ESTADO_COR[p.estado] ?? ""}`}>
                     {ESTADO_LABEL[p.estado] ?? p.estado}
                   </span>
+                  {p.estado === "em_preenchimento" && (p.campos_em_falta?.length ?? 0) > 0 && (
+                    <span className="ml-2 text-[11px] text-[#94A3B8]">
+                      {p.campos_em_falta!.length} por preencher
+                    </span>
+                  )}
                 </td>
                 {isGestora && (
                   <td className="px-5 py-3 text-[#94A3B8]">

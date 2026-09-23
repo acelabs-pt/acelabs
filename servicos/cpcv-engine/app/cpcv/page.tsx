@@ -19,6 +19,7 @@ type Processo = {
   imovel_morada: string | null;
   criado_em: string;
   atualizado_em: string;
+  campos_em_falta: { campo: string; pergunta: string }[] | null;
 };
 
 function tempoMedioConclusao(processos: Processo[]): string {
@@ -75,7 +76,7 @@ export default async function CpcvHomePage({
 
   const { data: processos } = await supabase
     .from("cpcv_processos")
-    .select("id, criado_por, estado, imovel_morada, criado_em, atualizado_em")
+    .select("id, criado_por, estado, imovel_morada, criado_em, atualizado_em, campos_em_falta")
     .order("criado_em", { ascending: false });
 
   const lista = (processos ?? []) as Processo[];
