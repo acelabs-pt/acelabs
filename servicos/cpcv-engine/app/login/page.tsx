@@ -39,8 +39,11 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.07)]">
-          <label className="block text-xs font-semibold text-[#475569] mb-2">Password</label>
+          <label htmlFor="password" className="block text-xs font-semibold text-[#475569] mb-2">
+            Password
+          </label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

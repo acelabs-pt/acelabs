@@ -143,8 +143,11 @@ export default function AdicionarInformacao({
   return (
     <div className="mt-4 border border-[#E2E8F0] rounded-xl p-4 space-y-4">
       <div>
-        <label className="block text-xs font-semibold text-[#475569] mb-2">Documentos</label>
+        <label htmlFor="documentosAdicionais" className="block text-xs font-semibold text-[#475569] mb-2">
+          Documentos
+        </label>
         <input
+          id="documentosAdicionais"
           type="file"
           multiple
           onChange={handleFiles}
@@ -180,8 +183,11 @@ export default function AdicionarInformacao({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[#475569] mb-2">Link do imóvel (opcional)</label>
+        <label htmlFor="linkImovelAdicional" className="block text-xs font-semibold text-[#475569] mb-2">
+          Link do imóvel (opcional)
+        </label>
         <input
+          id="linkImovelAdicional"
           type="url"
           value={link}
           onChange={(e) => setLink(e.target.value)}
@@ -199,8 +205,11 @@ export default function AdicionarInformacao({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[#475569] mb-2">Informação solta (opcional)</label>
+        <label htmlFor="infoSoltaAdicional" className="block text-xs font-semibold text-[#475569] mb-2">
+          Informação solta (opcional)
+        </label>
         <textarea
+          id="infoSoltaAdicional"
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           rows={3}

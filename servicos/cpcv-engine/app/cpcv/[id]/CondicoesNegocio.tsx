@@ -156,18 +156,18 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
         <div className="mt-4 space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{angariacaoExterna ? "ID/referência da angariação externa" : "ID da angariação (maxwork)"}</label>
-              <input value={idAngariacao} onChange={(e) => setIdAngariacao(e.target.value)} className={campoClass} />
+              <label htmlFor="idAngariacao" className={labelClass}>{angariacaoExterna ? "ID/referência da angariação externa" : "ID da angariação (maxwork)"}</label>
+              <input id="idAngariacao" value={idAngariacao} onChange={(e) => setIdAngariacao(e.target.value)} className={campoClass} />
             </div>
             {angariacaoExterna && (
               <div>
-                <label className={labelClass}>Email processual da agência externa</label>
-                <input value={emailProcessual} onChange={(e) => setEmailProcessual(e.target.value)} className={campoClass} />
+                <label htmlFor="emailProcessual" className={labelClass}>Email processual da agência externa</label>
+                <input id="emailProcessual" value={emailProcessual} onChange={(e) => setEmailProcessual(e.target.value)} className={campoClass} />
               </div>
             )}
             <div>
-              <label className={labelClass}>Método de pagamento</label>
-              <select value={metodoPagamento} onChange={(e) => setMetodoPagamento(e.target.value)} className={campoClass}>
+              <label htmlFor="metodoPagamento" className={labelClass}>Método de pagamento</label>
+              <select id="metodoPagamento" value={metodoPagamento} onChange={(e) => setMetodoPagamento(e.target.value)} className={campoClass}>
                 <option value="">-</option>
                 <option value="capital_proprio">Capital próprio</option>
                 <option value="financiamento">Financiamento</option>
@@ -175,20 +175,22 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               </select>
             </div>
             <div>
-              <label className={labelClass}>Valor atribuído à mobília</label>
-              <input type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
+              <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
+              <input id="valorMobilia" type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
             </div>
             <div>
-              <label className={labelClass}>Licença de utilização (obrigatória para gerar o CPCV)</label>
+              <label htmlFor="licencaUtilizacao" className={labelClass}>Licença de utilização (obrigatória para gerar o CPCV)</label>
               <input
+                id="licencaUtilizacao"
                 value={licencaUtilizacao}
                 onChange={(e) => setLicencaUtilizacao(e.target.value)}
                 className={campoClass}
               />
             </div>
             <div>
-              <label className={labelClass}>Certificado energético (obrigatório para gerar o CPCV)</label>
+              <label htmlFor="certificadoEnergetico" className={labelClass}>Certificado energético (obrigatório para gerar o CPCV)</label>
               <input
+                id="certificadoEnergetico"
                 value={certificadoEnergetico}
                 onChange={(e) => setCertificadoEnergetico(e.target.value)}
                 className={campoClass}
@@ -204,12 +206,12 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             {temFracoes && (
               <div className="grid sm:grid-cols-2 gap-4 mt-2">
                 <div>
-                  <label className={labelClass}>Valor da fracção principal</label>
-                  <input type="number" value={valorFracaoPrincipal} onChange={(e) => setValorFracaoPrincipal(e.target.value)} className={campoClass} />
+                  <label htmlFor="valorFracaoPrincipal" className={labelClass}>Valor da fracção principal</label>
+                  <input id="valorFracaoPrincipal" type="number" value={valorFracaoPrincipal} onChange={(e) => setValorFracaoPrincipal(e.target.value)} className={campoClass} />
                 </div>
                 <div>
-                  <label className={labelClass}>Valor da 2ª fracção (garagem, etc.)</label>
-                  <input type="number" value={valorFracaoSecundaria} onChange={(e) => setValorFracaoSecundaria(e.target.value)} className={campoClass} />
+                  <label htmlFor="valorFracaoSecundaria" className={labelClass}>Valor da 2ª fracção (garagem, etc.)</label>
+                  <input id="valorFracaoSecundaria" type="number" value={valorFracaoSecundaria} onChange={(e) => setValorFracaoSecundaria(e.target.value)} className={campoClass} />
                 </div>
               </div>
             )}
@@ -217,19 +219,19 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Reforço de sinal (opcional)</label>
-              <input value={reforcoSinal} onChange={(e) => setReforcoSinal(e.target.value)} className={campoClass} />
+              <label htmlFor="reforcoSinal" className={labelClass}>Reforço de sinal (opcional)</label>
+              <input id="reforcoSinal" value={reforcoSinal} onChange={(e) => setReforcoSinal(e.target.value)} className={campoClass} />
             </div>
             <div>
-              <label className={labelClass}>IBAN para envio do sinal</label>
-              <input value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
+              <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
+              <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Reserva</label>
-              <select value={reserva} onChange={(e) => setReserva(e.target.value)} className={campoClass}>
+              <label htmlFor="reserva" className={labelClass}>Reserva</label>
+              <select id="reserva" value={reserva} onChange={(e) => setReserva(e.target.value)} className={campoClass}>
                 <option value="">-</option>
                 <option value="sim">Sim</option>
                 <option value="nao">Não</option>
@@ -237,16 +239,16 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             </div>
             {reserva === "sim" && (
               <div>
-                <label className={labelClass}>Valor da reserva</label>
-                <input type="number" value={valorReserva} onChange={(e) => setValorReserva(e.target.value)} className={campoClass} />
+                <label htmlFor="valorReserva" className={labelClass}>Valor da reserva</label>
+                <input id="valorReserva" type="number" value={valorReserva} onChange={(e) => setValorReserva(e.target.value)} className={campoClass} />
               </div>
             )}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Condicionado à avaliação</label>
-              <select value={condAvaliacao} onChange={(e) => setCondAvaliacao(e.target.value)} className={campoClass}>
+              <label htmlFor="condAvaliacao" className={labelClass}>Condicionado à avaliação</label>
+              <select id="condAvaliacao" value={condAvaliacao} onChange={(e) => setCondAvaliacao(e.target.value)} className={campoClass}>
                 <option value="">-</option>
                 <option value="sim">Sim</option>
                 <option value="nao">Não</option>
@@ -254,15 +256,15 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             </div>
             {condAvaliacao === "sim" && (
               <div>
-                <label className={labelClass}>Igual ou superior a que valor?</label>
-                <input type="number" value={valorAvaliacaoMinimo} onChange={(e) => setValorAvaliacaoMinimo(e.target.value)} className={campoClass} />
+                <label htmlFor="valorAvaliacaoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
+                <input id="valorAvaliacaoMinimo" type="number" value={valorAvaliacaoMinimo} onChange={(e) => setValorAvaliacaoMinimo(e.target.value)} className={campoClass} />
               </div>
             )}
           </div>
 
           <div>
-            <label className={labelClass}>Condicionado ao financiamento</label>
-            <select value={condFinanciamento} onChange={(e) => setCondFinanciamento(e.target.value)} className={campoClass}>
+            <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
+            <select id="condFinanciamento" value={condFinanciamento} onChange={(e) => setCondFinanciamento(e.target.value)} className={campoClass}>
               <option value="">-</option>
               <option value="sim">Sim</option>
               <option value="nao">Não</option>
@@ -270,18 +272,18 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div>
-            <label className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
-            <textarea value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
+            <label htmlFor="condOutraSituacao" className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
+            <textarea id="condOutraSituacao" value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Dias de condicionamento</label>
-              <input type="number" value={diasCondicionamento} onChange={(e) => setDiasCondicionamento(e.target.value)} className={campoClass} />
+              <label htmlFor="diasCondicionamento" className={labelClass}>Dias de condicionamento</label>
+              <input id="diasCondicionamento" type="number" value={diasCondicionamento} onChange={(e) => setDiasCondicionamento(e.target.value)} className={campoClass} />
             </div>
             <div>
-              <label className={labelClass}>Úteis ou corridos?</label>
-              <select value={diasTipo} onChange={(e) => setDiasTipo(e.target.value)} className={campoClass}>
+              <label htmlFor="diasTipo" className={labelClass}>Úteis ou corridos?</label>
+              <select id="diasTipo" value={diasTipo} onChange={(e) => setDiasTipo(e.target.value)} className={campoClass}>
                 <option value="uteis">Úteis</option>
                 <option value="corridos">Corridos</option>
               </select>
@@ -290,8 +292,8 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Necessidade de comodato</label>
-              <select value={comodato} onChange={(e) => setComodato(e.target.value)} className={campoClass}>
+              <label htmlFor="comodato" className={labelClass}>Necessidade de comodato</label>
+              <select id="comodato" value={comodato} onChange={(e) => setComodato(e.target.value)} className={campoClass}>
                 <option value="">-</option>
                 <option value="sim">Sim</option>
                 <option value="nao">Não</option>
@@ -299,36 +301,36 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             </div>
             {comodato === "sim" && (
               <div>
-                <label className={labelClass}>Quanto tempo o proprietário fica?</label>
-                <input value={tempoComodato} onChange={(e) => setTempoComodato(e.target.value)} className={campoClass} />
+                <label htmlFor="tempoComodato" className={labelClass}>Quanto tempo o proprietário fica?</label>
+                <input id="tempoComodato" value={tempoComodato} onChange={(e) => setTempoComodato(e.target.value)} className={campoClass} />
               </div>
             )}
           </div>
 
           <div>
-            <label className={labelClass}>O que fica incluído no imóvel</label>
-            <textarea value={incluidos} onChange={(e) => setIncluidos(e.target.value)} rows={2} className={campoClass} />
+            <label htmlFor="incluidos" className={labelClass}>O que fica incluído no imóvel</label>
+            <textarea id="incluidos" value={incluidos} onChange={(e) => setIncluidos(e.target.value)} rows={2} className={campoClass} />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Email do proprietário (para o contrato)</label>
-              <input value={emailProprietario} onChange={(e) => setEmailProprietario(e.target.value)} className={campoClass} />
+              <label htmlFor="emailProprietario" className={labelClass}>Email do proprietário (para o contrato)</label>
+              <input id="emailProprietario" value={emailProprietario} onChange={(e) => setEmailProprietario(e.target.value)} className={campoClass} />
             </div>
             <div>
-              <label className={labelClass}>Email do comprador (para o contrato)</label>
-              <input value={emailComprador} onChange={(e) => setEmailComprador(e.target.value)} className={campoClass} />
+              <label htmlFor="emailComprador" className={labelClass}>Email do comprador (para o contrato)</label>
+              <input id="emailComprador" value={emailComprador} onChange={(e) => setEmailComprador(e.target.value)} className={campoClass} />
             </div>
           </div>
 
           <div>
-            <label className={labelClass}>Data de assinatura do contrato</label>
-            <input type="date" value={dataAssinatura} onChange={(e) => setDataAssinatura(e.target.value)} className={campoClass} />
+            <label htmlFor="dataAssinatura" className={labelClass}>Data de assinatura do contrato</label>
+            <input id="dataAssinatura" type="date" value={dataAssinatura} onChange={(e) => setDataAssinatura(e.target.value)} className={campoClass} />
           </div>
 
           <div>
-            <label className={labelClass}>Observações adicionais</label>
-            <textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} className={campoClass} />
+            <label htmlFor="observacoes" className={labelClass}>Observações adicionais</label>
+            <textarea id="observacoes" value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={2} className={campoClass} />
           </div>
 
           {erro && <p className="text-xs text-red-500">{erro}</p>}

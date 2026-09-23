@@ -265,10 +265,11 @@ export default function NovoProcessoPage() {
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 space-y-5">
         {isGestora && (
           <div className="relative">
-            <label className="block text-xs font-semibold text-[#475569] mb-2">
+            <label htmlFor="atribuirA" className="block text-xs font-semibold text-[#475569] mb-2">
               Atribuir a (opcional - fica contigo se não escolheres)
             </label>
             <input
+              id="atribuirA"
               type="text"
               value={agenteSelecionado ? agenteSelecionado.nome : pesquisaAgente}
               onChange={(e) => {
@@ -307,8 +308,11 @@ export default function NovoProcessoPage() {
         )}
 
         <div>
-          <label className="block text-xs font-semibold text-[#475569] mb-2">Tipo de contrato</label>
+          <label htmlFor="tipoContrato" className="block text-xs font-semibold text-[#475569] mb-2">
+            Tipo de contrato
+          </label>
           <select
+            id="tipoContrato"
             value={tipoContrato}
             onChange={(e) => setTipoContrato(e.target.value)}
             className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
@@ -322,14 +326,17 @@ export default function NovoProcessoPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[#475569] mb-2">
+          <p className="block text-xs font-semibold text-[#475569] mb-2">
             Perfil do negócio (opcional - ajuda a IA a fazer menos perguntas)
-          </label>
+          </p>
           <div className={`grid gap-3 ${angariacaoExterna ? "grid-cols-1" : "grid-cols-2"}`}>
             {!angariacaoExterna && (
               <div>
-                <span className="block text-[11px] text-[#94A3B8] mb-1">Vendedor</span>
+                <label htmlFor="perfilVendedor" className="block text-[11px] text-[#94A3B8] mb-1">
+                  Vendedor
+                </label>
                 <select
+                  id="perfilVendedor"
                   value={perfilVendedor}
                   onChange={(e) => setPerfilVendedor(e.target.value)}
                   className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
@@ -343,8 +350,11 @@ export default function NovoProcessoPage() {
               </div>
             )}
             <div>
-              <span className="block text-[11px] text-[#94A3B8] mb-1">Comprador</span>
+              <label htmlFor="perfilComprador" className="block text-[11px] text-[#94A3B8] mb-1">
+                Comprador
+              </label>
               <select
+                id="perfilComprador"
                 value={perfilComprador}
                 onChange={(e) => setPerfilComprador(e.target.value)}
                 className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
@@ -360,8 +370,11 @@ export default function NovoProcessoPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[#475569] mb-2">Documentos</label>
+          <label htmlFor="documentos" className="block text-xs font-semibold text-[#475569] mb-2">
+            Documentos
+          </label>
           <input
+            id="documentos"
             type="file"
             multiple
             onChange={handleFiles}
@@ -398,10 +411,11 @@ export default function NovoProcessoPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[#475569] mb-2">
+          <label htmlFor="infoSolta" className="block text-xs font-semibold text-[#475569] mb-2">
             Informação solta (opcional)
           </label>
           <textarea
+            id="infoSolta"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             rows={5}

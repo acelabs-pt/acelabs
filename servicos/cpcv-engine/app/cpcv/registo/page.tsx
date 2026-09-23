@@ -61,8 +61,11 @@ export default function RegistoPage() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.07)] space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#475569] mb-1">Nome</label>
+            <label htmlFor="nome" className="block text-xs font-semibold text-[#475569] mb-1">
+              Nome
+            </label>
             <input
+              id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
@@ -71,8 +74,11 @@ export default function RegistoPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#475569] mb-1">Email</label>
+            <label htmlFor="email" className="block text-xs font-semibold text-[#475569] mb-1">
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -82,8 +88,11 @@ export default function RegistoPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#475569] mb-1">Password</label>
+            <label htmlFor="password" className="block text-xs font-semibold text-[#475569] mb-1">
+              Password
+            </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -94,8 +103,11 @@ export default function RegistoPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#475569] mb-1">Perfil</label>
+            <label htmlFor="role" className="block text-xs font-semibold text-[#475569] mb-1">
+              Perfil
+            </label>
             <select
+              id="role"
               value={role}
               onChange={(e) => setRole(e.target.value as "agente" | "gestora")}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
@@ -106,8 +118,11 @@ export default function RegistoPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#475569] mb-1">Código de convite</label>
+            <label htmlFor="codigo" className="block text-xs font-semibold text-[#475569] mb-1">
+              Código de convite
+            </label>
             <input
+              id="codigo"
               value={codigo}
               onChange={(e) => setCodigo(e.target.value)}
               required
