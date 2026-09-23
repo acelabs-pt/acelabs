@@ -366,7 +366,7 @@ export default function NovoProcessoPage() {
             multiple
             onChange={handleFiles}
             accept="application/pdf,image/*"
-            className="text-sm"
+            className="text-sm text-[#94A3B8] file:mr-4 file:cursor-pointer file:rounded-xl file:border file:border-[#E2E8F0] file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-[#475569] hover:file:bg-[#F8FAFC] hover:file:border-[#CBD5E1]"
           />
 
           {ficheiros.length > 0 && (
