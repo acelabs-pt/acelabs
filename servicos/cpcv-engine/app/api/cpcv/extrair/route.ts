@@ -31,7 +31,12 @@ async function textoDaPagina(url: string): Promise<string | null> {
       .replace(/&amp;/g, "&")
       .replace(/\s+/g, " ")
       .trim();
-    return texto.slice(0, 12000) || null;
+    // 12000 chars era demasiado apertado: testado contra uma página real qualquer, a
+    // navegação/menu/cookies do topo já ocupam uma fatia grande desse limite antes de chegar
+    // ao conteúdo em si - em sites comerciais com mega-menus e banners isso arrisca cortar a
+    // ficha do imóvel fora do que a IA chega a ver. claude-haiku-4-5 tem contexto de sobra
+    // (200k tokens) para um limite bem mais folgado sem custo/latência que interesse.
+    return texto.slice(0, 40000) || null;
   } catch {
     return null;
   }
