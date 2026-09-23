@@ -6,6 +6,7 @@ import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks } from "./Ge
 import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import FecharProcesso from "./FecharProcesso";
+import ResumoWhatsApp from "./ResumoWhatsApp";
 
 const ESTADO_LABEL: Record<string, string> = {
   em_preenchimento: "Em preenchimento",
@@ -84,7 +85,10 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
             {TIPO_CONTRATO_LABEL[processo.tipo_contrato] ?? processo.tipo_contrato}
           </p>
         </div>
-        {isGestora && <RascunhoLinks processoId={processo.id} />}
+        <div className="flex items-start gap-2">
+          <ResumoWhatsApp processo={processo} partes={partes ?? []} />
+          {isGestora && <RascunhoLinks processoId={processo.id} />}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
