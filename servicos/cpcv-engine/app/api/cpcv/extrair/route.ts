@@ -57,6 +57,11 @@ Regra igualmente importante: se já havia dados de uma análise anterior (indica
 "Estado actual"), NUNCA os apagues nem os substituas por null - mantém-nos, e só actualizas um
 campo se a informação nova o esclarecer melhor ou o corrigir claramente.
 
+O campo "descricao_predial" é o número de descrição predial na Conservatória do Registo Predial
+(um código numérico/alfanumérico, ex.: "2345/20150101") - nunca uma categoria ou tipo de imóvel
+como "fracção autónoma" ou "prédio urbano" (isso é o texto que já entra na frase antes do número,
+não o próprio número). Se o texto não indicar claramente esse número, deixa o campo null.
+
 Uma parte pode ser pessoa singular ou pessoa colectiva (empresa). Reconhece isso pelos documentos
 (certidão permanente comercial, identificação de representante) ou pelo texto. Para pessoa
 colectiva usa o campo "nome" para a denominação social, e preenche "representante_nome" e

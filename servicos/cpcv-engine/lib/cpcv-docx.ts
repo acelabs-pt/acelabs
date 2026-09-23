@@ -1,6 +1,6 @@
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } from "docx";
 import type { Parte, Processo, Helpers } from "./cpcv-types";
-import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL } from "./cpcv-types";
+import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL, descricaoPredialValida } from "./cpcv-types";
 import {
   identificacoesGrupo,
   clausulaCondicoesSuspensivas as clausulaCondicoesSuspensivasBase,
@@ -107,7 +107,7 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
         )}, distrito de ${v(processo.imovel_distrito)}, com a tipologia ${v(
           processo.imovel_tipologia
         )}, inscrito na matriz predial urbana sob o artigo n.º ${v(processo.imovel_artigo_matricial)}${
-          processo.imovel_descricao_predial
+          descricaoPredialValida(processo.imovel_descricao_predial as string | null)
             ? `, descrito na Conservatória do Registo Predial sob o n.º ${v(processo.imovel_descricao_predial)}`
             : ""
         }, com a área de ${processo.imovel_area ? `${processo.imovel_area} m²` : "____________"}, doravante designado por "Imóvel".`,

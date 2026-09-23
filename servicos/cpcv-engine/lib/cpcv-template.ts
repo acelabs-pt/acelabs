@@ -1,5 +1,5 @@
 import type { Parte, Processo, Helpers } from "./cpcv-types";
-import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL } from "./cpcv-types";
+import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL, descricaoPredialValida } from "./cpcv-types";
 import {
   identificacoesGrupo,
   clausulaCondicoesSuspensivas as clausulaCondicoesSuspensivasBase,
@@ -87,7 +87,7 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[]): string {
         )}, distrito de ${v(processo.imovel_distrito)}, com a tipologia ${v(
           processo.imovel_tipologia
         )}, inscrito na matriz predial urbana sob o artigo n.º ${v(processo.imovel_artigo_matricial)}${
-          processo.imovel_descricao_predial
+          descricaoPredialValida(processo.imovel_descricao_predial as string | null)
             ? `, descrito na Conservatória do Registo Predial sob o n.º ${v(processo.imovel_descricao_predial)}`
             : ""
         }, com a área de ${

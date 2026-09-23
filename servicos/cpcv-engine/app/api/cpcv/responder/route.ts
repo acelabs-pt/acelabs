@@ -25,6 +25,10 @@ respondida - remove-a de "campos_em_falta" e deixa o campo correspondente null. 
 fazer a mesma pergunta depois de o agente já ter dito que não sabe a resposta; isso prende o
 processo num ciclo sem saída.
 
+O campo "descricao_predial" é o número de descrição predial na Conservatória do Registo Predial
+(um código numérico/alfanumérico, ex.: "2345/20150101") - nunca uma categoria ou tipo de imóvel
+como "fracção autónoma" ou "prédio urbano". Se não houver esse número, deixa o campo null.
+
 Uma parte pode ser pessoa singular ou pessoa colectiva (empresa) - usa "nome" para a denominação
 social quando for colectiva, e preenche "representante_nome"/"certidao_permanente" nesse caso.
 Se a pessoa for solteira (ou o regime de bens não se aplicar), deixa "regime_bens" a null - nunca

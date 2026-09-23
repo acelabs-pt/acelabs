@@ -101,3 +101,11 @@ export function regimeBensValido(regimeBens: string | null): boolean {
   if (!regimeBens) return false;
   return !/n[ãa]o\s*aplic[aá]vel|n\/a/i.test(regimeBens);
 }
+
+// Salvaguarda contra a IA confundir o número de descrição predial (o que este campo deve
+// conter) com uma categoria do imóvel como "fracção autónoma" ou "prédio urbano" (testado:
+// aconteceu, produzindo "descrito ... sob o n.º Fracção autónoma" no documento gerado) - um
+// número de descrição predial real tem sempre pelo menos um dígito.
+export function descricaoPredialValida(descricaoPredial: string | null): boolean {
+  return !!descricaoPredial && /\d/.test(descricaoPredial);
+}
