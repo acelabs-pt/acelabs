@@ -16,10 +16,10 @@ export function identificacaoParte(h: Helpers, p: Parte): string {
       p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""
     }`;
   }
-  return `${h.v(p.nome)}${p.estado_civil ? `, ${p.estado_civil}` : ""}${
+  return `${h.v(p.nome)}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
     regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
-  }${p.naturalidade ? `, natural de ${p.naturalidade}` : ""}${
-    p.nacionalidade ? `, de nacionalidade ${p.nacionalidade}` : ""
+  }${p.naturalidade ? `, natural de ${h.v(p.naturalidade)}` : ""}${
+    p.nacionalidade ? `, de nacionalidade ${h.v(p.nacionalidade)}` : ""
   }, contribuinte fiscal n.º ${h.v(p.nif)}, residente em ${h.v(
     p.morada
   )}, titular do ${h.v(p.documento_tipo, "documento de identificação")} n.º ${h.v(
@@ -59,7 +59,7 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
     b.documento_tipo,
     "documento de identificação"
   )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}${
-    a.nacionalidade ? `, ambos de nacionalidade ${a.nacionalidade}` : ""
+    a.nacionalidade ? `, ambos de nacionalidade ${h.v(a.nacionalidade)}` : ""
   }, residentes em ${h.v(a.morada)}`;
 }
 
@@ -105,7 +105,7 @@ export function clausulaCondicoesSuspensivas(h: Helpers, processo: Processo): st
     condicoes.push("obtenção de financiamento bancário pelo(s) SEGUNDO(S) OUTORGANTE(S)");
   }
   if (processo.condicionado_outra_situacao) {
-    condicoes.push(processo.condicionado_outra_situacao as string);
+    condicoes.push(h.v(processo.condicionado_outra_situacao as string));
   }
 
   if (condicoes.length === 0) {
