@@ -30,12 +30,16 @@ export default async function CpcvLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-[#F4F3EF]">
-      <header className="h-14 flex items-center justify-between px-6 bg-[#0F172A] text-white">
-        <span className="font-bold text-sm tracking-wide">cpcv_engine</span>
-        <div className="flex items-center gap-4 text-xs">
+      <header className="min-h-14 flex items-center justify-between gap-3 px-4 sm:px-6 py-2 bg-[#0F172A] text-white">
+        <span className="font-bold text-sm tracking-wide shrink-0">cpcv_engine</span>
+        <div className="flex items-center gap-2 sm:gap-4 text-xs min-w-0">
           {perfil && (
-            <span className="text-white/70">
-              {perfil.nome} · {perfil.role === "gestora" ? "Gestora de processos" : "Agente imobiliário"}
+            <span className="text-white/70 truncate">
+              {perfil.nome}
+              <span className="hidden sm:inline">
+                {" "}
+                · {perfil.role === "gestora" ? "Gestora de processos" : "Agente imobiliário"}
+              </span>
             </span>
           )}
           <LogoutButton />

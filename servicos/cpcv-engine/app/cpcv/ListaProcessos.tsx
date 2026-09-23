@@ -139,14 +139,19 @@ export default function ListaProcessos({
       {listaFiltrada.length === 0 ? (
         <p className="text-sm text-[#94A3B8] p-6">Nenhum processo neste estado.</p>
       ) : (
+        // Em ecrãs pequenos, Agente/À espera/Criado em ficam escondidas para "Imóvel",
+        // "Estado" e "Abrir" (as colunas que importam para abrir um processo a partir do
+        // telemóvel) caberem sem precisar de scroll horizontal - overflow-x-auto fica só
+        // como rede de segurança, não como forma normal de usar a tabela num ecrã pequeno.
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#94A3B8] border-b border-[#F1F5F9]">
-              {isGestora && <th className="px-5 py-3 font-medium">Agente</th>}
+              {isGestora && <th className="hidden sm:table-cell px-5 py-3 font-medium">Agente</th>}
               <th className="px-5 py-3 font-medium">Imóvel</th>
               <th className="px-5 py-3 font-medium">Estado</th>
-              {isGestora && <th className="px-5 py-3 font-medium">À espera há</th>}
-              <th className="px-5 py-3 font-medium">Criado em</th>
+              {isGestora && <th className="hidden sm:table-cell px-5 py-3 font-medium">À espera há</th>}
+              <th className="hidden sm:table-cell px-5 py-3 font-medium">Criado em</th>
               <th className="px-5 py-3 font-medium"></th>
             </tr>
           </thead>
@@ -154,7 +159,7 @@ export default function ListaProcessos({
             {listaVisivel.map((p) => (
               <tr key={p.id} className="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors">
                 {isGestora && (
-                  <td className="px-5 py-3 text-[#475569]">{nomesPorAgente[p.criado_por] ?? "-"}</td>
+                  <td className="hidden sm:table-cell px-5 py-3 text-[#475569]">{nomesPorAgente[p.criado_por] ?? "-"}</td>
                 )}
                 <td className="px-5 py-3 text-[#0F172A] font-medium">{p.imovel_morada || "Sem morada ainda"}</td>
                 <td className="px-5 py-3">
@@ -168,11 +173,11 @@ export default function ListaProcessos({
                   )}
                 </td>
                 {isGestora && (
-                  <td className="px-5 py-3 text-[#94A3B8]">
+                  <td className="hidden sm:table-cell px-5 py-3 text-[#94A3B8]">
                     {p.estado === "pronto_para_aprovacao" ? tempoDesde(p.atualizado_em) : "-"}
                   </td>
                 )}
-                <td className="px-5 py-3 text-[#94A3B8]">{formatarData(p.criado_em)}</td>
+                <td className="hidden sm:table-cell px-5 py-3 text-[#94A3B8]">{formatarData(p.criado_em)}</td>
                 <td className="px-5 py-3 text-right">
                   <div className="flex items-center justify-end gap-3">
                     <Link href={`/cpcv/${p.id}`} className={btnLink}>
@@ -185,6 +190,7 @@ export default function ListaProcessos({
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {temMais && (
