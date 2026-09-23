@@ -6,6 +6,20 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { extensaoSuportada, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { btnGhost, btnPrimary, Spinner } from "../ui";
 
+// nomeSemColisao só evita colisão dentro do lote que está a ser escolhido agora
+// (`ficheiros`, o estado local deste componente) - não sabia nada sobre ficheiros já
+// gravados no processo em rondas anteriores (o upload inicial em /cpcv/novo, ou uma
+// chamada anterior a "Adicionar informação"). Resultado: anexar aqui um ficheiro com o
+// mesmo nome de um que já existia não era detectado, e o upload com upsert:true
+// substituía silenciosamente o conteúdo anterior no Storage, ficando duas entradas
+// "iguais" na lista de documentos mas só uma com conteúdo real (confirmado em teste).
+// Por isso é preciso ir buscar os nomes já persistidos antes de decidir se há colisão.
+async function nomesJaPersistidos(processoId: string): Promise<string[]> {
+  const supabase = sbBrowser();
+  const { data } = await supabase.from("cpcv_ficheiros").select("nome_original").eq("processo_id", processoId);
+  return (data ?? []).map((f) => f.nome_original as string);
+}
+
 const TIPOS = [
   { value: "cc_vendedor", label: "Cartão de Cidadão - Vendedor" },
   { value: "cc_comprador", label: "Cartão de Cidadão - Comprador" },
@@ -34,11 +48,12 @@ export default function AdicionarInformacao({
   const [etapa, setEtapa] = useState("");
   const [erro, setErro] = useState("");
 
-  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const escolhidos = Array.from(e.target.files ?? []);
     e.target.value = "";
 
-    const nomesExistentes = ficheiros.map((f) => f.file.name);
+    const nomesPersistidos = await nomesJaPersistidos(processoId);
+    const nomesExistentes = [...nomesPersistidos, ...ficheiros.map((f) => f.file.name)];
     const rejeitados: string[] = [];
     const aceites: FicheiroPendente[] = [];
 
