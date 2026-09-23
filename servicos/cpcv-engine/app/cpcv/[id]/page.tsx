@@ -7,6 +7,7 @@ import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 const ESTADO_LABEL: Record<string, string> = {
   em_preenchimento: "Em preenchimento",
@@ -46,7 +47,7 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
   } = await supabase.auth.getUser();
 
   const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
-  const isGestora = perfil?.role === "gestora";
+  const isGestora = temGestaoTotal(perfil?.role);
 
   const { data: processo } = await supabase
     .from("cpcv_processos")

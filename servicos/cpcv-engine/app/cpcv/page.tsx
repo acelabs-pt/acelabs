@@ -2,60 +2,11 @@ import { sbUserServer } from "@/lib/supabase-server";
 import Link from "next/link";
 import PlotlyChart from "@/components/charts/PlotlyChart";
 import ListaProcessos from "./ListaProcessos";
+import GerarConvite, { type Convite } from "./GerarConvite";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
+import { ESTADO_LABEL, tempoMedioConclusao, processosPorDia, type Processo } from "@/lib/cpcv-estatisticas";
+import { carregarConvites } from "@/lib/cpcv-convites";
 import { btnPrimary } from "./ui";
-
-const ESTADO_LABEL: Record<string, string> = {
-  em_preenchimento: "Em preenchimento",
-  pronto_para_aprovacao: "Pronto para aprovação",
-  aprovado: "Aprovado",
-  concluido: "Concluído",
-  cancelado: "Cancelado",
-};
-
-type Processo = {
-  id: string;
-  criado_por: string;
-  estado: string;
-  imovel_morada: string | null;
-  criado_em: string;
-  atualizado_em: string;
-  campos_em_falta: { campo: string; pergunta: string }[] | null;
-};
-
-function tempoMedioConclusao(processos: Processo[]): string {
-  // Aproximação: usa atualizado_em, que também muda se o processo for depois fechado
-  // (concluído/cancelado) - nesses casos o "tempo até aprovar" fica sobrestimado.
-  const concluidos = processos.filter((p) => p.estado === "aprovado" || p.estado === "concluido");
-  if (concluidos.length === 0) return "-";
-
-  const totalMs = concluidos.reduce((soma, p) => {
-    const inicio = new Date(p.criado_em).getTime();
-    const fim = new Date(p.atualizado_em).getTime();
-    return soma + Math.max(0, fim - inicio);
-  }, 0);
-
-  const mediaMs = totalMs / concluidos.length;
-  const mediaMin = mediaMs / 1000 / 60;
-
-  if (mediaMin < 60) return `${Math.round(mediaMin)} min`;
-  const mediaHoras = mediaMin / 60;
-  if (mediaHoras < 24) return `${mediaHoras.toFixed(1)} h`;
-  return `${(mediaHoras / 24).toFixed(1)} dias`;
-}
-
-function processosPorDia(processos: Processo[]): { dias: string[]; contagens: number[] } {
-  const porDia = new Map<string, number>();
-  for (const p of processos) {
-    const dia = new Date(p.criado_em).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" });
-    porDia.set(dia, (porDia.get(dia) ?? 0) + 1);
-  }
-  const diasOrdenados = Array.from(porDia.keys()).sort((a, b) => {
-    const [da, ma] = a.split("/").map(Number);
-    const [db, mb] = b.split("/").map(Number);
-    return ma === mb ? da - db : ma - mb;
-  });
-  return { dias: diasOrdenados, contagens: diasOrdenados.map((d) => porDia.get(d) ?? 0) };
-}
 
 export default async function CpcvHomePage({
   searchParams,
@@ -81,13 +32,23 @@ export default async function CpcvHomePage({
 
   const lista = (processos ?? []) as Processo[];
 
-  const isGestora = perfil?.role === "gestora";
+  // O admin herda tudo o que a gestora já tem sobre os processos - ver documento de
+  // arquitectura em lib/cpcv-auth.ts. O nome da variável fica "isGestora" para não mexer
+  // no resto do ficheiro, só o critério de acesso alarga.
+  const isGestora = temGestaoTotal(perfil?.role);
 
   let nomesPorAgente: Record<string, string> = {};
   if (isGestora && lista.length > 0) {
     const ids = Array.from(new Set(lista.map((p) => p.criado_por)));
     const { data: perfis } = await supabase.from("profiles").select("id, nome").in("id", ids);
     nomesPorAgente = Object.fromEntries((perfis ?? []).map((p) => [p.id, p.nome]));
+  }
+
+  let convites: Convite[] = [];
+  if (isGestora) {
+    convites = await carregarConvites(supabase, {
+      apenasCriadoPor: perfil?.role === "gestora" ? user!.id : undefined,
+    });
   }
 
   const contagens = {
@@ -119,9 +80,12 @@ export default async function CpcvHomePage({
               : "Processos que criaste."}
           </p>
         </div>
-        <Link href="/cpcv/novo" className={btnPrimary}>
-          + Novo CPCV
-        </Link>
+        <div className="flex items-center gap-2">
+          {isGestora && <GerarConvite papeisPermitidos={["agente"]} convites={convites} />}
+          <Link href="/cpcv/novo" className={btnPrimary}>
+            + Novo CPCV
+          </Link>
+        </div>
       </div>
 
       {isGestora && (

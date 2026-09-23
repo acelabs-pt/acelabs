@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 const ESTADOS_TERMINAIS = ["concluido", "cancelado"];
 
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (perfil?.role !== "gestora") {
+  if (!temGestaoTotal(perfil?.role)) {
     return NextResponse.json({ error: "Só a gestora de processos pode fechar um processo." }, { status: 403 });
   }
 

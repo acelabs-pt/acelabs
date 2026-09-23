@@ -35,3 +35,48 @@ export function Spinner({ className = "" }: { className?: string }) {
     </svg>
   );
 }
+
+// Texto com um brilho em gradiente a percorrer da esquerda para a direita, em loop - o
+// padrão que produtos de IA actuais (ChatGPT, Vercel AI SDK, ElevenLabs UI) usam para
+// sinalizar "a processar" em vez de "parado à espera", em vez de um spinner genérico. Usar
+// só nos momentos em que se está mesmo à espera da IA (extracção, resposta no chat,
+// geração do documento), nunca em acções mecânicas (guardar, autenticar). `tom="escuro"`
+// para texto branco em cima de fundo escuro/de cor (btnPrimary, btnAccent); `tom="claro"`
+// para o resto (bolha da IA, botões de fundo branco).
+export function TextoShimmer({
+  children,
+  tom = "claro",
+  className = "",
+}: {
+  children: React.ReactNode;
+  tom?: "claro" | "escuro";
+  className?: string;
+}) {
+  const gradiente =
+    tom === "escuro"
+      ? "linear-gradient(90deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.55) 40%, #fff 50%, rgba(255,255,255,0.55) 60%, rgba(255,255,255,0.55) 100%)"
+      : "linear-gradient(90deg, #94A3B8 0%, #94A3B8 40%, #0071e3 50%, #94A3B8 60%, #94A3B8 100%)";
+
+  return (
+    <span
+      className={`bg-clip-text text-transparent bg-[length:250%_100%] animate-shimmer ${className}`}
+      style={{ backgroundImage: gradiente }}
+    >
+      {children}
+    </span>
+  );
+}
+
+// Pequeno "orbe" em gradiente cónico (azul/verde/âmbar da marca) a rodar devagar, com um
+// halo desfocado a pulsar por trás - o mesmo tipo de gradiente animado usado em galerias
+// como godly.design para dar uma sensação de "IA viva", sem precisar de WebGL/Three.js, só
+// CSS (conic-gradient + blur + duas animações do Tailwind definidas em tailwind.config.ts).
+export function OrbIA({ className = "" }: { className?: string }) {
+  const gradienteMarca = "conic-gradient(from 0deg, #0071e3, #1fae5a, #ff9f0a, #0071e3)";
+  return (
+    <span className={`relative inline-flex h-4 w-4 items-center justify-center shrink-0 ${className}`} aria-hidden="true">
+      <span className="absolute inset-0 rounded-full blur-[5px] animate-pulsar-glow" style={{ background: gradienteMarca }} />
+      <span className="relative h-2.5 w-2.5 rounded-full animate-spin-lento" style={{ background: gradienteMarca }} />
+    </span>
+  );
+}

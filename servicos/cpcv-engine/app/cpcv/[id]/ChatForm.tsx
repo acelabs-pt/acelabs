@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnPrimary, Spinner } from "../ui";
+import { btnPrimary, TextoShimmer, OrbIA } from "../ui";
 
 export default function ChatForm({
   processoId,
@@ -68,6 +68,18 @@ export default function ChatForm({
 
   return (
     <form onSubmit={enviar} className="mt-4">
+      {enviando && (
+        // Imita uma nova bolha da IA a chegar (mesmo estilo de AUTOR_ESTILO.ia em
+        // app/cpcv/[id]/page.tsx) enquanto se espera a resposta real - sinaliza que a IA
+        // está mesmo a processar a resposta, não só que o formulário está desactivado.
+        <div className="max-w-[80%] mb-3">
+          <p className="text-[10px] font-semibold mb-1 text-[#94A3B8]">IA</p>
+          <div className="inline-flex items-center gap-2 text-sm rounded-xl px-4 py-2 bg-[#F1F5F9]">
+            <OrbIA />
+            <TextoShimmer className="font-medium">A analisar a tua resposta...</TextoShimmer>
+          </div>
+        </div>
+      )}
       <p className="text-xs text-[#94A3B8] mb-2">
         Podes responder a todas as perguntas de uma vez, numa única mensagem.
       </p>
@@ -82,8 +94,7 @@ export default function ChatForm({
       />
       <div className="mt-2 flex justify-end">
         <button type="submit" disabled={enviando || !resposta.trim()} className={btnPrimary}>
-          {enviando && <Spinner className="h-3.5 w-3.5" />}
-          {enviando ? "A enviar..." : "Enviar"}
+          {enviando ? <TextoShimmer tom="escuro">A enviar...</TextoShimmer> : "Enviar"}
         </button>
       </div>
       {erro && <p className="text-xs text-red-600 mt-2">{erro}</p>}

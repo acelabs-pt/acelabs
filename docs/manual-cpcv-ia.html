@@ -89,7 +89,7 @@
   </div>
   <div>
     <h1>CPCV com IA</h1>
-    <p class="sub">Guia para agentes imobiliários e gestoras de processos: como criar, acompanhar e aprovar Contratos-Promessa de Compra e Venda com apoio de inteligência artificial.</p>
+    <p class="sub">Guia para agentes imobiliários, gestoras de processos e administradores: como criar, acompanhar e aprovar Contratos-Promessa de Compra e Venda com apoio de inteligência artificial.</p>
   </div>
   <div class="footer">
     <span>Ace Labs &middot; acelabs.pt</span>
@@ -101,7 +101,7 @@
 <div class="page">
   <div class="kicker">CPCV com IA</div>
   <h2>O que é isto, e para quem é</h2>
-  <p class="dek">O CPCV com IA gera Contratos-Promessa de Compra e Venda a partir dos documentos, texto ou links que o agente junta a um processo. Uma inteligência artificial extrai os dados e pergunta pelo chat o que ainda falta; a gestora de processos revê e aprova. Feito para agências imobiliárias, com dois perfis de utilizador: agente e gestora.</p>
+  <p class="dek">O CPCV com IA gera Contratos-Promessa de Compra e Venda a partir dos documentos, texto ou links que o agente junta a um processo. Uma inteligência artificial extrai os dados e pergunta pelo chat o que ainda falta; a gestora de processos revê e aprova. Feito para agências imobiliárias, com três perfis de utilizador: agente, gestora e administrador.</p>
 
   <div class="section-gap">
     <div class="kicker">Passo a passo</div>
@@ -195,7 +195,28 @@
     <div class="feat"><span class="dot"></span><div><h4>Bloqueio obrigatório</h4><p>Não é possível gerar o documento final sem a licença de utilização e o certificado energético preenchidos.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Cópia para o Google Drive</h4><p>Opcionalmente, os documentos gerados são copiados automaticamente para uma pasta no Drive da agência.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Concluir ou cancelar</h4><p>Pode marcar um processo aprovado como concluído, ou cancelá-lo com um motivo, em qualquer altura antes de estar concluído. Cancelar preserva o histórico; eliminar (só possível antes de aprovado) não.</p></div></div>
-    <div class="feat"><span class="dot"></span><div><h4>Contas próprias</h4><p>Cada utilizador tem a sua conta, nunca uma password partilhada. As permissões de agente e de gestora são verificadas tanto no que se vê como no servidor.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Contas próprias</h4><p>Cada utilizador tem a sua conta, nunca uma password partilhada. As permissões de agente, gestora e administrador são verificadas tanto no que se vê como no servidor.</p></div></div>
+  </div>
+
+  <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
+</div>
+
+<!-- PAGE 4B: PARA O ADMINISTRADOR -->
+<div class="page">
+  <div class="kicker">Para o administrador</div>
+  <h2>Para o administrador</h2>
+  <p class="dek">Visão de topo sobre toda a equipa, gestão de utilizadores e convites para dar acesso a quem falta. Herda tudo o que a gestora já tem, com funcionalidades extra só para este perfil.</p>
+
+  <div class="feat-list">
+    <div class="feat"><span class="dot"></span><div><h4>Herda tudo o que a gestora tem</h4><p>Vê todos os processos, aprova, gera documentos, pede alterações e fecha processos, exactamente como uma gestora.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Painel próprio da equipa</h4><p>Uma página dedicada (/cpcv/admin) com totais e gráficos de toda a equipa, lista de utilizadores e geração de convites.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Resumo por gestora</h4><p>Mostra quantos processos cada gestora (ou administrador) já aprovou e o tempo médio até aprovar. É um registo de desempenho já feito, não uma fila de processos atribuídos a cada pessoa antes da aprovação - essa fila não existe.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Lista de utilizadores</h4><p>Nome, email, papel e estado (activo ou desactivado) de todas as pessoas com acesso à aplicação.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Convidar por papel</h4><p>Um botão por papel (por exemplo "+ Convidar agente" ou "+ Convidar gestora") gera um link único (/cpcv/registo?codigo=XXXXXXXX) para partilhar por WhatsApp ou email. Quem recebe só preenche nome, email e password - o papel já vem embutido no link, não há selector de papel no registo.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Quem pode convidar quem</h4><p>A gestora também tem este botão no seu painel, mas só pode convidar agentes. Só o administrador convida gestoras.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Convites com prazo</h4><p>Cada convite é válido por 14 dias e pode ser revogado antes de ser usado.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Mudar papel ou desactivar acesso</h4><p>O administrador pode mudar o papel de qualquer pessoa, ou desactivar o acesso: a pessoa deixa de conseguir entrar de imediato, mas a conta e os processos dela não são apagados. Reactivar reverte a desactivação.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Criar um novo administrador</h4><p>Não é feito por convite dentro da aplicação. Usa-se um código especial de arranque, guardado nas variáveis de ambiente do projecto, a que normalmente só a Ace Labs tem acesso.</p></div></div>
   </div>
 
   <div class="pagefoot"><span>Ace Labs &middot; acelabs.pt</span><span>CPCV com IA &middot; Manual de utilização</span></div>
@@ -204,13 +225,13 @@
 <!-- PAGE 5: EM COMUM + COISAS A SABER -->
 <div class="page">
   <div class="kicker">Em comum</div>
-  <h2>Disponível para os dois perfis</h2>
-  <p class="dek">Estas funcionalidades estão sempre presentes, seja o utilizador agente ou gestora.</p>
+  <h2>Disponível para os três perfis</h2>
+  <p class="dek">Estas funcionalidades estão sempre presentes, seja o utilizador agente, gestora ou administrador.</p>
 
   <div class="two-col">
     <div class="feat"><span class="dot"></span><div><h4>Lista de processos</h4><p>Filtros por estado (todos, em preenchimento, pronto para aprovação, aprovado, concluído, cancelado, com contagem em cada separador), pesquisa por morada (e por agente, para a gestora), e indicação de quantos campos ainda faltam preencher em cada processo, sem abrir. Paginada, 20 de cada vez, com "Carregar mais".</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Resumo para WhatsApp</h4><p>Um botão em cada processo gera um texto curto e pronto a copiar: partes envolvidas, preço, sinal, prazo da escritura e o que ainda falta confirmar (ou a confirmação de que já está aprovado). Não precisa de nenhuma app instalada, é só texto para colar.</p></div></div>
-    <div class="feat"><span class="dot"></span><div><h4>Acesso e segurança</h4><p>Contas reais por utilizador, dois perfis com permissões diferentes. Um agente nunca vê nem mexe nos processos de outro agente; só a gestora vê tudo.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Acesso e segurança</h4><p>Contas reais por utilizador, três perfis com permissões diferentes. Um agente nunca vê nem mexe nos processos de outro agente; gestora e administrador vêem tudo.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Compatível com telemóvel</h4><p>A aplicação funciona bem em ecrã de telemóvel, para os agentes poderem trabalhar no terreno, entre visitas.</p></div></div>
   </div>
 

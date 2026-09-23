@@ -41,18 +41,36 @@ validação de tipos - já apanhou um bug real (`Buffer` não atribuível a `Bod
   usando `@supabase/ssr` com `getUser()` (nunca `getSession()` - valida o token contra o servidor,
   importante num gate de acesso). Rotas públicas: `/cpcv/login`, `/cpcv/registo`,
   `/api/cpcv/registo`.
-- Dois roles em `profiles.role`: `agente` (só vê e edita os seus próprios processos) e `gestora`
-  (vê todos, aprova, pede alterações, gera documentos). O role nunca deve ser confiado a partir do
-  cliente - as rotas de API que exigem `gestora` (`/api/cpcv/gerar`, `/api/cpcv/pedir-alteracoes`,
-  `/api/cpcv/[id]/rascunho`) verificam `profiles.role` no servidor e devolvem 403, e a RLS do
-  Supabase (`is_gestora()`) é a última linha de defesa mesmo que uma rota falhe a validar - testado
-  em sessão de QA: pedido directo de um `agente` a um `processo_id` de outro utilizador devolve 404
-  (RLS), não os dados.
+- Três roles em `profiles.role`: `agente` (só vê e edita os seus próprios processos), `gestora`
+  (vê todos, aprova, pede alterações, gera documentos) e `admin` (herda tudo o que a gestora tem,
+  mais gestão de utilizadores e convites - ver `lib/cpcv-auth.ts`, `temGestaoTotal()`). O role
+  nunca deve ser confiado a partir do cliente - as rotas de API que exigem gestão total
+  (`/api/cpcv/gerar`, `/api/cpcv/pedir-alteracoes`, `/api/cpcv/[id]/rascunho`,
+  `/api/cpcv/[id]/fechar`) verificam `profiles.role` no servidor via `temGestaoTotal()` e
+  devolvem 403, e a RLS do Supabase (`is_gestora()`/`is_admin()`, `migration_fase6.sql`) é a
+  última linha de defesa mesmo que uma rota falhe a validar - testado em sessão de QA: pedido
+  directo de um `agente` a um `processo_id` de outro utilizador devolve 404 (RLS), não os dados.
 - `app/cpcv/layout.tsx` esconde o cabeçalho/rodapé quando não há sessão, e redirecciona
   `/cpcv/login`/`/cpcv/registo` para `/cpcv` quando já existe sessão activa (evita mostrar o
   formulário de login por baixo do cabeçalho autenticado).
 - Contas de teste: `agente.teste@acelabs.pt` / `gestora.teste@acelabs.pt`, password
   `TesteCpcv-2026!`.
+- `/cpcv/registo` nunca deixa escolher o papel livremente - vem sempre do código de convite.
+  Ou bate com `CPCV_INVITE_ADMIN` (estático, bootstrap do primeiro admin - ou de outro mais
+  tarde, por quem tiver acesso às env vars), ou é uma linha por usar em `cpcv_convites`
+  (`app/api/cpcv/registo/route.ts`). Os convites normais (agente/gestora) geram-se dentro da
+  app em `GerarConvite.tsx` - uma gestora só gera de `agente` (`/api/cpcv/convites` força isto
+  no servidor, nunca confia no papel pedido pelo cliente); só o admin gera de `gestora`. Criar
+  um admin novo nunca passa pela UI, só pelo código de bootstrap - fecha a porta a alguém se
+  auto-promover por dentro da aplicação. Antes disto existiam `CPCV_INVITE_AGENTE`/
+  `CPCV_INVITE_GESTORA`, dois segredos fixos e partilhados que deixavam qualquer pessoa
+  escolher o próprio papel - substituídos por completo.
+- `/cpcv/admin` (só para `role === "admin"`) gere utilizadores (mudar papel, activar/desactivar
+  o login via `auth.admin.updateUserById`/`ban_duration` - não apaga a conta nem os processos
+  que essa pessoa já criou) e mostra um resumo por gestora (`lib/cpcv-estatisticas.ts`,
+  `resumoPorGestora()`) - limitado a quantos processos cada uma aprovou e a velocidade a que o
+  fez, porque não existe hoje nenhuma "fila atribuída a uma gestora" antes da aprovação
+  (qualquer gestora/admin aprova qualquer processo pendente).
 
 ### Estados e fluxo
 

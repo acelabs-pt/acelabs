@@ -3,6 +3,7 @@ import { sbUserServer } from "@/lib/supabase-server";
 import { gerarHtmlCpcv } from "@/lib/cpcv-template";
 import { gerarDocxCpcv } from "@/lib/cpcv-docx";
 import { launchChromium } from "@/lib/cpcv-browser";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 const CONTENT_TYPE: Record<string, string> = {
   pdf: "application/pdf",
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Gerar um rascunho a qualquer momento (mesmo antes de aprovar) é só para a gestora
   // consultar - não grava nada no processo nem no Storage, ao contrário da aprovação.
   const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (perfil?.role !== "gestora") {
+  if (!temGestaoTotal(perfil?.role)) {
     return NextResponse.json({ error: "Só a gestora de processos pode gerar rascunhos." }, { status: 403 });
   }
 

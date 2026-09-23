@@ -5,6 +5,7 @@ import { gerarDocxCpcv } from "@/lib/cpcv-docx";
 import { launchChromium } from "@/lib/cpcv-browser";
 import { enviarCpcvParaDrive } from "@/lib/google-drive";
 import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   // O agente nunca pode gerar/aprovar sozinho - só a gestora. Verificar o role no
   // servidor (não basta esconder o botão no frontend).
   const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (perfil?.role !== "gestora") {
+  if (!temGestaoTotal(perfil?.role)) {
     return NextResponse.json(
       { error: "Só a gestora de processos pode aprovar e gerar o CPCV." },
       { status: 403 }
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
       pdf_path: pdfPath,
       docx_path: docxPath,
       estado: "aprovado",
+      aprovado_por: user.id,
       ...(driveFolderUrl ? { drive_folder_url: driveFolderUrl } : {}),
       atualizado_em: new Date().toISOString(),
     })

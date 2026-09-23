@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { btnAccent, Spinner } from "../ui";
 
@@ -8,10 +8,17 @@ export default function RegistoPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"agente" | "gestora">("agente");
   const [codigo, setCodigo] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Lido no cliente (não via useSearchParams) para não obrigar esta página a um Suspense
+  // boundary só por causa de um pré-preenchimento - o convite (link "Copiar" em
+  // GerarConvite.tsx) já traz o papel embutido no código, não é escolhido aqui.
+  useEffect(() => {
+    const codigoNaUrl = new URLSearchParams(window.location.search).get("codigo");
+    if (codigoNaUrl) setCodigo(codigoNaUrl);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +29,7 @@ export default function RegistoPage() {
       const res = await fetch("/api/cpcv/registo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, password, role, codigo }),
+        body: JSON.stringify({ nome, email, password, codigo }),
       });
 
       const body = await res.json();
@@ -103,24 +110,13 @@ export default function RegistoPage() {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-xs font-semibold text-[#475569] mb-1">
-              Perfil
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as "agente" | "gestora")}
-              className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-            >
-              <option value="agente">Agente imobiliário</option>
-              <option value="gestora">Gestora de processos</option>
-            </select>
-          </div>
-
-          <div>
             <label htmlFor="codigo" className="block text-xs font-semibold text-[#475569] mb-1">
               Código de convite
             </label>
+            <p className="text-[11px] text-[#94A3B8] mb-1">
+              O papel (agente/gestora) vem do próprio código - pede um link de convite à tua
+              gestora ou ao administrador.
+            </p>
             <input
               id="codigo"
               value={codigo}

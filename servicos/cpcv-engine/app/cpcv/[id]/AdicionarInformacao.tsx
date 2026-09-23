@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { extensaoSuportada, nomeSemColisao } from "@/lib/cpcv-ficheiros";
-import { btnGhost, btnPrimary, Spinner } from "../ui";
+import { btnGhost, btnPrimary, TextoShimmer } from "../ui";
 
 // nomeSemColisao só evita colisão dentro do lote que está a ser escolhido agora
 // (`ficheiros`, o estado local deste componente) - não sabia nada sobre ficheiros já
@@ -240,8 +240,7 @@ export default function AdicionarInformacao({
           Cancelar
         </button>
         <button onClick={enviar} disabled={loading} className={btnPrimary}>
-          {loading && <Spinner className="h-3.5 w-3.5" />}
-          {loading ? etapa || "A processar..." : "Enviar"}
+          {loading ? <TextoShimmer tom="escuro">{etapa || "A processar..."}</TextoShimmer> : "Enviar"}
         </button>
       </div>
     </div>

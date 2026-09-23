@@ -1,8 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnAccent, btnAccentOutline, btnGhost, btnPrimary, btnSecondary, Spinner } from "../ui";
+import { btnAccent, btnAccentOutline, btnGhost, btnPrimary, btnSecondary, Spinner, TextoShimmer } from "../ui";
+
+// Aprovar e gerar passa por vários passos reais (revisão por IA, PDF, Word, cópia para o
+// Drive) que não têm progresso granular reportado pelo servidor - isto é só cosmético, para
+// a espera (pode ir a dezenas de segundos, medido em teste) não parecer parada, não é um
+// indicador fiel de progresso real.
+const FASES_GERACAO = ["A rever com IA...", "A montar o PDF...", "A montar o Word...", "Quase lá..."];
+
+function useFaseRotativa(activo: boolean): string {
+  const [indice, setIndice] = useState(0);
+  useEffect(() => {
+    if (!activo) {
+      setIndice(0);
+      return;
+    }
+    const id = setInterval(() => setIndice((i) => (i + 1) % FASES_GERACAO.length), 3000);
+    return () => clearInterval(id);
+  }, [activo]);
+  return FASES_GERACAO[indice];
+}
 
 export function GerarButton({
   processoId,
@@ -15,6 +34,7 @@ export function GerarButton({
   const [aGerar, setAGerar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [avisos, setAvisos] = useState<string[] | null>(null);
+  const fase = useFaseRotativa(aGerar);
 
   async function gerar(forcar = false) {
     setAGerar(true);
@@ -62,8 +82,7 @@ export function GerarButton({
             Voltar
           </button>
           <button onClick={() => gerar(true)} disabled={aGerar} className={btnAccent}>
-            {aGerar && <Spinner className="h-3.5 w-3.5" />}
-            {aGerar ? "A gerar..." : "Gerar mesmo assim"}
+            {aGerar ? <TextoShimmer tom="escuro">{fase}</TextoShimmer> : "Gerar mesmo assim"}
           </button>
         </div>
         {erro && <p className="text-xs text-red-600">{erro}</p>}
@@ -79,8 +98,7 @@ export function GerarButton({
         </p>
       )}
       <button onClick={() => gerar(false)} disabled={aGerar} className={btnAccent}>
-        {aGerar && <Spinner className="h-3.5 w-3.5" />}
-        {aGerar ? "A rever e gerar..." : "Aprovar e gerar CPCV"}
+        {aGerar ? <TextoShimmer tom="escuro">{fase}</TextoShimmer> : "Aprovar e gerar CPCV"}
       </button>
       {erro && <p className="text-xs text-red-600">{erro}</p>}
     </div>

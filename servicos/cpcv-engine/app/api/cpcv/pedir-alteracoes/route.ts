@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: perfil } = await supabase.from("profiles").select("role, nome").eq("id", user.id).single();
-  if (perfil?.role !== "gestora") {
+  if (!temGestaoTotal(perfil?.role)) {
     return NextResponse.json({ error: "Só a gestora de processos pode pedir alterações." }, { status: 403 });
   }
 

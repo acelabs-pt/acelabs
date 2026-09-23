@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { extensaoSuportada, nomeSemColisao } from "@/lib/cpcv-ficheiros";
-import { btnPrimary, btnSecondary, Spinner } from "../ui";
+import { temGestaoTotal } from "@/lib/cpcv-auth";
+import { btnPrimary, btnSecondary, TextoShimmer } from "../ui";
 
 const TIPOS = [
   { value: "cc_vendedor", label: "Cartão de Cidadão - Vendedor" },
@@ -83,7 +84,7 @@ export default function NovoProcessoPage() {
       if (!user) return;
 
       const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-      if (perfil?.role !== "gestora") return;
+      if (!temGestaoTotal(perfil?.role)) return;
 
       setIsGestora(true);
       const { data: perfis } = await supabase.from("profiles").select("id, nome").eq("role", "agente").order("nome");
@@ -427,8 +428,7 @@ export default function NovoProcessoPage() {
         {error && <p className="text-xs text-red-500">{error}</p>}
 
         <button onClick={handleSubmit} disabled={loading} className={`w-full ${btnPrimary} py-3`}>
-          {loading && <Spinner className="h-4 w-4" />}
-          {loading ? etapa || "A processar..." : "Enviar"}
+          {loading ? <TextoShimmer tom="escuro">{etapa || "A processar..."}</TextoShimmer> : "Enviar"}
         </button>
 
         <div className="flex items-center gap-3 text-xs text-[#94A3B8]">
@@ -438,8 +438,7 @@ export default function NovoProcessoPage() {
         </div>
 
         <button onClick={handleComecarDoZero} disabled={loading} className={`w-full ${btnSecondary} py-3`}>
-          {loading && <Spinner className="h-4 w-4" />}
-          {loading ? etapa || "A processar..." : "Não tenho nada - começar do zero"}
+          {loading ? <TextoShimmer>{etapa || "A processar..."}</TextoShimmer> : "Não tenho nada - começar do zero"}
         </button>
       </div>
     </div>

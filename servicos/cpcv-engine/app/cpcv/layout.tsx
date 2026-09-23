@@ -1,7 +1,13 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { sbUserServer } from "@/lib/supabase-server";
 import LogoutButton from "./LogoutButton";
+
+const ROLE_LABEL: Record<string, string> = {
+  gestora: "Gestora de processos",
+  admin: "Administrador",
+};
 
 export default async function CpcvLayout({ children }: { children: React.ReactNode }) {
   const supabase = await sbUserServer();
@@ -31,16 +37,24 @@ export default async function CpcvLayout({ children }: { children: React.ReactNo
   return (
     <div className="min-h-screen bg-[#F4F3EF]">
       <header className="min-h-14 flex items-center justify-between gap-3 px-4 sm:px-6 py-2 bg-[#0F172A] text-white">
-        <span className="font-bold text-sm tracking-wide shrink-0">cpcv_engine</span>
+        <span className="flex items-baseline gap-1.5 shrink-0">
+          <span className="font-bold text-sm tracking-wide">cpcv_engine</span>
+          <span className="hidden sm:inline text-[10px] text-white/40">Powered by Ace Labs</span>
+        </span>
         <div className="flex items-center gap-2 sm:gap-4 text-xs min-w-0">
           {perfil && (
             <span className="text-white/70 truncate">
               {perfil.nome}
               <span className="hidden sm:inline">
                 {" "}
-                · {perfil.role === "gestora" ? "Gestora de processos" : "Agente imobiliário"}
+                · {ROLE_LABEL[perfil.role] ?? "Agente imobiliário"}
               </span>
             </span>
+          )}
+          {perfil?.role === "admin" && (
+            <Link href="/cpcv/admin" className="text-white/70 hover:text-white transition-colors">
+              Administração
+            </Link>
           )}
           <LogoutButton />
         </div>
