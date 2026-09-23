@@ -102,7 +102,8 @@ Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, e
   "negocio": {
     "preco_total": number|null, "valor_sinal": number|null, "forma_pagamento_sinal": string|null,
     "prazo_pagamento_sinal": string|null, "prazo_escritura": "YYYY-MM-DD"|null,
-    "condicoes_suspensivas": string|null, "penalizacao_incumprimento": string|null
+    "condicoes_suspensivas": string|null, "penalizacao_incumprimento": string|null,
+    "incluidos_no_imovel": string|null
   },
   "campos_em_falta": [ { "campo": string, "pergunta": string } ]
 }
@@ -112,6 +113,10 @@ excluídos na regra anterior) que fique null, e qualquer parte (vendedor/comprad
 identificação estejam incompletos - mas não repitas perguntas óbvias se o mesmo dado já foi dado
 de outra forma. Devolve sempre a lista completa de "partes" (as que já havia mais as
 novas/actualizadas), não só as novas.
+
+Excepção: "incluidos_no_imovel" (o que fica incluído na venda - mobília, eletrodomésticos, etc.)
+é sempre opcional. Preenche-o só se o agente o mencionar espontaneamente; nunca o incluas em
+"campos_em_falta" nem perguntes por ele.
 
 Se não houver nenhum documento, texto ou link novo, e o "Estado actual" também estiver vazio
 (sem partes, sem dados do imóvel), NÃO devolvas "campos_em_falta" vazio - pergunta sempre pelo
@@ -218,6 +223,7 @@ export async function POST(req: NextRequest) {
     prazo_escritura: processo.prazo_escritura,
     condicoes_suspensivas: processo.condicoes_suspensivas,
     penalizacao_incumprimento: processo.penalizacao_incumprimento,
+    incluidos_no_imovel: processo.incluidos_no_imovel,
   };
   const estadoActual = {
     tipo_contrato: processo.tipo_contrato,

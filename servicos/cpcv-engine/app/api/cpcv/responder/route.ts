@@ -69,14 +69,18 @@ esta forma (a mesma estrutura do estado que recebeste, já actualizada):
   "negocio": {
     "preco_total": number|null, "valor_sinal": number|null, "forma_pagamento_sinal": string|null,
     "prazo_pagamento_sinal": string|null, "prazo_escritura": "YYYY-MM-DD"|null,
-    "condicoes_suspensivas": string|null, "penalizacao_incumprimento": string|null
+    "condicoes_suspensivas": string|null, "penalizacao_incumprimento": string|null,
+    "incluidos_no_imovel": string|null
   },
   "campos_em_falta": [ { "campo": string, "pergunta": string } ]
 }
 
 Remove de "campos_em_falta" a pergunta que acabou de ser respondida (e qualquer outra que a
 resposta já tenha esclarecido). Se ainda faltar informação essencial, mantém/acrescenta a
-pergunta correspondente. Se já não faltar nada, devolve "campos_em_falta": [].`;
+pergunta correspondente. Se já não faltar nada, devolve "campos_em_falta": [].
+
+"incluidos_no_imovel" (o que fica incluído na venda) é sempre opcional - actualiza-o só se o
+agente o mencionar espontaneamente na resposta; nunca o incluas em "campos_em_falta".`;
 }
 
 export async function POST(req: NextRequest) {
@@ -126,6 +130,7 @@ export async function POST(req: NextRequest) {
     prazo_escritura: processo.prazo_escritura,
     condicoes_suspensivas: processo.condicoes_suspensivas,
     penalizacao_incumprimento: processo.penalizacao_incumprimento,
+    incluidos_no_imovel: processo.incluidos_no_imovel,
   };
 
   const estadoActual = {

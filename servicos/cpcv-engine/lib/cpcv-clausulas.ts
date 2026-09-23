@@ -74,6 +74,17 @@ export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
   return partes.map((p) => identificacaoParte(h, p));
 }
 
+// A IA extrai "forma_pagamento_sinal" do texto livre do agente tal como ele o escreveu (ex.:
+// resposta a "como será feito o pagamento do sinal?" → "Transferência bancária"), sem garantir
+// que já vem com preposição. Encaixado directamente na frase "a quantia de X€, paga {forma}"
+// dava um erro de português no documento legal (testado: "paga Transferência bancária" em vez
+// de "paga por transferência bancária"). Normaliza aqui, não confiando em o agente/IA escrever
+// sempre com a preposição.
+function comPreposicaoDePagamento(forma: string): string {
+  if (/^(por|através de|atraves de|mediante|em|com|via)\s/i.test(forma)) return forma;
+  return `por ${forma.charAt(0).toLowerCase()}${forma.slice(1)}`;
+}
+
 // "paga [forma], [prazo]" (ex.: "paga por transferência bancária, no acto da assinatura").
 // forma_pagamento_sinal (como) e prazo_pagamento_sinal (quando) só existem se a IA os extraiu
 // de texto livre - não há formulário estruturado para eles. Quando só "prazo" está preenchido,
@@ -84,8 +95,8 @@ export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
 export function textoFormaPagamentoSinal(h: Helpers, processo: Processo): string {
   const forma = processo.forma_pagamento_sinal as string | null;
   const prazo = processo.prazo_pagamento_sinal as string | null;
-  if (forma && prazo) return `${h.v(forma)}, ${h.v(prazo)}`;
-  if (forma) return h.v(forma);
+  if (forma && prazo) return `${h.v(comPreposicaoDePagamento(forma))}, ${h.v(prazo)}`;
+  if (forma) return h.v(comPreposicaoDePagamento(forma));
   if (prazo) return h.v(prazo);
   return "na data da assinatura do presente contrato";
 }

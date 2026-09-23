@@ -83,6 +83,17 @@ abaixo, para o caso de a IA perguntar na mesma).
 - Testado contra injecção de prompt (texto do utilizador a tentar fazer a IA revelar o system
   prompt) - o modelo ignorou a instrução injectada e manteve-se na tarefa. Não é garantia para
   sempre, mas não é uma lacuna conhecida em aberto.
+- `licenca_utilizacao` e `certificado_energetico` são o caso oposto dos campos acima: a IA tenta
+  mesmo extraí-los (do chat/documentos), mas também são editáveis à mão no formulário "Condições
+  do negócio" (mesmas colunas, `imovel_licenca_utilizacao`/`imovel_certificado_energetico`).
+  Guardar o formulário não chama a IA, por isso passou a remover essas entradas de
+  `campos_em_falta` directamente no cliente (`removerCamposPreenchidosNoFormulario` em
+  `lib/cpcv-perguntas-filtro.ts`) - sem isto, a pergunta ficava visível no chat e a contar no "X
+  por preencher" da lista de processos até à ronda seguinte de chat. O casamento é por
+  palavras-chave (`licenca`+`utilizacao`, `certificado`+`energetic`), nunca por uma frase exacta -
+  testado: o `campo` devolvido pela IA é um identificador estável (`imovel.certificado_energetico`),
+  mas a `pergunta` em português varia de ronda para ronda (ex.: "classificação energética do
+  imóvel (certificado)" não contém a frase "certificado energético").
 
 ### Geração de documentos
 
@@ -116,3 +127,9 @@ micro-interacção ao clicar) em toda a secção.
   dessincronizado do DOM.
 - Este repositório é partilhado com o Miguel - antes de mexer, `git pull`; commit e push só com
   confirmação explícita do utilizador antes de cada execução (ver `CLAUDE.md` da raiz).
+- Um componente client (`"use client"`) que recebe um filtro/valor inicial via prop e o guarda em
+  `useState(propInicial)` só lê essa prop na primeira montagem - se a navegação for do lado do
+  cliente (`next/link`, `router.push`) o componente não remonta, por isso mudanças na prop depois
+  disso são ignoradas. Já aconteceu (`ListaProcessos.tsx`, filtro vindo de `?estado=` na URL): a
+  correcção é sincronizar com `useEffect(() => setEstado(propInicial), [propInicial])`, não confiar
+  só no valor inicial do `useState`.
