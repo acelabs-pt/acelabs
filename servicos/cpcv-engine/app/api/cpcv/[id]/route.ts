@@ -14,12 +14,24 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { data: processo } = await supabase
     .from("cpcv_processos")
-    .select("id, criado_por")
+    .select("id, criado_por, estado")
     .eq("id", id)
     .single();
 
   if (!processo) {
     return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 });
+  }
+
+  // Um processo aprovado/concluído já tem um CPCV real gerado - eliminar apagaria essa
+  // referência definitivamente. O caminho correcto para esses estados é "Cancelar
+  // processo" (POST /api/cpcv/[id]/fechar), que preserva o registo. Verificação no
+  // servidor porque o botão "Eliminar" já está escondido para estes estados no
+  // frontend, mas isso não impede um pedido directo à API.
+  if (processo.estado === "aprovado" || processo.estado === "concluido") {
+    return NextResponse.json(
+      { error: "Este processo já tem um CPCV aprovado - usa \"Cancelar processo\" em vez de eliminar." },
+      { status: 400 }
+    );
   }
 
   // Limpar os ficheiros no Storage primeiro - não estão ligados por foreign key,

@@ -178,7 +178,7 @@ export default function ListaProcessos({
                     <Link href={`/cpcv/${p.id}`} className={btnLink}>
                       Abrir
                     </Link>
-                    <DeleteProcessoButton id={p.id} />
+                    {p.estado !== "aprovado" && p.estado !== "concluido" && <DeleteProcessoButton id={p.id} />}
                   </div>
                 </td>
               </tr>
