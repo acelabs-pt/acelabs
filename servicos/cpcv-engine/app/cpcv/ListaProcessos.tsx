@@ -21,6 +21,8 @@ const ESTADO_COR: Record<string, string> = {
   cancelado: "bg-[#F1F5F9] text-[#64748B]",
 };
 
+const TAMANHO_PAGINA = 20;
+
 const FILTROS = [
   { value: "todos", label: "Todos" },
   { value: "em_preenchimento", label: "Em preenchimento" },
@@ -73,12 +75,20 @@ export default function ListaProcessos({
     filtroInicial && FILTROS.some((f) => f.value === filtroInicial) ? filtroInicial : "todos"
   );
   const [pesquisa, setPesquisa] = useState("");
+  const [visiveis, setVisiveis] = useState(TAMANHO_PAGINA);
 
   useEffect(() => {
     if (filtroInicial && FILTROS.some((f) => f.value === filtroInicial)) {
       setFiltro(filtroInicial);
     }
   }, [filtroInicial]);
+
+  // Volta a mostrar só a primeira página sempre que o filtro/pesquisa muda - sem isto, trocar
+  // de separador com "carregar mais" já usado deixava a tabela a mostrar uma mistura confusa
+  // de quantos itens tinham sido "carregados" no filtro anterior.
+  useEffect(() => {
+    setVisiveis(TAMANHO_PAGINA);
+  }, [filtro, pesquisa]);
 
   const listaFiltrada = (filtro === "todos" ? lista : lista.filter((p) => p.estado === filtro))
     .filter((p) => {
@@ -95,6 +105,9 @@ export default function ListaProcessos({
       }
       return 0;
     });
+
+  const listaVisivel = listaFiltrada.slice(0, visiveis);
+  const temMais = listaFiltrada.length > visiveis;
 
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
@@ -137,7 +150,7 @@ export default function ListaProcessos({
             </tr>
           </thead>
           <tbody>
-            {listaFiltrada.map((p) => (
+            {listaVisivel.map((p) => (
               <tr key={p.id} className="border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors">
                 {isGestora && (
                   <td className="px-5 py-3 text-[#475569]">{nomesPorAgente[p.criado_por] ?? "-"}</td>
@@ -166,6 +179,17 @@ export default function ListaProcessos({
             ))}
           </tbody>
         </table>
+      )}
+
+      {temMais && (
+        <div className="flex flex-col items-center gap-1 p-4 border-t border-[#F1F5F9]">
+          <button
+            onClick={() => setVisiveis((v) => v + TAMANHO_PAGINA)}
+            className="text-xs font-medium text-[#2E6DB4] hover:text-[#0059B3] px-3 py-1.5 rounded-full hover:bg-[#F8FAFC] transition-colors"
+          >
+            Carregar mais ({listaFiltrada.length - visiveis} restantes)
+          </button>
+        </div>
       )}
     </div>
   );
