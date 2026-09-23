@@ -92,7 +92,10 @@ export default function ResumoWhatsApp({ processo, partes }: { processo: Process
       />
       <div className="flex items-center justify-end gap-2">
         {copiado && <p className="text-xs font-medium text-[#1FAE5A]">Copiado!</p>}
-        <button onClick={() => setAberto(false)} className="text-xs font-medium text-[#94A3B8] hover:text-[#475569] px-3 py-2">
+        <button
+          onClick={() => setAberto(false)}
+          className="text-xs font-medium text-[#94A3B8] hover:text-[#475569] px-3 py-2 rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F172A]/20"
+        >
           Fechar
         </button>
         <button onClick={copiar} className={btnSecondary}>
