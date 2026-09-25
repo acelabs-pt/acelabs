@@ -241,7 +241,6 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[]): string {
   .assinaturas { margin-top: 20mm; display: flex; justify-content: space-between; }
   .assinatura { width: 45%; text-align: center; }
   .linha { border-top: 1px solid #111; margin-top: 15mm; padding-top: 2mm; }
-  .rodape { margin-top: 10mm; font-size: 9pt; color: #666; text-align: center; }
 </style>
 </head>
 <body>
@@ -269,8 +268,6 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[]): string {
       <div class="linha">O(s) Promitente(s) Comprador(a/es)</div>
     </div>
   </div>
-
-  <p class="rodape">Documento gerado automaticamente com apoio de IA - a rever antes de assinatura. Ace Labs.</p>
 </body>
 </html>`;
 }
