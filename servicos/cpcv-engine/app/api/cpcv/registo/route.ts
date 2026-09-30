@@ -52,10 +52,13 @@ export async function POST(req: NextRequest) {
   });
 
   if (error || !data.user) {
-    return NextResponse.json(
-      { error: error?.message ?? "Não foi possível criar a conta." },
-      { status: 400 }
-    );
+    // O Supabase devolve mensagens em inglês (testado: "A user with this email address has
+    // already been registered", code "email_exists") - o resto da app está em português, por
+    // isso nunca se mostra error.message directamente, só para o caso conhecido traduzido;
+    // qualquer outro erro fica com uma mensagem genérica em vez de texto em inglês à mistura.
+    const mensagem =
+      error?.code === "email_exists" ? "Já existe uma conta com este email." : "Não foi possível criar a conta. Tenta outra vez daqui a pouco.";
+    return NextResponse.json({ error: mensagem }, { status: 400 });
   }
 
   const { error: profileError } = await sb

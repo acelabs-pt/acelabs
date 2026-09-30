@@ -69,7 +69,7 @@ export default async function CpcvHomePage({
           ← Voltar ao dashboard principal
         </Link>
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#0F172A]">
             {isGestora ? "Dashboard de CPCVs" : "Os meus CPCVs"}
@@ -80,7 +80,7 @@ export default async function CpcvHomePage({
               : "Processos que criaste."}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isGestora && <GerarConvite papeisPermitidos={["agente"]} convites={convites} />}
           <Link href="/cpcv/novo" className={btnPrimary}>
             + Novo CPCV
