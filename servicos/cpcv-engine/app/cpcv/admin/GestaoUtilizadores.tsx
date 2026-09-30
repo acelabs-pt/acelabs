@@ -70,7 +70,7 @@ export default function GestaoUtilizadores({ utilizadores }: { utilizadores: Uti
         {utilizadores.map((u) => (
           <div
             key={u.id}
-            className="flex flex-col gap-2 border-b border-[#F1F5F9] py-3 last:border-0 sm:grid sm:grid-cols-[2fr_2fr_1fr_1fr_auto] sm:items-center sm:gap-2 sm:py-2"
+            className="flex flex-col gap-2 border-b border-[#F1F5F9] py-3 last:border-0 sm:grid sm:grid-cols-[2fr_2fr_1fr_1fr_auto] sm:items-center sm:gap-2 sm:py-2 sm:-mx-2 sm:px-2 sm:rounded-lg sm:hover:bg-[#F8FAFC] transition-colors"
           >
             <div className="text-xs">
               <p className="font-medium text-[#0F172A]">{u.nome}</p>

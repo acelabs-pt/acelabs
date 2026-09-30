@@ -67,6 +67,46 @@ export function TextoShimmer({
   );
 }
 
+// Estado vazio com um pouco de peso visual (ícone + texto), em vez de uma linha de texto
+// cinzento sozinha - um "sem nada ainda" só de texto é dos sinais mais óbvios de interface
+// por acabar. Usar sempre com um dos ícones de IconesVazio abaixo.
+export function EstadoVazio({ icon, texto }: { icon: React.ReactNode; texto: string }) {
+  return (
+    <div className="flex items-center gap-2.5 py-1.5 text-xs text-[#94A3B8]">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F1F5F9] text-[#CBD5E1] shrink-0">
+        {icon}
+      </span>
+      {texto}
+    </div>
+  );
+}
+
+export const IconesVazio = {
+  pessoa: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  ),
+  documento: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <path d="M7 3.5h7l3.5 3.5V20a.5.5 0 01-.5.5H7a.5.5 0 01-.5-.5V4a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M9.5 13h5M9.5 16.3h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  ),
+  bandeja: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <path
+        d="M4 12.5h4.2l1.3 2.3h4.9l1.3-2.3H20M5.5 6.5h13l1.5 6.5v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6l1.5-6.5z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
+};
+
 // Pequeno "orbe" em gradiente cónico (azul/verde/âmbar da marca) a rodar devagar, com um
 // halo desfocado a pulsar por trás - o mesmo tipo de gradiente animado usado em galerias
 // como godly.design para dar uma sensação de "IA viva", sem precisar de WebGL/Three.js, só

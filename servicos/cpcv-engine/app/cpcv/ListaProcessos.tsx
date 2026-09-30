@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import DeleteProcessoButton from "./DeleteProcessoButton";
-import { btnLink } from "./ui";
+import { btnLink, IconesVazio } from "./ui";
 
 const ESTADO_LABEL: Record<string, string> = {
   em_preenchimento: "Em preenchimento",
@@ -137,7 +137,12 @@ export default function ListaProcessos({
       </div>
 
       {listaFiltrada.length === 0 ? (
-        <p className="text-sm text-[#94A3B8] p-6">Nenhum processo neste estado.</p>
+        <div className="flex flex-col items-center gap-3 py-14 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F1F5F9] text-[#CBD5E1]">
+            <span className="[&_svg]:h-5 [&_svg]:w-5">{IconesVazio.bandeja}</span>
+          </span>
+          <p className="text-sm text-[#94A3B8]">Nenhum processo neste estado.</p>
+        </div>
       ) : (
         // Em ecrãs pequenos, Agente/À espera/Criado em ficam escondidas para "Imóvel",
         // "Estado" e "Abrir" (as colunas que importam para abrir um processo a partir do

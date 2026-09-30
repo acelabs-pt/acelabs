@@ -7,8 +7,8 @@ import { cookies, headers } from "next/headers";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Painel de Gestão",
-  description: "Plataforma de gestão interna",
+  title: "CPCV com IA · Ace Labs",
+  description: "Geração assistida por IA de Contratos-Promessa de Compra e Venda para agências imobiliárias.",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

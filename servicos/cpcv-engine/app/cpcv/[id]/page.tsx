@@ -8,6 +8,7 @@ import CondicoesNegocio from "./CondicoesNegocio";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
+import { EstadoVazio, IconesVazio } from "../ui";
 
 const ESTADO_LABEL: Record<string, string> = {
   em_preenchimento: "Em preenchimento",
@@ -95,7 +96,9 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
           <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Partes ({partes?.length ?? 0})</h2>
-          {(partes ?? []).length === 0 && <p className="text-xs text-[#94A3B8]">Nenhuma ainda.</p>}
+          {(partes ?? []).length === 0 && (
+            <EstadoVazio icon={IconesVazio.pessoa} texto="Nenhuma parte identificada ainda." />
+          )}
           <ul className="space-y-2">
             {(partes ?? []).map((p) => (
               <li key={p.id} className="text-xs border-b border-[#F1F5F9] pb-2 last:border-0">
@@ -115,7 +118,9 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
 
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
           <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Documentos ({ficheiros?.length ?? 0})</h2>
-          {(ficheiros ?? []).length === 0 && <p className="text-xs text-[#94A3B8]">Nenhum ainda.</p>}
+          {(ficheiros ?? []).length === 0 && (
+            <EstadoVazio icon={IconesVazio.documento} texto="Nenhum documento carregado ainda." />
+          )}
           <ul className="space-y-1">
             {(ficheiros ?? []).map((f) => (
               <li key={f.id} className="text-xs">
