@@ -58,6 +58,8 @@ export default function NovoProcessoPage() {
   const [tipoContrato, setTipoContrato] = useState("angariacao_nossa_comprador_nosso");
   const [perfilVendedor, setPerfilVendedor] = useState("");
   const [perfilComprador, setPerfilComprador] = useState("");
+  const [licencaUtilizacao, setLicencaUtilizacao] = useState("");
+  const [certificadoEnergetico, setCertificadoEnergetico] = useState("");
   const [ficheiros, setFicheiros] = useState<FicheiroPendente[]>([]);
   const [texto, setTexto] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,7 +128,16 @@ export default function NovoProcessoPage() {
   }
 
   async function criarProcesso(supabase: ReturnType<typeof sbBrowser>, donoId: string) {
-    return supabase.from("cpcv_processos").insert({ criado_por: donoId, tipo_contrato: tipoContrato }).select().single();
+    return supabase
+      .from("cpcv_processos")
+      .insert({
+        criado_por: donoId,
+        tipo_contrato: tipoContrato,
+        imovel_licenca_utilizacao: licencaUtilizacao || null,
+        imovel_certificado_energetico: certificadoEnergetico || null,
+      })
+      .select()
+      .single();
   }
 
   async function handleSubmit() {
@@ -366,6 +377,36 @@ export default function NovoProcessoPage() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="block text-xs font-semibold text-[#475569] mb-2">
+            Dados obrigatórios do imóvel <span className="text-[#94A3B8] font-normal">(se já souberes - senão fica pendente até à aprovação)</span>
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="licencaUtilizacao" className="block text-[11px] text-[#94A3B8] mb-1">
+                Licença de utilização <span className="text-[#9A5B00]">(obrigatória para gerar o CPCV)</span>
+              </label>
+              <input
+                id="licencaUtilizacao"
+                value={licencaUtilizacao}
+                onChange={(e) => setLicencaUtilizacao(e.target.value)}
+                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+              />
+            </div>
+            <div>
+              <label htmlFor="certificadoEnergetico" className="block text-[11px] text-[#94A3B8] mb-1">
+                Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
+              </label>
+              <input
+                id="certificadoEnergetico"
+                value={certificadoEnergetico}
+                onChange={(e) => setCertificadoEnergetico(e.target.value)}
+                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+              />
             </div>
           </div>
         </div>

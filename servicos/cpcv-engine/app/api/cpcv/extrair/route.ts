@@ -67,6 +67,17 @@ O campo "descricao_predial" é o número de descrição predial na Conservatóri
 como "fracção autónoma" ou "prédio urbano" (isso é o texto que já entra na frase antes do número,
 não o próprio número). Se o texto não indicar claramente esse número, deixa o campo null.
 
+Atenção à distinção entre certidões permanentes quando o imóvel é uma fracção autónoma (ex.:
+apartamento num prédio em propriedade horizontal): normalmente há uma certidão do prédio no seu
+todo (descrição predial geral, constituição de propriedade horizontal, letras de todas as
+fracções) e uma certidão específica da fracção em causa. Os "sujeitos activos" e "sujeitos
+passivos" de inscrições que constem só da certidão do prédio (ex.: hipoteca da construção,
+entidades ligadas a outras fracções, promotor/construtor) NUNCA correspondem automaticamente ao
+vendedor da fracção concreta que está a ser negociada - só identificas vendedor/comprador a partir
+da certidão (ou da parte da certidão) referente especificamente a essa fracção. Na dúvida sobre a
+qual das duas certidões um nome pertence, não o atribuas como parte - deixa a pergunta em
+"campos_em_falta" em vez de arriscar.
+
 Uma parte pode ser pessoa singular ou pessoa colectiva (empresa). Reconhece isso pelos documentos
 (certidão permanente comercial, identificação de representante) ou pelo texto. Para pessoa
 colectiva usa o campo "nome" para a denominação social, e preenche "representante_nome" e
