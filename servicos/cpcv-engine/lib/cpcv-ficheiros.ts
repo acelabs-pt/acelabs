@@ -27,3 +27,14 @@ export function nomeSemColisao(nome: string, jaUsados: string[]): string {
   }
   return candidato;
 }
+
+// O caminho no Storage tem de ser uma chave válida (sem acentos, cedilhas, tis) - um
+// nome como "contrato-promoção.pdf" ou "José Ação.pdf" falhava o upload com erro do
+// Storage. O nome original (com acentos) continua a ser guardado em `nome_original`
+// para mostrar na UI; só a chave de Storage é que precisa de ficar em ASCII simples.
+export function nomeFicheiroSeguro(nome: string): string {
+  return nome
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "_");
+}

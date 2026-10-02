@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { extensaoSuportada, nomeSemColisao } from "@/lib/cpcv-ficheiros";
+import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { btnGhost, btnPrimary, TextoShimmer } from "../ui";
 
 // nomeSemColisao só evita colisão dentro do lote que está a ser escolhido agora
@@ -93,7 +93,7 @@ export default function AdicionarInformacao({
 
       setEtapa("A enviar documentos...");
       for (const { file, tipo } of ficheiros) {
-        const path = `${donoId}/${processoId}/${file.name}`;
+        const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
         const { error: uploadError } = await supabase.storage
           .from("cpcv-documentos")
           .upload(path, file, { upsert: true });

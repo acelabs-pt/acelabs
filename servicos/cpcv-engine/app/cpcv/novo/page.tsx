@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { extensaoSuportada, nomeSemColisao } from "@/lib/cpcv-ficheiros";
+import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { btnPrimary, btnSecondary, TextoShimmer } from "../ui";
 
@@ -163,7 +163,7 @@ export default function NovoProcessoPage() {
 
       setEtapa("A enviar documentos...");
       for (const { file, tipo } of ficheiros) {
-        const path = `${donoId}/${processo.id}/${file.name}`;
+        const path = `${donoId}/${processo.id}/${nomeFicheiroSeguro(file.name)}`;
         const { error: uploadError } = await supabase.storage
           .from("cpcv-documentos")
           .upload(path, file, { upsert: true });
