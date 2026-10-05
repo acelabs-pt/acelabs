@@ -12,6 +12,20 @@ const PADROES_PROIBIDOS = [
   /iban/i,
   /e-?mail/i,
   /inclu[ií]do.*im[oó]vel/i,
+  // Dados de vendedor/comprador vêm de um formulário próprio, não da IA (ver
+  // lib/cpcv-partes-form.ts) - rede de segurança igual à de cima, caso o modelo pergunte
+  // na mesma apesar de instruído a não o fazer.
+  /\bnif\b/i,
+  /estado civil/i,
+  /regime de bens/i,
+  /naturalidade/i,
+  /cart[ãa]o de cidad[ãa]o/i,
+  /passaporte/i,
+  /t[ií]tulo de resid[eê]ncia/i,
+  /n[uú]mero de (?:documento|identifica[çc][ãa]o)/i,
+  /dados (?:do|da|dos|das) (?:vendedor|comprador)/i,
+  /identifica[çc][ãa]o (?:do|da) (?:vendedor|comprador)/i,
+  /morada (?:do|da) (?:vendedor|comprador)/i,
 ];
 
 export function filtrarCamposEmFalta<T extends { campo: string; pergunta: string }>(

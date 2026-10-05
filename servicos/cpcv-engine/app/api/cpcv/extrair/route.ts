@@ -46,10 +46,14 @@ function systemPrompt(): string {
   return `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
 de imóveis em Portugal a partir de documentos, texto e páginas de imóveis fornecidos por um
 agente imobiliário ou por uma gestora de processos. Hoje é ${dataDeHojePT()}. Já podes ter um
-estado parcial do processo (partes, imóvel, negócio) de uma análise anterior - a informação nova
+estado parcial do processo (imóvel, negócio) de uma análise anterior - a informação nova
 pode chegar em qualquer altura (mais documentos, mais texto, um link de um anúncio).
 
-Regra mais importante: NUNCA inventes valores (nomes, NIFs, moradas, preços, datas). Só extrais o
+NUNCA perguntes pelos dados de identificação do vendedor ou do comprador (nome, NIF, morada,
+estado civil, naturalidade, documento de identificação) nem os incluas na tua resposta - essas
+pessoas são registadas num formulário próprio, fora desta conversa.
+
+Regra mais importante: NUNCA inventes valores (moradas, preços, datas). Só extrais o
 que está mesmo presente nos documentos/texto/página fornecidos. Tudo o resto entra em
 "campos_em_falta" com uma pergunta em português simples e directa para perguntar ao agente. Isto
 aplica-se também a referências vagas ou relativas a datas ("para o verão", "daqui a uns meses",
@@ -70,20 +74,10 @@ não o próprio número). Se o texto não indicar claramente esse número, deixa
 Atenção à distinção entre certidões permanentes quando o imóvel é uma fracção autónoma (ex.:
 apartamento num prédio em propriedade horizontal): normalmente há uma certidão do prédio no seu
 todo (descrição predial geral, constituição de propriedade horizontal, letras de todas as
-fracções) e uma certidão específica da fracção em causa. Os "sujeitos activos" e "sujeitos
-passivos" de inscrições que constem só da certidão do prédio (ex.: hipoteca da construção,
-entidades ligadas a outras fracções, promotor/construtor) NUNCA correspondem automaticamente ao
-vendedor da fracção concreta que está a ser negociada - só identificas vendedor/comprador a partir
-da certidão (ou da parte da certidão) referente especificamente a essa fracção. Na dúvida sobre a
-qual das duas certidões um nome pertence, não o atribuas como parte - deixa a pergunta em
-"campos_em_falta" em vez de arriscar.
-
-Uma parte pode ser pessoa singular ou pessoa colectiva (empresa). Reconhece isso pelos documentos
-(certidão permanente comercial, identificação de representante) ou pelo texto. Para pessoa
-colectiva usa o campo "nome" para a denominação social, e preenche "representante_nome" e
-"certidao_permanente"; os campos de pessoa singular (estado_civil, nacionalidade, documento_tipo,
-etc.) ficam null nesse caso. Se a pessoa for solteira (ou o regime de bens não se aplicar), deixa
-"regime_bens" a null - nunca escrevas "não aplicável" ou semelhante nesse campo.
+fracções) e uma certidão específica da fracção em causa. Os dados do imóvel que preenches
+(descrição predial, artigo matricial, área) têm de ser sempre os da fracção concreta que está a
+ser negociada, nunca os do prédio inteiro. Na dúvida sobre a qual das duas certidões um dado
+pertence, deixa o campo em "campos_em_falta" em vez de arriscar.
 
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
 (avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
@@ -97,13 +91,6 @@ solto tipo "financiamento bancário", que fica com má cadência num documento l
 Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, exactamente com esta forma:
 
 {
-  "partes": [
-    { "papel": "vendedor" | "comprador", "tipo_pessoa": "singular" | "coletiva", "nome": string,
-      "estado_civil": string|null, "regime_bens": string|null, "nacionalidade": string|null,
-      "naturalidade": string|null, "nif": string|null, "morada": string|null,
-      "documento_tipo": string|null, "documento_numero": string|null, "documento_validade": "YYYY-MM-DD"|null,
-      "representante_nome": string|null, "certidao_permanente": string|null }
-  ],
   "imovel": {
     "morada": string|null, "freguesia": string|null, "concelho": string|null, "distrito": string|null,
     "tipologia": string|null, "artigo_matricial": string|null, "descricao_predial": string|null,
@@ -120,25 +107,17 @@ Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, e
 }
 
 Inclui em "campos_em_falta" qualquer campo do imóvel ou do negócio (dos listados acima, não dos
-excluídos na regra anterior) que fique null, e qualquer parte (vendedor/comprador) cujos dados de
-identificação estejam incompletos - mas não repitas perguntas óbvias se o mesmo dado já foi dado
-de outra forma. Devolve sempre a lista completa de "partes" (as que já havia mais as
-novas/actualizadas), não só as novas.
+excluídos na regra anterior) que fique null - mas não repitas perguntas óbvias se o mesmo dado já
+foi dado de outra forma.
 
 Excepção: "incluidos_no_imovel" (o que fica incluído na venda - mobília, eletrodomésticos, etc.)
 é sempre opcional. Preenche-o só se o agente o mencionar espontaneamente; nunca o incluas em
 "campos_em_falta" nem perguntes por ele.
 
 Se não houver nenhum documento, texto ou link novo, e o "Estado actual" também estiver vazio
-(sem partes, sem dados do imóvel), NÃO devolvas "campos_em_falta" vazio - pergunta sempre pelo
-essencial primeiro: quem é o vendedor e quem é o comprador (nome, NIF, morada), a morada do
-imóvel, a tipologia, o preço e o prazo para a escritura. Nunca consideres um processo "pronto"
-só porque não recebeste nada para analisar.
-
-Excepção importante: se o "tipo_contrato" indicado no estado actual for
-"comprador_nosso_angariacao_externa", o CPCV em si vem da agência externa - nunca perguntes pelos
-dados do vendedor (nome, NIF, morada, documento). Não crias sequer uma parte "vendedor" nesse caso.
-Pergunta apenas pelos dados do comprador e pelos dados do imóvel e do negócio.`;
+(sem dados do imóvel), NÃO devolvas "campos_em_falta" vazio - pergunta sempre pelo essencial
+primeiro: a morada do imóvel, a tipologia, o preço e o prazo para a escritura. Nunca consideres um
+processo "pronto" só porque não recebeste nada para analisar.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -162,11 +141,6 @@ export async function POST(req: NextRequest) {
   if (!processo) {
     return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 });
   }
-
-  const { data: partesAtuais } = await supabase
-    .from("cpcv_partes")
-    .select("papel, nome, estado_civil, regime_bens, nacionalidade, nif, morada, documento_tipo, documento_numero, documento_validade")
-    .eq("processo_id", processo_id);
 
   const { count: totalMensagens } = await supabase
     .from("cpcv_mensagens")
@@ -238,7 +212,6 @@ export async function POST(req: NextRequest) {
   };
   const estadoActual = {
     tipo_contrato: processo.tipo_contrato,
-    partes: partesAtuais ?? [],
     imovel: imovelAtual,
     negocio: negocioAtual,
   };
@@ -255,7 +228,6 @@ export async function POST(req: NextRequest) {
   const anthropic = anthropicClient();
 
   let extraido: {
-    partes: unknown[];
     imovel: Record<string, unknown>;
     negocio: Record<string, unknown>;
     campos_em_falta: { campo: string; pergunta: string }[];
@@ -325,30 +297,6 @@ export async function POST(req: NextRequest) {
       { error: `Erro ao gravar os dados extraídos: ${updateError.message}` },
       { status: 500 }
     );
-  }
-
-  // Filtrar partes sem nome - a IA por vezes devolve uma entrada "fantasma" para uma
-  // pessoa que sabe existir mas cujo nome não conseguiu confirmar; sem nome não há o
-  // que gravar (fica de fora, o campo entra em campos_em_falta à parte).
-  const partesValidas = (extraido.partes ?? []).filter(
-    (p): p is Record<string, unknown> & { nome: string } =>
-      typeof p === "object" && p !== null && typeof (p as Record<string, unknown>).nome === "string" && (p as { nome: string }).nome.trim().length > 0
-  );
-
-  // Apaga e reinsere - a IA devolve sempre a lista completa (instruído no prompt),
-  // por isso isto substitui em vez de duplicar quando esta rota é chamada outra vez
-  // sobre o mesmo processo (ex: gestora acrescenta mais um documento mais tarde).
-  await supabase.from("cpcv_partes").delete().eq("processo_id", processo_id);
-  if (partesValidas.length > 0) {
-    const { error: partesError } = await supabase.from("cpcv_partes").insert(
-      partesValidas.map((p) => ({ ...p, processo_id }))
-    );
-    if (partesError) {
-      return NextResponse.json(
-        { error: `Erro ao gravar as partes: ${partesError.message}` },
-        { status: 500 }
-      );
-    }
   }
 
   await supabase.from("cpcv_mensagens").insert({

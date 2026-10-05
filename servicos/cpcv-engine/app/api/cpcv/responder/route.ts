@@ -6,9 +6,14 @@ import { filtrarCamposEmFalta } from "@/lib/cpcv-perguntas-filtro";
 
 function systemPrompt(): string {
   return `És um assistente que prepara Contratos-Promessa de Compra e Venda (CPCV)
-de imóveis em Portugal. Hoje é ${dataDeHojePT()}. Já tens um estado parcial do processo (partes,
-imóvel, negócio, campos em falta) e o agente acabou de responder - normalmente numa única
-mensagem - a várias das perguntas em falta ao mesmo tempo.
+de imóveis em Portugal. Hoje é ${dataDeHojePT()}. Já tens um estado parcial do processo (imóvel,
+negócio, campos em falta) e o agente acabou de responder - normalmente numa única mensagem - a
+várias das perguntas em falta ao mesmo tempo.
+
+NUNCA perguntes pelos dados de identificação do vendedor ou do comprador (nome, NIF, morada,
+estado civil, naturalidade, documento de identificação) nem os incluas na tua resposta - essas
+pessoas são registadas num formulário próprio, fora desta conversa. Se uma das "perguntas que
+foram feitas" for sobre isso, ignora-a.
 
 Regra mais importante: NUNCA inventes valores. Actualiza todos os campos que a resposta do
 agente esclarecer (pode esclarecer vários campos de uma vez, mesmo de perguntas diferentes);
@@ -29,11 +34,6 @@ O campo "descricao_predial" é o número de descrição predial na Conservatóri
 (um código numérico/alfanumérico, ex.: "2345/20150101") - nunca uma categoria ou tipo de imóvel
 como "fracção autónoma" ou "prédio urbano". Se não houver esse número, deixa o campo null.
 
-Uma parte pode ser pessoa singular ou pessoa colectiva (empresa) - usa "nome" para a denominação
-social quando for colectiva, e preenche "representante_nome"/"certidao_permanente" nesse caso.
-Se a pessoa for solteira (ou o regime de bens não se aplicar), deixa "regime_bens" a null - nunca
-escrevas "não aplicável" ou semelhante nesse campo.
-
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
 (avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
 são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Se uma das
@@ -44,22 +44,10 @@ null (isso fica coberto pelo formulário estruturado) - só preenches este campo
 condição suspensiva diferente dessas duas, e sempre como frase completa e juridicamente clara
 (nunca um fragmento solto tipo "financiamento bancário").
 
-Excepção importante: se o "tipo_contrato" indicado no estado actual for
-"comprador_nosso_angariacao_externa", o CPCV em si vem da agência externa - nunca perguntes pelos
-dados do vendedor (nome, NIF, morada, documento) nem mantenhas uma pergunta sobre isso em
-"campos_em_falta". Não crias sequer uma parte "vendedor" nesse caso.
-
 Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, exactamente com
 esta forma (a mesma estrutura do estado que recebeste, já actualizada):
 
 {
-  "partes": [
-    { "papel": "vendedor" | "comprador", "tipo_pessoa": "singular" | "coletiva", "nome": string,
-      "estado_civil": string|null, "regime_bens": string|null, "nacionalidade": string|null,
-      "naturalidade": string|null, "nif": string|null, "morada": string|null,
-      "documento_tipo": string|null, "documento_numero": string|null, "documento_validade": "YYYY-MM-DD"|null,
-      "representante_nome": string|null, "certidao_permanente": string|null }
-  ],
   "imovel": {
     "morada": string|null, "freguesia": string|null, "concelho": string|null, "distrito": string|null,
     "tipologia": string|null, "artigo_matricial": string|null, "descricao_predial": string|null,
@@ -109,13 +97,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 });
   }
 
-  const { data: partes } = await supabase
-    .from("cpcv_partes")
-    .select(
-      "papel, tipo_pessoa, nome, estado_civil, regime_bens, nacionalidade, naturalidade, nif, morada, documento_tipo, documento_numero, documento_validade, representante_nome, certidao_permanente"
-    )
-    .eq("processo_id", processo_id);
-
   const imovelAtual = Object.fromEntries(
     Object.entries(processo)
       .filter(([k]) => k.startsWith("imovel_"))
@@ -135,7 +116,6 @@ export async function POST(req: NextRequest) {
 
   const estadoActual = {
     tipo_contrato: processo.tipo_contrato,
-    partes: partes ?? [],
     imovel: imovelAtual,
     negocio: negocioAtual,
     campos_em_falta: processo.campos_em_falta ?? [],
@@ -146,7 +126,6 @@ export async function POST(req: NextRequest) {
   const anthropic = anthropicClient();
 
   let extraido: {
-    partes: unknown[];
     imovel: Record<string, unknown>;
     negocio: Record<string, unknown>;
     campos_em_falta: { campo: string; pergunta: string }[];
@@ -225,24 +204,6 @@ export async function POST(req: NextRequest) {
       { error: `Erro ao gravar os dados actualizados: ${updateError.message}` },
       { status: 500 }
     );
-  }
-
-  const partesValidas = (extraido.partes ?? []).filter(
-    (p): p is Record<string, unknown> & { nome: string } =>
-      typeof p === "object" && p !== null && typeof (p as Record<string, unknown>).nome === "string" && (p as { nome: string }).nome.trim().length > 0
-  );
-
-  await supabase.from("cpcv_partes").delete().eq("processo_id", processo_id);
-  if (partesValidas.length > 0) {
-    const { error: partesError } = await supabase.from("cpcv_partes").insert(
-      partesValidas.map((p) => ({ ...p, processo_id }))
-    );
-    if (partesError) {
-      return NextResponse.json(
-        { error: `Erro ao gravar as partes: ${partesError.message}` },
-        { status: 500 }
-      );
-    }
   }
 
   await supabase.from("cpcv_mensagens").insert({

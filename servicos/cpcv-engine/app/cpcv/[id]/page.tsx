@@ -6,6 +6,7 @@ import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks } from "./Ge
 import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import DadosApoio from "./DadosApoio";
+import DadosPartes from "./DadosPartes";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
@@ -94,7 +95,7 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      {ESTADOS_BLOQUEADOS.includes(processo.estado) && (
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
           <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Partes ({partes?.length ?? 0})</h2>
           {(partes ?? []).length === 0 && (
@@ -116,27 +117,31 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
             ))}
           </ul>
         </div>
+      )}
 
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Documentos ({ficheiros?.length ?? 0})</h2>
-          {(ficheiros ?? []).length === 0 && (
-            <EstadoVazio icon={IconesVazio.documento} texto="Nenhum documento carregado ainda." />
-          )}
-          <ul className="space-y-1">
-            {(ficheiros ?? []).map((f) => (
-              <li key={f.id} className="text-xs">
-                {f.nome_original} <span className="text-[#94A3B8]">({f.tipo})</span>
-              </li>
-            ))}
-          </ul>
-          {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
-            <AdicionarInformacao
-              processoId={processo.id}
-              donoId={processo.criado_por}
-              linkAtual={processo.link_imovel}
-            />
-          )}
-        </div>
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+        <DadosPartes processoId={processo.id} tipoContrato={processo.tipo_contrato} partesIniciais={partes ?? []} />
+      )}
+
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Documentos ({ficheiros?.length ?? 0})</h2>
+        {(ficheiros ?? []).length === 0 && (
+          <EstadoVazio icon={IconesVazio.documento} texto="Nenhum documento carregado ainda." />
+        )}
+        <ul className="space-y-1">
+          {(ficheiros ?? []).map((f) => (
+            <li key={f.id} className="text-xs">
+              {f.nome_original} <span className="text-[#94A3B8]">({f.tipo})</span>
+            </li>
+          ))}
+        </ul>
+        {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+          <AdicionarInformacao
+            processoId={processo.id}
+            donoId={processo.criado_por}
+            linkAtual={processo.link_imovel}
+          />
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">

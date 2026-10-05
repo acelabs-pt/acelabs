@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
+import { ParteDraft, nifValido, parteDraftParaLinha, parteDraftVazia, parteDraftVazio } from "@/lib/cpcv-partes-form";
+import ParteCampos from "../ParteCampos";
 import { btnPrimary, btnSecondary, TextoShimmer } from "../ui";
 
-const TIPOS = [
-  { value: "cc_vendedor", label: "Cartão de Cidadão - Vendedor" },
-  { value: "cc_comprador", label: "Cartão de Cidadão - Comprador" },
+const TIPOS_IMOVEL = [
+  { value: "certidao_predial", label: "Certidão Predial" },
   { value: "caderneta_predial", label: "Caderneta Predial" },
   { value: "certificado_energetico", label: "Certificado Energético" },
-  { value: "outro", label: "Outro" },
 ];
 
 const TIPOS_CONTRATO = [
@@ -20,30 +20,6 @@ const TIPOS_CONTRATO = [
   { value: "angariacao_nossa_comprador_externo", label: "Angariação nossa - comprador de outra agência" },
   { value: "comprador_nosso_angariacao_externa", label: "Comprador nosso - angariação de outra agência" },
 ];
-
-const PERFIS_PARTE = [
-  { value: "", label: "Não sei - a IA pergunta" },
-  { value: "singular", label: "Pessoa solteira" },
-  { value: "casal", label: "Casal" },
-  { value: "empresa", label: "Empresa" },
-  { value: "varios", label: "Vários (ex.: herdeiros)" },
-];
-
-function fraseParte(sujeito: "vendedor" | "comprador", perfil: string): string | null {
-  const plural = sujeito === "vendedor" ? "vendedores" : "compradores";
-  switch (perfil) {
-    case "singular":
-      return `O ${sujeito} é uma pessoa solteira.`;
-    case "casal":
-      return `O ${sujeito} é um casal (duas pessoas singulares, casadas entre si).`;
-    case "empresa":
-      return `O ${sujeito} é uma empresa (pessoa colectiva).`;
-    case "varios":
-      return `Há vários ${plural} (ex.: herdeiros) - confirma quantos e os dados de cada um.`;
-    default:
-      return null;
-  }
-}
 
 type FicheiroPendente = { file: File; tipo: string };
 type Agente = { id: string; nome: string };
@@ -56,11 +32,11 @@ export default function NovoProcessoPage() {
   const [listaAberta, setListaAberta] = useState(false);
 
   const [tipoContrato, setTipoContrato] = useState("angariacao_nossa_comprador_nosso");
-  const [perfilVendedor, setPerfilVendedor] = useState("");
-  const [perfilComprador, setPerfilComprador] = useState("");
   const [licencaUtilizacao, setLicencaUtilizacao] = useState("");
   const [certificadoEnergetico, setCertificadoEnergetico] = useState("");
   const [ficheiros, setFicheiros] = useState<FicheiroPendente[]>([]);
+  const [vendedores, setVendedores] = useState<ParteDraft[]>([parteDraftVazia()]);
+  const [compradores, setCompradores] = useState<ParteDraft[]>([parteDraftVazia()]);
   const [texto, setTexto] = useState("");
   const [loading, setLoading] = useState(false);
   const [etapa, setEtapa] = useState("");
@@ -68,14 +44,6 @@ export default function NovoProcessoPage() {
   const router = useRouter();
 
   const angariacaoExterna = tipoContrato === "comprador_nosso_angariacao_externa";
-  const tiposDisponiveis = angariacaoExterna ? TIPOS.filter((t) => t.value !== "cc_vendedor") : TIPOS;
-
-  const perfilTexto = [
-    !angariacaoExterna ? fraseParte("vendedor", perfilVendedor) : null,
-    fraseParte("comprador", perfilComprador),
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   useEffect(() => {
     async function carregar() {
@@ -122,6 +90,11 @@ export default function NovoProcessoPage() {
     setFicheiros((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function nifsInvalidos(): string[] {
+    const todas = [...(!angariacaoExterna ? vendedores : []), ...compradores];
+    return todas.filter((d) => d.nif.trim() && !nifValido(d.nif)).map((d) => d.nome || "(sem nome)");
+  }
+
   async function criarProcesso(supabase: ReturnType<typeof sbBrowser>, donoId: string) {
     return supabase
       .from("cpcv_processos")
@@ -135,9 +108,53 @@ export default function NovoProcessoPage() {
       .single();
   }
 
+  // Grava as partes preenchidas e os documentos de identificação associados - chamado pelos
+  // dois botões de submissão, já que os dados das partes são independentes de haver ou não
+  // outros documentos/texto para a IA analisar.
+  async function guardarPartesEFicheiros(
+    supabase: ReturnType<typeof sbBrowser>,
+    processoId: string,
+    donoId: string
+  ): Promise<string | null> {
+    const grupos: { lista: ParteDraft[]; papel: "vendedor" | "comprador"; prefixo: string }[] = [
+      ...(!angariacaoExterna ? [{ lista: vendedores, papel: "vendedor" as const, prefixo: "identificacao_vendedor" }] : []),
+      { lista: compradores, papel: "comprador" as const, prefixo: "identificacao_comprador" },
+    ];
+
+    const linhas = grupos.flatMap(({ lista, papel }) =>
+      lista.filter((d) => !parteDraftVazio(d)).map((d) => parteDraftParaLinha(papel, d, processoId))
+    );
+
+    if (linhas.length > 0) {
+      const { error } = await supabase.from("cpcv_partes").insert(linhas);
+      if (error) return `Erro ao gravar as partes: ${error.message}`;
+    }
+
+    for (const { lista, prefixo } of grupos) {
+      for (let i = 0; i < lista.length; i++) {
+        const file = lista[i].ficheiro;
+        if (!file) continue;
+        const tipo = i === 0 ? prefixo : `${prefixo}_${i + 1}`;
+        const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
+        const { error: uploadError } = await supabase.storage.from("cpcv-documentos").upload(path, file, { upsert: true });
+        if (uploadError) return `Erro a enviar ${file.name}: ${uploadError.message}`;
+        await supabase.from("cpcv_ficheiros").insert({ processo_id: processoId, tipo, storage_path: path, nome_original: file.name });
+      }
+    }
+
+    return null;
+  }
+
   async function handleSubmit() {
-    if (ficheiros.length === 0 && !texto.trim() && !perfilTexto) {
-      setError("Junta pelo menos um documento ou escreve alguma informação.");
+    const temAlgumaParte = [...vendedores, ...compradores].some((d) => !parteDraftVazio(d));
+    if (ficheiros.length === 0 && !texto.trim() && !temAlgumaParte) {
+      setError("Junta pelo menos um documento, escreve alguma informação, ou preenche os dados de uma parte.");
+      return;
+    }
+
+    const invalidos = nifsInvalidos();
+    if (invalidos.length > 0) {
+      setError(`NIF inválido para: ${invalidos.join(", ")}`);
       return;
     }
 
@@ -188,12 +205,18 @@ export default function NovoProcessoPage() {
         });
       }
 
+      const erroPartes = await guardarPartesEFicheiros(supabase, processo.id, donoId);
+      if (erroPartes) {
+        setError(erroPartes);
+        setLoading(false);
+        return;
+      }
+
       setEtapa("A analisar...");
-      const textoFinal = [perfilTexto, texto.trim()].filter(Boolean).join("\n\n");
       const res = await fetch("/api/cpcv/extrair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ processo_id: processo.id, texto: textoFinal }),
+        body: JSON.stringify({ processo_id: processo.id, texto: texto.trim() }),
       });
 
       if (!res.ok) {
@@ -211,6 +234,12 @@ export default function NovoProcessoPage() {
   }
 
   async function handleComecarDoZero() {
+    const invalidos = nifsInvalidos();
+    if (invalidos.length > 0) {
+      setError(`NIF inválido para: ${invalidos.join(", ")}`);
+      return;
+    }
+
     setLoading(true);
     setError("");
     setEtapa("A criar processo...");
@@ -237,11 +266,18 @@ export default function NovoProcessoPage() {
         return;
       }
 
+      const erroPartes = await guardarPartesEFicheiros(supabase, processo.id, donoId);
+      if (erroPartes) {
+        setError(erroPartes);
+        setLoading(false);
+        return;
+      }
+
       setEtapa("A preparar as perguntas...");
       const res = await fetch("/api/cpcv/extrair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ processo_id: processo.id, texto: perfilTexto }),
+        body: JSON.stringify({ processo_id: processo.id, texto: "" }),
       });
 
       if (!res.ok) {
@@ -258,6 +294,51 @@ export default function NovoProcessoPage() {
     }
   }
 
+  function blocoDocumentosImovel() {
+    return (
+      <div className="space-y-2">
+        {TIPOS_IMOVEL.map((t) => {
+          const docs = ficheiros.map((f, i) => ({ ...f, i })).filter((f) => f.tipo === t.value);
+          return (
+            <div key={t.value} className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-[#0F172A]">{t.label}</span>
+                <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+                  + Adicionar
+                  <input
+                    type="file"
+                    multiple
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      handleFilesParaTipo(t.value, e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              {docs.length > 0 && (
+                <ul className="mt-2 space-y-1.5">
+                  {docs.map((d) => (
+                    <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
+                      <span className="flex-1 truncate">{d.file.name}</span>
+                      <button
+                        onClick={() => removerFicheiro(d.i)}
+                        className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
+                      >
+                        Remover
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -265,7 +346,7 @@ export default function NovoProcessoPage() {
         <p className="text-sm text-[#94A3B8] mt-1">
           {angariacaoExterna
             ? "Angariação de outra agência - o CPCV vem de lá. Aqui só recolhemos os dados do nosso comprador e as condições negociadas."
-            : "Junta os documentos que já tens (CC de ambas as partes, caderneta predial, certificado energético) e/ou escreve o que souberes. A IA trata do resto."}
+            : "Preenche os dados de quem compra e vende, junta os documentos do imóvel que já tens, e escreve o resto. Podes completar mais tarde o que faltar."}
         </p>
       </div>
 
@@ -332,163 +413,116 @@ export default function NovoProcessoPage() {
           </select>
         </div>
 
-        <div>
-          <p className="block text-xs font-semibold text-[#475569] mb-2">
-            Perfil do negócio (opcional - ajuda a IA a fazer menos perguntas)
-          </p>
-          <div className={`grid gap-3 ${angariacaoExterna ? "grid-cols-1" : "grid-cols-2"}`}>
-            {!angariacaoExterna && (
-              <div>
-                <label htmlFor="perfilVendedor" className="block text-[11px] text-[#94A3B8] mb-1">
-                  Vendedor
-                </label>
-                <select
-                  id="perfilVendedor"
-                  value={perfilVendedor}
-                  onChange={(e) => setPerfilVendedor(e.target.value)}
-                  className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-                >
-                  {PERFIS_PARTE.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div>
-              <label htmlFor="perfilComprador" className="block text-[11px] text-[#94A3B8] mb-1">
-                Comprador
-              </label>
-              <select
-                id="perfilComprador"
-                value={perfilComprador}
-                onChange={(e) => setPerfilComprador(e.target.value)}
-                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-              >
-                {PERFIS_PARTE.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-2 gap-5">
+          {!angariacaoExterna && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-[#0F172A]">Documentos do imóvel e proprietário</h3>
 
-        <div>
-          <p className="block text-xs font-semibold text-[#475569] mb-2">
-            Dados obrigatórios do imóvel <span className="text-[#94A3B8] font-normal">(se já souberes - senão fica pendente até à aprovação)</span>
-          </p>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="licencaUtilizacao" className="block text-[11px] text-[#94A3B8] mb-1">
-                Licença de utilização <span className="text-[#9A5B00]">(obrigatória para gerar o CPCV)</span>
-              </label>
-              <input
-                id="licencaUtilizacao"
-                value={licencaUtilizacao}
-                onChange={(e) => setLicencaUtilizacao(e.target.value)}
-                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-              />
-            </div>
-            <div>
-              <label htmlFor="certificadoEnergetico" className="block text-[11px] text-[#94A3B8] mb-1">
-                Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
-              </label>
-              <input
-                id="certificadoEnergetico"
-                value={certificadoEnergetico}
-                onChange={(e) => setCertificadoEnergetico(e.target.value)}
-                className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-              />
-            </div>
-          </div>
-        </div>
+              {blocoDocumentosImovel()}
 
-        <div>
-          <p className="block text-xs font-semibold text-[#475569] mb-2">Documentos</p>
-          <div className="space-y-2">
-            {tiposDisponiveis
-              .filter((t) => t.value !== "outro")
-              .map((t) => {
-                const docs = ficheiros
-                  .map((f, i) => ({ ...f, i }))
-                  .filter((f) => f.tipo === t.value);
-                return (
-                  <div key={t.value} className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm text-[#0F172A]">{t.label}</span>
-                      <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
-                        + Adicionar
-                        <input
-                          type="file"
-                          multiple
-                          accept="application/pdf,image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            handleFilesParaTipo(t.value, e.target.files);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-                    </div>
-                    {docs.length > 0 && (
-                      <ul className="mt-2 space-y-1.5">
-                        {docs.map((d) => (
-                          <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
-                            <span className="flex-1 truncate">{d.file.name}</span>
-                            <button
-                              onClick={() => removerFicheiro(d.i)}
-                              className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
-                            >
-                              Remover
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                );
-              })}
-
-            <div className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-[#0F172A]">Outros documentos</span>
-                <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
-                  + Adicionar
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="licencaUtilizacao" className="block text-[11px] text-[#94A3B8] mb-1">
+                    Licença de utilização <span className="text-[#9A5B00]">(obrigatória para gerar o CPCV)</span>
+                  </label>
                   <input
-                    type="file"
-                    multiple
-                    accept="application/pdf,image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      handleFilesParaTipo("outro", e.target.files);
-                      e.target.value = "";
-                    }}
+                    id="licencaUtilizacao"
+                    value={licencaUtilizacao}
+                    onChange={(e) => setLicencaUtilizacao(e.target.value)}
+                    className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
                   />
-                </label>
+                </div>
+                <div>
+                  <label htmlFor="certificadoEnergetico" className="block text-[11px] text-[#94A3B8] mb-1">
+                    Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
+                  </label>
+                  <input
+                    id="certificadoEnergetico"
+                    value={certificadoEnergetico}
+                    onChange={(e) => setCertificadoEnergetico(e.target.value)}
+                    className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+                  />
+                </div>
               </div>
-              {ficheiros.filter((f) => f.tipo === "outro").length > 0 && (
-                <ul className="mt-2 space-y-1.5">
-                  {ficheiros
-                    .map((f, i) => ({ ...f, i }))
-                    .filter((f) => f.tipo === "outro")
-                    .map((d) => (
-                      <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
-                        <span className="flex-1 truncate">{d.file.name}</span>
-                        <button
-                          onClick={() => removerFicheiro(d.i)}
-                          className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
-                        >
-                          Remover
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-              )}
+
+              {vendedores.map((v, i) => (
+                <ParteCampos
+                  key={i}
+                  titulo={`Vendedor ${i + 1}`}
+                  draft={v}
+                  comUploadFicheiro
+                  onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+                  onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() => setVendedores((prev) => [...prev, parteDraftVazia()])}
+                className="text-xs font-medium text-[#2E6DB4] hover:underline"
+              >
+                + Adicionar vendedor
+              </button>
             </div>
+          )}
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#0F172A]">Documentos Comprador</h3>
+
+            {compradores.map((c, i) => (
+              <ParteCampos
+                key={i}
+                titulo={`Comprador ${i + 1}`}
+                draft={c}
+                comUploadFicheiro
+                onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+                onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+              />
+            ))}
+            <button
+              type="button"
+              onClick={() => setCompradores((prev) => [...prev, parteDraftVazia()])}
+              className="text-xs font-medium text-[#2E6DB4] hover:underline"
+            >
+              + Adicionar comprador
+            </button>
           </div>
+        </div>
+
+        <div className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-[#0F172A]">Outros documentos</span>
+            <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+              + Adicionar
+              <input
+                type="file"
+                multiple
+                accept="application/pdf,image/*"
+                className="hidden"
+                onChange={(e) => {
+                  handleFilesParaTipo("outro", e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          {ficheiros.filter((f) => f.tipo === "outro").length > 0 && (
+            <ul className="mt-2 space-y-1.5">
+              {ficheiros
+                .map((f, i) => ({ ...f, i }))
+                .filter((f) => f.tipo === "outro")
+                .map((d) => (
+                  <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
+                    <span className="flex-1 truncate">{d.file.name}</span>
+                    <button
+                      onClick={() => removerFicheiro(d.i)}
+                      className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
+                    >
+                      Remover
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
 
         <div>

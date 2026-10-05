@@ -81,9 +81,24 @@ nota dela como se fosse mais uma pergunta pendente no mesmo mecanismo de chat).
 
 `tipo_contrato` tem três valores, com regras diferentes sobre que dados recolher - o mais
 importante é `comprador_nosso_angariacao_externa`: o CPCV em si vem de uma agência externa, por
-isso a app nunca recolhe dados do vendedor (nem cria essa parte). Isto tem de estar reflectido em
-**dois sítios**: no `SYSTEM_PROMPT` da IA (para não perguntar) e no filtro server-side (ver
-abaixo, para o caso de a IA perguntar na mesma).
+isso a app nunca recolhe dados do vendedor (nem cria essa parte) - o grupo "Vendedor" fica
+escondido tanto em `app/cpcv/novo/page.tsx` como em `DadosPartes.tsx` quando `tipo_contrato` é
+este valor.
+
+### Dados de vendedor/comprador (`lib/cpcv-partes-form.ts`, `app/cpcv/ParteCampos.tsx`)
+
+Deixaram de vir da IA - antes a extracção fazia *delete-and-reinsert* de toda a `cpcv_partes` a
+cada chamada (sem ids estáveis por pessoa), o que era frágil para dados legais (NIF, estado
+civil). Agora são sempre um formulário manual, em blocos repetíveis por pessoa: em
+`app/cpcv/novo/page.tsx` antes de o processo existir, e em `app/cpcv/[id]/DadosPartes.tsx`
+depois de criado (único sítio onde se editam/adicionam/removem partes já existentes - faz
+`update`/`insert`/`delete` directo em `cpcv_partes`, comparando a lista de ids actual com a lista
+capturada na montagem). Os dois sítios partilham o componente `ParteCampos.tsx` (campos) e as
+conversões/validação em `lib/cpcv-partes-form.ts` (`parteDraftParaLinha`, `nifValido` - dígito de
+controlo mod 11, não havia validação de formato nenhuma antes disto). O `SYSTEM_PROMPT` das duas
+rotas de IA (abaixo) é instruído a nunca perguntar nem devolver dados de partes, e
+`cpcv-perguntas-filtro.ts` tem padrões de regex como rede de segurança caso pergunte na mesma -
+mesmo padrão já usado para método de pagamento/reserva/etc.
 
 ### Extracção por IA (`app/api/cpcv/extrair`, `app/api/cpcv/responder`)
 
