@@ -27,6 +27,127 @@ export const btnDanger = `${base} text-xs font-medium text-red-500 hover:text-wh
 export const btnLink =
   "text-[#2E6DB4] font-medium hover:text-[#0059B3] hover:underline underline-offset-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E6DB4]/30 rounded";
 
+// Paleta de acento por secção - usa as três cores da marca (ver OrbIA abaixo) para dar
+// identidade visual própria a cada grupo de documentos (imóvel/proprietário/comprador em
+// app/cpcv/novo e app/cpcv/[id]/DadosPartes.tsx), em vez de tudo cinzento/azul-neutro igual.
+// As classes ficam escritas por extenso (não construídas por interpolação de string) porque o
+// Tailwind só gera uma cor arbitrária `bg-[#...]` se a vir literalmente no código-fonte.
+export type CorSecao = "azul" | "ambar" | "verde" | "neutro";
+
+export const CORES_SECAO: Record<
+  CorSecao,
+  {
+    hex: string;
+    badgeBg: string;
+    badgeText: string;
+    topo: string;
+    icone: string;
+    link: string;
+    anel: string;
+    chipBg: string;
+    chipTexto: string;
+  }
+> = {
+  azul: {
+    hex: "#0071E3",
+    badgeBg: "bg-[#0071E3]",
+    badgeText: "text-white",
+    topo: "border-t-[#0071E3]",
+    icone: "text-[#0071E3]",
+    link: "text-[#0071E3] hover:text-[#0059B3]",
+    anel: "focus:ring-[#0071E3]",
+    chipBg: "bg-[#EFF6FF]",
+    chipTexto: "text-[#0059B3]",
+  },
+  ambar: {
+    hex: "#FF9F0A",
+    badgeBg: "bg-[#FF9F0A]",
+    badgeText: "text-white",
+    topo: "border-t-[#FF9F0A]",
+    icone: "text-[#CC7A00]",
+    link: "text-[#CC7A00] hover:text-[#9A5B00]",
+    anel: "focus:ring-[#FF9F0A]",
+    chipBg: "bg-[#FFF4E5]",
+    chipTexto: "text-[#9A5B00]",
+  },
+  verde: {
+    hex: "#1FAE5A",
+    badgeBg: "bg-[#1FAE5A]",
+    badgeText: "text-white",
+    topo: "border-t-[#1FAE5A]",
+    icone: "text-[#15803D]",
+    link: "text-[#1FAE5A] hover:text-[#15803D]",
+    anel: "focus:ring-[#1FAE5A]",
+    chipBg: "bg-[#ECFDF3]",
+    chipTexto: "text-[#15803D]",
+  },
+  neutro: {
+    hex: "#94A3B8",
+    badgeBg: "bg-[#64748B]",
+    badgeText: "text-white",
+    topo: "border-t-[#E2E8F0]",
+    icone: "text-[#64748B]",
+    link: "text-[#2E6DB4] hover:text-[#0059B3]",
+    anel: "focus:ring-[#2E6DB4]",
+    chipBg: "bg-[#F1F5F9]",
+    chipTexto: "text-[#475569]",
+  },
+};
+
+// Cabeçalho de secção colorido (ícone + título + subtítulo opcional) - usado para as três
+// categorias de documentos em app/cpcv/novo e no título de app/cpcv/[id]/DadosPartes.tsx.
+export function CabecalhoSecao({
+  cor,
+  icone,
+  titulo,
+  subtitulo,
+}: {
+  cor: CorSecao;
+  icone: React.ReactNode;
+  titulo: string;
+  subtitulo?: string;
+}) {
+  const c = CORES_SECAO[cor];
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className={`flex h-8 w-8 items-center justify-center rounded-full ${c.badgeBg} ${c.badgeText} shrink-0`}>
+        {icone}
+      </span>
+      <div>
+        <h3 className="text-sm font-semibold text-[#0F172A] leading-tight">{titulo}</h3>
+        {subtitulo && <p className="text-[11px] text-[#94A3B8] leading-tight">{subtitulo}</p>}
+      </div>
+    </div>
+  );
+}
+
+export const IconesSecao = {
+  predio: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M5 21V5.5a1 1 0 011-1h6.5a1 1 0 011 1V21M5 21h13M5 21H3M18 21h2M12.5 21V10.5a1 1 0 011-1H18a1 1 0 011 1V21M8 8h1.5M8 11.5h1.5M8 15h1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  chave: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+      <circle cx="8" cy="15.5" r="3.2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M10.3 13.2 17 6.5M14.5 9l2 2M17.5 6l2 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  carrinho: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M3.5 4.5h2l2.4 11.2a1.5 1.5 0 001.47 1.2h7.6a1.5 1.5 0 001.47-1.18L20 8.5H6.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="10" cy="20" r="1.3" fill="currentColor" />
+      <circle cx="17" cy="20" r="1.3" fill="currentColor" />
+    </svg>
+  ),
+  caixa: (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M4 7.5V16l8 3.5V11M20 7.5V16l-8 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  ),
+};
+
 export function Spinner({ className = "" }: { className?: string }) {
   return (
     <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">

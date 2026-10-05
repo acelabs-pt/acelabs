@@ -7,7 +7,7 @@ import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpc
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { ParteDraft, nifValido, parteDraftParaLinha, parteDraftVazia, parteDraftVazio } from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
-import { btnPrimary, btnSecondary, TextoShimmer } from "../ui";
+import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, IconesSecao, TextoShimmer } from "../ui";
 
 const TIPOS_IMOVEL = [
   { value: "certidao_predial", label: "Certidão Predial" },
@@ -295,15 +295,30 @@ export default function NovoProcessoPage() {
   }
 
   function blocoDocumentosImovel() {
+    const c = CORES_SECAO.azul;
     return (
       <div className="space-y-2">
         {TIPOS_IMOVEL.map((t) => {
           const docs = ficheiros.map((f, i) => ({ ...f, i })).filter((f) => f.tipo === t.value);
+          const tem = docs.length > 0;
           return (
-            <div key={t.value} className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+            <div key={t.value} className="border border-[#E2E8F0] rounded-xl px-3 py-2.5 bg-white">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-[#0F172A]">{t.label}</span>
-                <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`flex h-6 w-6 items-center justify-center rounded-full shrink-0 ${tem ? "bg-[#ECFDF3] text-[#15803D]" : `${c.chipBg} ${c.icone}`}`}>
+                    {tem ? (
+                      <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+                        <path d="M5 13l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+                        <path d="M7 3.5h7l3.5 3.5V20a.5.5 0 01-.5.5H7a.5.5 0 01-.5-.5V4a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="text-sm text-[#0F172A] leading-tight">{t.label}</span>
+                </div>
+                <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
                   + Adicionar
                   <input
                     type="file"
@@ -413,85 +428,108 @@ export default function NovoProcessoPage() {
           </select>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-5">
+        <div className={`grid gap-5 ${angariacaoExterna ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
           {!angariacaoExterna && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-[#0F172A]">Documentos do imóvel e proprietário</h3>
+            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.azul.topo} bg-white shadow-sm p-4 space-y-3`}>
+              <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético" />
 
               {blocoDocumentosImovel()}
 
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-3 pt-1">
                 <div>
-                  <label htmlFor="licencaUtilizacao" className="block text-[11px] text-[#94A3B8] mb-1">
-                    Licença de utilização <span className="text-[#9A5B00]">(obrigatória para gerar o CPCV)</span>
+                  <label htmlFor="licencaUtilizacao" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
+                    Licença de utilização
+                    <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
+                      Obrigatória
+                    </span>
                   </label>
                   <input
                     id="licencaUtilizacao"
                     value={licencaUtilizacao}
                     onChange={(e) => setLicencaUtilizacao(e.target.value)}
-                    className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+                    className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
                   />
                 </div>
                 <div>
-                  <label htmlFor="certificadoEnergetico" className="block text-[11px] text-[#94A3B8] mb-1">
-                    Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
+                  <label htmlFor="certificadoEnergetico" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
+                    Certificado energético
+                    <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
+                      Obrigatório
+                    </span>
                   </label>
                   <input
                     id="certificadoEnergetico"
                     value={certificadoEnergetico}
                     onChange={(e) => setCertificadoEnergetico(e.target.value)}
-                    className="w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+                    className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
                   />
                 </div>
               </div>
+            </div>
+          )}
 
-              {vendedores.map((v, i) => (
-                <ParteCampos
-                  key={i}
-                  titulo={`Vendedor ${i + 1}`}
-                  draft={v}
-                  comUploadFicheiro
-                  onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
-                  onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
-                />
-              ))}
+          {!angariacaoExterna && (
+            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.ambar.topo} bg-white shadow-sm p-4 space-y-3`}>
+              <CabecalhoSecao cor="ambar" icone={IconesSecao.chave} titulo="Documentos do proprietário" subtitulo="Quem vende o imóvel" />
+
+              <div className="space-y-3">
+                {vendedores.map((v, i) => (
+                  <ParteCampos
+                    key={i}
+                    titulo={`Vendedor ${i + 1}`}
+                    draft={v}
+                    cor="ambar"
+                    comUploadFicheiro
+                    onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+                    onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+                  />
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={() => setVendedores((prev) => [...prev, parteDraftVazia()])}
-                className="text-xs font-medium text-[#2E6DB4] hover:underline"
+                className={`text-xs font-semibold hover:underline ${CORES_SECAO.ambar.link}`}
               >
                 + Adicionar vendedor
               </button>
             </div>
           )}
 
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#0F172A]">Documentos Comprador</h3>
+          <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.verde.topo} bg-white shadow-sm p-4 space-y-3`}>
+            <CabecalhoSecao cor="verde" icone={IconesSecao.carrinho} titulo="Documentos do comprador" subtitulo="Quem compra o imóvel" />
 
-            {compradores.map((c, i) => (
-              <ParteCampos
-                key={i}
-                titulo={`Comprador ${i + 1}`}
-                draft={c}
-                comUploadFicheiro
-                onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
-                onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
-              />
-            ))}
+            <div className="space-y-3">
+              {compradores.map((c, i) => (
+                <ParteCampos
+                  key={i}
+                  titulo={`Comprador ${i + 1}`}
+                  draft={c}
+                  cor="verde"
+                  comUploadFicheiro
+                  onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+                  onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+                />
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => setCompradores((prev) => [...prev, parteDraftVazia()])}
-              className="text-xs font-medium text-[#2E6DB4] hover:underline"
+              className={`text-xs font-semibold hover:underline ${CORES_SECAO.verde.link}`}
             >
               + Adicionar comprador
             </button>
           </div>
         </div>
 
-        <div className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+        <div className={`rounded-xl border border-[#E2E8F0] ${CORES_SECAO.neutro.chipBg} px-3 py-2.5`}>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-[#0F172A]">Outros documentos</span>
-            <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+            <div className="flex items-center gap-2">
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full bg-white ${CORES_SECAO.neutro.icone} shrink-0`}>
+                {IconesSecao.caixa}
+              </span>
+              <span className="text-sm text-[#0F172A] font-medium">Outros documentos</span>
+            </div>
+            <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${CORES_SECAO.neutro.link}`}>
               + Adicionar
               <input
                 type="file"
@@ -511,7 +549,7 @@ export default function NovoProcessoPage() {
                 .map((f, i) => ({ ...f, i }))
                 .filter((f) => f.tipo === "outro")
                 .map((d) => (
-                  <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
+                  <li key={d.i} className="flex items-center gap-3 text-xs bg-white rounded-lg px-3 py-1.5">
                     <span className="flex-1 truncate">{d.file.name}</span>
                     <button
                       onClick={() => removerFicheiro(d.i)}

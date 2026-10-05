@@ -12,7 +12,7 @@ import {
   parteDraftVazio,
 } from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
-import { btnPrimary, Spinner } from "../ui";
+import { btnPrimary, CabecalhoSecao, CORES_SECAO, IconesSecao, Spinner } from "../ui";
 
 type LinhaParteDB = {
   id: string;
@@ -125,13 +125,14 @@ export default function DadosPartes({
 
       <div className="grid lg:grid-cols-2 gap-5">
         {!angariacaoExterna && (
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-[#475569]">Vendedor</h3>
+          <div className={`rounded-xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.ambar.topo} p-4 space-y-3`}>
+            <CabecalhoSecao cor="ambar" icone={IconesSecao.chave} titulo="Vendedor" />
             {vendedores.map((v, i) => (
               <ParteCampos
                 key={i}
                 titulo={`Vendedor ${i + 1}`}
                 draft={v}
+                cor="ambar"
                 onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
                 onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
               />
@@ -139,20 +140,21 @@ export default function DadosPartes({
             <button
               type="button"
               onClick={() => setVendedores((prev) => [...prev, parteDraftVazia()])}
-              className="text-xs font-medium text-[#2E6DB4] hover:underline"
+              className={`text-xs font-semibold hover:underline ${CORES_SECAO.ambar.link}`}
             >
               + Adicionar vendedor
             </button>
           </div>
         )}
 
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-[#475569]">Comprador</h3>
+        <div className={`rounded-xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.verde.topo} p-4 space-y-3`}>
+          <CabecalhoSecao cor="verde" icone={IconesSecao.carrinho} titulo="Comprador" />
           {compradores.map((c, i) => (
             <ParteCampos
               key={i}
               titulo={`Comprador ${i + 1}`}
               draft={c}
+              cor="verde"
               onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
               onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
             />
@@ -160,7 +162,7 @@ export default function DadosPartes({
           <button
             type="button"
             onClick={() => setCompradores((prev) => [...prev, parteDraftVazia()])}
-            className="text-xs font-medium text-[#2E6DB4] hover:underline"
+            className={`text-xs font-semibold hover:underline ${CORES_SECAO.verde.link}`}
           >
             + Adicionar comprador
           </button>

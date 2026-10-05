@@ -6,44 +6,57 @@ import {
   ParteDraft,
   nifValido,
 } from "@/lib/cpcv-partes-form";
+import { CORES_SECAO, CorSecao } from "./ui";
 
-const campoClass =
-  "w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]";
-const labelClass = "block text-[11px] text-[#94A3B8] mb-1";
+const labelClass = "block text-[11px] text-[#64748B] font-medium mb-1";
 
 // Bloco de campos de uma única parte (vendedor ou comprador), reutilizado em
 // app/cpcv/novo/page.tsx (antes de o processo existir) e em app/cpcv/[id]/DadosPartes.tsx
-// (depois de criado) - para os dois sítios nunca divergirem nos campos pedidos.
+// (depois de criado) - para os dois sítios nunca divergirem nos campos pedidos. A cor segue a
+// secção onde o bloco vive (âmbar para vendedor/proprietário, verde para comprador - ver
+// CORES_SECAO em ui.tsx) para dar identidade visual própria a cada papel, em vez de tudo igual.
 export default function ParteCampos({
   titulo,
   draft,
+  cor,
   onChange,
   onRemover,
   comUploadFicheiro,
 }: {
   titulo: string;
   draft: ParteDraft;
+  cor: CorSecao;
   onChange: (next: ParteDraft) => void;
   onRemover?: () => void;
   comUploadFicheiro?: boolean;
 }) {
+  const c = CORES_SECAO[cor];
+  const campoClass = `w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${c.anel}`;
+
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
   }
 
   const nifInvalido = draft.nif.trim().length > 0 && !nifValido(draft.nif);
   const mostraRegimeBens = /^casad/i.test(draft.estadoCivil);
+  const iniciais = draft.nome.trim().slice(0, 1).toUpperCase() || titulo.slice(0, 1);
 
   return (
-    <div className="border border-[#E2E8F0] rounded-xl p-3 space-y-3">
+    <div className={`border border-[#E2E8F0] rounded-xl p-3.5 space-y-3 bg-white`}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-[#0F172A]">{titulo}</span>
+        <div className="flex items-center gap-2">
+          <span className={`flex h-6 w-6 items-center justify-center rounded-full ${c.badgeBg} ${c.badgeText} text-[11px] font-bold shrink-0`}>
+            {iniciais}
+          </span>
+          <span className="text-sm font-semibold text-[#0F172A]">{titulo}</span>
+        </div>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-[11px] text-[#94A3B8]">
+          <label className="flex items-center gap-1.5 text-[11px] text-[#64748B]">
             <input
               type="checkbox"
               checked={draft.tipoPessoa === "coletiva"}
               onChange={(e) => set("tipoPessoa", e.target.checked ? "coletiva" : "singular")}
+              style={{ accentColor: c.hex }}
             />
             Empresa
           </label>
@@ -69,7 +82,7 @@ export default function ParteCampos({
           <input
             value={draft.nif}
             onChange={(e) => set("nif", e.target.value)}
-            className={`${campoClass} ${nifInvalido ? "border-red-400" : ""}`}
+            className={`${campoClass} ${nifInvalido ? "border-red-400 focus:ring-red-400" : ""}`}
           />
           {nifInvalido && <p className="text-[11px] text-red-500 mt-1">NIF inválido.</p>}
         </div>
@@ -111,7 +124,7 @@ export default function ParteCampos({
             <input value={draft.naturalidade} onChange={(e) => set("naturalidade", e.target.value)} className={campoClass} />
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="space-y-3">
             <div>
               <label className={labelClass}>Tipo de documento</label>
               <select value={draft.documentoTipo} onChange={(e) => set("documentoTipo", e.target.value)} className={campoClass}>
@@ -122,18 +135,20 @@ export default function ParteCampos({
                 ))}
               </select>
             </div>
-            <div>
-              <label className={labelClass}>Número</label>
-              <input value={draft.documentoNumero} onChange={(e) => set("documentoNumero", e.target.value)} className={campoClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Validade</label>
-              <input
-                type="date"
-                value={draft.documentoValidade}
-                onChange={(e) => set("documentoValidade", e.target.value)}
-                className={campoClass}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Número</label>
+                <input value={draft.documentoNumero} onChange={(e) => set("documentoNumero", e.target.value)} className={campoClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Validade</label>
+                <input
+                  type="date"
+                  value={draft.documentoValidade}
+                  onChange={(e) => set("documentoValidade", e.target.value)}
+                  className={campoClass}
+                />
+              </div>
             </div>
           </div>
         </>
@@ -159,11 +174,11 @@ export default function ParteCampos({
       )}
 
       {comUploadFicheiro && (
-        <div className="flex items-center justify-between gap-3 border-t border-[#F1F5F9] pt-3">
-          <span className="text-xs text-[#94A3B8]">
-            {draft.ficheiro ? draft.ficheiro.name : "Documento de identificação (opcional)"}
+        <div className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
+          <span className={`text-xs font-medium truncate ${draft.ficheiro ? c.chipTexto : "text-[#94A3B8] font-normal"}`}>
+            {draft.ficheiro ? draft.ficheiro.name : "Cópia do documento (opcional)"}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {draft.ficheiro && (
               <button
                 type="button"
@@ -173,7 +188,7 @@ export default function ParteCampos({
                 Remover
               </button>
             )}
-            <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+            <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
               + Adicionar
               <input
                 type="file"
