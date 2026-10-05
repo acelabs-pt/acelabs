@@ -11,7 +11,9 @@ Miguel: a parte mais importante da solução para agentes é a aplicação e a s
 não um painel web complexo.
 
 Encaixa como extensão/variante do produto "Painel de Gestão" do preçário oficial (ver CLAUDE.md
-raiz), não como SaaS horizontal novo - mantém o modelo de projetos à medida da Ace Labs.
+raiz). Nota: discussão recente passou a chamar-lhe "software as a service", o que seria uma
+excepção ao modelo geral da Ace Labs (projetos à medida, não SaaS) - ainda por confirmar
+explicitamente com o Miguel, ver `pesquisa-boas-praticas.md` nesta pasta.
 
 ## Nome
 
@@ -19,22 +21,26 @@ Decidido: **Cockpit**. Alinha com o tema cockpit/nave discutido com o Miguel - o
 painel de comando do agente no terreno. Outros candidatos considerados antes de fechar: AgentBoard,
 PowerAgent, CoPiloto, Painel de Bordo, Terreno, Rota Agente, Agente360.
 
-## Abordagem técnica (discutida, não implementada)
+## Abordagem técnica (atualizada após pesquisa, ainda não implementada)
 
-Prioridade: facilidade de instalação sem depender de aprovação em loja (App Store / Play Store).
+Ver `pesquisa-boas-praticas.md` nesta pasta para o estudo completo (feito com uma equipa de
+agentes de IA). Prioridade: facilidade de instalação sem depender de aprovação em loja (App
+Store / Play Store), e sincronização fiável no terreno com rede instável.
 
-1. **Fase 1 - PWA**: app instalável via browser ("Adicionar ao ecrã principal"), sem loja.
-   Funciona bem em Android; em iOS (16.4+) instala mas com limitações em notificações push e
-   acesso a funcionalidades nativas. Reaproveita stack Next.js, à semelhança do `cpcv-engine`.
-2. **Fase 2 - nativa via Capacitor** (se for preciso push fiável ou sensação mais nativa):
-   envolve o mesmo código React/Next.js num wrapper nativo. Distribuição fora de loja pública:
-   Android por `.apk` direto; iOS via TestFlight (tem revisão da Apple mas sem listagem pública,
-   é o caminho mais viável sem loja porque a Apple não permite sideload livre como o Android).
+Recomendação da pesquisa: avançar logo para **Capacitor** (envolve o código React/Next.js num
+wrapper nativo), não ficar numa fase PWA pura primeiro - em iOS, PWA pura não garante push
+notifications fiáveis nem sincronização em segundo plano, e isso é crítico para uma app cujo
+valor principal é notificação de novo lead/mensagem. Reaproveita o mesmo stack Next.js do
+`cpcv-engine`. Distribuição fora de loja pública: Android por `.apk` direto; iOS via TestFlight
+(builds expiram aos 90 dias, exige reenvio periódico - tarefa operacional recorrente, conta
+Apple Developer paga).
 
-Nenhuma destas fases está implementada. Por decidir: funcionalidades do CRM (gestão de leads,
-imóveis, contactos, agenda), se reaproveita dados/schema do Supabase já em uso no `cpcv-engine`
-ou é um projeto Supabase novo (ver regra "um projeto Supabase por cliente" no CLAUDE.md raiz -
-aqui aplica-se "por serviço/produto").
+Por decidir: funcionalidades do CRM (ver secção de produto na pesquisa - MVP sugerido: ficha de
+imóvel/lead, registo de visita num toque, agenda, click-to-call/WhatsApp com log automático,
+tarefas, sync offline-first), e se reaproveita dados/schema do Supabase já em uso no
+`cpcv-engine` ou é um projeto Supabase novo multi-tenant (ver secção de arquitetura SaaS na
+pesquisa - recomendação: schema partilhado com RLS por `organizacao_id`, não um projeto por
+cliente).
 
 ## Sócios
 
