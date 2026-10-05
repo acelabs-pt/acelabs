@@ -8,7 +8,7 @@ import {
   composeNaturalidade,
   nifValido,
 } from "@/lib/cpcv-partes-form";
-import { CORES_SECAO, CorSecao } from "./ui";
+import { CORES_SECAO, CorSecao, grupoClass, subTituloClass } from "./ui";
 
 const labelClass = "block text-[11px] text-[#64748B] font-medium mb-1";
 
@@ -63,7 +63,7 @@ export default function ParteCampos({
   const iniciais = draft.nome.trim().slice(0, 1).toUpperCase() || titulo.slice(0, 1);
 
   return (
-    <div className={`border border-[#E2E8F0] rounded-xl p-3.5 space-y-3 bg-white`}>
+    <div className="border border-[#E2E8F0] rounded-xl p-4 space-y-4 bg-white">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className={`flex h-6 w-6 items-center justify-center rounded-full ${c.badgeBg} ${c.badgeText} text-[11px] font-bold shrink-0`}>
@@ -109,174 +109,187 @@ export default function ParteCampos({
         </div>
       </div>
 
-      {estruturado ? (
-        <div className="space-y-3">
-          <p className={labelClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</p>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2">
-              <label className={labelClass}>Rua / Avenida</label>
-              <input value={draft.moradaRua} onChange={(e) => setMorada("moradaRua", e.target.value)} className={campoClass} />
+      <div className={grupoClass}>
+        <p className={subTituloClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</p>
+        {estruturado ? (
+          <div className="space-y-3">
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Rua / Avenida</label>
+                <input value={draft.moradaRua} onChange={(e) => setMorada("moradaRua", e.target.value)} className={campoClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Número</label>
+                <input value={draft.moradaNumero} onChange={(e) => setMorada("moradaNumero", e.target.value)} className={campoClass} />
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>Número</label>
-              <input value={draft.moradaNumero} onChange={(e) => setMorada("moradaNumero", e.target.value)} className={campoClass} />
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Código postal</label>
+                <input
+                  value={draft.moradaCodigoPostal}
+                  onChange={(e) => setMorada("moradaCodigoPostal", e.target.value)}
+                  placeholder="0000-000"
+                  className={campoClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Localidade</label>
+                <input value={draft.moradaLocalidade} onChange={(e) => setMorada("moradaLocalidade", e.target.value)} className={campoClass} />
+              </div>
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Código postal</label>
-              <input
-                value={draft.moradaCodigoPostal}
-                onChange={(e) => setMorada("moradaCodigoPostal", e.target.value)}
-                placeholder="0000-000"
-                className={campoClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Localidade</label>
-              <input value={draft.moradaLocalidade} onChange={(e) => setMorada("moradaLocalidade", e.target.value)} className={campoClass} />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <label className={labelClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</label>
+        ) : (
           <input value={draft.morada} onChange={(e) => set("morada", e.target.value)} className={campoClass} />
-        </div>
-      )}
+        )}
+      </div>
 
       {draft.tipoPessoa === "singular" ? (
         <>
-          <div className={`grid gap-3 ${mostraRegimeBens ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-            <div>
-              <label className={labelClass}>Estado civil</label>
-              <select value={draft.estadoCivil} onChange={(e) => set("estadoCivil", e.target.value)} className={campoClass}>
-                <option value="">-</option>
-                {ESTADO_CIVIL_OPCOES.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {mostraRegimeBens && (
-              <div>
-                <label className={labelClass}>Regime de bens</label>
-                <input value={draft.regimeBens} onChange={(e) => set("regimeBens", e.target.value)} className={campoClass} />
+          <div className={grupoClass}>
+            <p className={subTituloClass}>Dados pessoais</p>
+            <div className="space-y-3">
+              <div className={`grid gap-3 ${mostraRegimeBens ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                <div>
+                  <label className={labelClass}>Estado civil</label>
+                  <select value={draft.estadoCivil} onChange={(e) => set("estadoCivil", e.target.value)} className={campoClass}>
+                    <option value="">-</option>
+                    {ESTADO_CIVIL_OPCOES.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {mostraRegimeBens && (
+                  <div>
+                    <label className={labelClass}>Regime de bens</label>
+                    <input value={draft.regimeBens} onChange={(e) => set("regimeBens", e.target.value)} className={campoClass} />
+                  </div>
+                )}
+                <div>
+                  <label className={labelClass}>Nacionalidade</label>
+                  <input value={draft.nacionalidade} onChange={(e) => set("nacionalidade", e.target.value)} className={campoClass} />
+                </div>
               </div>
-            )}
-            <div>
-              <label className={labelClass}>Nacionalidade</label>
-              <input value={draft.nacionalidade} onChange={(e) => set("nacionalidade", e.target.value)} className={campoClass} />
+
+              {estruturado ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Naturalidade - Freguesia</label>
+                    <input
+                      value={draft.naturalidadeFreguesia}
+                      onChange={(e) => setNaturalidade("naturalidadeFreguesia", e.target.value)}
+                      className={campoClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Naturalidade - Concelho</label>
+                    <input
+                      value={draft.naturalidadeConcelho}
+                      onChange={(e) => setNaturalidade("naturalidadeConcelho", e.target.value)}
+                      className={campoClass}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Naturalidade (freguesia, concelho)</label>
+                  <input value={draft.naturalidade} onChange={(e) => set("naturalidade", e.target.value)} className={campoClass} />
+                </div>
+              )}
             </div>
           </div>
 
-          {estruturado ? (
-            <div className="grid sm:grid-cols-2 gap-3">
+          <div className={grupoClass}>
+            <p className={subTituloClass}>Documento de identificação</p>
+            <div className="space-y-3">
               <div>
-                <label className={labelClass}>Naturalidade - Freguesia</label>
-                <input
-                  value={draft.naturalidadeFreguesia}
-                  onChange={(e) => setNaturalidade("naturalidadeFreguesia", e.target.value)}
-                  className={campoClass}
-                />
+                <label className={labelClass}>Tipo de documento</label>
+                <select value={draft.documentoTipo} onChange={(e) => set("documentoTipo", e.target.value)} className={campoClass}>
+                  {DOCUMENTO_TIPO_OPCOES.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <label className={labelClass}>Naturalidade - Concelho</label>
-                <input
-                  value={draft.naturalidadeConcelho}
-                  onChange={(e) => setNaturalidade("naturalidadeConcelho", e.target.value)}
-                  className={campoClass}
-                />
-              </div>
-            </div>
-          ) : (
-            <div>
-              <label className={labelClass}>Naturalidade (freguesia, concelho)</label>
-              <input value={draft.naturalidade} onChange={(e) => set("naturalidade", e.target.value)} className={campoClass} />
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <div>
-              <label className={labelClass}>Tipo de documento</label>
-              <select value={draft.documentoTipo} onChange={(e) => set("documentoTipo", e.target.value)} className={campoClass}>
-                {DOCUMENTO_TIPO_OPCOES.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>Número</label>
-                <input value={draft.documentoNumero} onChange={(e) => set("documentoNumero", e.target.value)} className={campoClass} />
-              </div>
-              <div>
-                <label className={labelClass}>Validade</label>
-                <input
-                  type="date"
-                  value={draft.documentoValidade}
-                  onChange={(e) => set("documentoValidade", e.target.value)}
-                  className={campoClass}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>Número</label>
+                  <input value={draft.documentoNumero} onChange={(e) => set("documentoNumero", e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Validade</label>
+                  <input
+                    type="date"
+                    value={draft.documentoValidade}
+                    onChange={(e) => set("documentoValidade", e.target.value)}
+                    className={campoClass}
+                  />
+                </div>
               </div>
             </div>
           </div>
         </>
       ) : (
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div>
-            <label className={labelClass}>Representante</label>
-            <input value={draft.representanteNome} onChange={(e) => set("representanteNome", e.target.value)} className={campoClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Cargo do representante</label>
-            <input value={draft.representanteCargo} onChange={(e) => set("representanteCargo", e.target.value)} className={campoClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Certidão permanente</label>
-            <input
-              value={draft.certidaoPermanente}
-              onChange={(e) => set("certidaoPermanente", e.target.value)}
-              className={campoClass}
-            />
+        <div className={grupoClass}>
+          <p className={subTituloClass}>Representação</p>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label className={labelClass}>Representante</label>
+              <input value={draft.representanteNome} onChange={(e) => set("representanteNome", e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Cargo do representante</label>
+              <input value={draft.representanteCargo} onChange={(e) => set("representanteCargo", e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Certidão permanente</label>
+              <input
+                value={draft.certidaoPermanente}
+                onChange={(e) => set("certidaoPermanente", e.target.value)}
+                className={campoClass}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {comUploadFicheiro && (
-        <div className="space-y-1.5">
-          {draft.ficheiros.map((f, j) => (
-            <div key={j} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
-              <span className={`text-xs font-medium truncate ${c.chipTexto}`}>{f.name}</span>
-              <button
-                type="button"
-                onClick={() => set("ficheiros", draft.ficheiros.filter((_, idx) => idx !== j))}
-                className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 shrink-0"
-              >
-                Remover
-              </button>
+        <div className={grupoClass}>
+          <p className={subTituloClass}>Documentos</p>
+          <div className="space-y-1.5">
+            {draft.ficheiros.map((f, j) => (
+              <div key={j} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
+                <span className={`text-xs font-medium truncate ${c.chipTexto}`}>{f.name}</span>
+                <button
+                  type="button"
+                  onClick={() => set("ficheiros", draft.ficheiros.filter((_, idx) => idx !== j))}
+                  className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 shrink-0"
+                >
+                  Remover
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 border border-dashed border-[#E2E8F0]">
+              <span className="text-xs font-normal text-[#94A3B8]">
+                {draft.ficheiros.length > 0 ? "Mais documentos (opcional)" : "Cópia do documento de identificação (opcional)"}
+              </span>
+              <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
+                + Adicionar
+                <input
+                  type="file"
+                  multiple
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    set("ficheiros", [...draft.ficheiros, ...Array.from(e.target.files ?? [])]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
             </div>
-          ))}
-          <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 border border-dashed border-[#E2E8F0]">
-            <span className="text-xs font-normal text-[#94A3B8]">
-              {draft.ficheiros.length > 0 ? "Mais documentos (opcional)" : "Documentos de identificação (opcional)"}
-            </span>
-            <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
-              + Adicionar
-              <input
-                type="file"
-                multiple
-                accept="application/pdf,image/*"
-                className="hidden"
-                onChange={(e) => {
-                  set("ficheiros", [...draft.ficheiros, ...Array.from(e.target.files ?? [])]);
-                  e.target.value = "";
-                }}
-              />
-            </label>
           </div>
         </div>
       )}

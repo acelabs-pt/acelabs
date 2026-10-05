@@ -14,7 +14,7 @@ import {
   parteDraftVazio,
 } from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
-import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, IconesSecao, TextoShimmer } from "../ui";
+import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, grupoClass, IconesSecao, subTituloClass, TextoShimmer } from "../ui";
 
 const TIPOS_IMOVEL: { value: string; label: string; opcional?: boolean }[] = [
   { value: "caderneta_predial", label: "Caderneta Predial" },
@@ -454,11 +454,12 @@ export default function NovoProcessoPage() {
 
         <div className={`grid gap-5 ${angariacaoExterna ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
           {!angariacaoExterna && (
-            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.azul.topo} bg-white shadow-sm p-4 space-y-3`}>
+            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.azul.topo} bg-white shadow-sm p-5 space-y-4`}>
               <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético" />
 
-              <div className="space-y-3">
-                <p className="text-[11px] text-[#64748B] font-medium">Morada do imóvel</p>
+              <div>
+                <p className={subTituloClass}>Morada do imóvel</p>
+                <div className="space-y-3">
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
                     <label className="block text-[11px] text-[#94A3B8] mb-1">Rua / Avenida</label>
@@ -530,11 +531,17 @@ export default function NovoProcessoPage() {
                     />
                   </div>
                 </div>
+                </div>
               </div>
 
-              {blocoDocumentosImovel()}
+              <div className={grupoClass}>
+                <p className={subTituloClass}>Documentos</p>
+                {blocoDocumentosImovel()}
+              </div>
 
-              <div className="space-y-3 pt-1">
+              <div className={grupoClass}>
+                <p className={subTituloClass}>Documentos obrigatórios</p>
+                <div className="space-y-3">
                 <div>
                   <label htmlFor="licencaUtilizacao" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
                     Licença de utilização
@@ -563,12 +570,13 @@ export default function NovoProcessoPage() {
                     className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
                   />
                 </div>
+                </div>
               </div>
             </div>
           )}
 
           {!angariacaoExterna && (
-            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.ambar.topo} bg-white shadow-sm p-4 space-y-3`}>
+            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.ambar.topo} bg-white shadow-sm p-5 space-y-4`}>
               <CabecalhoSecao cor="ambar" icone={IconesSecao.chave} titulo="Documentos do proprietário" subtitulo="Quem vende o imóvel" />
 
               <div className="space-y-3">
@@ -595,7 +603,7 @@ export default function NovoProcessoPage() {
             </div>
           )}
 
-          <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.verde.topo} bg-white shadow-sm p-4 space-y-3`}>
+          <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.verde.topo} bg-white shadow-sm p-5 space-y-4`}>
             <CabecalhoSecao cor="verde" icone={IconesSecao.carrinho} titulo="Documentos do comprador" subtitulo="Quem compra o imóvel" />
 
             <div className="space-y-3">

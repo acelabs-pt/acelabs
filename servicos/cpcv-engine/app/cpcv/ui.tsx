@@ -148,6 +148,13 @@ export const IconesSecao = {
   ),
 };
 
+// Convenção partilhada de sub-título de grupo (maiúsculas, tracking largo, cinza apagado) e
+// separador entre grupos de campos dentro de um bloco/formulário - usada em
+// CondicoesNegocio.tsx, ParteCampos.tsx e app/cpcv/novo/page.tsx, para o mesmo ritmo visual em
+// qualquer formulário longo da secção /cpcv, em vez de cada um inventar o seu próprio espaçamento.
+export const subTituloClass = "text-[10px] font-bold uppercase tracking-wide text-[#94A3B8] mb-2";
+export const grupoClass = "pt-3 border-t border-[#F1F5F9]";
+
 export function Spinner({ className = "" }: { className?: string }) {
   return (
     <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">

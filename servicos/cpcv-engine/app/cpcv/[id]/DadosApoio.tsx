@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { removerCamposPreenchidosNoFormulario } from "@/lib/cpcv-perguntas-filtro";
-import { btnPrimary, Spinner } from "../ui";
+import { btnPrimary, CabecalhoSecao, CORES_SECAO, grupoClass, IconesSecao, Spinner, subTituloClass } from "../ui";
 
 type Processo = {
   id: string;
@@ -73,13 +73,13 @@ export default function DadosApoio({ processo }: { processo: Processo }) {
     setTimeout(() => setGuardado(false), 2500);
   }
 
-  const campoClass =
-    "w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]";
+  const c = CORES_SECAO.azul;
+  const campoClass = `w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${c.anel}`;
   const labelClass = "block text-xs font-semibold text-[#475569] mb-1";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-[#0F172A]">Documentos obrigatórios e referência interna</h2>
+    <div className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-4 ${c.topo} shadow-sm p-5 space-y-4`}>
+      <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos obrigatórios" subtitulo="Licença e certificado energético do imóvel" />
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
@@ -106,19 +106,22 @@ export default function DadosApoio({ processo }: { processo: Processo }) {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="idAngariacao" className={labelClass}>
-            {angariacaoExterna ? "ID/referência da angariação externa" : "ID da angariação (maxwork)"}
-          </label>
-          <input id="idAngariacao" value={idAngariacao} onChange={(e) => setIdAngariacao(e.target.value)} className={campoClass} />
-        </div>
-        {angariacaoExterna && (
+      <div className={grupoClass}>
+        <p className={subTituloClass}>Referência interna</p>
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="emailProcessual" className={labelClass}>Email processual da agência externa</label>
-            <input id="emailProcessual" value={emailProcessual} onChange={(e) => setEmailProcessual(e.target.value)} className={campoClass} />
+            <label htmlFor="idAngariacao" className={labelClass}>
+              {angariacaoExterna ? "ID/referência da angariação externa" : "ID da angariação (maxwork)"}
+            </label>
+            <input id="idAngariacao" value={idAngariacao} onChange={(e) => setIdAngariacao(e.target.value)} className={campoClass} />
           </div>
-        )}
+          {angariacaoExterna && (
+            <div>
+              <label htmlFor="emailProcessual" className={labelClass}>Email processual da agência externa</label>
+              <input id="emailProcessual" value={emailProcessual} onChange={(e) => setEmailProcessual(e.target.value)} className={campoClass} />
+            </div>
+          )}
+        </div>
       </div>
 
       {erro && <p className="text-xs text-red-500">{erro}</p>}
