@@ -134,13 +134,18 @@ export default function NovoProcessoPage() {
 
     for (const { lista, prefixo } of grupos) {
       for (let i = 0; i < lista.length; i++) {
-        const file = lista[i].ficheiro;
-        if (!file) continue;
-        const tipo = i === 0 ? prefixo : `${prefixo}_${i + 1}`;
-        const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
-        const { error: uploadError } = await supabase.storage.from("cpcv-documentos").upload(path, file, { upsert: true });
-        if (uploadError) return `Erro a enviar ${file.name}: ${uploadError.message}`;
-        await supabase.from("cpcv_ficheiros").insert({ processo_id: processoId, tipo, storage_path: path, nome_original: file.name });
+        const basePessoa = i === 0 ? prefixo : `${prefixo}_${i + 1}`;
+        for (let j = 0; j < lista[i].ficheiros.length; j++) {
+          const file = lista[i].ficheiros[j];
+          const tipo = j === 0 ? basePessoa : `${basePessoa}_${j + 1}`;
+          const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
+          const { error: uploadError } = await supabase.storage.from("cpcv-documentos").upload(path, file, { upsert: true });
+          if (uploadError) return `Erro a enviar ${file.name}: ${uploadError.message}`;
+          const { error: ficheiroError } = await supabase
+            .from("cpcv_ficheiros")
+            .insert({ processo_id: processoId, tipo, storage_path: path, nome_original: file.name });
+          if (ficheiroError) return `Erro a registar ${file.name}: ${ficheiroError.message}`;
+        }
       }
     }
 
@@ -199,12 +204,18 @@ export default function NovoProcessoPage() {
           return;
         }
 
-        await supabase.from("cpcv_ficheiros").insert({
+        const { error: ficheiroError } = await supabase.from("cpcv_ficheiros").insert({
           processo_id: processo.id,
           tipo,
           storage_path: path,
           nome_original: file.name,
         });
+
+        if (ficheiroError) {
+          setError(`Erro a registar ${file.name}: ${ficheiroError.message}`);
+          setLoading(false);
+          return;
+        }
       }
 
       const erroPartes = await guardarPartesEFicheiros(supabase, processo.id, donoId);

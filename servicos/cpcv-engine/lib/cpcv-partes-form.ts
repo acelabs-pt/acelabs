@@ -21,8 +21,9 @@ export type ParteDraft = {
   representanteNome: string;
   representanteCargo: string;
   certidaoPermanente: string;
-  // Só usado em /cpcv/novo, antes de o processo (e o Storage path) existirem.
-  ficheiro?: File | null;
+  // Só usado em /cpcv/novo, antes de o processo (e o Storage path) existirem - vários
+  // documentos por pessoa (CC + comprovativo de morada + etc.), não só um.
+  ficheiros: File[];
 };
 
 export const ESTADO_CIVIL_OPCOES = [
@@ -55,7 +56,7 @@ export function parteDraftVazia(): ParteDraft {
     representanteNome: "",
     representanteCargo: "",
     certidaoPermanente: "",
-    ficheiro: null,
+    ficheiros: [],
   };
 }
 
@@ -94,7 +95,7 @@ export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
     representanteNome: p.representante_nome ?? "",
     representanteCargo: p.representante_cargo ?? "",
     certidaoPermanente: p.certidao_permanente ?? "",
-    ficheiro: null,
+    ficheiros: [],
   };
 }
 

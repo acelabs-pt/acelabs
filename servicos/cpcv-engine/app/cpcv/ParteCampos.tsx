@@ -174,28 +174,32 @@ export default function ParteCampos({
       )}
 
       {comUploadFicheiro && (
-        <div className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
-          <span className={`text-xs font-medium truncate ${draft.ficheiro ? c.chipTexto : "text-[#94A3B8] font-normal"}`}>
-            {draft.ficheiro ? draft.ficheiro.name : "Cópia do documento (opcional)"}
-          </span>
-          <div className="flex items-center gap-3 shrink-0">
-            {draft.ficheiro && (
+        <div className="space-y-1.5">
+          {draft.ficheiros.map((f, j) => (
+            <div key={j} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
+              <span className={`text-xs font-medium truncate ${c.chipTexto}`}>{f.name}</span>
               <button
                 type="button"
-                onClick={() => set("ficheiro", null)}
-                className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150"
+                onClick={() => set("ficheiros", draft.ficheiros.filter((_, idx) => idx !== j))}
+                className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 shrink-0"
               >
                 Remover
               </button>
-            )}
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 border border-dashed border-[#E2E8F0]">
+            <span className="text-xs font-normal text-[#94A3B8]">
+              {draft.ficheiros.length > 0 ? "Mais documentos (opcional)" : "Documentos de identificação (opcional)"}
+            </span>
             <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
               + Adicionar
               <input
                 type="file"
+                multiple
                 accept="application/pdf,image/*"
                 className="hidden"
                 onChange={(e) => {
-                  set("ficheiro", e.target.files?.[0] ?? null);
+                  set("ficheiros", [...draft.ficheiros, ...Array.from(e.target.files ?? [])]);
                   e.target.value = "";
                 }}
               />
