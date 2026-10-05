@@ -97,9 +97,8 @@ export default function NovoProcessoPage() {
 
   const agentesFiltrados = agentes.filter((a) => a.nome.toLowerCase().includes(pesquisaAgente.toLowerCase()));
 
-  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
-    const escolhidos = Array.from(e.target.files ?? []);
-    e.target.value = "";
+  function handleFilesParaTipo(tipo: string, fileList: FileList | null) {
+    const escolhidos = Array.from(fileList ?? []);
 
     const nomesExistentes = ficheiros.map((f) => f.file.name);
     const rejeitados: string[] = [];
@@ -112,15 +111,11 @@ export default function NovoProcessoPage() {
       }
       const nomeFinal = nomeSemColisao(file.name, [...nomesExistentes, ...aceites.map((f) => f.file.name)]);
       const fileFinal = nomeFinal === file.name ? file : new File([file], nomeFinal, { type: file.type });
-      aceites.push({ file: fileFinal, tipo: "outro" });
+      aceites.push({ file: fileFinal, tipo });
     }
 
     setFicheiros((prev) => [...prev, ...aceites]);
     setError(rejeitados.length > 0 ? `Formato não suportado (usa PDF, JPG ou PNG): ${rejeitados.join(", ")}` : "");
-  }
-
-  function setTipo(index: number, tipo: string) {
-    setFicheiros((prev) => prev.map((f, i) => (i === index ? { ...f, tipo } : f)));
   }
 
   function removerFicheiro(index: number) {
@@ -412,44 +407,88 @@ export default function NovoProcessoPage() {
         </div>
 
         <div>
-          <label htmlFor="documentos" className="block text-xs font-semibold text-[#475569] mb-2">
-            Documentos
-          </label>
-          <input
-            id="documentos"
-            type="file"
-            multiple
-            onChange={handleFiles}
-            accept="application/pdf,image/*"
-            className="text-sm text-[#94A3B8] file:mr-4 file:cursor-pointer file:rounded-xl file:border file:border-[#E2E8F0] file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-[#475569] hover:file:bg-[#F8FAFC] hover:file:border-[#CBD5E1]"
-          />
+          <p className="block text-xs font-semibold text-[#475569] mb-2">Documentos</p>
+          <div className="space-y-2">
+            {tiposDisponiveis
+              .filter((t) => t.value !== "outro")
+              .map((t) => {
+                const docs = ficheiros
+                  .map((f, i) => ({ ...f, i }))
+                  .filter((f) => f.tipo === t.value);
+                return (
+                  <div key={t.value} className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-[#0F172A]">{t.label}</span>
+                      <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+                        + Adicionar
+                        <input
+                          type="file"
+                          multiple
+                          accept="application/pdf,image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            handleFilesParaTipo(t.value, e.target.files);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {docs.length > 0 && (
+                      <ul className="mt-2 space-y-1.5">
+                        {docs.map((d) => (
+                          <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
+                            <span className="flex-1 truncate">{d.file.name}</span>
+                            <button
+                              onClick={() => removerFicheiro(d.i)}
+                              className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
+                            >
+                              Remover
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
 
-          {ficheiros.length > 0 && (
-            <ul className="mt-4 space-y-2">
-              {ficheiros.map((f, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm bg-[#F8FAFC] rounded-lg px-3 py-2">
-                  <span className="flex-1 truncate">{f.file.name}</span>
-                  <select
-                    value={f.tipo}
-                    onChange={(e) => setTipo(i, e.target.value)}
-                    className="border border-[#E2E8F0] rounded-lg px-2 py-1 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-                  >
-                    {tiposDisponiveis.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
+            <div className="border border-[#E2E8F0] rounded-xl px-3 py-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-[#0F172A]">Outros documentos</span>
+                <label className="shrink-0 cursor-pointer text-xs font-medium text-[#2E6DB4] hover:underline">
+                  + Adicionar
+                  <input
+                    type="file"
+                    multiple
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      handleFilesParaTipo("outro", e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              {ficheiros.filter((f) => f.tipo === "outro").length > 0 && (
+                <ul className="mt-2 space-y-1.5">
+                  {ficheiros
+                    .map((f, i) => ({ ...f, i }))
+                    .filter((f) => f.tipo === "outro")
+                    .map((d) => (
+                      <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
+                        <span className="flex-1 truncate">{d.file.name}</span>
+                        <button
+                          onClick={() => removerFicheiro(d.i)}
+                          className="text-[#94A3B8] hover:text-red-500 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
+                        >
+                          Remover
+                        </button>
+                      </li>
                     ))}
-                  </select>
-                  <button
-                    onClick={() => removerFicheiro(i)}
-                    className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 rounded px-1"
-                  >
-                    Remover
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
 
         <div>
