@@ -43,11 +43,14 @@ export type Processo = Record<string, unknown> & {
   valor_fracao_secundaria: number | null;
   valor_mobilia: number | null;
   reforco_sinal: string | null;
+  reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
   reserva: boolean | null;
   valor_reserva: number | null;
+  reserva_ate_data: string | null;
   condicionado_avaliacao: boolean | null;
   valor_avaliacao_minimo: number | null;
+  prazo_avaliacao_dias: number | null;
   avaliacao_prazo_data: string | null;
   avaliacao_contacto_email: string | null;
   condicionado_financiamento: boolean | null;

@@ -4,28 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { removerCamposPreenchidosNoFormulario } from "@/lib/cpcv-perguntas-filtro";
-import { btnPrimary, Spinner } from "../ui";
+import { btnPrimary, btnGhost, Spinner } from "../ui";
+
+type Reforco = { valor: string; data: string };
 
 type Processo = {
   id: string;
   estado: string;
   campos_em_falta: { campo: string; pergunta: string }[] | null;
-  tipo_contrato: string;
-  id_angariacao: string | null;
-  email_processual_agencia: string | null;
-  imovel_licenca_utilizacao: string | null;
-  imovel_certificado_energetico: string | null;
+  preco_total: number | null;
+  valor_sinal: number | null;
   metodo_pagamento: string | null;
   tem_fracoes_multiplas: boolean | null;
   valor_fracao_principal: number | null;
   valor_fracao_secundaria: number | null;
   valor_mobilia: number | null;
-  reforco_sinal: string | null;
+  reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
   reserva: boolean | null;
   valor_reserva: number | null;
+  reserva_ate_data: string | null;
   condicionado_avaliacao: boolean | null;
   valor_avaliacao_minimo: number | null;
+  prazo_avaliacao_dias: number | null;
   condicionado_financiamento: boolean | null;
   condicionado_outra_situacao: string | null;
   dias_condicionamento: number | null;
@@ -52,25 +53,27 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
   const [guardado, setGuardado] = useState(false);
   const [erro, setErro] = useState("");
 
-  const [idAngariacao, setIdAngariacao] = useState(processo.id_angariacao ?? "");
-  const [emailProcessual, setEmailProcessual] = useState(processo.email_processual_agencia ?? "");
-  const [licencaUtilizacao, setLicencaUtilizacao] = useState(processo.imovel_licenca_utilizacao ?? "");
-  const [certificadoEnergetico, setCertificadoEnergetico] = useState(processo.imovel_certificado_energetico ?? "");
+  const [precoTotal, setPrecoTotal] = useState(processo.preco_total?.toString() ?? "");
+  const [valorSinal, setValorSinal] = useState(processo.valor_sinal?.toString() ?? "");
+  const [reforcos, setReforcos] = useState<Reforco[]>(
+    (processo.reforcos_sinal ?? []).map((r) => ({ valor: r.valor?.toString() ?? "", data: r.data ?? "" }))
+  );
+  const [valorMobilia, setValorMobilia] = useState(processo.valor_mobilia?.toString() ?? "");
   const [metodoPagamento, setMetodoPagamento] = useState(processo.metodo_pagamento ?? "");
   const [temFracoes, setTemFracoes] = useState(processo.tem_fracoes_multiplas ?? false);
   const [valorFracaoPrincipal, setValorFracaoPrincipal] = useState(processo.valor_fracao_principal?.toString() ?? "");
   const [valorFracaoSecundaria, setValorFracaoSecundaria] = useState(processo.valor_fracao_secundaria?.toString() ?? "");
-  const [valorMobilia, setValorMobilia] = useState(processo.valor_mobilia?.toString() ?? "");
-  const [reforcoSinal, setReforcoSinal] = useState(processo.reforco_sinal ?? "");
-  const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
   const [reserva, setReserva] = useState(simNao(processo.reserva));
   const [valorReserva, setValorReserva] = useState(processo.valor_reserva?.toString() ?? "");
+  const [reservaAteData, setReservaAteData] = useState(processo.reserva_ate_data ?? "");
   const [condAvaliacao, setCondAvaliacao] = useState(simNao(processo.condicionado_avaliacao));
   const [valorAvaliacaoMinimo, setValorAvaliacaoMinimo] = useState(processo.valor_avaliacao_minimo?.toString() ?? "");
+  const [prazoAvaliacaoDias, setPrazoAvaliacaoDias] = useState(processo.prazo_avaliacao_dias?.toString() ?? "");
   const [condFinanciamento, setCondFinanciamento] = useState(simNao(processo.condicionado_financiamento));
-  const [condOutraSituacao, setCondOutraSituacao] = useState(processo.condicionado_outra_situacao ?? "");
   const [diasCondicionamento, setDiasCondicionamento] = useState(processo.dias_condicionamento?.toString() ?? "");
   const [diasTipo, setDiasTipo] = useState(processo.dias_condicionamento_tipo ?? "uteis");
+  const [condOutraSituacao, setCondOutraSituacao] = useState(processo.condicionado_outra_situacao ?? "");
+  const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
   const [comodato, setComodato] = useState(simNao(processo.comodato));
   const [tempoComodato, setTempoComodato] = useState(processo.tempo_comodato ?? "");
   const [incluidos, setIncluidos] = useState(processo.incluidos_no_imovel ?? "");
@@ -79,7 +82,17 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
   const [dataAssinatura, setDataAssinatura] = useState(processo.data_assinatura_contrato ?? "");
   const [observacoes, setObservacoes] = useState(processo.observacoes_adicionais ?? "");
 
-  const angariacaoExterna = processo.tipo_contrato === "comprador_nosso_angariacao_externa";
+  function atualizarReforco(index: number, campo: keyof Reforco, valor: string) {
+    setReforcos((prev) => prev.map((r, i) => (i === index ? { ...r, [campo]: valor } : r)));
+  }
+
+  function adicionarReforco() {
+    setReforcos((prev) => [...prev, { valor: "", data: "" }]);
+  }
+
+  function removerReforco(index: number) {
+    setReforcos((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function guardar() {
     setGuardando(true);
@@ -87,39 +100,43 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
     setErro("");
 
     const camposEmFaltaActualizados = removerCamposPreenchidosNoFormulario(processo.campos_em_falta ?? [], {
-      licencaUtilizacao,
-      certificadoEnergetico,
+      precoTotal,
+      valorSinal,
     });
     const estadoActualizado =
       processo.estado === "em_preenchimento" && camposEmFaltaActualizados.length === 0
         ? "pronto_para_aprovacao"
         : processo.estado;
 
+    const reforcosValidos = reforcos
+      .filter((r) => r.valor.trim())
+      .map((r) => ({ valor: Number(r.valor), data: r.data || null }));
+
     const supabase = sbBrowser();
     const { error } = await supabase
       .from("cpcv_processos")
       .update({
-        id_angariacao: idAngariacao || null,
-        email_processual_agencia: emailProcessual || null,
-        imovel_licenca_utilizacao: licencaUtilizacao || null,
-        imovel_certificado_energetico: certificadoEnergetico || null,
+        preco_total: precoTotal ? Number(precoTotal) : null,
+        valor_sinal: valorSinal ? Number(valorSinal) : null,
         campos_em_falta: camposEmFaltaActualizados,
         estado: estadoActualizado,
+        reforcos_sinal: reforcosValidos,
+        valor_mobilia: valorMobilia ? Number(valorMobilia) : null,
         metodo_pagamento: metodoPagamento || null,
         tem_fracoes_multiplas: temFracoes,
         valor_fracao_principal: temFracoes && valorFracaoPrincipal ? Number(valorFracaoPrincipal) : null,
         valor_fracao_secundaria: temFracoes && valorFracaoSecundaria ? Number(valorFracaoSecundaria) : null,
-        valor_mobilia: valorMobilia ? Number(valorMobilia) : null,
-        reforco_sinal: reforcoSinal || null,
-        iban_sinal: ibanSinal || null,
         reserva: reserva ? reserva === "sim" : null,
         valor_reserva: reserva === "sim" && valorReserva ? Number(valorReserva) : null,
+        reserva_ate_data: reserva === "sim" ? reservaAteData || null : null,
         condicionado_avaliacao: condAvaliacao ? condAvaliacao === "sim" : null,
         valor_avaliacao_minimo: condAvaliacao === "sim" && valorAvaliacaoMinimo ? Number(valorAvaliacaoMinimo) : null,
+        prazo_avaliacao_dias: condAvaliacao === "sim" && prazoAvaliacaoDias ? Number(prazoAvaliacaoDias) : null,
         condicionado_financiamento: condFinanciamento ? condFinanciamento === "sim" : null,
-        condicionado_outra_situacao: condOutraSituacao || null,
         dias_condicionamento: diasCondicionamento ? Number(diasCondicionamento) : null,
         dias_condicionamento_tipo: diasCondicionamento ? diasTipo : null,
+        condicionado_outra_situacao: condOutraSituacao || null,
+        iban_sinal: ibanSinal || null,
         comodato: comodato ? comodato === "sim" : null,
         tempo_comodato: comodato === "sim" ? tempoComodato || null : null,
         incluidos_no_imovel: incluidos || null,
@@ -180,53 +197,60 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </p>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Documentos obrigatórios</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="licencaUtilizacao" className={labelClass}>
-                  Licença de utilização <span className="text-[#9A5B00]">(obrigatória para gerar o CPCV)</span>
-                </label>
-                <input
-                  id="licencaUtilizacao"
-                  value={licencaUtilizacao}
-                  onChange={(e) => setLicencaUtilizacao(e.target.value)}
-                  className={campoClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="certificadoEnergetico" className={labelClass}>
-                  Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
-                </label>
-                <input
-                  id="certificadoEnergetico"
-                  value={certificadoEnergetico}
-                  onChange={(e) => setCertificadoEnergetico(e.target.value)}
-                  className={campoClass}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Referência interna</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="idAngariacao" className={labelClass}>{angariacaoExterna ? "ID/referência da angariação externa" : "ID da angariação (maxwork)"}</label>
-                <input id="idAngariacao" value={idAngariacao} onChange={(e) => setIdAngariacao(e.target.value)} className={campoClass} />
-              </div>
-              {angariacaoExterna && (
-                <div>
-                  <label htmlFor="emailProcessual" className={labelClass}>Email processual da agência externa</label>
-                  <input id="emailProcessual" value={emailProcessual} onChange={(e) => setEmailProcessual(e.target.value)} className={campoClass} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Pagamento</h3>
+            <h3 className={tituloSeccaoClass}>Valor do negócio</h3>
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="precoTotal" className={labelClass}>Valor de escritura (preço total)</label>
+                  <input id="precoTotal" type="number" value={precoTotal} onChange={(e) => setPrecoTotal(e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="valorSinal" className={labelClass}>Valor do sinal</label>
+                  <input id="valorSinal" type="number" value={valorSinal} onChange={(e) => setValorSinal(e.target.value)} className={campoClass} />
+                </div>
+              </div>
+
+              <div>
+                <p className={labelClass}>Reforços de sinal (opcional, pode haver vários)</p>
+                <div className="space-y-2">
+                  {reforcos.map((r, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <input
+                        type="number"
+                        value={r.valor}
+                        onChange={(e) => atualizarReforco(i, "valor", e.target.value)}
+                        placeholder="Valor"
+                        className={campoClass}
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={r.data}
+                          onChange={(e) => atualizarReforco(i, "data", e.target.value)}
+                          title="Pagar até"
+                          className={`${campoClass} flex-1`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removerReforco(i)}
+                          className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 whitespace-nowrap px-1"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" onClick={adicionarReforco} className={`${btnGhost} mt-2 text-xs`}>
+                  + Adicionar reforço de sinal
+                </button>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
+                  <input id="valorMobilia" type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
+                </div>
                 <div>
                   <label htmlFor="metodoPagamento" className={labelClass}>Método de pagamento</label>
                   <select id="metodoPagamento" value={metodoPagamento} onChange={(e) => setMetodoPagamento(e.target.value)} className={campoClass}>
@@ -236,21 +260,33 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                     <option value="misto">Misto</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
-                  <input id="valorMobilia" type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
-                </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="reforcoSinal" className={labelClass}>Reforço de sinal (opcional)</label>
-                  <input id="reforcoSinal" value={reforcoSinal} onChange={(e) => setReforcoSinal(e.target.value)} className={campoClass} />
-                </div>
-                <div>
-                  <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
-                  <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
-                </div>
+            </div>
+          </div>
+
+          <div className={seccaoClass}>
+            <h3 className={tituloSeccaoClass}>Reserva</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="reserva" className={labelClass}>Reserva</label>
+                <select id="reserva" value={reserva} onChange={(e) => setReserva(e.target.value)} className={campoClass}>
+                  <option value="">-</option>
+                  <option value="sim">Sim</option>
+                  <option value="nao">Não</option>
+                </select>
               </div>
+              {reserva === "sim" && (
+                <div>
+                  <label htmlFor="valorReserva" className={labelClass}>Valor da reserva</label>
+                  <input id="valorReserva" type="number" value={valorReserva} onChange={(e) => setValorReserva(e.target.value)} className={campoClass} />
+                </div>
+              )}
+              {reserva === "sim" && (
+                <div>
+                  <label htmlFor="reservaAteData" className={labelClass}>Reservado até quando</label>
+                  <input id="reservaAteData" type="date" value={reservaAteData} onChange={(e) => setReservaAteData(e.target.value)} className={campoClass} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -275,29 +311,9 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Reserva</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="reserva" className={labelClass}>Reserva</label>
-                <select id="reserva" value={reserva} onChange={(e) => setReserva(e.target.value)} className={campoClass}>
-                  <option value="">-</option>
-                  <option value="sim">Sim</option>
-                  <option value="nao">Não</option>
-                </select>
-              </div>
-              {reserva === "sim" && (
-                <div>
-                  <label htmlFor="valorReserva" className={labelClass}>Valor da reserva</label>
-                  <input id="valorReserva" type="number" value={valorReserva} onChange={(e) => setValorReserva(e.target.value)} className={campoClass} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Condições suspensivas</h3>
             <div className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="condAvaliacao" className={labelClass}>Condicionado à avaliação</label>
                   <select id="condAvaliacao" value={condAvaliacao} onChange={(e) => setCondAvaliacao(e.target.value)} className={campoClass}>
@@ -312,23 +328,23 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                     <input id="valorAvaliacaoMinimo" type="number" value={valorAvaliacaoMinimo} onChange={(e) => setValorAvaliacaoMinimo(e.target.value)} className={campoClass} />
                   </div>
                 )}
+                {condAvaliacao === "sim" && (
+                  <div>
+                    <label htmlFor="prazoAvaliacaoDias" className={labelClass}>Prazo (dias corridos)</label>
+                    <input id="prazoAvaliacaoDias" type="number" value={prazoAvaliacaoDias} onChange={(e) => setPrazoAvaliacaoDias(e.target.value)} className={campoClass} />
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
-                <select id="condFinanciamento" value={condFinanciamento} onChange={(e) => setCondFinanciamento(e.target.value)} className={campoClass}>
-                  <option value="">-</option>
-                  <option value="sim">Sim</option>
-                  <option value="nao">Não</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="condOutraSituacao" className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
-                <textarea id="condOutraSituacao" value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
+                  <select id="condFinanciamento" value={condFinanciamento} onChange={(e) => setCondFinanciamento(e.target.value)} className={campoClass}>
+                    <option value="">-</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
                 <div>
                   <label htmlFor="diasCondicionamento" className={labelClass}>Dias de condicionamento</label>
                   <input id="diasCondicionamento" type="number" value={diasCondicionamento} onChange={(e) => setDiasCondicionamento(e.target.value)} className={campoClass} />
@@ -341,6 +357,19 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label htmlFor="condOutraSituacao" className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
+                <textarea id="condOutraSituacao" value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
+              </div>
+            </div>
+          </div>
+
+          <div className={seccaoClass}>
+            <h3 className={tituloSeccaoClass}>IBAN</h3>
+            <div>
+              <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
+              <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
             </div>
           </div>
 
@@ -357,7 +386,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               </div>
               {comodato === "sim" && (
                 <div>
-                  <label htmlFor="tempoComodato" className={labelClass}>Quanto tempo o proprietário fica?</label>
+                  <label htmlFor="tempoComodato" className={labelClass}>Quanto tempo o proprietário fica (após a escritura)?</label>
                   <input id="tempoComodato" value={tempoComodato} onChange={(e) => setTempoComodato(e.target.value)} className={campoClass} />
                 </div>
               )}
@@ -368,7 +397,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
             <h3 className={tituloSeccaoClass}>Imóvel e contrato</h3>
             <div className="space-y-4">
               <div>
-                <label htmlFor="incluidos" className={labelClass}>O que fica incluído no imóvel</label>
+                <label htmlFor="incluidos" className={labelClass}>O que fica incluído no imóvel (opcional)</label>
                 <textarea id="incluidos" value={incluidos} onChange={(e) => setIncluidos(e.target.value)} rows={2} className={campoClass} />
               </div>
 

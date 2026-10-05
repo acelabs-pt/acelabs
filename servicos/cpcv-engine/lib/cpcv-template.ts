@@ -16,6 +16,7 @@ import {
   clausulaFinanciamentoAvaliacao,
   clausulaDeclaracaoCondominio,
   textoFormaPagamentoSinal,
+  textoReforcosSinal,
   ORDINAIS,
   type ClausulaTexto,
 } from "./cpcv-clausulas";
@@ -119,12 +120,14 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[]): string {
           processo.valor_sinal
         )}, paga ${textoFormaPagamentoSinal(helpers, processo)}${
           processo.iban_sinal ? `, para o IBAN ${v(processo.iban_sinal)}` : ""
-        }${processo.reforco_sinal ? `, com reforço de sinal de ${v(processo.reforco_sinal)}` : ""};`,
+        }${textoReforcosSinal(helpers, processo)};`,
         "b) O remanescente do preço será pago na data da celebração da escritura pública de compra e venda, através de meio de pagamento idóneo.",
         processo.reserva
           ? `Foi entregue pelo(s) SEGUNDO(S) OUTORGANTE(S), a título de reserva, a quantia de ${euros(
               processo.valor_reserva
-            )}, a deduzir ao valor do sinal referido na alínea a).`
+            )}, a deduzir ao valor do sinal referido na alínea a)${
+              processo.reserva_ate_data ? `, válida até ${dataPT(processo.reserva_ate_data)}` : ""
+            }.`
           : "",
         processo.valor_mobilia
           ? `É atribuído à mobília e aos bens móveis incluídos na transacção o valor de ${euros(processo.valor_mobilia)}.`

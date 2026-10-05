@@ -22,43 +22,54 @@ export function filtrarCamposEmFalta<T extends { campo: string; pergunta: string
   );
 }
 
-// Licença de utilização e certificado energético não estão na lista acima porque a IA tenta
-// extraí-los de documentos/texto normalmente. Mas também são editáveis directamente no
-// formulário "Condições do negócio" - se o agente os preencher aí antes de responder no chat,
-// a pergunta correspondente ficava visível e a contar como pendente até à ronda seguinte de
-// chat (testado: guardar o formulário não mexe em campos_em_falta). Isto remove-as de imediato
-// quando o formulário é guardado com um valor não vazio.
+// Alguns campos que a IA tenta extrair de documentos/texto também são editáveis directamente
+// em formulários próprios - licença/certificado em "Documentos obrigatórios", preço e sinal em
+// "Condições do negócio" > "Valor do negócio". Se forem preenchidos aí antes de responder no
+// chat, a pergunta correspondente ficava visível e a contar como pendente até à ronda seguinte
+// de chat (testado: guardar um formulário não mexe em campos_em_falta por si só). Isto
+// remove-as de imediato quando um desses formulários é guardado com um valor não vazio - cada
+// chamador passa só as chaves que tem (as outras ficam undefined e não casam com nada).
 //
 // O "campo" devolvido pela IA é normalmente o identificador estável do JSON (ex.:
-// "imovel.certificado_energetico"), mas a "pergunta" em português varia de ronda para ronda
-// (testado: numa chamada saiu "classificação energética do imóvel (certificado)", que não
-// contém a frase exacta "certificado energético") - por isso o casamento verifica o campo por
-// nome e a pergunta por palavras-chave soltas, não por uma frase fixa.
+// "negocio.preco_total", "imovel.certificado_energetico"), mas a "pergunta" em português varia
+// de ronda para ronda (testado: numa chamada saiu "classificação energética do imóvel
+// (certificado)", que não contém a frase exacta "certificado energético") - por isso o
+// casamento verifica o campo por nome e a pergunta por palavras-chave soltas, não por uma frase
+// fixa.
 const CAMPOS_TAMBEM_NO_FORMULARIO: {
+  chave: string;
   correspondeA: (texto: string) => boolean;
-  preenchido: (v: { licencaUtilizacao: string; certificadoEnergetico: string }) => boolean;
 }[] = [
   {
+    chave: "licencaUtilizacao",
     correspondeA: (t) => /licenca_utilizacao/i.test(t) || (/licen[çc]a/i.test(t) && /utiliza[çc][ãa]o/i.test(t)),
-    preenchido: (v) => v.licencaUtilizacao.trim().length > 0,
   },
   {
+    chave: "certificadoEnergetico",
     correspondeA: (t) =>
       /certificado_energetico/i.test(t) ||
       (/certificado/i.test(t) && /energ[ée]tic/i.test(t)) ||
       (/classifica[çc][ãa]o/i.test(t) && /energ[ée]tic/i.test(t)),
-    preenchido: (v) => v.certificadoEnergetico.trim().length > 0,
+  },
+  {
+    chave: "precoTotal",
+    correspondeA: (t) => /preco_total/i.test(t) || (/pre[çc]o/i.test(t) && /total/i.test(t)),
+  },
+  {
+    chave: "valorSinal",
+    correspondeA: (t) => /valor_sinal/i.test(t) || (/valor/i.test(t) && /\bsinal\b/i.test(t)),
   },
 ];
 
 export function removerCamposPreenchidosNoFormulario<T extends { campo: string; pergunta: string }>(
   campos: T[],
-  valores: { licencaUtilizacao: string; certificadoEnergetico: string }
+  valores: Record<string, string>
 ): T[] {
   return campos.filter(
     (c) =>
       !CAMPOS_TAMBEM_NO_FORMULARIO.some(
-        ({ correspondeA, preenchido }) => preenchido(valores) && (correspondeA(c.campo) || correspondeA(c.pergunta))
+        ({ chave, correspondeA }) =>
+          (valores[chave] ?? "").trim().length > 0 && (correspondeA(c.campo) || correspondeA(c.pergunta))
       )
   );
 }

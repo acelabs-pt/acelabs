@@ -101,17 +101,23 @@ abaixo, para o caso de a IA perguntar na mesma).
 - Testado contra injecção de prompt (texto do utilizador a tentar fazer a IA revelar o system
   prompt) - o modelo ignorou a instrução injectada e manteve-se na tarefa. Não é garantia para
   sempre, mas não é uma lacuna conhecida em aberto.
-- `licenca_utilizacao` e `certificado_energetico` são o caso oposto dos campos acima: a IA tenta
-  mesmo extraí-los (do chat/documentos), mas também são editáveis à mão no formulário "Condições
-  do negócio" (mesmas colunas, `imovel_licenca_utilizacao`/`imovel_certificado_energetico`).
-  Guardar o formulário não chama a IA, por isso passou a remover essas entradas de
+- `licenca_utilizacao`/`certificado_energetico` e `preco_total`/`valor_sinal` são o caso oposto
+  dos campos acima: a IA tenta extraí-los (do chat/documentos), mas também são editáveis à mão
+  em formulário - licença/certificado em "Documentos obrigatórios" (`DadosApoio.tsx`, sempre
+  visível, separado de "Condições do negócio" porque não são condições a negociar), preço/sinal
+  em "Condições do negócio" > "Valor do negócio" (mesmas colunas:
+  `imovel_licenca_utilizacao`/`imovel_certificado_energetico`/`preco_total`/`valor_sinal`).
+  Guardar um formulário não chama a IA, por isso cada um passa a remover as suas entradas de
   `campos_em_falta` directamente no cliente (`removerCamposPreenchidosNoFormulario` em
-  `lib/cpcv-perguntas-filtro.ts`) - sem isto, a pergunta ficava visível no chat e a contar no "X
-  por preencher" da lista de processos até à ronda seguinte de chat. O casamento é por
-  palavras-chave (`licenca`+`utilizacao`, `certificado`+`energetic`), nunca por uma frase exacta -
+  `lib/cpcv-perguntas-filtro.ts`, chamada a partir dos dois componentes) - sem isto, a pergunta
+  ficava visível no chat e a contar no "X por preencher" da lista de processos até à ronda
+  seguinte de chat. O casamento é por palavras-chave (`licenca`+`utilizacao`,
+  `certificado`+`energetic`, `preco`+`total`, `valor`+`sinal`), nunca por uma frase exacta -
   testado: o `campo` devolvido pela IA é um identificador estável (`imovel.certificado_energetico`),
   mas a `pergunta` em português varia de ronda para ronda (ex.: "classificação energética do
-  imóvel (certificado)" não contém a frase "certificado energético").
+  imóvel (certificado)" não contém a frase "certificado energético"). Ao adicionar um novo campo
+  editável nestes formulários que a IA também possa perguntar, repetir o mesmo padrão em
+  `CAMPOS_TAMBEM_NO_FORMULARIO`.
 
 ### Geração de documentos
 

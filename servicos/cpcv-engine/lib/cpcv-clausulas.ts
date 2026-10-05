@@ -101,15 +101,36 @@ export function textoFormaPagamentoSinal(h: Helpers, processo: Processo): string
   return "na data da assinatura do presente contrato";
 }
 
+// Pode haver vários reforços de sinal (cada um com o seu valor e a data limite de
+// pagamento) - substituiu o antigo campo de texto livre único "reforco_sinal", que não
+// dava para repetir nem associar uma data a cada reforço.
+export function textoReforcosSinal(h: Helpers, processo: Processo): string {
+  const reforcos =
+    (processo.reforcos_sinal as { valor: number | null; data: string | null }[] | null) ?? [];
+  const validos = reforcos.filter((r) => r.valor);
+  if (validos.length === 0) return "";
+
+  const partes = validos.map((r, i) => {
+    const rotulo = validos.length > 1 ? `${i + 1}.º reforço de sinal` : "reforço de sinal";
+    const prazo = r.data ? `, a pagar até ${h.dataPT(r.data)}` : "";
+    return `${rotulo} de ${h.euros(r.valor as number)}${prazo}`;
+  });
+
+  return `, com ${partes.join(", e ")}`;
+}
+
 export function clausulaCondicoesSuspensivas(h: Helpers, processo: Processo): string {
   if (processo.condicoes_suspensivas) return h.v(processo.condicoes_suspensivas);
 
   const condicoes: string[] = [];
   if (processo.condicionado_avaliacao) {
+    const prazoAvaliacao = processo.prazo_avaliacao_dias
+      ? ` a comunicar no prazo de ${processo.prazo_avaliacao_dias} dias corridos a contar da data de assinatura do presente contrato`
+      : "";
     condicoes.push(
       `avaliação do Imóvel em valor igual ou superior a ${
         processo.valor_avaliacao_minimo ? h.euros(processo.valor_avaliacao_minimo as number) : "____________"
-      }`
+      }${prazoAvaliacao}`
     );
   }
   if (processo.condicionado_financiamento) {

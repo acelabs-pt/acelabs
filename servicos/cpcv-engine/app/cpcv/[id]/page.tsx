@@ -5,6 +5,7 @@ import ChatForm from "./ChatForm";
 import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks } from "./GerarDocumento";
 import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
+import DadosApoio from "./DadosApoio";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
@@ -168,6 +169,8 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
           )}
         </dl>
       </div>
+
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <CondicoesNegocio processo={processo} />}
 
