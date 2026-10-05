@@ -48,4 +48,6 @@ Pedro e Miguel, mesma dinâmica de colaboração assíncrona via git descrita no
 
 ## Estado
 
-Ideação / definição de nome e âmbito. Sem código, sem schema, sem design visual definido.
+Nome e arquitetura técnica definidos (ver `pesquisa-boas-praticas.md`). Especificação de
+produto (entidades, MVP, vocabulário) feita em `especificacao-produto.md`, por validar com o
+Miguel antes de código. Sem código, sem schema, sem design visual definido.
