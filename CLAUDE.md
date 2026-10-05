@@ -22,6 +22,8 @@ tentar registar).
 - `docs/piloto-alvorada/` - proposta, app demo e powerpoint de um piloto para um cliente
   hipotético ("Alvorada Imóveis"), usado como material de vendas de exemplo.
 - `servicos/` - o código dos serviços que vendemos, um subdiretório por serviço.
+- `servicos/cockpit/` - serviço em ideação (ainda sem código): app mobile tipo CRM para
+  agentes imobiliários, foco em facilidade de uso no terreno. Ver CLAUDE.md dentro da pasta.
 - `servicos/cpcv-engine/` - projecto Next.js/Supabase do serviço "CPCV com IA" (ver secção
   abaixo), com um painel de gestão simples por cima (login por password partilhada, `/api/data`,
   `/api/write`) extraído de um painel real construído para um cliente do setor imobiliário. Sem
