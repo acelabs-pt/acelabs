@@ -64,5 +64,17 @@ Pedro e Miguel, mesma dinâmica de colaboração assíncrona via git descrita no
 Nome, arquitetura técnica e especificação de produto definidos e validados pelos dois sócios
 (mockup clicável aprovado). Código real em `app/(shell)/`: login, Hoje, Contactos (lista +
 ficha com registo de visita num toque e timeline), Imóveis (lista). Falta: ecrã "A fazer" (sem
-modelo de dados de tarefas ainda), projeto Supabase real a criar e `create_tables_cockpit.sql`
-a correr lá, app Capacitor ainda não gerada (`npx cap add ios android`).
+modelo de dados de tarefas ainda), projeto Supabase real a criar, app Capacitor ainda não
+gerada (`npx cap add ios android`).
+
+## Pôr a correr localmente (depois de criar o projeto Supabase)
+
+Não há projeto Supabase real ainda - criar em supabase.com (conta do Pedro/Miguel), depois:
+
+1. Copiar `.env.example` para `.env.local` e preencher com as chaves do projeto novo.
+2. Correr `create_tables_cockpit.sql` no SQL Editor do Supabase.
+3. Criar o primeiro utilizador em Authentication > Add user (não há signup self-service ainda).
+4. `npm run bootstrap:organizacao -- <email> "<nome da organização>"` - associa esse utilizador
+   a uma organização nova como owner (sem isto o login funciona mas RLS bloqueia tudo, porque
+   `organizacao_atual()` lê `organizacao_id` do `app_metadata` do JWT).
+5. `npm run dev`, login com esse utilizador.
