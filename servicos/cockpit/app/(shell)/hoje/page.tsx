@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { sbUserServer } from "@/lib/supabase-server";
+import { diasDesde, rotuloEstado } from "@/lib/estado-relacao";
 import type { Contacto, Imovel } from "@/lib/types";
 
 // Ecrã de abertura ("Hoje", não "Dashboard" - ver especificacao-produto.md,
@@ -35,16 +37,16 @@ export default async function HojePage() {
     .limit(20);
 
   return (
-    <main className="mx-auto max-w-2xl space-y-8 p-6">
-      <h1 className="text-2xl font-semibold text-tinta">Hoje</h1>
+    <main className="mx-auto max-w-2xl space-y-8 px-4 pb-4 pt-8">
+      <h1 className="text-[28px] font-bold text-tinta">Hoje</h1>
 
       <section>
-        <h2 className="mb-2 text-lg font-medium text-tinta">Seguimentos pendentes</h2>
+        <h2 className="mb-3 text-[15px] font-semibold text-tinta">Seguimentos pendentes</h2>
         <ListaContactos contactos={(contactosPendentes as Contacto[]) ?? []} agora={agora} />
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-medium text-tinta">Updates devidos a proprietários</h2>
+        <h2 className="mb-3 text-[15px] font-semibold text-tinta">Updates devidos a proprietários</h2>
         <ListaImoveis imoveis={(imoveisComUpdateDevido as Imovel[]) ?? []} agora={agora} />
       </section>
     </main>
@@ -57,19 +59,21 @@ function ListaContactos({ contactos, agora }: { contactos: Contacto[]; agora: st
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="flex flex-col gap-2.5">
       {contactos.map((c) => (
-        <li
-          key={c.id}
-          className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-4 py-3"
-        >
-          <div>
-            <p className="font-medium text-tinta">{c.nome}</p>
-            <p className="text-xs text-secundario">{rotuloEstado(c.estado_relacao)}</p>
-          </div>
-          <span className="rounded-full bg-ambar-fundo px-2 py-1 text-xs font-medium text-ambar-texto">
-            {diasDesde(c.ultimo_contacto_em, agora)}
-          </span>
+        <li key={c.id}>
+          <Link
+            href={`/contactos/${c.id}`}
+            className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-tinta">{c.nome}</p>
+              <p className="text-xs text-secundario">{rotuloEstado(c.estado_relacao)}</p>
+            </div>
+            <span className="flex-none rounded-full bg-ambar-fundo px-2.5 py-1.5 text-xs font-semibold text-ambar-texto">
+              {diasDesde(c.ultimo_contacto_em, agora)}
+            </span>
+          </Link>
         </li>
       ))}
     </ul>
@@ -82,40 +86,23 @@ function ListaImoveis({ imoveis, agora }: { imoveis: Imovel[]; agora: string }) 
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="flex flex-col gap-2.5">
       {imoveis.map((im) => (
         <li
           key={im.id}
-          className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-4 py-3"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-sm"
         >
-          <div>
-            <p className="font-medium text-tinta">{im.tipologia ?? "Imóvel"} - {im.zona ?? "zona n/d"}</p>
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-tinta">
+              {im.tipologia ?? "Imóvel"} - {im.zona ?? "zona n/d"}
+            </p>
             <p className="text-xs text-secundario">Cadência: {im.cadencia_update_dias} dias</p>
           </div>
-          <span className="rounded-full bg-ambar-fundo px-2 py-1 text-xs font-medium text-ambar-texto">
+          <span className="flex-none rounded-full bg-ambar-fundo px-2.5 py-1.5 text-xs font-semibold text-ambar-texto">
             Update devido
           </span>
         </li>
       ))}
     </ul>
   );
-}
-
-function rotuloEstado(estado: Contacto["estado_relacao"]) {
-  const rotulos: Record<Contacto["estado_relacao"], string> = {
-    lead_frio: "Lead frio",
-    lead_morno: "Lead morno",
-    lead_quente: "Lead quente",
-    cliente_comprador: "Cliente comprador",
-    cliente_proprietario: "Cliente proprietário",
-  };
-  return rotulos[estado];
-}
-
-function diasDesde(data: string | null, agora: string) {
-  if (!data) return "Sem contacto registado";
-  const dias = Math.floor(
-    (new Date(agora).getTime() - new Date(data).getTime()) / (1000 * 60 * 60 * 24)
-  );
-  return `Sem contacto há ${dias} dia${dias === 1 ? "" : "s"}`;
 }

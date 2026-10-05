@@ -41,7 +41,7 @@ export default function LoginPage() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-black/10 px-3 py-2"
+          className="w-full rounded-2xl border border-black/10 px-4 py-3.5 text-base"
         />
         <input
           type="password"
@@ -49,7 +49,7 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-black/10 px-3 py-2"
+          className="w-full rounded-2xl border border-black/10 px-4 py-3.5 text-base"
         />
 
         {erro && <p className="text-sm text-red-600">{erro}</p>}
@@ -57,7 +57,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={aEnviar}
-          className="w-full rounded-lg bg-azul px-3 py-2 font-medium text-white disabled:opacity-60"
+          className="w-full rounded-2xl bg-azul py-3.5 text-base font-semibold text-white disabled:opacity-60"
         >
           {aEnviar ? "A entrar..." : "Entrar"}
         </button>
