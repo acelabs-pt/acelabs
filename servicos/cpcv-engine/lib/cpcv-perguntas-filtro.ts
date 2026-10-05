@@ -26,6 +26,9 @@ const PADROES_PROIBIDOS = [
   /dados (?:do|da|dos|das) (?:vendedor|comprador)/i,
   /identifica[çc][ãa]o (?:do|da) (?:vendedor|comprador)/i,
   /morada (?:do|da) (?:vendedor|comprador)/i,
+  // Estado de conservação do imóvel é sempre opcional (ver systemPrompt em
+  // app/api/cpcv/extrair e /responder) - nunca deve ficar pendente.
+  /estado (?:de conserva[çc][ãa]o|do im[oó]vel)/i,
 ];
 
 export function filtrarCamposEmFalta<T extends { campo: string; pergunta: string }>(
@@ -72,6 +75,10 @@ const CAMPOS_TAMBEM_NO_FORMULARIO: {
   {
     chave: "valorSinal",
     correspondeA: (t) => /valor_sinal/i.test(t) || (/valor/i.test(t) && /\bsinal\b/i.test(t)),
+  },
+  {
+    chave: "prazoEscritura",
+    correspondeA: (t) => /prazo_escritura/i.test(t) || (/(?:data|prazo)/i.test(t) && /escritura/i.test(t)),
   },
 ];
 

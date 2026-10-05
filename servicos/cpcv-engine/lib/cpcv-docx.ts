@@ -103,7 +103,11 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
       paragrafos: [
         `O(s) PRIMEIRO(S) OUTORGANTE(S) é/são legítimo(s) proprietário(s) e possuidor(es) do prédio urbano sito em ${v(
           processo.imovel_morada
-        )}, freguesia de ${v(processo.imovel_freguesia)}, concelho de ${v(
+        )}${
+          processo.imovel_codigo_postal || processo.imovel_localidade
+            ? `, ${[processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" ")}`
+            : ""
+        }, freguesia de ${v(processo.imovel_freguesia)}, concelho de ${v(
           processo.imovel_concelho
         )}, distrito de ${v(processo.imovel_distrito)}, com a tipologia ${v(
           processo.imovel_tipologia

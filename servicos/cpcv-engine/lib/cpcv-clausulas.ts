@@ -119,41 +119,48 @@ export function textoReforcosSinal(h: Helpers, processo: Processo): string {
   return `, com ${partes.join(", e ")}`;
 }
 
+// Texto do prazo de uma condição suspensiva - sempre em dias corridos, nunca úteis (eram
+// ambíguos e configuráveis antes - ver dias_condicionamento_tipo, agora sem uso). Cada
+// condição (avaliação, financiamento, outra situação) tem o seu próprio prazo opcional,
+// em vez de um único prazo genérico partilhado por todas (dias_condicionamento).
+function textoPrazoDiasCorridos(dias: number | null | undefined): string {
+  return dias ? ` a comunicar no prazo de ${dias} dias corridos a contar da data de assinatura do presente contrato` : "";
+}
+
 export function clausulaCondicoesSuspensivas(h: Helpers, processo: Processo): string {
   if (processo.condicoes_suspensivas) return h.v(processo.condicoes_suspensivas);
 
   const condicoes: string[] = [];
   if (processo.condicionado_avaliacao) {
-    const prazoAvaliacao = processo.prazo_avaliacao_dias
-      ? ` a comunicar no prazo de ${processo.prazo_avaliacao_dias} dias corridos a contar da data de assinatura do presente contrato`
-      : "";
     condicoes.push(
       `avaliação do Imóvel em valor igual ou superior a ${
         processo.valor_avaliacao_minimo ? h.euros(processo.valor_avaliacao_minimo as number) : "____________"
-      }${prazoAvaliacao}`
+      }${textoPrazoDiasCorridos(processo.prazo_avaliacao_dias as number | null)}`
     );
   }
   if (processo.condicionado_financiamento) {
-    condicoes.push("obtenção de financiamento bancário pelo(s) SEGUNDO(S) OUTORGANTE(S)");
+    condicoes.push(
+      `obtenção de financiamento bancário pelo(s) SEGUNDO(S) OUTORGANTE(S) em montante igual ou superior a ${
+        processo.valor_financiamento_minimo ? h.euros(processo.valor_financiamento_minimo as number) : "____________"
+      }${textoPrazoDiasCorridos(processo.prazo_financiamento_dias as number | null)}`
+    );
   }
   if (processo.condicionado_outra_situacao) {
-    condicoes.push(h.v(processo.condicionado_outra_situacao as string));
+    condicoes.push(
+      `${h.v(processo.condicionado_outra_situacao as string)}${textoPrazoDiasCorridos(
+        processo.prazo_outra_situacao_dias as number | null
+      )}`
+    );
   }
 
   if (condicoes.length === 0) {
     return "Não foram estipuladas condições suspensivas para o presente contrato.";
   }
 
-  const prazo = processo.dias_condicionamento
-    ? ` no prazo de ${processo.dias_condicionamento} dias ${
-        processo.dias_condicionamento_tipo === "corridos" ? "corridos" : "úteis"
-      } a contar da data de assinatura do presente contrato`
-    : "";
-
   const listaCondicoes =
     condicoes.length === 1 ? condicoes[0] : condicoes.map((c, i) => `${i + 1}) ${c}`).join("; ");
 
-  return `O presente contrato fica sujeito às seguintes condições suspensivas: ${listaCondicoes}${prazo}.`;
+  return `O presente contrato fica sujeito às seguintes condições suspensivas: ${listaCondicoes}.`;
 }
 
 // Cláusula rica de financiamento/avaliação bancária (ver `minutas/_extraido/`, minutas com

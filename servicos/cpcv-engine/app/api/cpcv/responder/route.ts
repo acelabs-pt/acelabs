@@ -67,8 +67,9 @@ Remove de "campos_em_falta" a pergunta que acabou de ser respondida (e qualquer 
 resposta já tenha esclarecido). Se ainda faltar informação essencial, mantém/acrescenta a
 pergunta correspondente. Se já não faltar nada, devolve "campos_em_falta": [].
 
-"incluidos_no_imovel" (o que fica incluído na venda) é sempre opcional - actualiza-o só se o
-agente o mencionar espontaneamente na resposta; nunca o incluas em "campos_em_falta".`;
+"incluidos_no_imovel" (o que fica incluído na venda) e "imovel.estado" (estado de conservação,
+ex.: bom, razoável) são sempre opcionais - actualiza-os só se o agente os mencionar
+espontaneamente na resposta; nunca os incluas em "campos_em_falta".`;
 }
 
 export async function POST(req: NextRequest) {

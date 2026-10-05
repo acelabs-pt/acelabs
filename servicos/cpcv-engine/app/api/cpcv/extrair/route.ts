@@ -110,9 +110,10 @@ Inclui em "campos_em_falta" qualquer campo do imóvel ou do negócio (dos listad
 excluídos na regra anterior) que fique null - mas não repitas perguntas óbvias se o mesmo dado já
 foi dado de outra forma.
 
-Excepção: "incluidos_no_imovel" (o que fica incluído na venda - mobília, eletrodomésticos, etc.)
-é sempre opcional. Preenche-o só se o agente o mencionar espontaneamente; nunca o incluas em
-"campos_em_falta" nem perguntes por ele.
+Excepção: "incluidos_no_imovel" (o que fica incluído na venda - mobília, eletrodomésticos, etc.) e
+"imovel.estado" (estado de conservação, ex.: bom, razoável) são sempre opcionais. Preenche-os só
+se o agente os mencionar espontaneamente; nunca os incluas em "campos_em_falta" nem perguntes por
+eles.
 
 Se não houver nenhum documento, texto ou link novo, e o "Estado actual" também estiver vazio
 (sem dados do imóvel), NÃO devolvas "campos_em_falta" vazio - pergunta sempre pelo essencial

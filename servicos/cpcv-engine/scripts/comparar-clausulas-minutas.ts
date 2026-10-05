@@ -153,6 +153,8 @@ const parteBase: Parte = {
 
 const processoBase: Processo = {
   imovel_morada: "Rua das Flores, n.º 10",
+  imovel_codigo_postal: "1000-001",
+  imovel_localidade: "Lisboa",
   imovel_freguesia: "Alvalade",
   imovel_concelho: "Lisboa",
   imovel_distrito: "Lisboa",
@@ -189,7 +191,10 @@ const processoBase: Processo = {
   avaliacao_prazo_data: null,
   avaliacao_contacto_email: null,
   condicionado_financiamento: false,
+  valor_financiamento_minimo: null,
+  prazo_financiamento_dias: null,
   condicionado_outra_situacao: null,
+  prazo_outra_situacao_dias: null,
   dias_condicionamento: null,
   dias_condicionamento_tipo: null,
   comodato: false,
@@ -280,6 +285,21 @@ const fixtures: Fixture[] = [
       condicionado_avaliacao: true,
       valor_avaliacao_minimo: 250000,
       prazo_avaliacao_dias: 20,
+    },
+    partes: [
+      { ...parteBase, papel: "vendedor" },
+      { ...compradorBase, papel: "comprador" },
+    ],
+  },
+  {
+    nome: "5. Financiamento com valor e prazo proprios, mais outra situacao com prazo",
+    processo: {
+      ...processoBase,
+      condicionado_financiamento: true,
+      valor_financiamento_minimo: 200000,
+      prazo_financiamento_dias: 30,
+      condicionado_outra_situacao: "obtenção de licença de utilização actualizada pela Câmara Municipal",
+      prazo_outra_situacao_dias: 45,
     },
     partes: [
       { ...parteBase, papel: "vendedor" },

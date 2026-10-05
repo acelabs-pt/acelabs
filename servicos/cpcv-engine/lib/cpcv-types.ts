@@ -18,6 +18,8 @@ export type Parte = {
 
 export type Processo = Record<string, unknown> & {
   imovel_morada: string | null;
+  imovel_codigo_postal: string | null;
+  imovel_localidade: string | null;
   imovel_freguesia: string | null;
   imovel_concelho: string | null;
   imovel_distrito: string | null;
@@ -54,7 +56,10 @@ export type Processo = Record<string, unknown> & {
   avaliacao_prazo_data: string | null;
   avaliacao_contacto_email: string | null;
   condicionado_financiamento: boolean | null;
+  valor_financiamento_minimo: number | null;
+  prazo_financiamento_dias: number | null;
   condicionado_outra_situacao: string | null;
+  prazo_outra_situacao_dias: number | null;
   dias_condicionamento: number | null;
   dias_condicionamento_tipo: string | null;
   comodato: boolean | null;

@@ -5,13 +5,20 @@ import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
-import { ParteDraft, nifValido, parteDraftParaLinha, parteDraftVazia, parteDraftVazio } from "@/lib/cpcv-partes-form";
+import {
+  ParteDraft,
+  enviarFicheirosDasPartes,
+  nifValido,
+  parteDraftParaLinha,
+  parteDraftVazia,
+  parteDraftVazio,
+} from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
 import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, IconesSecao, TextoShimmer } from "../ui";
 
 const TIPOS_IMOVEL: { value: string; label: string; opcional?: boolean }[] = [
-  { value: "certidao_predial", label: "Certidão Predial" },
   { value: "caderneta_predial", label: "Caderneta Predial" },
+  { value: "certidao_predial", label: "Certidão Predial" },
   { value: "licenca_utilizacao", label: "Licença de Utilização" },
   { value: "certificado_energetico", label: "Certificado Energético" },
   { value: "direito_preferencia", label: "Direito de Preferência", opcional: true },
@@ -36,6 +43,14 @@ export default function NovoProcessoPage() {
   const [tipoContrato, setTipoContrato] = useState("angariacao_nossa_comprador_nosso");
   const [licencaUtilizacao, setLicencaUtilizacao] = useState("");
   const [certificadoEnergetico, setCertificadoEnergetico] = useState("");
+  const [ruaImovel, setRuaImovel] = useState("");
+  const [numeroImovel, setNumeroImovel] = useState("");
+  const [andarImovel, setAndarImovel] = useState("");
+  const [codigoPostalImovel, setCodigoPostalImovel] = useState("");
+  const [localidadeImovel, setLocalidadeImovel] = useState("");
+  const [freguesiaImovel, setFreguesiaImovel] = useState("");
+  const [concelhoImovel, setConcelhoImovel] = useState("");
+  const [distritoImovel, setDistritoImovel] = useState("");
   const [ficheiros, setFicheiros] = useState<FicheiroPendente[]>([]);
   const [vendedores, setVendedores] = useState<ParteDraft[]>([parteDraftVazia()]);
   const [compradores, setCompradores] = useState<ParteDraft[]>([parteDraftVazia()]);
@@ -97,6 +112,10 @@ export default function NovoProcessoPage() {
     return todas.filter((d) => d.nif.trim() && !nifValido(d.nif)).map((d) => d.nome || "(sem nome)");
   }
 
+  function moradaImovelComposta(): string {
+    return [ruaImovel, numeroImovel ? `n.º ${numeroImovel}` : "", andarImovel].filter(Boolean).join(", ");
+  }
+
   async function criarProcesso(supabase: ReturnType<typeof sbBrowser>, donoId: string) {
     return supabase
       .from("cpcv_processos")
@@ -105,6 +124,12 @@ export default function NovoProcessoPage() {
         tipo_contrato: tipoContrato,
         imovel_licenca_utilizacao: licencaUtilizacao || null,
         imovel_certificado_energetico: certificadoEnergetico || null,
+        imovel_morada: moradaImovelComposta() || null,
+        imovel_codigo_postal: codigoPostalImovel || null,
+        imovel_localidade: localidadeImovel || null,
+        imovel_freguesia: freguesiaImovel || null,
+        imovel_concelho: concelhoImovel || null,
+        imovel_distrito: distritoImovel || null,
       })
       .select()
       .single();
@@ -132,24 +157,7 @@ export default function NovoProcessoPage() {
       if (error) return `Erro ao gravar as partes: ${error.message}`;
     }
 
-    for (const { lista, prefixo } of grupos) {
-      for (let i = 0; i < lista.length; i++) {
-        const basePessoa = i === 0 ? prefixo : `${prefixo}_${i + 1}`;
-        for (let j = 0; j < lista[i].ficheiros.length; j++) {
-          const file = lista[i].ficheiros[j];
-          const tipo = j === 0 ? basePessoa : `${basePessoa}_${j + 1}`;
-          const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
-          const { error: uploadError } = await supabase.storage.from("cpcv-documentos").upload(path, file, { upsert: true });
-          if (uploadError) return `Erro a enviar ${file.name}: ${uploadError.message}`;
-          const { error: ficheiroError } = await supabase
-            .from("cpcv_ficheiros")
-            .insert({ processo_id: processoId, tipo, storage_path: path, nome_original: file.name });
-          if (ficheiroError) return `Erro a registar ${file.name}: ${ficheiroError.message}`;
-        }
-      }
-    }
-
-    return null;
+    return enviarFicheirosDasPartes(supabase, processoId, donoId, grupos);
   }
 
   async function handleSubmit() {
@@ -449,6 +457,81 @@ export default function NovoProcessoPage() {
             <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.azul.topo} bg-white shadow-sm p-4 space-y-3`}>
               <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético" />
 
+              <div className="space-y-3">
+                <p className="text-[11px] text-[#64748B] font-medium">Morada do imóvel</p>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Rua / Avenida</label>
+                    <input
+                      value={ruaImovel}
+                      onChange={(e) => setRuaImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Número</label>
+                    <input
+                      value={numeroImovel}
+                      onChange={(e) => setNumeroImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Andar / Fração</label>
+                    <input
+                      value={andarImovel}
+                      onChange={(e) => setAndarImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Código postal</label>
+                    <input
+                      value={codigoPostalImovel}
+                      onChange={(e) => setCodigoPostalImovel(e.target.value)}
+                      placeholder="0000-000"
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Localidade</label>
+                    <input
+                      value={localidadeImovel}
+                      onChange={(e) => setLocalidadeImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Freguesia</label>
+                    <input
+                      value={freguesiaImovel}
+                      onChange={(e) => setFreguesiaImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Concelho</label>
+                    <input
+                      value={concelhoImovel}
+                      onChange={(e) => setConcelhoImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#94A3B8] mb-1">Distrito</label>
+                    <input
+                      value={distritoImovel}
+                      onChange={(e) => setDistritoImovel(e.target.value)}
+                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {blocoDocumentosImovel()}
 
               <div className="space-y-3 pt-1">
@@ -496,6 +579,7 @@ export default function NovoProcessoPage() {
                     draft={v}
                     cor="ambar"
                     comUploadFicheiro
+                    estruturado
                     onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
                     onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
                   />
@@ -522,6 +606,7 @@ export default function NovoProcessoPage() {
                   draft={c}
                   cor="verde"
                   comUploadFicheiro
+                  estruturado
                   onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
                   onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
                 />

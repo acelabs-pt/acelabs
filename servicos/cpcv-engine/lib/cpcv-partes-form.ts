@@ -5,6 +5,9 @@
 // centraliza o tipo do rascunho e a conversão para a linha de `cpcv_partes`, para os dois
 // sítios nunca divergirem.
 
+import type { sbBrowser } from "./supabase-browser";
+import { nomeFicheiroSeguro } from "./cpcv-ficheiros";
+
 export type ParteDraft = {
   id?: string;
   tipoPessoa: "singular" | "coletiva";
@@ -13,6 +16,17 @@ export type ParteDraft = {
   regimeBens: string;
   nacionalidade: string;
   naturalidade: string;
+  // Sub-campos usados só quando o formulário mostra a morada/naturalidade divididas (ver
+  // `moradaEstruturada` em ParteCampos.tsx) - `morada`/`naturalidade` continuam a ser a fonte
+  // de verdade gravada em `cpcv_partes` (uma única string), compostos a partir destes sempre
+  // que um deles muda. Numa parte já existente (vinda de `parteDraftDeLinha`) ficam vazios -
+  // não há forma fiável de decompor uma morada livre já gravada nas suas partes.
+  moradaRua: string;
+  moradaNumero: string;
+  moradaCodigoPostal: string;
+  moradaLocalidade: string;
+  naturalidadeFreguesia: string;
+  naturalidadeConcelho: string;
   nif: string;
   morada: string;
   documentoTipo: string;
@@ -25,6 +39,17 @@ export type ParteDraft = {
   // documentos por pessoa (CC + comprovativo de morada + etc.), não só um.
   ficheiros: File[];
 };
+
+export function composeMoradaPessoa(rua: string, numero: string, codigoPostal: string, localidade: string): string {
+  const linha1 = [rua, numero ? `n.º ${numero}` : ""].filter(Boolean).join(", ");
+  const linha2 = [codigoPostal, localidade].filter(Boolean).join(" ");
+  return [linha1, linha2].filter(Boolean).join(", ");
+}
+
+export function composeNaturalidade(freguesia: string, concelho: string): string {
+  const partes = [freguesia ? `freguesia de ${freguesia}` : "", concelho ? `concelho de ${concelho}` : ""];
+  return partes.filter(Boolean).join(", ");
+}
 
 export const ESTADO_CIVIL_OPCOES = [
   "Solteiro",
@@ -48,6 +73,12 @@ export function parteDraftVazia(): ParteDraft {
     regimeBens: "",
     nacionalidade: "Portuguesa",
     naturalidade: "",
+    moradaRua: "",
+    moradaNumero: "",
+    moradaCodigoPostal: "",
+    moradaLocalidade: "",
+    naturalidadeFreguesia: "",
+    naturalidadeConcelho: "",
     nif: "",
     morada: "",
     documentoTipo: "Cartão de Cidadão",
@@ -87,6 +118,12 @@ export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
     regimeBens: p.regime_bens ?? "",
     nacionalidade: p.nacionalidade ?? "",
     naturalidade: p.naturalidade ?? "",
+    moradaRua: "",
+    moradaNumero: "",
+    moradaCodigoPostal: "",
+    moradaLocalidade: "",
+    naturalidadeFreguesia: "",
+    naturalidadeConcelho: "",
     nif: p.nif ?? "",
     morada: p.morada ?? "",
     documentoTipo: p.documento_tipo ?? "",
@@ -123,6 +160,37 @@ export function parteDraftParaLinha(papel: "vendedor" | "comprador", d: ParteDra
     representante_cargo: !singular ? d.representanteCargo || null : null,
     certidao_permanente: !singular ? d.certidaoPermanente || null : null,
   };
+}
+
+// Envia os documentos de identificação anexados a cada parte - usado em /cpcv/novo (antes de
+// o processo existir) e em DadosPartes.tsx (depois de criado, ao adicionar mais tarde) para
+// os dois sítios nunca divergirem na forma como o `tipo` é composto. `tipo` é só uma etiqueta
+// livre (sem constraint única na BD - ver migration_fase8.sql), por isso não há problema em
+// chamar isto mais do que uma vez sobre o mesmo processo (ex.: mais um documento adicionado
+// depois de aprovado o processo inicial) - os `tipo` podem repetir-se entre chamadas.
+export async function enviarFicheirosDasPartes(
+  supabase: ReturnType<typeof sbBrowser>,
+  processoId: string,
+  donoId: string,
+  grupos: { lista: ParteDraft[]; prefixo: string }[]
+): Promise<string | null> {
+  for (const { lista, prefixo } of grupos) {
+    for (let i = 0; i < lista.length; i++) {
+      const basePessoa = i === 0 ? prefixo : `${prefixo}_${i + 1}`;
+      for (let j = 0; j < lista[i].ficheiros.length; j++) {
+        const file = lista[i].ficheiros[j];
+        const tipo = j === 0 ? basePessoa : `${basePessoa}_${j + 1}`;
+        const path = `${donoId}/${processoId}/${nomeFicheiroSeguro(file.name)}`;
+        const { error: uploadError } = await supabase.storage.from("cpcv-documentos").upload(path, file, { upsert: true });
+        if (uploadError) return `Erro a enviar ${file.name}: ${uploadError.message}`;
+        const { error: ficheiroError } = await supabase
+          .from("cpcv_ficheiros")
+          .insert({ processo_id: processoId, tipo, storage_path: path, nome_original: file.name });
+        if (ficheiroError) return `Erro a registar ${file.name}: ${ficheiroError.message}`;
+      }
+    }
+  }
+  return null;
 }
 
 // Dígito de controlo do NIF/NIPC português (mod 11) - não havia nenhuma validação de

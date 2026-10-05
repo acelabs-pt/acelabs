@@ -14,6 +14,7 @@ type Processo = {
   campos_em_falta: { campo: string; pergunta: string }[] | null;
   preco_total: number | null;
   valor_sinal: number | null;
+  prazo_escritura: string | null;
   metodo_pagamento: string | null;
   tem_fracoes_multiplas: boolean | null;
   valor_fracao_principal: number | null;
@@ -28,9 +29,10 @@ type Processo = {
   valor_avaliacao_minimo: number | null;
   prazo_avaliacao_dias: number | null;
   condicionado_financiamento: boolean | null;
+  valor_financiamento_minimo: number | null;
+  prazo_financiamento_dias: number | null;
   condicionado_outra_situacao: string | null;
-  dias_condicionamento: number | null;
-  dias_condicionamento_tipo: string | null;
+  prazo_outra_situacao_dias: number | null;
   comodato: boolean | null;
   tempo_comodato: string | null;
   incluidos_no_imovel: string | null;
@@ -55,6 +57,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
   const [precoTotal, setPrecoTotal] = useState(processo.preco_total?.toString() ?? "");
   const [valorSinal, setValorSinal] = useState(processo.valor_sinal?.toString() ?? "");
+  const [prazoEscritura, setPrazoEscritura] = useState(processo.prazo_escritura ?? "");
   const [reforcos, setReforcos] = useState<Reforco[]>(
     (processo.reforcos_sinal ?? []).map((r) => ({ valor: r.valor?.toString() ?? "", data: r.data ?? "" }))
   );
@@ -70,9 +73,10 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
   const [valorAvaliacaoMinimo, setValorAvaliacaoMinimo] = useState(processo.valor_avaliacao_minimo?.toString() ?? "");
   const [prazoAvaliacaoDias, setPrazoAvaliacaoDias] = useState(processo.prazo_avaliacao_dias?.toString() ?? "");
   const [condFinanciamento, setCondFinanciamento] = useState(simNao(processo.condicionado_financiamento));
-  const [diasCondicionamento, setDiasCondicionamento] = useState(processo.dias_condicionamento?.toString() ?? "");
-  const [diasTipo, setDiasTipo] = useState(processo.dias_condicionamento_tipo ?? "uteis");
+  const [valorFinanciamentoMinimo, setValorFinanciamentoMinimo] = useState(processo.valor_financiamento_minimo?.toString() ?? "");
+  const [prazoFinanciamentoDias, setPrazoFinanciamentoDias] = useState(processo.prazo_financiamento_dias?.toString() ?? "");
   const [condOutraSituacao, setCondOutraSituacao] = useState(processo.condicionado_outra_situacao ?? "");
+  const [prazoOutraSituacaoDias, setPrazoOutraSituacaoDias] = useState(processo.prazo_outra_situacao_dias?.toString() ?? "");
   const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
   const [comodato, setComodato] = useState(simNao(processo.comodato));
   const [tempoComodato, setTempoComodato] = useState(processo.tempo_comodato ?? "");
@@ -102,6 +106,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
     const camposEmFaltaActualizados = removerCamposPreenchidosNoFormulario(processo.campos_em_falta ?? [], {
       precoTotal,
       valorSinal,
+      prazoEscritura,
     });
     const estadoActualizado =
       processo.estado === "em_preenchimento" && camposEmFaltaActualizados.length === 0
@@ -118,6 +123,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
       .update({
         preco_total: precoTotal ? Number(precoTotal) : null,
         valor_sinal: valorSinal ? Number(valorSinal) : null,
+        prazo_escritura: prazoEscritura || null,
         campos_em_falta: camposEmFaltaActualizados,
         estado: estadoActualizado,
         reforcos_sinal: reforcosValidos,
@@ -133,9 +139,12 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
         valor_avaliacao_minimo: condAvaliacao === "sim" && valorAvaliacaoMinimo ? Number(valorAvaliacaoMinimo) : null,
         prazo_avaliacao_dias: condAvaliacao === "sim" && prazoAvaliacaoDias ? Number(prazoAvaliacaoDias) : null,
         condicionado_financiamento: condFinanciamento ? condFinanciamento === "sim" : null,
-        dias_condicionamento: diasCondicionamento ? Number(diasCondicionamento) : null,
-        dias_condicionamento_tipo: diasCondicionamento ? diasTipo : null,
+        valor_financiamento_minimo: condFinanciamento === "sim" && valorFinanciamentoMinimo ? Number(valorFinanciamentoMinimo) : null,
+        prazo_financiamento_dias: condFinanciamento === "sim" && prazoFinanciamentoDias ? Number(prazoFinanciamentoDias) : null,
         condicionado_outra_situacao: condOutraSituacao || null,
+        prazo_outra_situacao_dias: condOutraSituacao.trim() && prazoOutraSituacaoDias ? Number(prazoOutraSituacaoDias) : null,
+        dias_condicionamento: null,
+        dias_condicionamento_tipo: null,
         iban_sinal: ibanSinal || null,
         comodato: comodato ? comodato === "sim" : null,
         tempo_comodato: comodato === "sim" ? tempoComodato || null : null,
@@ -199,7 +208,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Valor do negócio</h3>
             <div className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="precoTotal" className={labelClass}>Valor de escritura (preço total)</label>
                   <input id="precoTotal" type="number" value={precoTotal} onChange={(e) => setPrecoTotal(e.target.value)} className={campoClass} />
@@ -207,6 +216,10 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                 <div>
                   <label htmlFor="valorSinal" className={labelClass}>Valor do sinal</label>
                   <input id="valorSinal" type="number" value={valorSinal} onChange={(e) => setValorSinal(e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="prazoEscritura" className={labelClass}>Data prevista para a escritura</label>
+                  <input id="prazoEscritura" type="date" value={prazoEscritura} onChange={(e) => setPrazoEscritura(e.target.value)} className={campoClass} />
                 </div>
               </div>
 
@@ -283,7 +296,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               )}
               {reserva === "sim" && (
                 <div>
-                  <label htmlFor="reservaAteData" className={labelClass}>Reservado até quando</label>
+                  <label htmlFor="reservaAteData" className={labelClass}>Data de pagamento da reserva</label>
                   <input id="reservaAteData" type="date" value={reservaAteData} onChange={(e) => setReservaAteData(e.target.value)} className={campoClass} />
                 </div>
               )}
@@ -336,7 +349,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                 )}
               </div>
 
-              <div className="grid sm:grid-cols-3 gap-4 items-end">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
                   <select id="condFinanciamento" value={condFinanciamento} onChange={(e) => setCondFinanciamento(e.target.value)} className={campoClass}>
@@ -345,22 +358,31 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                     <option value="nao">Não</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="diasCondicionamento" className={labelClass}>Dias de condicionamento</label>
-                  <input id="diasCondicionamento" type="number" value={diasCondicionamento} onChange={(e) => setDiasCondicionamento(e.target.value)} className={campoClass} />
-                </div>
-                <div>
-                  <label htmlFor="diasTipo" className={labelClass}>Úteis ou corridos?</label>
-                  <select id="diasTipo" value={diasTipo} onChange={(e) => setDiasTipo(e.target.value)} className={campoClass}>
-                    <option value="uteis">Úteis</option>
-                    <option value="corridos">Corridos</option>
-                  </select>
-                </div>
+                {condFinanciamento === "sim" && (
+                  <div>
+                    <label htmlFor="valorFinanciamentoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
+                    <input id="valorFinanciamentoMinimo" type="number" value={valorFinanciamentoMinimo} onChange={(e) => setValorFinanciamentoMinimo(e.target.value)} className={campoClass} />
+                  </div>
+                )}
+                {condFinanciamento === "sim" && (
+                  <div>
+                    <label htmlFor="prazoFinanciamentoDias" className={labelClass}>Prazo (dias corridos)</label>
+                    <input id="prazoFinanciamentoDias" type="number" value={prazoFinanciamentoDias} onChange={(e) => setPrazoFinanciamentoDias(e.target.value)} className={campoClass} />
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label htmlFor="condOutraSituacao" className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
-                <textarea id="condOutraSituacao" value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label htmlFor="condOutraSituacao" className={labelClass}>Condicionado a alguma outra situação? (opcional)</label>
+                  <textarea id="condOutraSituacao" value={condOutraSituacao} onChange={(e) => setCondOutraSituacao(e.target.value)} rows={2} className={campoClass} />
+                </div>
+                {condOutraSituacao.trim() && (
+                  <div>
+                    <label htmlFor="prazoOutraSituacaoDias" className={labelClass}>Prazo (dias corridos)</label>
+                    <input id="prazoOutraSituacaoDias" type="number" value={prazoOutraSituacaoDias} onChange={(e) => setPrazoOutraSituacaoDias(e.target.value)} className={campoClass} />
+                  </div>
+                )}
               </div>
             </div>
           </div>

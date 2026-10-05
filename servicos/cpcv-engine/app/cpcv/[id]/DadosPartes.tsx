@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import {
   ParteDraft,
+  enviarFicheirosDasPartes,
   nifValido,
   parteDraftDeLinha,
   parteDraftParaLinha,
@@ -38,10 +39,12 @@ type LinhaParteDB = {
 // de ids (capturada uma vez) permite distinguir "linha removida" de "linha nova" ao guardar.
 export default function DadosPartes({
   processoId,
+  donoId,
   tipoContrato,
   partesIniciais,
 }: {
   processoId: string;
+  donoId: string;
   tipoContrato: string;
   partesIniciais: LinhaParteDB[];
 }) {
@@ -79,9 +82,9 @@ export default function DadosPartes({
     setGuardado(false);
 
     const supabase = sbBrowser();
-    const grupos: { lista: ParteDraft[]; papel: "vendedor" | "comprador" }[] = [
-      ...(!angariacaoExterna ? [{ lista: vendedores, papel: "vendedor" as const }] : []),
-      { lista: compradores, papel: "comprador" as const },
+    const grupos: { lista: ParteDraft[]; papel: "vendedor" | "comprador"; prefixo: string }[] = [
+      ...(!angariacaoExterna ? [{ lista: vendedores, papel: "vendedor" as const, prefixo: "identificacao_vendedor" }] : []),
+      { lista: compradores, papel: "comprador" as const, prefixo: "identificacao_comprador" },
     ];
 
     const idsValidos = grupos.flatMap(({ lista }) =>
@@ -113,6 +116,13 @@ export default function DadosPartes({
       }
     }
 
+    const erroFicheiros = await enviarFicheirosDasPartes(supabase, processoId, donoId, grupos);
+    if (erroFicheiros) {
+      setErro(erroFicheiros);
+      setGuardando(false);
+      return;
+    }
+
     setGuardando(false);
     setGuardado(true);
     router.refresh();
@@ -133,6 +143,7 @@ export default function DadosPartes({
                 titulo={`Vendedor ${i + 1}`}
                 draft={v}
                 cor="ambar"
+                comUploadFicheiro
                 onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
                 onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
               />
@@ -155,6 +166,7 @@ export default function DadosPartes({
               titulo={`Comprador ${i + 1}`}
               draft={c}
               cor="verde"
+              comUploadFicheiro
               onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
               onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
             />

@@ -4,6 +4,8 @@ import {
   DOCUMENTO_TIPO_OPCOES,
   ESTADO_CIVIL_OPCOES,
   ParteDraft,
+  composeMoradaPessoa,
+  composeNaturalidade,
   nifValido,
 } from "@/lib/cpcv-partes-form";
 import { CORES_SECAO, CorSecao } from "./ui";
@@ -22,6 +24,7 @@ export default function ParteCampos({
   onChange,
   onRemover,
   comUploadFicheiro,
+  estruturado,
 }: {
   titulo: string;
   draft: ParteDraft;
@@ -29,12 +32,30 @@ export default function ParteCampos({
   onChange: (next: ParteDraft) => void;
   onRemover?: () => void;
   comUploadFicheiro?: boolean;
+  // Morada/naturalidade em vários campos (rua, código postal, número.../freguesia, concelho)
+  // em vez de um único campo de texto - só em /cpcv/novo, onde a pessoa ainda não existe na
+  // BD. Numa parte já gravada (DadosPartes.tsx) não há como decompor de forma fiável uma
+  // morada/naturalidade livre já guardada, por isso aí continuam a ser um único campo.
+  estruturado?: boolean;
 }) {
   const c = CORES_SECAO[cor];
   const campoClass = `w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${c.anel}`;
 
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
+  }
+
+  function setMorada<K extends "moradaRua" | "moradaNumero" | "moradaCodigoPostal" | "moradaLocalidade">(
+    chave: K,
+    valor: string
+  ) {
+    const next = { ...draft, [chave]: valor };
+    onChange({ ...next, morada: composeMoradaPessoa(next.moradaRua, next.moradaNumero, next.moradaCodigoPostal, next.moradaLocalidade) });
+  }
+
+  function setNaturalidade<K extends "naturalidadeFreguesia" | "naturalidadeConcelho">(chave: K, valor: string) {
+    const next = { ...draft, [chave]: valor };
+    onChange({ ...next, naturalidade: composeNaturalidade(next.naturalidadeFreguesia, next.naturalidadeConcelho) });
   }
 
   const nifInvalido = draft.nif.trim().length > 0 && !nifValido(draft.nif);
@@ -88,10 +109,41 @@ export default function ParteCampos({
         </div>
       </div>
 
-      <div>
-        <label className={labelClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</label>
-        <input value={draft.morada} onChange={(e) => set("morada", e.target.value)} className={campoClass} />
-      </div>
+      {estruturado ? (
+        <div className="space-y-3">
+          <p className={labelClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</p>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
+              <label className={labelClass}>Rua / Avenida</label>
+              <input value={draft.moradaRua} onChange={(e) => setMorada("moradaRua", e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Número</label>
+              <input value={draft.moradaNumero} onChange={(e) => setMorada("moradaNumero", e.target.value)} className={campoClass} />
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Código postal</label>
+              <input
+                value={draft.moradaCodigoPostal}
+                onChange={(e) => setMorada("moradaCodigoPostal", e.target.value)}
+                placeholder="0000-000"
+                className={campoClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Localidade</label>
+              <input value={draft.moradaLocalidade} onChange={(e) => setMorada("moradaLocalidade", e.target.value)} className={campoClass} />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <label className={labelClass}>Morada {draft.tipoPessoa === "coletiva" ? "da sede" : "fiscal"}</label>
+          <input value={draft.morada} onChange={(e) => set("morada", e.target.value)} className={campoClass} />
+        </div>
+      )}
 
       {draft.tipoPessoa === "singular" ? (
         <>
@@ -119,10 +171,31 @@ export default function ParteCampos({
             </div>
           </div>
 
-          <div>
-            <label className={labelClass}>Naturalidade (freguesia, concelho)</label>
-            <input value={draft.naturalidade} onChange={(e) => set("naturalidade", e.target.value)} className={campoClass} />
-          </div>
+          {estruturado ? (
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Naturalidade - Freguesia</label>
+                <input
+                  value={draft.naturalidadeFreguesia}
+                  onChange={(e) => setNaturalidade("naturalidadeFreguesia", e.target.value)}
+                  className={campoClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Naturalidade - Concelho</label>
+                <input
+                  value={draft.naturalidadeConcelho}
+                  onChange={(e) => setNaturalidade("naturalidadeConcelho", e.target.value)}
+                  className={campoClass}
+                />
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass}>Naturalidade (freguesia, concelho)</label>
+              <input value={draft.naturalidade} onChange={(e) => set("naturalidade", e.target.value)} className={campoClass} />
+            </div>
+          )}
 
           <div className="space-y-3">
             <div>

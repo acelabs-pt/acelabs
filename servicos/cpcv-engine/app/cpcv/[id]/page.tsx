@@ -120,7 +120,12 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
       )}
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
-        <DadosPartes processoId={processo.id} tipoContrato={processo.tipo_contrato} partesIniciais={partes ?? []} />
+        <DadosPartes
+          processoId={processo.id}
+          donoId={processo.criado_por}
+          tipoContrato={processo.tipo_contrato}
+          partesIniciais={partes ?? []}
+        />
       )}
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
