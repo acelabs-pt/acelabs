@@ -9,10 +9,12 @@ import { ParteDraft, nifValido, parteDraftParaLinha, parteDraftVazia, parteDraft
 import ParteCampos from "../ParteCampos";
 import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, IconesSecao, TextoShimmer } from "../ui";
 
-const TIPOS_IMOVEL = [
+const TIPOS_IMOVEL: { value: string; label: string; opcional?: boolean }[] = [
   { value: "certidao_predial", label: "Certidão Predial" },
   { value: "caderneta_predial", label: "Caderneta Predial" },
+  { value: "licenca_utilizacao", label: "Licença de Utilização" },
   { value: "certificado_energetico", label: "Certificado Energético" },
+  { value: "direito_preferencia", label: "Direito de Preferência", opcional: true },
 ];
 
 const TIPOS_CONTRATO = [
@@ -316,7 +318,10 @@ export default function NovoProcessoPage() {
                       </svg>
                     )}
                   </span>
-                  <span className="text-sm text-[#0F172A] leading-tight">{t.label}</span>
+                  <span className="text-sm text-[#0F172A] leading-tight">
+                    {t.label}
+                    {t.opcional && <span className="text-[#94A3B8] font-normal"> (opcional)</span>}
+                  </span>
                 </div>
                 <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
                   + Adicionar
