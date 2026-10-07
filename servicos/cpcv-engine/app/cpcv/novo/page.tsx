@@ -39,6 +39,96 @@ const TIPOS_CONTRATO = [
 type FicheiroPendente = { file: File; tipo: string };
 type Agente = { id: string; nome: string };
 
+// Usado só quando tipo_contrato é "angariacao_nossa_comprador_nosso" - os dois lados do
+// negócio podem ter sido trazidos por agentes diferentes da mesma agência (ver
+// migration_fase10.sql). `valorId: null` significa "o agente responsável pelo processo" (o
+// dono, resolvido no submit - ver criarProcesso), nunca necessariamente quem está a preencher
+// o formulário, já que uma gestora pode estar a criar o processo em nome de outro agente.
+function SeletorAgente({
+  label,
+  agentes,
+  valorId,
+  onChange,
+}: {
+  label: string;
+  agentes: Agente[];
+  valorId: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  const [modoOutro, setModoOutro] = useState(valorId !== null);
+  const [pesquisa, setPesquisa] = useState("");
+  const [aberto, setAberto] = useState(false);
+
+  const agenteSelecionado = agentes.find((a) => a.id === valorId) ?? null;
+  const filtrados = agentes.filter((a) => a.nome.toLowerCase().includes(pesquisa.toLowerCase()));
+
+  const botaoClass = (seleccionado: boolean) =>
+    `rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+      seleccionado
+        ? "border-[#0071e3] bg-[#EFF6FF] text-[#0F172A]"
+        : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
+    }`;
+
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#475569] mb-2">{label}</label>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setModoOutro(false);
+            onChange(null);
+            setPesquisa("");
+          }}
+          className={botaoClass(!modoOutro)}
+        >
+          O agente responsável
+        </button>
+        <button type="button" onClick={() => setModoOutro(true)} className={botaoClass(modoOutro)}>
+          Outro colega
+        </button>
+      </div>
+      {modoOutro && (
+        <div className="relative mt-2">
+          <input
+            type="text"
+            value={agenteSelecionado ? agenteSelecionado.nome : pesquisa}
+            onChange={(e) => {
+              onChange(null);
+              setPesquisa(e.target.value);
+              setAberto(true);
+            }}
+            onFocus={() => setAberto(true)}
+            onBlur={() => setTimeout(() => setAberto(false), 150)}
+            placeholder="Escreve o nome do colega..."
+            className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+          />
+          {aberto && pesquisa && !agenteSelecionado && (
+            <ul className="absolute z-10 mt-1 w-full bg-white border border-[#E2E8F0] rounded-xl shadow-lg max-h-52 overflow-auto">
+              {filtrados.length === 0 && <li className="px-4 py-2 text-xs text-[#94A3B8]">Nenhum colega encontrado.</li>}
+              {filtrados.map((a) => (
+                <li key={a.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(a.id);
+                      setPesquisa("");
+                      setAberto(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-[#F8FAFC]"
+                  >
+                    {a.nome}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NovoProcessoPage() {
   const [isGestora, setIsGestora] = useState(false);
   const [agentes, setAgentes] = useState<Agente[]>([]);
@@ -47,6 +137,8 @@ export default function NovoProcessoPage() {
   const [listaAberta, setListaAberta] = useState(false);
 
   const [tipoContrato, setTipoContrato] = useState("angariacao_nossa_comprador_nosso");
+  const [agenteAngariacaoId, setAgenteAngariacaoId] = useState<string | null>(null);
+  const [agenteCompradorId, setAgenteCompradorId] = useState<string | null>(null);
   const [licencaUtilizacao, setLicencaUtilizacao] = useState("");
   const [certificadoEnergetico, setCertificadoEnergetico] = useState("");
   const [ruaImovel, setRuaImovel] = useState("");
@@ -90,12 +182,19 @@ export default function NovoProcessoPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-      if (!temGestaoTotal(perfil?.role)) return;
-
-      setIsGestora(true);
-      const { data: perfis } = await supabase.from("profiles").select("id, nome").eq("role", "agente").order("nome");
+      // A lista de colegas (para "Outro colega" no agente da angariação/do comprador, mais
+      // abaixo) é precisa para qualquer agente, não só para a gestora - por isso corre sempre,
+      // independentemente do papel de quem está a preencher o formulário.
+      const { data: perfis } = await supabase
+        .from("profiles")
+        .select("id, nome")
+        .eq("role", "agente")
+        .neq("id", user.id)
+        .order("nome");
       setAgentes(perfis ?? []);
+
+      const { data: perfil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+      if (temGestaoTotal(perfil?.role)) setIsGestora(true);
     }
     carregar();
   }, []);
@@ -185,11 +284,14 @@ export default function NovoProcessoPage() {
   }
 
   async function criarProcesso(supabase: ReturnType<typeof sbBrowser>, donoId: string) {
+    const doisLadosNossos = tipoContrato === "angariacao_nossa_comprador_nosso";
     return supabase
       .from("cpcv_processos")
       .insert({
         criado_por: donoId,
         tipo_contrato: tipoContrato,
+        agente_angariacao_id: doisLadosNossos ? agenteAngariacaoId ?? donoId : null,
+        agente_comprador_id: doisLadosNossos ? agenteCompradorId ?? donoId : null,
         imovel_licenca_utilizacao: licencaUtilizacao || null,
         imovel_certificado_energetico: certificadoEnergetico || null,
         imovel_morada: moradaImovelComposta() || null,
@@ -518,6 +620,14 @@ export default function NovoProcessoPage() {
             </button>
           ))}
         </div>
+
+        {tipoContrato === "angariacao_nossa_comprador_nosso" && (
+          <div className={`${grupoClass} space-y-4`}>
+            <p className={subTituloClass}>Quem trouxe cada lado do negócio</p>
+            <SeletorAgente label="Agente da angariação" agentes={agentes} valorId={agenteAngariacaoId} onChange={setAgenteAngariacaoId} />
+            <SeletorAgente label="Agente do comprador" agentes={agentes} valorId={agenteCompradorId} onChange={setAgenteCompradorId} />
+          </div>
+        )}
       </PassoCard>
 
       {!angariacaoExterna && passoImovel && (
