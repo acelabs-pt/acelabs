@@ -71,6 +71,11 @@ O campo "descricao_predial" é o número de descrição predial na Conservatóri
 como "fracção autónoma" ou "prédio urbano" (isso é o texto que já entra na frase antes do número,
 não o próprio número). Se o texto não indicar claramente esse número, deixa o campo null.
 
+O campo "certificado_energetico" é o número de registo do certificado energético (SCE), com o
+prefixo "SCE" (ex.: "SCE386817639") - nunca a classe energética (a letra, ex. "B-"). O campo
+"licenca_utilizacao" é o número do alvará de licença de utilização (ex.: "603/85"), normalmente
+escrito como "Alvará de Licença n.º X".
+
 Atenção à distinção entre certidões permanentes quando o imóvel é uma fracção autónoma (ex.:
 apartamento num prédio em propriedade horizontal): normalmente há uma certidão do prédio no seu
 todo (descrição predial geral, constituição de propriedade horizontal, letras de todas as

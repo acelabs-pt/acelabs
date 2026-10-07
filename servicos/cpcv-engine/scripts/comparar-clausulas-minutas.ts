@@ -161,7 +161,7 @@ const processoBase: Processo = {
   imovel_tipologia: "T3",
   imovel_artigo_matricial: "1234",
   imovel_descricao_predial: "5678",
-  imovel_certificado_energetico: "B",
+  imovel_certificado_energetico: "SCE386817639",
   imovel_licenca_utilizacao: "L-9876",
   imovel_area: 120,
   imovel_anexos: null,

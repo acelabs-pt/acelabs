@@ -34,6 +34,10 @@ O campo "descricao_predial" é o número de descrição predial na Conservatóri
 (um código numérico/alfanumérico, ex.: "2345/20150101") - nunca uma categoria ou tipo de imóvel
 como "fracção autónoma" ou "prédio urbano". Se não houver esse número, deixa o campo null.
 
+O campo "certificado_energetico" é o número de registo do certificado energético (SCE), com o
+prefixo "SCE" (ex.: "SCE386817639") - nunca a classe energética (a letra, ex. "B-"). O campo
+"licenca_utilizacao" é o número do alvará de licença de utilização (ex.: "603/85").
+
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
 (avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
 são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Se uma das

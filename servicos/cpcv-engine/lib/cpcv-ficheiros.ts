@@ -1,3 +1,5 @@
+import type { sbBrowser } from "./supabase-browser";
+
 // Extensões que a extração por IA sabe processar (ver mediaTypeFor em
 // app/api/cpcv/extrair/route.ts) - um ficheiro fora desta lista (ex.: .heic de
 // fotos de iPhone, .docx, .webp) era aceite na UI e gravado no Storage sem aviso,
@@ -37,4 +39,52 @@ export function nomeFicheiroSeguro(nome: string): string {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+// Manda ficheiros a analisar por uma rota de IA "ao vivo" (antes de o processo existir - ver
+// /api/cpcv/extrair-pessoa e /api/cpcv/extrair-documento-imovel), sem os enviar embutidos em
+// base64 no corpo do pedido: um documento com fotos/gráficos (ex.: um certificado energético
+// com várias páginas) facilmente ultrapassa o limite de ~4.5MB que a Vercel impõe ao corpo de um
+// pedido a uma função serverless, e esse limite falhava silenciosamente para o utilizador (um
+// "Erro ao ler o documento." genérico, sem indicar a causa real - testado com um certificado
+// energético real enquanto os ficheiros de teste, mais pequenos, passavam sem problema). Em vez
+// disso, cada ficheiro vai primeiro para uma pasta temporária do próprio utilizador no Storage
+// (upload directo do browser para o Supabase, sem passar pela nossa função), a rota recebe só os
+// caminhos, descarrega-os ela própria no servidor (sem limite de corpo do pedido - o mesmo
+// padrão já usado em /api/cpcv/extrair), e os ficheiros temporários são sempre apagados a seguir,
+// sucesso ou erro.
+export async function analisarComUploadTemporario<T>(
+  supabase: ReturnType<typeof sbBrowser>,
+  ficheiros: File[],
+  endpoint: string
+): Promise<T> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sessão expirada - entra outra vez.");
+
+  const caminhos: string[] = [];
+  try {
+    for (const file of ficheiros) {
+      const caminho = `${user.id}/_temp/${crypto.randomUUID()}-${nomeFicheiroSeguro(file.name)}`;
+      const { error } = await supabase.storage.from("cpcv-documentos").upload(caminho, file);
+      if (error) throw new Error(error.message);
+      caminhos.push(caminho);
+    }
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ caminhos }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? "Erro ao ler o documento.");
+    }
+
+    return (await res.json()) as T;
+  } finally {
+    await Promise.all(caminhos.map((c) => supabase.storage.from("cpcv-documentos").remove([c]).catch(() => {})));
+  }
 }
