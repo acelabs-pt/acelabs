@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { extensaoSuportada, fileParaBase64, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
+import { analisarComUploadTemporario, extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import {
   ParteDraft,
@@ -140,20 +140,12 @@ export default function NovoProcessoPage() {
     setAAnalisarImovel(true);
     setErroCampoImovel("");
     try {
-      const payload = await Promise.all(suportados.map(async (f) => ({ nome: f.name, base64: await fileParaBase64(f) })));
-      const res = await fetch("/api/cpcv/extrair-documento-imovel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ficheiros: payload }),
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setErroCampoImovel(body.error ?? "Erro ao ler o documento.");
-        return;
-      }
-
-      const { dados } = await res.json();
+      const supabase = sbBrowser();
+      const { dados } = await analisarComUploadTemporario<{ dados: Record<string, unknown> }>(
+        supabase,
+        suportados,
+        "/api/cpcv/extrair-documento-imovel"
+      );
       if (!dados) return;
 
       const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : "");
@@ -172,8 +164,8 @@ export default function NovoProcessoPage() {
       preencher(str(dados.distrito), setDistritoImovel);
       preencher(str(dados.licenca_utilizacao), setLicencaUtilizacao);
       preencher(str(dados.certificado_energetico), setCertificadoEnergetico);
-    } catch {
-      setErroCampoImovel("Erro de ligação ao analisar o documento.");
+    } catch (e) {
+      setErroCampoImovel(e instanceof Error ? e.message : "Erro ao analisar o documento.");
     } finally {
       setAAnalisarImovel(false);
     }

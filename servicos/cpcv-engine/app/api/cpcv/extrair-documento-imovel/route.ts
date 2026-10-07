@@ -8,6 +8,12 @@ import { anthropicClient, EXTRACTION_MODEL } from "@/lib/anthropic";
 // energético), a partir de qualquer documento juntado na secção "Documentos do imóvel"
 // (caderneta predial, certidão predial, licença de utilização ou certificado energético - todos
 // costumam trazer a morada completa do imóvel, não só o seu próprio dado específico).
+//
+// Recebe caminhos no Storage (não os ficheiros em base64 no corpo do pedido) - um certificado
+// energético real, com várias páginas de fotos/gráficos, facilmente ultrapassa o limite de
+// ~4.5MB que a Vercel impõe ao corpo de um pedido a uma função serverless (testado: falhava em
+// produção só com esse documento, com um erro genérico sem indicar a causa). Ver
+// lib/cpcv-ficheiros.ts (analisarComUploadTemporario) para o lado do cliente.
 
 function mediaTypeFor(nome: string): "application/pdf" | "image/png" | "image/jpeg" | null {
   const ext = nome.toLowerCase().split(".").pop();
@@ -61,21 +67,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const { ficheiros } = await req.json();
+  const { caminhos } = await req.json();
 
-  if (!Array.isArray(ficheiros) || ficheiros.length === 0) {
+  if (!Array.isArray(caminhos) || caminhos.length === 0) {
     return NextResponse.json({ error: "Nenhum documento enviado." }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const documentBlocks: any[] = [];
-  for (const f of ficheiros) {
-    const mediaType = mediaTypeFor(typeof f?.nome === "string" ? f.nome : "");
-    if (!mediaType || typeof f?.base64 !== "string") continue;
+  for (const caminho of caminhos) {
+    if (typeof caminho !== "string") continue;
+    const mediaType = mediaTypeFor(caminho);
+    if (!mediaType) continue;
+
+    const { data: blob, error: downloadError } = await supabase.storage.from("cpcv-documentos").download(caminho);
+    if (downloadError || !blob) continue;
+
+    const base64 = Buffer.from(await blob.arrayBuffer()).toString("base64");
     if (mediaType === "application/pdf") {
-      documentBlocks.push({ type: "document", source: { type: "base64", media_type: mediaType, data: f.base64 } });
+      documentBlocks.push({ type: "document", source: { type: "base64", media_type: mediaType, data: base64 } });
     } else {
-      documentBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data: f.base64 } });
+      documentBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data: base64 } });
     }
   }
 

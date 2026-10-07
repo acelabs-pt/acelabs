@@ -9,7 +9,8 @@ import {
   composeNaturalidade,
   nifValido,
 } from "@/lib/cpcv-partes-form";
-import { extensaoSuportada, fileParaBase64 } from "@/lib/cpcv-ficheiros";
+import { analisarComUploadTemporario, extensaoSuportada } from "@/lib/cpcv-ficheiros";
+import { sbBrowser } from "@/lib/supabase-browser";
 import { CORES_SECAO, CorSecao, grupoClass, Spinner, subTituloClass } from "./ui";
 
 // Resultado de /api/cpcv/extrair-pessoa - só sugestões para o formulário em memória, nunca
@@ -135,21 +136,15 @@ export default function ParteCampos({
     setAAnalisar(true);
     setErroAnalise("");
     try {
-      const payload = await Promise.all(suportados.map(async (f) => ({ nome: f.name, base64: await fileParaBase64(f) })));
-      const res = await fetch("/api/cpcv/extrair-pessoa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ficheiros: payload }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setErroAnalise(body.error ?? "Erro ao ler o documento.");
-        return;
-      }
-      const { extraido } = await res.json();
+      const supabase = sbBrowser();
+      const { extraido } = await analisarComUploadTemporario<{ extraido: ExtracaoPessoa }>(
+        supabase,
+        suportados,
+        "/api/cpcv/extrair-pessoa"
+      );
       aplicarExtracao(draftAntes, extraido ?? {});
-    } catch {
-      setErroAnalise("Erro de ligação ao analisar o documento.");
+    } catch (e) {
+      setErroAnalise(e instanceof Error ? e.message : "Erro ao analisar o documento.");
     } finally {
       setAAnalisar(false);
     }
