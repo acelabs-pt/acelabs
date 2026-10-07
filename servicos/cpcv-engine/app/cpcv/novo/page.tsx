@@ -14,7 +14,13 @@ import {
   parteDraftVazio,
 } from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
-import { btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, grupoClass, IconesSecao, subTituloClass, TextoShimmer } from "../ui";
+import { btnPrimary, btnSecondary, CORES_SECAO, grupoClass, IconesSecao, PassoCard, subTituloClass, TextoShimmer } from "../ui";
+
+// Y do "Passo X de Y" em todo o fluxo de criação - não é o número de etapas nesta página (essa
+// conta muda consoante o tipo de contrato), é a duração à vista do processo completo, incluindo
+// o que acontece depois já na página do processo (condições do negócio, aprovação da gestora,
+// geração do documento). Ver o comentário em PassoCard (app/cpcv/ui.tsx).
+const TOTAL_PASSOS = 10;
 
 const TIPOS_IMOVEL: { value: string; label: string; opcional?: boolean }[] = [
   { value: "caderneta_predial", label: "Caderneta Predial" },
@@ -61,6 +67,18 @@ export default function NovoProcessoPage() {
   const router = useRouter();
 
   const angariacaoExterna = tipoContrato === "comprador_nosso_angariacao_externa";
+
+  // Numeração sequencial das etapas visíveis - recalculada a cada render porque
+  // "Documentos do imóvel"/"Documentos do proprietário" desaparecem quando angariacaoExterna
+  // (ver o "!angariacaoExterna &&" à volta dos dois cartões, mais abaixo), e os números
+  // seguintes não podem ficar com buracos.
+  let proximoPasso = 1;
+  const passoTipoContrato = proximoPasso++;
+  const passoImovel = !angariacaoExterna ? proximoPasso++ : null;
+  const passoProprietario = !angariacaoExterna ? proximoPasso++ : null;
+  const passoComprador = proximoPasso++;
+  const passoOutros = proximoPasso++;
+  const passoInfo = proximoPasso++;
 
   useEffect(() => {
     async function carregar() {
@@ -389,7 +407,7 @@ export default function NovoProcessoPage() {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 space-y-5">
+      <PassoCard numero={passoTipoContrato} total={TOTAL_PASSOS} cor="neutro" titulo="Tipo de contrato">
         {isGestora && (
           <div className="relative">
             <label htmlFor="atribuirA" className="block text-xs font-semibold text-[#475569] mb-2">
@@ -407,7 +425,7 @@ export default function NovoProcessoPage() {
               onFocus={() => setListaAberta(true)}
               onBlur={() => setTimeout(() => setListaAberta(false), 150)}
               placeholder="Escreve o nome do agente..."
-              className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+              className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
             />
             {listaAberta && pesquisaAgente && !agenteSelecionado && (
               <ul className="absolute z-10 mt-1 w-full bg-white border border-[#E2E8F0] rounded-xl shadow-lg max-h-52 overflow-auto">
@@ -434,212 +452,198 @@ export default function NovoProcessoPage() {
           </div>
         )}
 
-        <div>
-          <label className="block text-xs font-semibold text-[#475569] mb-2">Tipo de contrato</label>
-          <div className="space-y-2">
-            {TIPOS_CONTRATO.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setTipoContrato(t.value)}
-                className={`w-full text-left rounded-xl border px-4 py-3 text-sm transition-colors ${
-                  tipoContrato === t.value
-                    ? "border-[#0071e3] bg-[#EFF6FF] text-[#0F172A] font-semibold"
-                    : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-                }`}
-              >
-                {t.label}
-              </button>
+        <div className="space-y-2">
+          {TIPOS_CONTRATO.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setTipoContrato(t.value)}
+              className={`w-full text-left rounded-xl border px-4 py-3 text-sm transition-colors ${
+                tipoContrato === t.value
+                  ? "border-[#0071e3] bg-[#EFF6FF] text-[#0F172A] font-semibold"
+                  : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </PassoCard>
+
+      {!angariacaoExterna && passoImovel && (
+        <PassoCard numero={passoImovel} total={TOTAL_PASSOS} cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético">
+          <div>
+            <p className={subTituloClass}>Documentos</p>
+            {blocoDocumentosImovel()}
+          </div>
+
+          <div className={grupoClass}>
+            <p className={subTituloClass}>Morada do imóvel</p>
+            <div className="space-y-3">
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Rua / Avenida</label>
+                <input
+                  value={ruaImovel}
+                  onChange={(e) => setRuaImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Número</label>
+                <input
+                  value={numeroImovel}
+                  onChange={(e) => setNumeroImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Andar / Fração</label>
+                <input
+                  value={andarImovel}
+                  onChange={(e) => setAndarImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Código postal</label>
+                <input
+                  value={codigoPostalImovel}
+                  onChange={(e) => setCodigoPostalImovel(e.target.value)}
+                  placeholder="0000-000"
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Localidade</label>
+                <input
+                  value={localidadeImovel}
+                  onChange={(e) => setLocalidadeImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Freguesia</label>
+                <input
+                  value={freguesiaImovel}
+                  onChange={(e) => setFreguesiaImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Concelho</label>
+                <input
+                  value={concelhoImovel}
+                  onChange={(e) => setConcelhoImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#94A3B8] mb-1">Distrito</label>
+                <input
+                  value={distritoImovel}
+                  onChange={(e) => setDistritoImovel(e.target.value)}
+                  className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+                />
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <div className={grupoClass}>
+            <p className={subTituloClass}>Documentos obrigatórios</p>
+            <div className="space-y-3">
+            <div>
+              <label htmlFor="licencaUtilizacao" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
+                Licença de utilização
+                <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
+                  Obrigatória
+                </span>
+              </label>
+              <input
+                id="licencaUtilizacao"
+                value={licencaUtilizacao}
+                onChange={(e) => setLicencaUtilizacao(e.target.value)}
+                className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+              />
+            </div>
+            <div>
+              <label htmlFor="certificadoEnergetico" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
+                Certificado energético
+                <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
+                  Obrigatório
+                </span>
+              </label>
+              <input
+                id="certificadoEnergetico"
+                value={certificadoEnergetico}
+                onChange={(e) => setCertificadoEnergetico(e.target.value)}
+                className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
+              />
+            </div>
+            </div>
+          </div>
+        </PassoCard>
+      )}
+
+      {!angariacaoExterna && passoProprietario && (
+        <PassoCard numero={passoProprietario} total={TOTAL_PASSOS} cor="ambar" icone={IconesSecao.chave} titulo="Documentos do proprietário" subtitulo="Quem vende o imóvel">
+          <div className="space-y-3">
+            {vendedores.map((v, i) => (
+              <ParteCampos
+                key={i}
+                titulo={`Vendedor ${i + 1}`}
+                draft={v}
+                cor="ambar"
+                comUploadFicheiro
+                estruturado
+                onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+                onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+              />
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => setVendedores((prev) => [...prev, parteDraftVazia()])}
+            className={`text-xs font-semibold hover:underline ${CORES_SECAO.ambar.link}`}
+          >
+            + Adicionar vendedor
+          </button>
+        </PassoCard>
+      )}
+
+      <PassoCard numero={passoComprador} total={TOTAL_PASSOS} cor="verde" icone={IconesSecao.carrinho} titulo="Documentos do comprador" subtitulo="Quem compra o imóvel">
+        <div className="space-y-3">
+          {compradores.map((c, i) => (
+            <ParteCampos
+              key={i}
+              titulo={`Comprador ${i + 1}`}
+              draft={c}
+              cor="verde"
+              comUploadFicheiro
+              estruturado
+              onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
+              onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
+            />
+          ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setCompradores((prev) => [...prev, parteDraftVazia()])}
+          className={`text-xs font-semibold hover:underline ${CORES_SECAO.verde.link}`}
+        >
+          + Adicionar comprador
+        </button>
+      </PassoCard>
 
-        <div className={`grid gap-5 ${angariacaoExterna ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
-          {!angariacaoExterna && (
-            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.azul.topo} bg-white shadow-sm p-5 space-y-4`}>
-              <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético" />
-
-              <div>
-                <p className={subTituloClass}>Documentos</p>
-                {blocoDocumentosImovel()}
-              </div>
-
-              <div className={grupoClass}>
-                <p className={subTituloClass}>Morada do imóvel</p>
-                <div className="space-y-3">
-                <div className="grid sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Rua / Avenida</label>
-                    <input
-                      value={ruaImovel}
-                      onChange={(e) => setRuaImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Número</label>
-                    <input
-                      value={numeroImovel}
-                      onChange={(e) => setNumeroImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Andar / Fração</label>
-                    <input
-                      value={andarImovel}
-                      onChange={(e) => setAndarImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Código postal</label>
-                    <input
-                      value={codigoPostalImovel}
-                      onChange={(e) => setCodigoPostalImovel(e.target.value)}
-                      placeholder="0000-000"
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Localidade</label>
-                    <input
-                      value={localidadeImovel}
-                      onChange={(e) => setLocalidadeImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Freguesia</label>
-                    <input
-                      value={freguesiaImovel}
-                      onChange={(e) => setFreguesiaImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Concelho</label>
-                    <input
-                      value={concelhoImovel}
-                      onChange={(e) => setConcelhoImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#94A3B8] mb-1">Distrito</label>
-                    <input
-                      value={distritoImovel}
-                      onChange={(e) => setDistritoImovel(e.target.value)}
-                      className={`w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                    />
-                  </div>
-                </div>
-                </div>
-              </div>
-
-              <div className={grupoClass}>
-                <p className={subTituloClass}>Documentos obrigatórios</p>
-                <div className="space-y-3">
-                <div>
-                  <label htmlFor="licencaUtilizacao" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
-                    Licença de utilização
-                    <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
-                      Obrigatória
-                    </span>
-                  </label>
-                  <input
-                    id="licencaUtilizacao"
-                    value={licencaUtilizacao}
-                    onChange={(e) => setLicencaUtilizacao(e.target.value)}
-                    className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="certificadoEnergetico" className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#64748B] font-medium mb-1">
-                    Certificado energético
-                    <span className="inline-flex items-center rounded-full bg-[#FFF4E5] text-[#9A5B00] text-[10px] font-semibold px-1.5 py-0.5">
-                      Obrigatório
-                    </span>
-                  </label>
-                  <input
-                    id="certificadoEnergetico"
-                    value={certificadoEnergetico}
-                    onChange={(e) => setCertificadoEnergetico(e.target.value)}
-                    className={`w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 ${CORES_SECAO.azul.anel}`}
-                  />
-                </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!angariacaoExterna && (
-            <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.ambar.topo} bg-white shadow-sm p-5 space-y-4`}>
-              <CabecalhoSecao cor="ambar" icone={IconesSecao.chave} titulo="Documentos do proprietário" subtitulo="Quem vende o imóvel" />
-
-              <div className="space-y-3">
-                {vendedores.map((v, i) => (
-                  <ParteCampos
-                    key={i}
-                    titulo={`Vendedor ${i + 1}`}
-                    draft={v}
-                    cor="ambar"
-                    comUploadFicheiro
-                    estruturado
-                    onChange={(next) => setVendedores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
-                    onRemover={vendedores.length > 1 ? () => setVendedores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => setVendedores((prev) => [...prev, parteDraftVazia()])}
-                className={`text-xs font-semibold hover:underline ${CORES_SECAO.ambar.link}`}
-              >
-                + Adicionar vendedor
-              </button>
-            </div>
-          )}
-
-          <div className={`rounded-2xl border border-[#E2E8F0] border-t-4 ${CORES_SECAO.verde.topo} bg-white shadow-sm p-5 space-y-4`}>
-            <CabecalhoSecao cor="verde" icone={IconesSecao.carrinho} titulo="Documentos do comprador" subtitulo="Quem compra o imóvel" />
-
-            <div className="space-y-3">
-              {compradores.map((c, i) => (
-                <ParteCampos
-                  key={i}
-                  titulo={`Comprador ${i + 1}`}
-                  draft={c}
-                  cor="verde"
-                  comUploadFicheiro
-                  estruturado
-                  onChange={(next) => setCompradores((prev) => prev.map((d, idx) => (idx === i ? next : d)))}
-                  onRemover={compradores.length > 1 ? () => setCompradores((prev) => prev.filter((_, idx) => idx !== i)) : undefined}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setCompradores((prev) => [...prev, parteDraftVazia()])}
-              className={`text-xs font-semibold hover:underline ${CORES_SECAO.verde.link}`}
-            >
-              + Adicionar comprador
-            </button>
-          </div>
-        </div>
-
-        <div className={`rounded-xl border border-[#E2E8F0] ${CORES_SECAO.neutro.chipBg} px-3 py-2.5`}>
+      <PassoCard numero={passoOutros} total={TOTAL_PASSOS} cor="neutro" icone={IconesSecao.caixa} titulo="Outros documentos">
+        <div className="rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className={`flex h-6 w-6 items-center justify-center rounded-full bg-white ${CORES_SECAO.neutro.icone} shrink-0`}>
-                {IconesSecao.caixa}
-              </span>
-              <span className="text-sm text-[#0F172A] font-medium">Outros documentos</span>
-            </div>
+            <span className="text-sm text-[#0F172A] font-medium">Qualquer outro documento relevante</span>
             <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${CORES_SECAO.neutro.link}`}>
               + Adicionar
               <input
@@ -660,7 +664,7 @@ export default function NovoProcessoPage() {
                 .map((f, i) => ({ ...f, i }))
                 .filter((f) => f.tipo === "outro")
                 .map((d) => (
-                  <li key={d.i} className="flex items-center gap-3 text-xs bg-white rounded-lg px-3 py-1.5">
+                  <li key={d.i} className="flex items-center gap-3 text-xs bg-[#F8FAFC] rounded-lg px-3 py-1.5">
                     <span className="flex-1 truncate">{d.file.name}</span>
                     <button
                       onClick={() => removerFicheiro(d.i)}
@@ -673,7 +677,9 @@ export default function NovoProcessoPage() {
             </ul>
           )}
         </div>
+      </PassoCard>
 
+      <PassoCard numero={passoInfo} total={TOTAL_PASSOS} cor="neutro" titulo="Informação adicional">
         <div>
           <label htmlFor="infoSolta" className="block text-xs font-semibold text-[#475569] mb-2">
             Informação solta (opcional)
@@ -684,10 +690,12 @@ export default function NovoProcessoPage() {
             onChange={(e) => setTexto(e.target.value)}
             rows={5}
             placeholder="Cola aqui qualquer informação que tenhas sobre o negócio - preço, sinal, prazos, o que for..."
-            className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
+            className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
           />
         </div>
+      </PassoCard>
 
+      <div className="space-y-3">
         {error && <p className="text-xs text-red-500">{error}</p>}
 
         <button onClick={handleSubmit} disabled={loading} className={`w-full ${btnPrimary} py-3`}>

@@ -148,6 +148,56 @@ export const IconesSecao = {
   ),
 };
 
+// Cartão de uma etapa numerada do fluxo de criação de um CPCV (app/cpcv/novo/page.tsx). Duas
+// coisas que o fundo branco-sobre-branco anterior não dava: o fundo tintado (chipBg da cor da
+// secção, a mesma usada nos chips de documento) separa visualmente onde uma etapa acaba e a
+// seguinte começa, mesmo sem cada uma ser um ecrã à parte; e o "Passo X de Y" dá uma noção de
+// progresso num formulário que de outra forma parece "uma parede só" de campos - Y é fixo (ver
+// TOTAL_PASSOS_NOVO_CPCV) e não o número real de etapas nesta página, é a duração à vista para o
+// processo completo (incluindo o que acontece depois, já na página do processo). Conteúdo dentro
+// do cartão (inputs, linhas de documento) deve ter fundo branco explícito para continuar a
+// destacar-se do chipBg à volta, em vez de ficar transparente/a fundir com ele.
+export function PassoCard({
+  numero,
+  total,
+  cor,
+  icone,
+  titulo,
+  subtitulo,
+  children,
+}: {
+  numero: number;
+  total: number;
+  cor: CorSecao;
+  icone?: React.ReactNode;
+  titulo: string;
+  subtitulo?: string;
+  children: React.ReactNode;
+}) {
+  const c = CORES_SECAO[cor];
+  return (
+    <div className={`rounded-2xl border border-[#E2E8F0] ${c.chipBg} shadow-sm p-6 space-y-4`}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          {icone && (
+            <span className={`flex h-8 w-8 items-center justify-center rounded-full ${c.badgeBg} ${c.badgeText} shrink-0`}>
+              {icone}
+            </span>
+          )}
+          <div>
+            <h3 className="text-sm font-semibold text-[#0F172A] leading-tight">{titulo}</h3>
+            {subtitulo && <p className="text-[11px] text-[#94A3B8] leading-tight">{subtitulo}</p>}
+          </div>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8] whitespace-nowrap pt-1">
+          Passo {numero} de {total}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 // Convenção partilhada de sub-título de grupo (maiúsculas, tracking largo, cinza apagado) e
 // separador entre grupos de campos dentro de um bloco/formulário - usada em
 // CondicoesNegocio.tsx, ParteCampos.tsx e app/cpcv/novo/page.tsx, para o mesmo ritmo visual em
