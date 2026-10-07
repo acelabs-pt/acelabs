@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { extensaoSuportada, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
+import { extensaoSuportada, fileParaBase64, nomeFicheiroSeguro, nomeSemColisao } from "@/lib/cpcv-ficheiros";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import {
   ParteDraft,
@@ -14,7 +14,7 @@ import {
   parteDraftVazio,
 } from "@/lib/cpcv-partes-form";
 import ParteCampos from "../ParteCampos";
-import { btnPrimary, btnSecondary, CORES_SECAO, grupoClass, IconesSecao, PassoCard, subTituloClass, TextoShimmer } from "../ui";
+import { btnPrimary, btnSecondary, CORES_SECAO, grupoClass, IconesSecao, PassoCard, Spinner, subTituloClass, TextoShimmer } from "../ui";
 
 // Y do "Passo X de Y" em todo o fluxo de criação - não é o número de etapas nesta página (essa
 // conta muda consoante o tipo de contrato), é a duração à vista do processo completo, incluindo
@@ -64,6 +64,8 @@ export default function NovoProcessoPage() {
   const [loading, setLoading] = useState(false);
   const [etapa, setEtapa] = useState("");
   const [error, setError] = useState("");
+  const [aAnalisarImovel, setAAnalisarImovel] = useState(false);
+  const [erroCampoImovel, setErroCampoImovel] = useState("");
   const router = useRouter();
 
   const angariacaoExterna = tipoContrato === "comprador_nosso_angariacao_externa";
@@ -119,6 +121,62 @@ export default function NovoProcessoPage() {
 
     setFicheiros((prev) => [...prev, ...aceites]);
     setError(rejeitados.length > 0 ? `Formato não suportado (usa PDF, JPG ou PNG): ${rejeitados.join(", ")}` : "");
+
+    if (aceites.length > 0) {
+      analisarDocumentoImovel(aceites.map((a) => a.file));
+    }
+  }
+
+  // Só sugere valores para os campos manuais do imóvel (morada, licença, certificado) - nunca
+  // grava nada, o processo ainda nem existe nesta página. Qualquer documento desta secção pode
+  // trazer a morada completa (caderneta predial, certidão predial e certificado energético
+  // normalmente trazem todos), por isso corre sobre qualquer upload, não só sobre o tipo
+  // "certo". Nunca substitui um campo que o agente já tenha escrito à mão - a verificação
+  // funcional do setState protege mesmo contra o agente escrever enquanto a leitura decorre.
+  async function analisarDocumentoImovel(novosFicheiros: File[]) {
+    const suportados = novosFicheiros.filter((f) => extensaoSuportada(f.name));
+    if (suportados.length === 0) return;
+
+    setAAnalisarImovel(true);
+    setErroCampoImovel("");
+    try {
+      const payload = await Promise.all(suportados.map(async (f) => ({ nome: f.name, base64: await fileParaBase64(f) })));
+      const res = await fetch("/api/cpcv/extrair-documento-imovel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ficheiros: payload }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setErroCampoImovel(body.error ?? "Erro ao ler o documento.");
+        return;
+      }
+
+      const { dados } = await res.json();
+      if (!dados) return;
+
+      const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : "");
+      const preencher = (valor: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
+        if (!valor) return;
+        setter((atual) => (atual.trim() ? atual : valor));
+      };
+
+      preencher(str(dados.rua), setRuaImovel);
+      preencher(str(dados.numero), setNumeroImovel);
+      preencher(str(dados.andar_fracao), setAndarImovel);
+      preencher(str(dados.codigo_postal), setCodigoPostalImovel);
+      preencher(str(dados.localidade), setLocalidadeImovel);
+      preencher(str(dados.freguesia), setFreguesiaImovel);
+      preencher(str(dados.concelho), setConcelhoImovel);
+      preencher(str(dados.distrito), setDistritoImovel);
+      preencher(str(dados.licenca_utilizacao), setLicencaUtilizacao);
+      preencher(str(dados.certificado_energetico), setCertificadoEnergetico);
+    } catch {
+      setErroCampoImovel("Erro de ligação ao analisar o documento.");
+    } finally {
+      setAAnalisarImovel(false);
+    }
   }
 
   function removerFicheiro(index: number) {
@@ -475,6 +533,12 @@ export default function NovoProcessoPage() {
           <div>
             <p className={subTituloClass}>Documentos</p>
             {blocoDocumentosImovel()}
+            {aAnalisarImovel && (
+              <p className={`text-xs mt-2 flex items-center gap-1.5 ${CORES_SECAO.azul.link}`}>
+                <Spinner className="h-3.5 w-3.5" /> A ler o documento e a preencher a morada, a licença e o certificado...
+              </p>
+            )}
+            {erroCampoImovel && <p className="text-xs text-red-500 mt-2">{erroCampoImovel}</p>}
           </div>
 
           <div className={grupoClass}>

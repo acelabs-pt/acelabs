@@ -189,7 +189,7 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
           processo.imovel_estado ? `: ${v(processo.imovel_estado)}` : ""
         }, o qual é do conhecimento do(s) SEGUNDO(S) OUTORGANTE(S), dispõe de licença de utilização n.º ${v(
           processo.imovel_licenca_utilizacao
-        )} e de certificado energético com a classificação ${v(processo.imovel_certificado_energetico)}${
+        )} e de certificado energético n.º ${v(processo.imovel_certificado_energetico)}${
           processo.imovel_anexos ? `, possuindo ainda os seguintes anexos: ${v(processo.imovel_anexos)}` : ""
         }.`,
         processo.incluidos_no_imovel
