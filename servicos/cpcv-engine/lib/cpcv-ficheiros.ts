@@ -38,3 +38,20 @@ export function nomeFicheiroSeguro(nome: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-zA-Z0-9._-]/g, "_");
 }
+
+// Converte um ficheiro escolhido no browser para base64 puro (sem o prefixo
+// "data:<tipo>;base64,") - formato que a API da Anthropic espera nos content blocks de
+// documento/imagem. Usado em ParteCampos.tsx para mandar um documento de identificação a
+// analisar em /api/cpcv/extrair-pessoa antes de o processo existir (não há storage_path
+// ainda nesse momento, só o File em memória).
+export function fileParaBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const resultado = reader.result as string;
+      resolve(resultado.split(",")[1] ?? "");
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   DOCUMENTO_TIPO_OPCOES,
   ESTADO_CIVIL_OPCOES,
@@ -8,7 +9,29 @@ import {
   composeNaturalidade,
   nifValido,
 } from "@/lib/cpcv-partes-form";
-import { CORES_SECAO, CorSecao, grupoClass, subTituloClass } from "./ui";
+import { extensaoSuportada, fileParaBase64 } from "@/lib/cpcv-ficheiros";
+import { CORES_SECAO, CorSecao, grupoClass, Spinner, subTituloClass } from "./ui";
+
+// Resultado de /api/cpcv/extrair-pessoa - só sugestões para o formulário em memória, nunca
+// gravado directamente (ver o comentário no topo dessa rota sobre porquê).
+type ExtracaoPessoa = {
+  tipo_pessoa?: "singular" | "coletiva" | null;
+  nome?: string | null;
+  nif?: string | null;
+  morada_rua?: string | null;
+  morada_numero?: string | null;
+  morada_codigo_postal?: string | null;
+  morada_localidade?: string | null;
+  nacionalidade?: string | null;
+  naturalidade_concelho?: string | null;
+  naturalidade_freguesia?: string | null;
+  documento_tipo?: string | null;
+  documento_numero?: string | null;
+  documento_validade?: string | null;
+  representante_nome?: string | null;
+  representante_cargo?: string | null;
+  certidao_permanente?: string | null;
+};
 
 const labelClass = "block text-[11px] text-[#64748B] font-medium mb-1";
 
@@ -41,8 +64,95 @@ export default function ParteCampos({
   const c = CORES_SECAO[cor];
   const campoClass = `w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:ring-2 ${c.anel}`;
 
+  const [aAnalisar, setAAnalisar] = useState(false);
+  const [erroAnalise, setErroAnalise] = useState("");
+
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
+  }
+
+  // Preenche só os campos ainda vazios - nunca substitui o que o agente já tenha corrigido
+  // à mão. Isto só actualiza o rascunho em memória: a gravação em cpcv_partes continua a
+  // acontecer da forma habitual (um único insert/update no submit), nunca a partir daqui.
+  function aplicarExtracao(draftAntes: ParteDraft, extraido: ExtracaoPessoa) {
+    const str = (v: string | null | undefined) => (typeof v === "string" && v.trim() ? v.trim() : "");
+    const next = { ...draftAntes };
+
+    if (!next.nome.trim()) {
+      if (str(extraido.nome)) next.nome = str(extraido.nome);
+      if (extraido.tipo_pessoa === "singular" || extraido.tipo_pessoa === "coletiva") {
+        next.tipoPessoa = extraido.tipo_pessoa;
+      }
+    }
+    if (!next.nif.trim() && str(extraido.nif)) next.nif = str(extraido.nif);
+
+    const moradaExtraida = composeMoradaPessoa(
+      str(extraido.morada_rua),
+      str(extraido.morada_numero),
+      str(extraido.morada_codigo_postal),
+      str(extraido.morada_localidade)
+    );
+    if (!next.morada.trim() && moradaExtraida) {
+      next.morada = moradaExtraida;
+      if (estruturado) {
+        next.moradaRua = str(extraido.morada_rua);
+        next.moradaNumero = str(extraido.morada_numero);
+        next.moradaCodigoPostal = str(extraido.morada_codigo_postal);
+        next.moradaLocalidade = str(extraido.morada_localidade);
+      }
+    }
+
+    if (!next.nacionalidade.trim() && str(extraido.nacionalidade)) next.nacionalidade = str(extraido.nacionalidade);
+
+    const naturalidadeExtraida = composeNaturalidade(str(extraido.naturalidade_freguesia), str(extraido.naturalidade_concelho));
+    if (!next.naturalidade.trim() && naturalidadeExtraida) {
+      next.naturalidade = naturalidadeExtraida;
+      if (estruturado) {
+        next.naturalidadeFreguesia = str(extraido.naturalidade_freguesia);
+        next.naturalidadeConcelho = str(extraido.naturalidade_concelho);
+      }
+    }
+
+    // O dropdown de tipo de documento já vem com "Cartão de Cidadão" por defeito (nunca vazio),
+    // por isso só faz sentido a IA ajustá-lo enquanto o agente ainda não tiver começado a
+    // preencher o número à mão - a partir daí presume-se que o tipo já foi confirmado.
+    if (!draftAntes.documentoNumero.trim() && str(extraido.documento_tipo) && DOCUMENTO_TIPO_OPCOES.includes(str(extraido.documento_tipo))) {
+      next.documentoTipo = str(extraido.documento_tipo);
+    }
+    if (!next.documentoNumero.trim() && str(extraido.documento_numero)) next.documentoNumero = str(extraido.documento_numero);
+    if (!next.documentoValidade.trim() && str(extraido.documento_validade)) next.documentoValidade = str(extraido.documento_validade);
+    if (!next.representanteNome.trim() && str(extraido.representante_nome)) next.representanteNome = str(extraido.representante_nome);
+    if (!next.representanteCargo.trim() && str(extraido.representante_cargo)) next.representanteCargo = str(extraido.representante_cargo);
+    if (!next.certidaoPermanente.trim() && str(extraido.certidao_permanente)) next.certidaoPermanente = str(extraido.certidao_permanente);
+
+    onChange(next);
+  }
+
+  async function analisarDocumentos(ficheirosNovos: File[], draftAntes: ParteDraft) {
+    const suportados = ficheirosNovos.filter((f) => extensaoSuportada(f.name));
+    if (suportados.length === 0) return;
+
+    setAAnalisar(true);
+    setErroAnalise("");
+    try {
+      const payload = await Promise.all(suportados.map(async (f) => ({ nome: f.name, base64: await fileParaBase64(f) })));
+      const res = await fetch("/api/cpcv/extrair-pessoa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ficheiros: payload }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setErroAnalise(body.error ?? "Erro ao ler o documento.");
+        return;
+      }
+      const { extraido } = await res.json();
+      aplicarExtracao(draftAntes, extraido ?? {});
+    } catch {
+      setErroAnalise("Erro de ligação ao analisar o documento.");
+    } finally {
+      setAAnalisar(false);
+    }
   }
 
   function setMorada<K extends "moradaRua" | "moradaNumero" | "moradaCodigoPostal" | "moradaLocalidade">(
@@ -92,6 +202,54 @@ export default function ParteCampos({
           )}
         </div>
       </div>
+
+      {comUploadFicheiro && (
+        <div>
+          <p className={subTituloClass}>Documentos</p>
+          <div className="space-y-1.5">
+            {draft.ficheiros.map((f, j) => (
+              <div key={j} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
+                <span className={`text-xs font-medium truncate ${c.chipTexto}`}>{f.name}</span>
+                <button
+                  type="button"
+                  onClick={() => set("ficheiros", draft.ficheiros.filter((_, idx) => idx !== j))}
+                  className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 shrink-0"
+                >
+                  Remover
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 border border-dashed border-[#E2E8F0]">
+              <span className="text-xs font-normal text-[#94A3B8]">
+                {draft.ficheiros.length > 0 ? "Mais documentos (opcional)" : "Cópia do documento de identificação (lido automaticamente)"}
+              </span>
+              <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
+                + Adicionar
+                <input
+                  type="file"
+                  multiple
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const novos = Array.from(e.target.files ?? []);
+                    e.target.value = "";
+                    if (novos.length === 0) return;
+                    const draftAntes = draft;
+                    set("ficheiros", [...draft.ficheiros, ...novos]);
+                    analisarDocumentos(novos, draftAntes);
+                  }}
+                />
+              </label>
+            </div>
+            {aAnalisar && (
+              <p className={`text-xs flex items-center gap-2 ${c.link}`}>
+                <Spinner className="h-3.5 w-3.5" /> A ler o documento...
+              </p>
+            )}
+            {erroAnalise && <p className="text-xs text-red-500">{erroAnalise}</p>}
+          </div>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
@@ -256,43 +414,6 @@ export default function ParteCampos({
         </div>
       )}
 
-      {comUploadFicheiro && (
-        <div className={grupoClass}>
-          <p className={subTituloClass}>Documentos</p>
-          <div className="space-y-1.5">
-            {draft.ficheiros.map((f, j) => (
-              <div key={j} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 ${c.chipBg}`}>
-                <span className={`text-xs font-medium truncate ${c.chipTexto}`}>{f.name}</span>
-                <button
-                  type="button"
-                  onClick={() => set("ficheiros", draft.ficheiros.filter((_, idx) => idx !== j))}
-                  className="text-[#94A3B8] hover:text-red-500 text-xs font-medium transition-colors duration-150 shrink-0"
-                >
-                  Remover
-                </button>
-              </div>
-            ))}
-            <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 border border-dashed border-[#E2E8F0]">
-              <span className="text-xs font-normal text-[#94A3B8]">
-                {draft.ficheiros.length > 0 ? "Mais documentos (opcional)" : "Cópia do documento de identificação (opcional)"}
-              </span>
-              <label className={`shrink-0 cursor-pointer text-xs font-semibold hover:underline ${c.link}`}>
-                + Adicionar
-                <input
-                  type="file"
-                  multiple
-                  accept="application/pdf,image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    set("ficheiros", [...draft.ficheiros, ...Array.from(e.target.files ?? [])]);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

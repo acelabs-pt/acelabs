@@ -435,21 +435,23 @@ export default function NovoProcessoPage() {
         )}
 
         <div>
-          <label htmlFor="tipoContrato" className="block text-xs font-semibold text-[#475569] mb-2">
-            Tipo de contrato
-          </label>
-          <select
-            id="tipoContrato"
-            value={tipoContrato}
-            onChange={(e) => setTipoContrato(e.target.value)}
-            className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
-          >
+          <label className="block text-xs font-semibold text-[#475569] mb-2">Tipo de contrato</label>
+          <div className="space-y-2">
             {TIPOS_CONTRATO.map((t) => (
-              <option key={t.value} value={t.value}>
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setTipoContrato(t.value)}
+                className={`w-full text-left rounded-xl border px-4 py-3 text-sm transition-colors ${
+                  tipoContrato === t.value
+                    ? "border-[#0071e3] bg-[#EFF6FF] text-[#0F172A] font-semibold"
+                    : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
+                }`}
+              >
                 {t.label}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         <div className={`grid gap-5 ${angariacaoExterna ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
@@ -458,6 +460,11 @@ export default function NovoProcessoPage() {
               <CabecalhoSecao cor="azul" icone={IconesSecao.predio} titulo="Documentos do imóvel" subtitulo="Certidão, caderneta, energético" />
 
               <div>
+                <p className={subTituloClass}>Documentos</p>
+                {blocoDocumentosImovel()}
+              </div>
+
+              <div className={grupoClass}>
                 <p className={subTituloClass}>Morada do imóvel</p>
                 <div className="space-y-3">
                 <div className="grid sm:grid-cols-3 gap-3">
@@ -532,11 +539,6 @@ export default function NovoProcessoPage() {
                   </div>
                 </div>
                 </div>
-              </div>
-
-              <div className={grupoClass}>
-                <p className={subTituloClass}>Documentos</p>
-                {blocoDocumentosImovel()}
               </div>
 
               <div className={grupoClass}>
