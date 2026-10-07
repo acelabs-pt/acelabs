@@ -81,6 +81,44 @@
   .nav-cta:hover{background:#000;}
   a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
 
+  /* MENU MOVEL */
+  .nav-burger{
+    display:none;
+    flex:none;
+    width:36px;height:36px;
+    border:none;background:none;padding:0;
+    cursor:pointer;
+    flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  }
+  .nav-burger span{display:block;width:20px;height:2px;background:#1d1d1f;border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
+  .nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .nav-mobile{
+    display:none;
+    position:absolute;top:70px;left:0;right:0;
+    background:rgba(255,255,255,.97);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.08);
+    flex-direction:column;
+    padding:6px 24px 22px;
+  }
+  .nav-mobile.open{display:flex;}
+  .nav-mobile a{
+    padding:15px 2px;
+    font-size:15.5px;font-weight:500;color:#1d1d1f;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .nav-mobile-cta{
+    margin-top:14px;
+    display:inline-flex!important;align-items:center;justify-content:center;gap:9px;
+    background:#141414;color:#fff!important;
+    padding:14px 22px;border-radius:980px;
+    font-weight:500!important;border-bottom:none!important;
+  }
+
   /* BOTOES-PILULA (hero + seccao final) */
   .hero-ctas{
     display:flex;
@@ -226,7 +264,7 @@
     z-index:2;
     right:clamp(24px,5vw,72px);
     bottom:72px;
-    width:292px;
+    width:308px;
     background:rgba(255,255,255,.74);
     backdrop-filter:saturate(180%) blur(22px);
     -webkit-backdrop-filter:saturate(180%) blur(22px);
@@ -250,17 +288,31 @@
     70%{box-shadow:0 0 0 7px rgba(31,174,90,0);}
     100%{box-shadow:0 0 0 0 rgba(31,174,90,0);}
   }
-  .hero-ai-line{display:flex;align-items:center;gap:10px;min-height:22px;}
-  .hero-ai-check{
-    flex:none;width:19px;height:19px;border-radius:50%;
-    background:#c9cdd3;
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:scale(.5);
-    transition:opacity .22s ease,transform .22s ease,background .15s ease;
+  @keyframes ai-pulse-blue{
+    0%{box-shadow:0 0 0 0 rgba(0,113,227,.45);}
+    70%{box-shadow:0 0 0 7px rgba(0,113,227,0);}
+    100%{box-shadow:0 0 0 0 rgba(0,113,227,0);}
   }
-  .hero-ai-check.show{opacity:1;transform:scale(1);background:#1fae5a;}
-  .hero-ai-check svg{width:10px;height:10px;display:block;}
-  .hero-ai-text{font-size:13.5px;color:#1d1d1f;letter-spacing:-0.005em;}
+  .hero-ai-funnel{display:flex;flex-direction:column;gap:12px;}
+  .hero-ai-row{
+    display:flex;align-items:center;gap:10px;
+    opacity:0;transform:translateY(4px);
+    transition:opacity .35s ease,transform .35s ease;
+  }
+  .hero-ai-row.in{opacity:1;transform:translateY(0);}
+  .hero-ai-row-icon{
+    flex:none;width:18px;height:18px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid rgba(29,29,31,.18);
+    transition:background .2s ease,border-color .2s ease;
+  }
+  .hero-ai-row-icon svg{width:10px;height:10px;display:block;opacity:0;transform:scale(.6);transition:opacity .18s ease,transform .18s ease;}
+  .hero-ai-row.active .hero-ai-row-icon{border-color:#0071e3;background:#0071e3;animation:ai-pulse-blue 1.3s infinite;}
+  .hero-ai-row.done .hero-ai-row-icon{border-color:#1fae5a;background:#1fae5a;}
+  .hero-ai-row.done .hero-ai-row-icon svg{opacity:1;transform:scale(1);}
+  .hero-ai-row-text{font-size:13px;color:#9a9ca0;letter-spacing:-0.005em;transition:color .2s ease,font-weight .2s ease;}
+  .hero-ai-row.active .hero-ai-row-text{color:#1d1d1f;font-weight:650;}
+  .hero-ai-row.done .hero-ai-row-text{color:#1d1d1f;}
 
   @media (max-width:880px){
     .hero-ai-panel{display:none;}
@@ -335,6 +387,33 @@
   @media (max-width:860px){
     .cockpit-grid{grid-template-columns:1fr;gap:40px;}
     .cockpit-visual{order:-1;max-width:260px;margin:0 auto;}
+  }
+
+  /* EMPRESA / EQUIPA */
+  .team{padding:20px 0 110px;}
+  .team h2{font-size:clamp(28px,3.2vw,38px);max-width:22ch;margin-top:14px;}
+  .team h2 .muted{color:#9a9ca0;}
+  .team .sub-col{margin-top:14px;max-width:48ch;}
+  .team-grid{margin-top:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .team-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px 26px;
+  }
+  .team-icon{
+    width:46px;height:46px;border-radius:14px;
+    background:var(--blue-soft-bg,#eaf2fd);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+  }
+  .team-icon svg{width:22px;height:22px;display:block;}
+  .team-card h4{font-size:16px;font-weight:650;color:#1d1d1f;letter-spacing:-0.005em;}
+  .team-card p{margin-top:8px;font-size:13.5px;line-height:1.55;color:var(--ink-2);}
+  .team-closing{margin-top:36px;font-size:16px;line-height:1.6;color:var(--ink);max-width:56ch;font-weight:500;}
+
+  @media (max-width:860px){
+    .team-grid{grid-template-columns:1fr;}
   }
 
   /* SERVICES v2 — colunas com cartoes escalonados + copy a direita */
@@ -1041,6 +1120,8 @@
     .feature-row, .feature-row.reverse{flex-direction:column;gap:36px;}
     .feature-row .ftext{max-width:none;}
     .navlinks{display:none;}
+    .nav-cta{display:none;}
+    .nav-burger{display:flex;}
     .section-head h2{font-size:30px;}
     .closing h2{font-size:32px;}
   }
@@ -1061,6 +1142,16 @@
       <a href="#empresa">Empresa</a>
     </div>
     <a href="#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="#servicos">Serviços</a>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#recursos">Recursos</a>
+    <a href="#empresa">Empresa</a>
+    <a href="#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
 
@@ -1079,11 +1170,19 @@
   </div>
   <div class="hero-ai-panel" aria-hidden="true">
     <div class="hero-ai-head"><span class="hero-ai-dot"></span> Agente IA · Ace Labs</div>
-    <div class="hero-ai-line">
-      <span class="hero-ai-check" id="hero-ai-check">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
-      </span>
-      <span class="hero-ai-text" id="hero-ai-text"></span>
+    <div class="hero-ai-funnel" id="hero-ai-funnel">
+      <div class="hero-ai-row">
+        <span class="hero-ai-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        <span class="hero-ai-row-text"></span>
+      </div>
+      <div class="hero-ai-row">
+        <span class="hero-ai-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        <span class="hero-ai-row-text"></span>
+      </div>
+      <div class="hero-ai-row">
+        <span class="hero-ai-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        <span class="hero-ai-row-text"></span>
+      </div>
     </div>
   </div>
 </header>
@@ -1234,7 +1333,7 @@
         <div class="service-text">
           <span class="service-num">06</span>
           <h4>Cockpit <span style="font-weight:500;color:var(--ink-2);">· em breve</span></h4>
-          <p>A app de bolso do agente imobiliário, com tudo o que precisa no terreno num toque.</p>
+          <p>Dashboard, CRM com funil automático e angariações, tudo sincronizado com o calendário.</p>
         </div>
       </a>
     </div>
@@ -1259,20 +1358,24 @@
   <div class="wrap cockpit-grid">
     <div class="cockpit-copy">
       <p class="hero-eyebrow">Imobiliário · Em breve</p>
-      <h2>Cockpit: a app de bolso <span class="muted">do agente imobiliário.</span></h2>
-      <p class="sub-col">Tudo o que precisa no terreno, num toque - visitas, contactos e follow-ups, sem abrir dez ecrãs.</p>
+      <h2>Cockpit: o CRM de bolso <span class="muted">do agente imobiliário.</span></h2>
+      <p class="sub-col">Dashboard, funil de vendas e angariações, tudo sincronizado com o calendário - sem folhas de cálculo.</p>
       <ul class="cockpit-features">
         <li>
           <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Registo de visita num toque - Gostou, Talvez ou Não gostou.
+          Dashboard com metas e métricas - visitas, angariações e transações, com taxa de conversão calculada sozinha.
         </li>
         <li>
           <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Liga ou escreve por WhatsApp direto da app, com histórico guardado.
+          CRM com funil automático - compradores e proprietários avançam sozinhos até à escritura.
         </li>
         <li>
           <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Alertas como "Sem contacto há 7 dias", para nada se perder de vista.
+          Plano de angariação de 180/120 dias, com lembretes de marketing em cada etapa.
+        </li>
+        <li>
+          <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+          Calendário e tarefas unificados - as automações do CRM caem sozinhas na agenda do agente.
         </li>
       </ul>
       <div class="hero-ctas">
@@ -1280,24 +1383,31 @@
       </div>
     </div>
     <div class="cockpit-visual">
-      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de uma app móvel com ecrã Hoje, cartões de contactos coloridos por estado e uma barra de navegação inferior com quatro separadores.">
+      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de uma app móvel com ecrã de Dashboard, dois cartões de métricas, um mini funil de vendas em barras e uma barra de navegação inferior com quatro separadores.">
         <rect width="380" height="420" rx="28" fill="#eaf2fd"/>
         <rect x="98" y="26" width="184" height="368" rx="34" fill="#0e0e10"/>
         <rect x="110" y="40" width="160" height="340" rx="24" fill="#ffffff"/>
         <rect x="150" y="48" width="80" height="6" rx="3" fill="#0e0e10"/>
-        <rect x="128" y="70" width="124" height="12" rx="6" fill="#1d1d1f"/>
-        <rect x="128" y="96" width="124" height="54" rx="14" fill="#f5f5f7"/>
-        <circle cx="148" cy="123" r="11" fill="#0071e3"/>
-        <rect x="167" y="114" width="70" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
-        <rect x="167" y="128" width="52" height="7" rx="3.5" fill="rgba(29,29,31,.25)"/>
-        <rect x="128" y="160" width="124" height="54" rx="14" fill="#f5f5f7"/>
-        <circle cx="148" cy="187" r="11" fill="#1fae5a"/>
-        <rect x="167" y="178" width="70" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
-        <rect x="167" y="192" width="52" height="7" rx="3.5" fill="rgba(29,29,31,.25)"/>
-        <rect x="128" y="224" width="124" height="54" rx="14" fill="#f5f5f7"/>
-        <circle cx="148" cy="251" r="11" fill="#ff9f0a"/>
-        <rect x="167" y="242" width="70" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
-        <rect x="167" y="256" width="52" height="7" rx="3.5" fill="rgba(29,29,31,.25)"/>
+        <text x="128" y="80" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d1d1f">Dashboard</text>
+
+        <rect x="128" y="94" width="62" height="56" rx="12" fill="#eaf2fd"/>
+        <text x="140" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0071e3">12</text>
+        <text x="140" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Visitas</text>
+
+        <rect x="198" y="94" width="62" height="56" rx="12" fill="#e8f8ee"/>
+        <text x="210" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#1a8f49">5</text>
+        <text x="210" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#1a8f49">Angariações</text>
+
+        <rect x="128" y="172" width="90" height="8" rx="4" fill="rgba(29,29,31,.4)"/>
+        <rect x="128" y="196" width="26" height="52" rx="6" fill="#0071e3"/>
+        <rect x="162" y="210" width="26" height="38" rx="6" fill="#4b9eed"/>
+        <rect x="196" y="222" width="26" height="26" rx="6" fill="#8cc1f5"/>
+        <rect x="230" y="234" width="18" height="14" rx="6" fill="#c7e0fa"/>
+
+        <rect x="128" y="266" width="132" height="1" fill="rgba(0,0,0,.08)"/>
+        <rect x="128" y="282" width="92" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
+        <rect x="128" y="298" width="124" height="7" rx="3.5" fill="rgba(29,29,31,.2)"/>
+
         <line x1="110" y1="330" x2="270" y2="330" stroke="rgba(0,0,0,.08)"/>
         <circle cx="148" cy="354" r="5" fill="#0071e3"/>
         <rect x="140" y="364" width="16" height="5" rx="2.5" fill="#0071e3"/>
@@ -1351,10 +1461,44 @@
     <div class="how5-bottom">
       <div class="hero-ctas">
         <a href="#contacto" class="btn-dark">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
-        <a href="#contacto" class="btn-outline">Ver os detalhes</a>
+        <a href="#empresa" class="btn-outline">Conhecer a equipa</a>
       </div>
       <p class="how5-tag">Automação. Pessoas. Resultados.<span class="how5-tagline" aria-hidden="true"></span></p>
     </div>
+  </div>
+</section>
+
+<section class="team" id="empresa">
+  <div class="wrap">
+    <p class="hero-eyebrow">Empresa</p>
+    <h2>Uma equipa multifacetada, <span class="muted">não só developers.</span></h2>
+    <p class="sub-col">Banca, análise de dados e mercado imobiliário - do lado da angariação e do lado da gestão de património.</p>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10 12 4l10 6"/><path d="M4 10v11M9 10v11M15 10v11M20 10v11"/><path d="M2 21h20"/></svg>
+        </div>
+        <h4>Banca</h4>
+        <p>Anos em banca deram-nos à-vontade com processos rigorosos, risco e compliance - essencial quando se automatiza contratos e dados sensíveis de clientes.</p>
+      </div>
+      <div class="team-card">
+        <div class="team-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
+        </div>
+        <h4>Análise de dados</h4>
+        <p>Lemos métricas e funis como quem lê um relatório financeiro - por isso os dashboards que desenhamos mostram só o que importa decidir.</p>
+      </div>
+      <div class="team-card">
+        <div class="team-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 21v-6h6v6"/></svg>
+        </div>
+        <h4>Mercado imobiliário</h4>
+        <p>Experiência dos dois lados: brokerage, na venda direta a clientes, e gestão de património, do lado do investidor com uma carteira de imóveis.</p>
+      </div>
+    </div>
+
+    <p class="team-closing">Essa mistura é que nos permite desenhar automações que fazem sentido para quem está no terreno - não só para quem está a programar.</p>
   </div>
 </section>
 
@@ -1438,6 +1582,37 @@
     var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
     f();window.addEventListener("scroll",f,{passive:true});
   })();
+
+  (function(){
+    var burger = document.getElementById('nav-burger');
+    var mobile = document.getElementById('nav-mobile');
+    if(!burger || !mobile) return;
+
+    function closeMenu(){
+      mobile.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-label', 'Abrir menu');
+    }
+    function openMenu(){
+      mobile.classList.add('open');
+      burger.setAttribute('aria-expanded', 'true');
+      burger.setAttribute('aria-label', 'Fechar menu');
+    }
+
+    burger.addEventListener('click', function(){
+      if(mobile.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
+    mobile.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeMenu();
+    });
+    window.addEventListener('resize', function(){
+      if(window.innerWidth > 860) closeMenu();
+    });
+  })();
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -1507,43 +1682,47 @@
   })();
 
   (function(){
-    var textEl = document.getElementById('hero-ai-text');
-    var checkEl = document.getElementById('hero-ai-check');
-    if(!textEl || !checkEl) return;
+    var funnelEl = document.getElementById('hero-ai-funnel');
+    if(!funnelEl) return;
+    var rows = Array.prototype.slice.call(funnelEl.querySelectorAll('.hero-ai-row'));
 
-    var items = [
-      'A extrair dados do CPCV...',
-      'Novo lead no WhatsApp...',
-      'A atualizar o Cockpit...',
-      'Follow-up agendado...'
+    var stages = [
+      'Lead qualificada',
+      'Imóveis enviados',
+      'Visita realizada',
+      'Proposta efetuada',
+      'CPCV gerado',
+      'Escritura agendada',
+      'Negócio concluído'
     ];
-    var i = 0;
+    var ptr = 0;
 
-    function type(text, cb){
-      var j = 0;
-      (function step(){
-        if(j <= text.length){
-          textEl.textContent = text.slice(0, j);
-          j++;
-          setTimeout(step, 26);
-        }else{
-          cb();
-        }
-      })();
-    }
-
-    function cycle(){
-      checkEl.classList.remove('show');
-      textEl.textContent = '';
-      type(items[i], function(){
-        setTimeout(function(){ checkEl.classList.add('show'); }, 220);
-        setTimeout(function(){
-          i = (i + 1) % items.length;
-          cycle();
-        }, 1700);
+    function render(){
+      rows.forEach(function(row, i){
+        row.classList.remove('in', 'active', 'done');
+        row.querySelector('.hero-ai-row-text').textContent = stages[(ptr + i) % stages.length];
+      });
+      // forca reflow para a transicao de entrada reiniciar
+      void funnelEl.offsetWidth;
+      rows.forEach(function(row, i){
+        row.classList.add('in');
+        if(i === 0) row.classList.add('active');
       });
     }
-    cycle();
+
+    function step(){
+      render();
+      setTimeout(function(){
+        rows[0].classList.remove('active');
+        rows[0].classList.add('done');
+        setTimeout(function(){
+          ptr = (ptr + 1) % stages.length;
+          step();
+        }, 650);
+      }, 1350);
+    }
+
+    step();
   })();
 </script>
 
