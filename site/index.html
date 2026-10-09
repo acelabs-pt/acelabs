@@ -418,6 +418,46 @@
     .compare-arrow{transform:rotate(90deg);padding:2px 0;}
   }
 
+  /* CASA EM ASCII - secao escura de assinatura */
+  .ascii-house{
+    background:#0a1620;
+    padding:96px 0 104px;
+    text-align:center;
+    overflow:hidden;
+  }
+  .ascii-house .hero-eyebrow{color:rgba(255,255,255,.45);}
+  .ascii-house h2{
+    font-size:clamp(26px,3.1vw,38px);
+    color:#fff;
+    max-width:21ch;
+    margin:14px auto 0;
+    letter-spacing:-0.03em;
+  }
+  .ascii-house h2 .muted{color:rgba(255,255,255,.34);}
+  .ascii-stage{
+    margin:56px auto 0;
+    display:grid;
+    font-family:'SF Mono','Menlo','Consolas',monospace;
+    font-size:clamp(6px,1.4vw,9.5px);
+    line-height:1.08;
+    width:fit-content;
+    max-width:100%;
+  }
+  .ascii-cell{
+    width:1ch;
+    text-align:center;
+    opacity:0;
+    transition:opacity .6s ease;
+    color:rgba(130,178,255,.55);
+  }
+  .ascii-cell.is-roof{color:rgba(255,255,255,.72);}
+  .ascii-cell.is-door{color:#4b9eed;}
+  .ascii-cell.is-window{color:#ffce7a;}
+  .ascii-caption{margin-top:44px;font-size:14px;color:rgba(255,255,255,.38);}
+  @media (prefers-reduced-motion:reduce){
+    .ascii-cell{transition:none;}
+  }
+
   /* COCKPIT SPOTLIGHT */
   .cockpit-spotlight{padding:24px 0 100px;text-align:center;}
   .spotlight-badge{
@@ -1385,6 +1425,15 @@
   </div>
 </header>
 
+<section class="ascii-house" id="construido-para-imobiliario">
+  <div class="wrap">
+    <p class="hero-eyebrow">Ace Labs</p>
+    <h2>Sistemas que se constroem <span class="muted">sozinhos.</span></h2>
+    <div class="ascii-stage" id="ascii-house-stage" aria-hidden="true"></div>
+    <p class="ascii-caption">Automação construída peça a peça, para cada agência.</p>
+  </div>
+</section>
+
 <section class="cockpit-spotlight" id="cockpit">
   <div class="wrap">
     <div class="spotlight-badge" data-reveal>
@@ -2155,6 +2204,111 @@
     });
 
     switchFunnel('compradores');
+  })();
+
+  (function(){
+    var stage = document.getElementById('ascii-house-stage');
+    if(!stage) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var COLS = 52, ROWS = 30;
+    stage.style.gridTemplateColumns = 'repeat(' + COLS + ', 1ch)';
+
+    var ROOF_BOTTOM_Y = 0.42;
+    var BODY_LEFT_X = 0.22, BODY_RIGHT_X = 0.78;
+    var BODY_BOTTOM_Y = 0.92;
+    var ROOF_OVERHANG = 0.05;
+
+    var ROOF_CHARS = ['^', '.', ':', '*', '~'];
+    var BODY_CHARS = ['.', ':', '+', '#', '='];
+    var WINDOW_CHARS = ['o', '.', ':'];
+
+    function cellType(x, y){
+      if(y <= ROOF_BOTTOM_Y){
+        var roofHalfWidthAtBase = (BODY_RIGHT_X - BODY_LEFT_X) / 2 + ROOF_OVERHANG;
+        var halfWidth = (y / ROOF_BOTTOM_Y) * roofHalfWidthAtBase;
+        if(Math.abs(x - 0.5) <= halfWidth) return 'roof';
+        return null;
+      }
+      if(y > BODY_BOTTOM_Y) return null;
+      if(x < BODY_LEFT_X || x > BODY_RIGHT_X) return null;
+      if(y >= 0.68 && x >= 0.44 && x <= 0.56) return 'door';
+      if(y >= 0.5 && y <= 0.62){
+        if(x >= 0.28 && x <= 0.38) return 'window';
+        if(x >= 0.62 && x <= 0.72) return 'window';
+      }
+      return 'body';
+    }
+
+    function targetOpacity(type){
+      if(type === 'door' || type === 'window') return '0.92';
+      if(type === 'roof') return '0.72';
+      return '0.55';
+    }
+
+    function randChar(type){
+      var pool = type === 'roof' ? ROOF_CHARS : type === 'window' ? WINDOW_CHARS : BODY_CHARS;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    var cells = [];
+    var frag = document.createDocumentFragment();
+    for(var r = 0; r < ROWS; r++){
+      var y = r / (ROWS - 1);
+      for(var c = 0; c < COLS; c++){
+        var x = c / (COLS - 1);
+        var type = cellType(x, y);
+        var span = document.createElement('span');
+        span.className = 'ascii-cell';
+        if(type){
+          span.classList.add('is-' + type);
+          span.textContent = type === 'door' ? '#' : randChar(type);
+          span.setAttribute('data-type', type);
+          span.setAttribute('data-row', r);
+          cells.push(span);
+        } else {
+          span.textContent = ' ';
+        }
+        frag.appendChild(span);
+      }
+    }
+    stage.appendChild(frag);
+
+    function startShimmer(){
+      setInterval(function(){
+        for(var i = 0; i < 8; i++){
+          var cell = cells[Math.floor(Math.random() * cells.length)];
+          var type = cell && cell.getAttribute('data-type');
+          if(!cell || type === 'door') continue;
+          cell.textContent = randChar(type);
+        }
+      }, 220);
+    }
+
+    function reveal(){
+      if(reduceMotion){
+        cells.forEach(function(c){ c.style.opacity = targetOpacity(c.getAttribute('data-type')); });
+        return;
+      }
+      cells.forEach(function(c){
+        var row = parseInt(c.getAttribute('data-row'), 10);
+        var delay = (ROWS - row) * 18 + Math.random() * 220;
+        setTimeout(function(){
+          c.style.opacity = targetOpacity(c.getAttribute('data-type'));
+        }, delay);
+      });
+      setTimeout(startShimmer, ROWS * 18 + 500);
+    }
+
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          reveal();
+          io.unobserve(stage);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(stage);
   })();
 
   (function(){
