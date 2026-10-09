@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
 <title>Ace Labs - Cockpit para agentes imobiliários</title>
 <meta name="description" content="O Cockpit organiza o seu dia a dia no terreno - funil de clientes, angariações e calendário, tudo num só lugar.">
 <meta property="og:type" content="website">
@@ -80,6 +81,14 @@
     }
     .flow-chip{display:none;}
   }
+
+  .skip-link{
+    position:absolute;left:-9999px;top:0;z-index:1000;
+    background:#141414;color:#fff;
+    padding:12px 20px;border-radius:0 0 10px 0;
+    font-size:14px;font-weight:600;
+  }
+  .skip-link:focus{left:0;}
 
   /* NAV */
   body > nav{
@@ -1429,6 +1438,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
+
 <nav>
   <div class="wrap">
     <a class="logo" href="index.html"><img src="ace-labs-logo.png" alt="Ace Labs" class="logo-img"></a>
@@ -1472,7 +1483,7 @@
 </nav>
 <div class="nav-scrim" id="nav-scrim"></div>
 
-<header class="hero">
+<header class="hero" id="main-content" tabindex="-1">
   <div class="hero-flow" aria-hidden="true">
     <div class="hero-blob hero-blob-1"></div>
     <div class="hero-blob hero-blob-2"></div>

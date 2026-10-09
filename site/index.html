@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
 <title>Ace Labs - IA para o setor imobiliário</title>
 <meta name="description" content="Automação com IA para o setor imobiliário - para agentes e para agências. Diz-nos quem és.">
 <meta property="og:type" content="website">
@@ -77,6 +78,14 @@
   @media (prefers-reduced-motion:reduce){
     [data-reveal]{opacity:1;transform:none;transition:none;}
   }
+
+  .skip-link{
+    position:absolute;left:-9999px;top:0;z-index:1000;
+    background:#141414;color:#fff;
+    padding:12px 20px;border-radius:0 0 10px 0;
+    font-size:14px;font-weight:600;
+  }
+  .skip-link:focus{left:0;}
 
   nav{padding:28px 0;}
   nav .wrap{display:flex;align-items:center;justify-content:space-between;}
@@ -169,6 +178,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
+
 <nav>
   <div class="wrap">
     <a class="logo" href="index.html"><img src="ace-labs-logo.png" alt="Ace Labs"></a>
@@ -176,7 +187,7 @@
   </div>
 </nav>
 
-<main class="chooser">
+<main class="chooser" id="main-content" tabindex="-1">
   <div class="wrap" style="display:flex;flex-direction:column;align-items:center;">
     <div class="chooser-illustration" data-reveal style="--n:0">
       <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um consultor imobiliário equipado com as ferramentas Ace Labs: CPCV com IA, Cockpit, Dashboards e Lead Engine.">
