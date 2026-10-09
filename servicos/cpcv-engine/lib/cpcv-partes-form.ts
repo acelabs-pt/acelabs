@@ -23,8 +23,10 @@ export type ParteDraft = {
   // não há forma fiável de decompor uma morada livre já gravada nas suas partes.
   moradaRua: string;
   moradaNumero: string;
+  moradaAndar: string;
   moradaCodigoPostal: string;
   moradaLocalidade: string;
+  moradaFreguesia: string;
   naturalidadeFreguesia: string;
   naturalidadeConcelho: string;
   nif: string;
@@ -40,10 +42,18 @@ export type ParteDraft = {
   ficheiros: File[];
 };
 
-export function composeMoradaPessoa(rua: string, numero: string, codigoPostal: string, localidade: string): string {
-  const linha1 = [rua, numero ? `n.º ${numero}` : ""].filter(Boolean).join(", ");
+export function composeMoradaPessoa(
+  rua: string,
+  numero: string,
+  andar: string,
+  codigoPostal: string,
+  localidade: string,
+  freguesia: string
+): string {
+  const linha1 = [rua, numero ? `n.º ${numero}` : "", andar].filter(Boolean).join(", ");
   const linha2 = [codigoPostal, localidade].filter(Boolean).join(" ");
-  return [linha1, linha2].filter(Boolean).join(", ");
+  const linha3 = freguesia ? `freguesia de ${freguesia}` : "";
+  return [linha1, linha2, linha3].filter(Boolean).join(", ");
 }
 
 export function composeNaturalidade(freguesia: string, concelho: string): string {
@@ -75,8 +85,10 @@ export function parteDraftVazia(): ParteDraft {
     naturalidade: "",
     moradaRua: "",
     moradaNumero: "",
+    moradaAndar: "",
     moradaCodigoPostal: "",
     moradaLocalidade: "",
+    moradaFreguesia: "",
     naturalidadeFreguesia: "",
     naturalidadeConcelho: "",
     nif: "",
@@ -120,8 +132,10 @@ export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
     naturalidade: p.naturalidade ?? "",
     moradaRua: "",
     moradaNumero: "",
+    moradaAndar: "",
     moradaCodigoPostal: "",
     moradaLocalidade: "",
+    moradaFreguesia: "",
     naturalidadeFreguesia: "",
     naturalidadeConcelho: "",
     nif: p.nif ?? "",

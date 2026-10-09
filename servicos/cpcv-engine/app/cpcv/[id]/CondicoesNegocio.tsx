@@ -42,6 +42,39 @@ type Processo = {
   observacoes_adicionais: string | null;
 };
 
+// Todos os valores monetários do formulário (preço, sinal, reforços, mobília, reserva,
+// fracções, avaliação, financiamento) mostram "€" - eram inputs number sem qualquer indicação
+// de moeda, o que deixava ambíguo se o número escrito era em euros ou noutra unidade.
+function CampoEuros({
+  id,
+  value,
+  onChange,
+  placeholder,
+  className,
+  wrapperClassName = "",
+}: {
+  id?: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className: string;
+  wrapperClassName?: string;
+}) {
+  return (
+    <div className={`relative ${wrapperClassName}`}>
+      <input
+        id={id}
+        type="number"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`${className} pr-9`}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#94A3B8]">€</span>
+    </div>
+  );
+}
+
 function simNao(v: boolean | null): string {
   if (v === true) return "sim";
   if (v === false) return "nao";
@@ -211,11 +244,11 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="precoTotal" className={labelClass}>Valor de escritura (preço total)</label>
-                  <input id="precoTotal" type="number" value={precoTotal} onChange={(e) => setPrecoTotal(e.target.value)} className={campoClass} />
+                  <CampoEuros id="precoTotal" value={precoTotal} onChange={setPrecoTotal} className={campoClass} />
                 </div>
                 <div>
                   <label htmlFor="valorSinal" className={labelClass}>Valor do sinal</label>
-                  <input id="valorSinal" type="number" value={valorSinal} onChange={(e) => setValorSinal(e.target.value)} className={campoClass} />
+                  <CampoEuros id="valorSinal" value={valorSinal} onChange={setValorSinal} className={campoClass} />
                 </div>
                 <div>
                   <label htmlFor="prazoEscritura" className={labelClass}>Data prevista para a escritura</label>
@@ -228,12 +261,12 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                 <div className="space-y-2">
                   {reforcos.map((r, i) => (
                     <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <input
-                        type="number"
+                      <CampoEuros
                         value={r.valor}
-                        onChange={(e) => atualizarReforco(i, "valor", e.target.value)}
+                        onChange={(v) => atualizarReforco(i, "valor", v)}
                         placeholder="Valor"
                         className={campoClass}
+                        wrapperClassName="flex-1"
                       />
                       <div className="flex items-center gap-2">
                         <input
@@ -262,7 +295,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
-                  <input id="valorMobilia" type="number" value={valorMobilia} onChange={(e) => setValorMobilia(e.target.value)} className={campoClass} />
+                  <CampoEuros id="valorMobilia" value={valorMobilia} onChange={setValorMobilia} className={campoClass} />
                 </div>
                 <div>
                   <label htmlFor="metodoPagamento" className={labelClass}>Método de pagamento</label>
@@ -291,7 +324,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               {reserva === "sim" && (
                 <div>
                   <label htmlFor="valorReserva" className={labelClass}>Valor da reserva</label>
-                  <input id="valorReserva" type="number" value={valorReserva} onChange={(e) => setValorReserva(e.target.value)} className={campoClass} />
+                  <CampoEuros id="valorReserva" value={valorReserva} onChange={setValorReserva} className={campoClass} />
                 </div>
               )}
               {reserva === "sim" && (
@@ -313,11 +346,11 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               <div className="grid sm:grid-cols-2 gap-4 mt-2">
                 <div>
                   <label htmlFor="valorFracaoPrincipal" className={labelClass}>Valor da fracção principal</label>
-                  <input id="valorFracaoPrincipal" type="number" value={valorFracaoPrincipal} onChange={(e) => setValorFracaoPrincipal(e.target.value)} className={campoClass} />
+                  <CampoEuros id="valorFracaoPrincipal" value={valorFracaoPrincipal} onChange={setValorFracaoPrincipal} className={campoClass} />
                 </div>
                 <div>
                   <label htmlFor="valorFracaoSecundaria" className={labelClass}>Valor da 2ª fracção (garagem, etc.)</label>
-                  <input id="valorFracaoSecundaria" type="number" value={valorFracaoSecundaria} onChange={(e) => setValorFracaoSecundaria(e.target.value)} className={campoClass} />
+                  <CampoEuros id="valorFracaoSecundaria" value={valorFracaoSecundaria} onChange={setValorFracaoSecundaria} className={campoClass} />
                 </div>
               </div>
             )}
@@ -338,7 +371,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                 {condAvaliacao === "sim" && (
                   <div>
                     <label htmlFor="valorAvaliacaoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
-                    <input id="valorAvaliacaoMinimo" type="number" value={valorAvaliacaoMinimo} onChange={(e) => setValorAvaliacaoMinimo(e.target.value)} className={campoClass} />
+                    <CampoEuros id="valorAvaliacaoMinimo" value={valorAvaliacaoMinimo} onChange={setValorAvaliacaoMinimo} className={campoClass} />
                   </div>
                 )}
                 {condAvaliacao === "sim" && (
@@ -361,7 +394,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                 {condFinanciamento === "sim" && (
                   <div>
                     <label htmlFor="valorFinanciamentoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
-                    <input id="valorFinanciamentoMinimo" type="number" value={valorFinanciamentoMinimo} onChange={(e) => setValorFinanciamentoMinimo(e.target.value)} className={campoClass} />
+                    <CampoEuros id="valorFinanciamentoMinimo" value={valorFinanciamentoMinimo} onChange={setValorFinanciamentoMinimo} className={campoClass} />
                   </div>
                 )}
                 {condFinanciamento === "sim" && (
