@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ace Labs — Dashboards em tempo real</title>
+<title>Ace Labs - Dashboards em tempo real</title>
 <meta name="description" content="Transformamos informação dispersa em dashboards inteligentes, com os indicadores mais importantes da sua empresa numa única plataforma.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
@@ -77,6 +77,54 @@
     white-space:nowrap;
   }
   .nav-cta:hover{background:#000;}
+
+  /* MENU MOVEL */
+  .nav-burger{
+    display:none;
+    flex:none;
+    width:36px;height:36px;
+    border:none;background:none;padding:0;
+    cursor:pointer;
+    flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  }
+  .nav-burger span{display:block;width:20px;height:2px;background:#1d1d1f;border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
+  .nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .nav-mobile{
+    display:none;
+    position:absolute;top:70px;left:0;right:0;
+    background:rgba(255,255,255,.97);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.08);
+    flex-direction:column;
+    padding:6px 24px 22px;
+  }
+  .nav-mobile.open{display:flex;}
+  .nav-scrim{
+    display:none;
+    position:fixed;top:70px;left:0;right:0;bottom:0;
+    background:rgba(10,10,12,.28);
+    z-index:90;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .nav-scrim.open{display:block;opacity:1;}
+  body.nav-open{overflow:hidden;}
+  .nav-mobile a{
+    padding:15px 2px;
+    font-size:15.5px;font-weight:500;color:#1d1d1f;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .nav-mobile-cta{
+    margin-top:14px;
+    display:inline-flex!important;align-items:center;justify-content:center;gap:9px;
+    background:#141414;color:#fff!important;
+    padding:14px 22px;border-radius:980px;
+    font-weight:500!important;border-bottom:none!important;
+  }
   a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
 
   /* BOTOES-PILULA */
@@ -104,7 +152,7 @@
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
-  /* ARTIGO DE SERVIÇO — imagem + texto lado a lado */
+  /* ARTIGO DE SERVIÇO - imagem + texto lado a lado */
   .article-hero{padding:100px 0 60px;}
   .article-grid{
     display:grid;
@@ -162,6 +210,9 @@
     .article-grid{grid-template-columns:1fr;gap:36px;}
     .article-body{order:1;}
     .article-media{order:2;max-width:420px;}
+    .navlinks{display:none;}
+    .nav-cta{display:none;}
+    .nav-burger{display:flex;}
   }
   @media (max-width:640px){
     .closing{padding:80px 0;}
@@ -181,8 +232,19 @@
       <a href="../index.html#empresa">Empresa</a>
     </div>
     <a href="../index.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="../index.html#servicos">Serviços</a>
+    <a href="../index.html#como-funciona">Como funciona</a>
+    <a href="../index.html#recursos">Recursos</a>
+    <a href="../index.html#empresa">Empresa</a>
+    <a href="../index.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
+<div class="nav-scrim" id="nav-scrim"></div>
 
 <header class="article-hero">
   <div class="wrap article-grid">
@@ -206,7 +268,7 @@
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
-    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado — connosco ou sem nós.</p>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
       <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
@@ -225,6 +287,40 @@
     var n=document.querySelector("nav");
     var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
     f();window.addEventListener("scroll",f,{passive:true});
+  })();
+  (function(){
+    var burger = document.getElementById('nav-burger');
+    var mobile = document.getElementById('nav-mobile');
+    var scrim = document.getElementById('nav-scrim');
+    if(!burger || !mobile) return;
+    function closeMenu(){
+      mobile.classList.remove('open');
+      if(scrim) scrim.classList.remove('open');
+      document.body.classList.remove('nav-open');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-label', 'Abrir menu');
+    }
+    function openMenu(){
+      mobile.classList.add('open');
+      if(scrim) scrim.classList.add('open');
+      document.body.classList.add('nav-open');
+      burger.setAttribute('aria-expanded', 'true');
+      burger.setAttribute('aria-label', 'Fechar menu');
+    }
+    burger.addEventListener('click', function(){
+      if(mobile.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
+    mobile.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+    if(scrim) scrim.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeMenu();
+    });
+    window.addEventListener('resize', function(){
+      if(window.innerWidth > 860) closeMenu();
+    });
   })();
 </script>
 

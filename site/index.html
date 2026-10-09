@@ -43,6 +43,9 @@
   [data-reveal].is-visible{opacity:1;transform:translateY(0);}
   @media (prefers-reduced-motion:reduce){
     [data-reveal]{opacity:1;transform:none;transition:none;}
+    .hero-eyebrow,.hero h1,.hero .sub-col,.hero .hero-ctas,.hero-note,.hero-ai-panel,.hero-photo{
+      animation:none!important;opacity:1!important;transform:none!important;
+    }
   }
 
   /* NAV */
@@ -118,6 +121,16 @@
     padding:6px 24px 22px;
   }
   .nav-mobile.open{display:flex;}
+  .nav-scrim{
+    display:none;
+    position:fixed;top:70px;left:0;right:0;bottom:0;
+    background:rgba(10,10,12,.28);
+    z-index:90;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .nav-scrim.open{display:block;opacity:1;}
+  body.nav-open{overflow:hidden;}
   .nav-mobile a{
     padding:15px 2px;
     font-size:15.5px;font-weight:500;color:#1d1d1f;
@@ -164,7 +177,7 @@
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
-  /* HERO — fotografia de fundo com texto real por cima */
+  /* HERO - fotografia de fundo com texto real por cima */
   .hero{
     position:relative;
     display:flex;
@@ -182,6 +195,12 @@
     object-position:62% 46%;
     z-index:0;
     display:block;
+    transform:scale(1);
+    animation:heroPhotoZoom 20s ease-out forwards;
+  }
+  @keyframes heroPhotoZoom{
+    from{transform:scale(1);}
+    to{transform:scale(1.08);}
   }
   .hero-veil{
     position:absolute;
@@ -237,6 +256,21 @@
     color:#33363a;
   }
 
+  /* entrada animada do hero */
+  @keyframes heroFadeUp{
+    from{opacity:0;transform:translateY(22px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .hero-eyebrow,.hero h1,.hero .sub-col,.hero .hero-ctas,.hero-note{
+    opacity:0;
+    animation:heroFadeUp .8s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .hero-eyebrow{animation-delay:.05s;}
+  .hero h1{animation-delay:.16s;}
+  .hero .sub-col{animation-delay:.32s;}
+  .hero .hero-ctas{animation-delay:.46s;}
+  .hero-note{animation-delay:.6s;}
+
   @media (max-width:1250px){
     .hero{min-height:min(78vh,660px);}
     .hero-photo{object-position:68% 46%;}
@@ -284,6 +318,13 @@
     border-radius:20px;
     padding:18px 20px 20px;
     box-shadow:0 28px 54px -22px rgba(10,20,40,.4);
+    opacity:0;
+    animation:heroPanelIn .9s cubic-bezier(.2,.8,.2,1) forwards;
+    animation-delay:.5s;
+  }
+  @keyframes heroPanelIn{
+    from{opacity:0;transform:translateY(16px) scale(.97);}
+    to{opacity:1;transform:translateY(0) scale(1);}
   }
   .hero-ai-head{
     display:flex;align-items:center;gap:8px;
@@ -498,7 +539,7 @@
     .team-grid{grid-template-columns:1fr;}
   }
 
-  /* SERVICES v2 — colunas com cartoes escalonados + copy a direita */
+  /* SERVICES v2 - colunas com cartoes escalonados + copy a direita */
   .services{padding:88px 0;overflow:visible;}
   .services-wrap{
     display:grid;
@@ -535,9 +576,23 @@
     display:flex;align-items:center;justify-content:center;
   }
   .service-icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
-  .service-num{display:block;font-size:10.5px;font-weight:600;color:#B9BAC2;letter-spacing:.02em;margin-bottom:1px;}
+  .service-meta{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+  .service-num{display:block;font-size:10.5px;font-weight:600;color:#B9BAC2;letter-spacing:.02em;}
+  .service-audience{
+    display:inline-flex;align-items:center;
+    font-size:9px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    padding:2px 8px;border-radius:980px;
+  }
+  .service-audience-agente{background:#eaf2fd;color:#0071e3;}
+  .service-audience-agencia{background:#f0f1f3;color:#5f6368;}
   .service-text h4{font-size:13.5px;font-weight:600;color:#131313;margin:0 0 2px;letter-spacing:-0.01em;}
   .service-text p{font-size:11.5px;color:#6b6d72;line-height:1.42;}
+
+  .service-card{transition:transform .2s ease, box-shadow .2s ease, opacity .28s ease;}
+  .service-card.is-fading{opacity:0;transform:scale(.93);}
+  .service-card.is-hidden{display:none;}
+
+  .services-filter{margin-bottom:22px;}
 
   .services-copy .hero-eyebrow{margin-bottom:20px;}
   .services-copy h2{
@@ -586,7 +641,7 @@
     .hand-note{display:none;}
   }
 
-  /* COMO TRABALHAMOS v2 — copy a esquerda + cadeia de esferas a direita */
+  /* COMO TRABALHAMOS v2 - copy a esquerda + cadeia de esferas a direita */
   .how-v2{padding:110px 0;overflow:hidden;position:relative;}
   .how-v2::after{
     content:"";
@@ -686,7 +741,7 @@
     .how-orb-5{order:9;} .how-info-5{order:10;}
   }
 
-  /* COMO TRABALHAMOS v3 — escada ascendente esquerda->direita */
+  /* COMO TRABALHAMOS v3 - escada ascendente esquerda->direita */
   .how-wrap2{
     max-width:1320px;
     display:grid;
@@ -808,7 +863,7 @@
     .how-text p{max-width:32ch;margin:0 auto;}
   }
 
-  /* COMO TRABALHAMOS v4 — linha horizontal, icone + texto lado a lado */
+  /* COMO TRABALHAMOS v4 - linha horizontal, icone + texto lado a lado */
   .how-row{
     display:grid;
     grid-template-columns:repeat(5,1fr);
@@ -859,7 +914,7 @@
     .how-row{grid-template-columns:1fr;gap:22px;max-width:480px;}
   }
 
-  /* COMO TRABALHAMOS v5 — timeline horizontal, largura total */
+  /* COMO TRABALHAMOS v5 - timeline horizontal, largura total */
   .how-v5{padding:100px 0 90px;}
   .how5-top{
     display:flex;
@@ -950,6 +1005,66 @@
     .how5-circle{grid-column:1;grid-row:1/3;width:48px;height:48px;font-size:15px;}
     .how5-step h4{grid-column:2;grid-row:1;margin:2px 0 4px;font-size:13.5px;}
     .how5-step p{grid-column:2;grid-row:2;font-size:11.5px;line-height:1.42;max-width:none;}
+  }
+
+  /* SIMULADOR DE FLUXO DO COCKPIT */
+  .flow-sim{padding:10px 0 110px;}
+  .flow-tabs{
+    display:inline-flex;gap:4px;margin-top:32px;padding:4px;
+    background:var(--gray-bg,#f0f1f3);border-radius:980px;
+  }
+  .flow-tab{
+    padding:10px 22px;border-radius:980px;border:none;background:none;
+    font-size:13.5px;font-weight:600;color:#6e6e73;cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+    font-family:inherit;
+  }
+  .flow-tab.is-active{background:#101113;color:#fff;}
+  .flow-tab:hover:not(.is-active){color:#1d1d1f;}
+
+  .flow-sim-grid{margin-top:52px;display:grid;grid-template-columns:1fr 280px;gap:16px 56px;align-items:start;}
+  .flow-timeline{position:relative;}
+  .flow-step{
+    position:relative;display:grid;grid-template-columns:28px 1fr;column-gap:16px;
+    padding-bottom:26px;text-align:left;background:none;border:none;cursor:pointer;width:100%;
+    font-family:inherit;
+  }
+  .flow-step:last-child{padding-bottom:0;}
+  .flow-dot-col{position:relative;display:flex;justify-content:center;}
+  .flow-dot{
+    width:11px;height:11px;border-radius:50%;margin-top:3px;z-index:1;
+    background:#fff;border:2px solid #d5d8de;
+    transition:background .2s ease,border-color .2s ease,box-shadow .2s ease;
+  }
+  .flow-dot-col::after{
+    content:"";position:absolute;top:16px;bottom:-26px;left:50%;width:1.5px;
+    transform:translateX(-50%);background:#e4e6ea;transition:background .2s ease;
+  }
+  .flow-step:last-child .flow-dot-col::after{display:none;}
+  .flow-step.is-done .flow-dot{background:#1fae5a;border-color:#1fae5a;}
+  .flow-step.is-done .flow-dot-col::after{background:#1fae5a;}
+  .flow-step.is-active .flow-dot{background:#0071e3;border-color:#0071e3;box-shadow:0 0 0 5px rgba(0,113,227,.16);}
+  .flow-step-title{display:block;font-size:15px;font-weight:600;color:#9a9ca0;transition:color .2s ease;}
+  .flow-step.is-active .flow-step-title,.flow-step.is-done .flow-step-title{color:#1d1d1f;}
+  .flow-step-detail{display:block;margin-top:4px;font-size:13px;line-height:1.5;color:#b5b7bc;max-width:42ch;transition:color .2s ease;}
+  .flow-step.is-active .flow-step-detail{color:#5f6470;}
+  .flow-step.is-done .flow-step-detail{color:#9a9ca0;}
+
+  .flow-phone-wrap{position:sticky;top:120px;width:240px;margin:0 auto;}
+  .flow-notif-top{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:650;color:#9a9ca0;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;}
+  .flow-notif-dot{width:6px;height:6px;border-radius:50%;background:#1fae5a;flex:none;}
+  .flow-notif-title{font-size:15px;font-weight:700;color:#1d1d1f;margin-bottom:8px;min-height:38px;}
+  .flow-notif-detail{font-size:12px;line-height:1.55;color:#5f6470;min-height:60px;}
+  .flow-notif-tag{display:inline-flex;margin-top:14px;font-size:10px;font-weight:700;padding:5px 10px;border-radius:980px;background:#eaf2fd;color:#0071e3;}
+  .flow-progress-dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:18px;}
+  .flow-progress-dot{width:5px;height:5px;border-radius:50%;background:rgba(29,29,31,.14);transition:background .2s ease,width .2s ease;}
+  .flow-progress-dot.is-active{background:#0071e3;width:14px;border-radius:3px;}
+  .flow-progress-dot.is-done{background:#1fae5a;}
+
+  @media (max-width:880px){
+    .flow-sim-grid{grid-template-columns:1fr;gap:40px;}
+    .flow-phone-wrap{position:static;width:200px;}
+    .flow-step-detail{max-width:none;}
   }
 
   /* SECTION */
@@ -1236,6 +1351,7 @@
     <a href="#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
+<div class="nav-scrim" id="nav-scrim"></div>
 
 <header class="hero">
   <img class="hero-photo" src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1800&q=80" alt="Secretária organizada com laptop, junto a uma janela com vista sobre a cidade">
@@ -1442,64 +1558,74 @@
 <section class="services" id="servicos">
   <div class="wrap services-wrap">
     <div class="services-col">
-      <a class="service-card" data-reveal style="--n:1" href="servicos/dashboards-tempo-real.html">
+      <a class="service-card" data-reveal data-audience="agencia" style="--n:1" href="servicos/dashboards-tempo-real.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">01</span>
+          <div class="service-meta"><span class="service-num">01</span><span class="service-audience service-audience-agencia">Agência</span></div>
           <h4>Dashboards em tempo real</h4>
           <p>Acompanhe os dados mais importantes da empresa, atualizados ao minuto.</p>
         </div>
       </a>
-      <a class="service-card" data-reveal style="--n:2" href="servicos/comunicacao-follow-up.html">
+      <a class="service-card" data-reveal data-audience="agente" style="--n:2" href="servicos/comunicacao-follow-up.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">02</span>
+          <div class="service-meta"><span class="service-num">02</span><span class="service-audience service-audience-agente">Agente</span></div>
           <h4>Comunicação com follow-up</h4>
           <p>Um sistema simples para falar com clientes e fornecedores, sem deixar nada por seguir.</p>
         </div>
       </a>
-      <a class="service-card" data-reveal style="--n:3" href="servicos/workflows-a-medida.html">
+      <a class="service-card" data-reveal data-audience="agencia" style="--n:3" href="servicos/workflows-a-medida.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3.7v4h-4"/><path d="M6 20.3v-4h4"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">03</span>
+          <div class="service-meta"><span class="service-num">03</span><span class="service-audience service-audience-agencia">Agência</span></div>
           <h4>Workflows à medida</h4>
           <p>Desenhamos e otimizamos os fluxos de trabalho da sua equipa.</p>
         </div>
       </a>
-      <a class="service-card" data-reveal style="--n:4" href="servicos/servicos-personalizados.html">
+      <a class="service-card" data-reveal data-audience="agencia" style="--n:4" href="servicos/servicos-personalizados.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">04</span>
+          <div class="service-meta"><span class="service-num">04</span><span class="service-audience service-audience-agencia">Agência</span></div>
           <h4>Serviços personalizados</h4>
           <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
         </div>
       </a>
-      <a class="service-card" data-reveal style="--n:5" href="servicos/cpcv-ia.html">
+      <a class="service-card" data-reveal data-audience="agencia" style="--n:5" href="servicos/cpcv-ia.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">05</span>
+          <div class="service-meta"><span class="service-num">05</span><span class="service-audience service-audience-agencia">Agência</span></div>
           <h4>CPCV com IA</h4>
           <p>Gera contratos-promessa de compra e venda em minutos, com dados extraídos automaticamente.</p>
         </div>
       </a>
-      <a class="service-card" data-reveal style="--n:6" href="servicos/cockpit.html">
+      <a class="service-card" data-reveal data-audience="agente" style="--n:6" href="servicos/cockpit.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg>
         </div>
         <div class="service-text">
-          <span class="service-num">06</span>
+          <div class="service-meta"><span class="service-num">06</span><span class="service-audience service-audience-agente">Agente</span></div>
           <h4>Cockpit <span style="font-weight:500;color:var(--ink-2);">· em breve</span></h4>
           <p>Dashboard, CRM com funil automático e angariações, tudo sincronizado com o calendário.</p>
+        </div>
+      </a>
+      <a class="service-card" data-reveal data-audience="agencia" style="--n:7" href="servicos/gestao-recrutamento.html">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v1"/><path d="M16.5 4.5a3.2 3.2 0 0 1 0 6.4"/><path d="M21 20v-1a5.5 5.5 0 0 0-4-5.3"/></svg>
+        </div>
+        <div class="service-text">
+          <div class="service-meta"><span class="service-num">07</span><span class="service-audience service-audience-agencia">Agência</span></div>
+          <h4>Gestão de Recrutamento</h4>
+          <p>Para team leaders e brokers: funil de candidatos, onboarding e alertas, da candidatura à primeira angariação.</p>
         </div>
       </a>
     </div>
@@ -1508,6 +1634,11 @@
       <p class="hero-eyebrow">Serviços</p>
       <h2>Soluções que transformam o seu <span class="accent">dia a dia</span><i class="dot">.</i></h2>
       <p class="sub-col">Da estratégia à execução, criamos sistemas de IA e automação adaptados à realidade da sua agência.</p>
+      <div class="flow-tabs services-filter" role="tablist">
+        <button type="button" class="flow-tab is-active" data-audience-filter="todos" role="tab" aria-selected="true">Todos</button>
+        <button type="button" class="flow-tab" data-audience-filter="agente" role="tab" aria-selected="false">Para agentes</button>
+        <button type="button" class="flow-tab" data-audience-filter="agencia" role="tab" aria-selected="false">Para agências</button>
+      </div>
       <div class="hero-ctas">
         <a href="#contacto" class="btn-dark">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
         <a href="#contacto" class="btn-outline">Falar com um especialista</a>
@@ -1565,6 +1696,29 @@
         <a href="#empresa" class="btn-outline">Conhecer a equipa</a>
       </div>
       <p class="how5-tag">Automação. Pessoas. Resultados.<span class="how5-tagline" aria-hidden="true"></span></p>
+    </div>
+  </div>
+</section>
+
+<section class="section flow-sim" id="fluxo-cockpit">
+  <div class="wrap">
+    <p class="hero-eyebrow">Cockpit em ação</p>
+    <h2 class="serif" style="font-size:clamp(28px,3.2vw,38px);max-width:22ch;">Automação que segue o agente, <span class="muted">passo a passo.</span></h2>
+    <p class="sub-col" style="margin-top:14px;max-width:48ch;">O Cockpit transforma o funil de vendas em lembretes automáticos - compradores e proprietários, cada um com o seu ritmo. Experimente o fluxo.</p>
+
+    <div class="flow-tabs" role="tablist">
+      <button type="button" class="flow-tab is-active" data-funnel="compradores" role="tab" aria-selected="true">Funil de compradores</button>
+      <button type="button" class="flow-tab" data-funnel="proprietarios" role="tab" aria-selected="false">Funil de proprietários</button>
+    </div>
+
+    <div class="flow-sim-grid">
+      <div class="flow-timeline" id="flow-timeline" aria-live="polite"></div>
+      <div class="flow-phone-wrap">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen" id="flow-phone-screen"></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1733,15 +1887,20 @@
   (function(){
     var burger = document.getElementById('nav-burger');
     var mobile = document.getElementById('nav-mobile');
+    var scrim = document.getElementById('nav-scrim');
     if(!burger || !mobile) return;
 
     function closeMenu(){
       mobile.classList.remove('open');
+      if(scrim) scrim.classList.remove('open');
+      document.body.classList.remove('nav-open');
       burger.setAttribute('aria-expanded', 'false');
       burger.setAttribute('aria-label', 'Abrir menu');
     }
     function openMenu(){
       mobile.classList.add('open');
+      if(scrim) scrim.classList.add('open');
+      document.body.classList.add('nav-open');
       burger.setAttribute('aria-expanded', 'true');
       burger.setAttribute('aria-label', 'Fechar menu');
     }
@@ -1753,6 +1912,7 @@
     mobile.querySelectorAll('a').forEach(function(a){
       a.addEventListener('click', closeMenu);
     });
+    if(scrim) scrim.addEventListener('click', closeMenu);
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape') closeMenu();
     });
@@ -1870,6 +2030,160 @@
     }
 
     step();
+  })();
+
+  (function(){
+    var section = document.getElementById('fluxo-cockpit');
+    if(!section) return;
+    var tabs = Array.prototype.slice.call(section.querySelectorAll('.flow-tab'));
+    var timelineEl = document.getElementById('flow-timeline');
+    var screenEl = document.getElementById('flow-phone-screen');
+
+    var FLOWS = {
+      compradores: {
+        stages: [
+          { title: 'Lead Qualificada', detail: 'Alerta laranja ao fim de 10 dias sem avançar. Lembrete semanal para enviar opções, até ao primeiro envio.', tag: 'Alerta · 10 dias' },
+          { title: 'Imóveis Enviados', detail: 'Objetivo de 10 imóveis enviados, com escala de cor a mostrar o progresso.', tag: 'Meta · 10 imóveis' },
+          { title: 'Visitas Realizadas', detail: 'Objetivo de 5 visitas, com lembrete semanal para agendar a próxima.', tag: 'Meta · 5 visitas' },
+          { title: 'Propostas Efetuadas', detail: 'Objetivo de 3 propostas em curso, com escala de cor a mostrar o progresso.', tag: 'Meta · 3 propostas' },
+          { title: 'CPCV', detail: 'Etiqueta automática com a contagem decrescente até à escritura.', tag: 'Countdown ativo' },
+          { title: 'Escritura', detail: 'Aviso automático ao agente, 6 meses depois, para ligar e dar seguimento.', tag: 'Aviso · 6 meses' },
+          { title: 'Negócio Concluído', detail: 'Funil fechado com sucesso - histórico completo guardado no processo.', tag: 'Fechado' }
+        ]
+      },
+      proprietarios: {
+        stages: [
+          { title: 'FSBO', detail: 'Um clique regista a chamada feita, com campo para observações.', tag: 'Registo manual' },
+          { title: 'Marcação de Reunião', detail: 'Reunião entra no calendário do agente, com aviso 2h antes.', tag: 'Aviso · 2h antes' },
+          { title: 'Reunião de Angariação', detail: '2h depois da reunião, lembrete automático para enviar mensagem de agradecimento.', tag: 'Aviso · 2h depois' },
+          { title: 'Dossier + Instagram', detail: '2 dias depois, aviso para enviar o dossier digital e a página de Instagram.', tag: 'Aviso · 2 dias' },
+          { title: 'Imóvel Vendido', detail: '7 dias depois, aviso para partilhar um imóvel semelhante já vendido, de forma natural.', tag: 'Aviso · 7 dias' },
+          { title: 'Follow-up 1', detail: '14 dias depois da reunião, chamada de ponto de situação.', tag: 'Aviso · 14 dias' },
+          { title: 'Follow-up 2', detail: '22 dias depois da reunião, segunda chamada de ponto de situação.', tag: 'Aviso · 22 dias' },
+          { title: 'Angariado', detail: '30 dias depois, aviso para fechar a angariação no Gestor de Angariações.', tag: 'Angariação fechada' }
+        ]
+      }
+    };
+
+    var current = 'compradores';
+    var idx = 0;
+    var timer = null;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function renderTimeline(){
+      var stages = FLOWS[current].stages;
+      timelineEl.innerHTML = stages.map(function(s, i){
+        return '<button type="button" class="flow-step" data-i="' + i + '">' +
+          '<span class="flow-dot-col"><span class="flow-dot"></span></span>' +
+          '<span><span class="flow-step-title">' + s.title + '</span>' +
+          '<span class="flow-step-detail">' + s.detail + '</span></span>' +
+        '</button>';
+      }).join('');
+      Array.prototype.slice.call(timelineEl.querySelectorAll('.flow-step')).forEach(function(btn){
+        btn.addEventListener('click', function(){
+          setActive(parseInt(btn.getAttribute('data-i'), 10), true);
+        });
+      });
+    }
+
+    function renderPhone(){
+      var stage = FLOWS[current].stages[idx];
+      var dots = FLOWS[current].stages.map(function(_, i){
+        var cls = i < idx ? 'is-done' : (i === idx ? 'is-active' : '');
+        return '<span class="flow-progress-dot ' + cls + '"></span>';
+      }).join('');
+      screenEl.innerHTML =
+        '<div class="flow-notif-top"><span class="flow-notif-dot"></span> Cockpit · agora</div>' +
+        '<div class="flow-notif-title">' + stage.title + '</div>' +
+        '<div class="flow-notif-detail">' + stage.detail + '</div>' +
+        '<span class="flow-notif-tag">' + stage.tag + '</span>' +
+        '<div class="flow-progress-dots">' + dots + '</div>';
+    }
+
+    function applyStates(){
+      Array.prototype.slice.call(timelineEl.querySelectorAll('.flow-step')).forEach(function(row, i){
+        row.classList.remove('is-active', 'is-done');
+        if(i < idx) row.classList.add('is-done');
+        if(i === idx) row.classList.add('is-active');
+      });
+    }
+
+    function setActive(i, manual){
+      idx = i;
+      applyStates();
+      renderPhone();
+      if(manual) restartAutoplay(true);
+    }
+
+    function tick(){
+      idx = (idx + 1) % FLOWS[current].stages.length;
+      applyStates();
+      renderPhone();
+    }
+
+    function startAutoplay(){
+      stopAutoplay();
+      if(reduceMotion) return;
+      timer = setInterval(tick, 2600);
+    }
+    function stopAutoplay(){
+      if(timer){ clearInterval(timer); timer = null; }
+    }
+    function restartAutoplay(withDelay){
+      stopAutoplay();
+      if(reduceMotion) return;
+      if(withDelay){ setTimeout(startAutoplay, 4200); }
+      else { startAutoplay(); }
+    }
+
+    function switchFunnel(key){
+      current = key;
+      idx = 0;
+      tabs.forEach(function(t){
+        var active = t.getAttribute('data-funnel') === key;
+        t.classList.toggle('is-active', active);
+        t.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      renderTimeline();
+      applyStates();
+      renderPhone();
+      restartAutoplay(false);
+    }
+
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){ switchFunnel(t.getAttribute('data-funnel')); });
+    });
+
+    switchFunnel('compradores');
+  })();
+
+  (function(){
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.services-filter [data-audience-filter]'));
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.service-card[data-audience]'));
+    if(!buttons.length || !cards.length) return;
+
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var filter = btn.getAttribute('data-audience-filter');
+        buttons.forEach(function(b){
+          var active = b === btn;
+          b.classList.toggle('is-active', active);
+          b.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        cards.forEach(function(card){
+          var matches = filter === 'todos' || card.getAttribute('data-audience') === filter;
+          if(matches){
+            card.classList.remove('is-hidden');
+            requestAnimationFrame(function(){ card.classList.remove('is-fading'); });
+          } else {
+            card.classList.add('is-fading');
+            setTimeout(function(){
+              if(card.classList.contains('is-fading')) card.classList.add('is-hidden');
+            }, 260);
+          }
+        });
+      });
+    });
   })();
 </script>
 

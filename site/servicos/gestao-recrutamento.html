@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ace Labs - CPCV com IA</title>
-<meta name="description" content="Larga os documentos, a IA extrai os dados e pergunta só o que falta. O CPCV sai em PDF e Word, pronto a assinar.">
+<title>Ace Labs - Gestão de Recrutamento</title>
+<meta name="description" content="O funil de recrutamento da sua agência, da candidatura à primeira angariação, sem perder ninguém pelo caminho.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
 <style>
@@ -17,6 +17,8 @@
     --blue-dark:#0059b3;
     --blue-soft-bg:#eaf2fd;
     --line:rgba(0,0,0,.08);
+    --amber-bg:#fff4e5;
+    --amber-text:#9a5b00;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -224,6 +226,7 @@
     border-top:1px solid var(--line);
   }
   .article-ctas{margin-top:28px;}
+  .article-note{margin-top:14px;font-size:13px;color:var(--ink-2);}
 
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
@@ -248,7 +251,7 @@
     .article-hero{padding:130px 0 70px;}
     .article-grid{grid-template-columns:1fr;gap:40px;}
     .article-body{order:1;}
-    .article-media{order:2;}
+    .article-media{order:2;max-width:380px;margin:0 auto;}
     .navlinks{display:none;}
     .nav-cta{display:none;}
     .nav-burger{display:flex;}
@@ -289,45 +292,45 @@
   <div class="wrap article-grid">
     <div class="article-body">
       <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <span class="badge">Para agências imobiliárias</span>
-      <h1>CPCV <span class="muted">com IA</span></h1>
-      <p class="article-tagline">Da papelada ao contrato pronto, em minutos - não em dias de troca de emails.</p>
+      <span class="badge">Para team leaders e brokers</span>
+      <h1>Gestão de <span class="muted">Recrutamento</span></h1>
+      <p class="article-tagline">O funil de recrutamento da sua agência - da candidatura à primeira angariação, sem perder ninguém pelo caminho.</p>
 
       <div class="feature-list">
         <div class="feature-item">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 12v6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3.7v4h-4"/><path d="M6 20.3v-4h4"/></svg>
           </div>
           <div class="feature-text">
-            <h3>Extração automática de dados</h3>
-            <p>O agente larga os documentos do imóvel e das partes, e a IA extrai os dados sozinha.</p>
+            <h3>Funil de candidatos automático</h3>
+            <p>Candidatura, primeira conversa, entrevista, proposta e onboarding - cada fase com lembrete automático para o recrutador nunca deixar um candidato parado.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
           </div>
           <div class="feature-text">
-            <h3>Pergunta só o que falta</h3>
-            <p>Um chat simples pede apenas os dados em falta, sem formulários intermináveis.</p>
+            <h3>Dashboard de recrutamento</h3>
+            <p>Candidaturas recebidas, taxa de conversão por fase e tempo médio até à contratação - tudo visível num único painel.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.6 8 10 4.5-1.4 8-5 8-10V6z"/><path d="m9.5 12 2 2 4-4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/><path d="M7.5 14.5h9"/></svg>
           </div>
           <div class="feature-text">
-            <h3>Aprovação antes de seguir</h3>
-            <p>A gestora de processos revê e aprova, mantendo controlo total sobre o resultado final.</p>
+            <h3>Onboarding estruturado</h3>
+            <p>Checklist automático das primeiras semanas de um agente novo - formação, ferramentas e primeiras angariações - sincronizado com o calendário da equipa.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8.5 13.5h7M8.5 17h5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           </div>
           <div class="feature-text">
-            <h3>PDF e Word prontos a assinar</h3>
-            <p>O CPCV sai gerado nos dois formatos, pronto a enviar às partes.</p>
+            <h3>Alertas de candidatos parados</h3>
+            <p>Aviso automático quando um candidato fica sem resposta há vários dias, para não perder talento por falta de follow-up.</p>
           </div>
         </div>
       </div>
@@ -337,38 +340,57 @@
         <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
         <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
       </div>
+      <p class="article-note">Faz parte do pacote de Automação de Processos - construído à medida do funil de recrutamento da sua agência.</p>
     </div>
     <div class="article-media">
-      <svg viewBox="0 0 480 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um contrato CPCV a ser gerado automaticamente, com um chat a confirmar os dados em falta e um carimbo de aprovado.">
-        <rect width="480" height="420" rx="28" fill="#eaf2fd"/>
+      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um quadro de recrutamento com três colunas - Candidatura, Entrevista e Proposta - cada uma com cartões de candidatos, e métricas de tempo médio até à contratação e taxa de conversão.">
+        <rect width="380" height="420" rx="28" fill="#eaf2fd"/>
+        <rect x="24" y="36" width="332" height="352" rx="22" fill="#ffffff"/>
 
-        <rect x="54" y="48" width="252" height="332" rx="18" fill="#ffffff" stroke="rgba(0,0,0,.08)"/>
-        <rect x="82" y="84" width="150" height="14" rx="7" fill="#1d1d1f"/>
-        <rect x="82" y="112" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="130" width="176" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="148" width="186" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="178" width="196" height="1" fill="rgba(0,0,0,.08)"/>
-        <rect x="82" y="198" width="96" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="216" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="234" width="166" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="264" width="196" height="1" fill="rgba(0,0,0,.08)"/>
-        <rect x="82" y="284" width="130" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="302" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="192" y="332" width="62" height="26" rx="13" fill="#0071e3"/>
-        <text x="223" y="349" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">PDF</text>
+        <text x="46" y="70" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">Recrutamento</text>
+        <text x="46" y="88" font-family="Inter, Arial, sans-serif" font-size="10" fill="#9a9ca0">8 candidaturas ativas</text>
+        <line x1="46" y1="104" x2="334" y2="104" stroke="rgba(0,0,0,.08)"/>
 
-        <rect x="252" y="116" width="192" height="156" rx="20" fill="#ffffff" stroke="rgba(0,0,0,.08)"/>
-        <circle cx="284" cy="150" r="14" fill="#0071e3"/>
-        <text x="284" y="155" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">IA</text>
-        <rect x="308" y="142" width="112" height="9" rx="4.5" fill="rgba(29,29,31,.5)"/>
-        <rect x="308" y="158" width="86" height="8" rx="4" fill="rgba(29,29,31,.22)"/>
-        <rect x="276" y="186" width="144" height="34" rx="14" fill="#f5f5f7"/>
-        <text x="296" y="207" font-family="Inter, Arial, sans-serif" font-size="11" fill="#1d1d1f">Qual o prazo da escritura?</text>
-        <rect x="276" y="230" width="128" height="30" rx="14" fill="#eaf2fd"/>
-        <text x="296" y="249" font-family="Inter, Arial, sans-serif" font-size="11" fill="#0059b3">15 de dezembro</text>
+        <circle cx="50" cy="126" r="4" fill="#0071e3"/>
+        <text x="60" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Candidatura</text>
+        <rect x="46" y="142" width="92" height="58" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="64" cy="162" r="10" fill="#c7e0fa"/>
+        <rect x="80" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="80" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="58" y="180" width="68" height="12" rx="6" fill="#eaf2fd"/>
+        <text x="64" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#0071e3">Nova</text>
 
-        <circle cx="414" cy="92" r="28" fill="#1fae5a"/>
-        <path d="M402 92l8 8 16-16" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="46" y="208" width="92" height="46" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="64" cy="228" r="10" fill="#c7e0fa"/>
+        <rect x="80" y="223" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="80" y="234" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+
+        <circle cx="152" cy="126" r="4" fill="#ff9f0a"/>
+        <text x="162" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Entrevista</text>
+        <rect x="148" y="142" width="92" height="58" rx="10" fill="#fff8ee" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="166" cy="162" r="10" fill="#ffe3b0"/>
+        <rect x="182" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="182" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="160" y="180" width="72" height="12" rx="6" fill="#fff4e5"/>
+        <text x="166" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#9a5b00">Agendada</text>
+
+        <circle cx="254" cy="126" r="4" fill="#1fae5a"/>
+        <text x="264" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Proposta</text>
+        <rect x="250" y="142" width="92" height="58" rx="10" fill="#f2faf5" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="268" cy="162" r="10" fill="#bfe8cf"/>
+        <rect x="284" y="157" width="40" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="284" y="168" width="30" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="262" y="180" width="66" height="12" rx="6" fill="#e8f8ee"/>
+        <text x="268" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#1a8f49">Enviada</text>
+
+        <rect x="46" y="296" width="288" height="1" fill="rgba(0,0,0,.08)"/>
+
+        <text x="46" y="322" font-family="Inter, Arial, sans-serif" font-size="9" fill="#9a9ca0">Tempo médio até contratação</text>
+        <text x="46" y="344" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700" fill="#0071e3">18 dias</text>
+
+        <rect x="206" y="304" width="128" height="46" rx="12" fill="#eaf2fd"/>
+        <text x="220" y="324" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Taxa de conversão</text>
+        <text x="220" y="341" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#0071e3">32%</text>
       </svg>
     </div>
   </div>
