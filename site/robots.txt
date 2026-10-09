@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /servicos/departamentos-interligados.html
+Disallow: /servicos/microsites-internos.html
+
+Sitemap: https://acelabs.pt/sitemap.xml
