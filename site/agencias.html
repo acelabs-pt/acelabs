@@ -59,9 +59,10 @@
   [data-reveal].is-visible{opacity:1;transform:translateY(0);}
   @media (prefers-reduced-motion:reduce){
     [data-reveal]{opacity:1;transform:none;transition:none;}
-    .hero-eyebrow,.hero h1,.hero .sub-col,.hero .hero-ctas,.hero-note,.hero-ai-panel,.hero-photo{
+    .hero-eyebrow,.hero h1,.hero .sub-col,.hero .hero-ctas,.hero-note,.hero-ai-panel{
       animation:none!important;opacity:1!important;transform:none!important;
     }
+    .flow-chip{display:none;}
   }
 
   /* NAV */
@@ -217,7 +218,7 @@
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
-  /* HERO - fotografia de fundo com texto real por cima */
+  /* HERO - fundo de marca animado, sem fotografia */
   .hero{
     position:relative;
     display:flex;
@@ -225,29 +226,54 @@
     justify-content:center;
     overflow:hidden;
     min-height:min(90vh,820px);
-    background:linear-gradient(180deg,#E9EFF3 0%,#E2EAEF 100%);
+    background:linear-gradient(135deg,#eef5fd 0%,#f7f6f3 55%,#EDEBE5 100%);
   }
-  .hero-photo{
-    position:absolute;
-    inset:0;
-    width:100%;height:100%;
-    object-fit:cover;
-    object-position:48% 38%;
-    z-index:0;
-    display:block;
-    transform:scale(1);
-    animation:heroPhotoZoom 20s ease-out forwards;
-  }
-  @keyframes heroPhotoZoom{
-    from{transform:scale(1);}
-    to{transform:scale(1.08);}
-  }
-  .hero-veil{
+  .hero-flow{
     position:absolute;
     inset:0;
     z-index:1;
+    overflow:hidden;
     pointer-events:none;
-    background:linear-gradient(100deg,rgba(255,255,255,.88) 0%,rgba(255,255,255,.68) 32%,rgba(255,255,255,.3) 52%,rgba(255,255,255,0) 68%);
+  }
+  .hero-blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.6;}
+  .hero-blob-1{width:440px;height:440px;background:#eaf2fd;top:-140px;right:-100px;}
+  .hero-blob-2{width:380px;height:380px;background:#EDEBE5;bottom:-160px;left:-80px;opacity:.8;}
+  .flow-chip{
+    position:absolute;
+    left:0;top:0;
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(16px);
+    -webkit-backdrop-filter:saturate(180%) blur(16px);
+    border:1px solid rgba(255,255,255,.7);
+    border-radius:980px;
+    padding:9px 16px 9px 9px;
+    font-size:12.5px;font-weight:600;color:#1d1d1f;
+    box-shadow:0 14px 30px -16px rgba(10,20,40,.28);
+    white-space:nowrap;
+    animation-name:flow-drift;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+    animation-fill-mode:backwards;
+  }
+  .flow-chip-rev{animation-name:flow-drift-rev;}
+  .flow-chip-icon{
+    flex:none;width:26px;height:26px;border-radius:50%;
+    background:#eaf2fd;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .flow-chip-icon svg{width:14px;height:14px;display:block;}
+  @keyframes flow-drift{
+    0%{transform:translateX(46vw);opacity:0;}
+    8%{opacity:1;}
+    92%{opacity:1;}
+    100%{transform:translateX(94vw);opacity:0;}
+  }
+  @keyframes flow-drift-rev{
+    0%{transform:translateX(94vw);opacity:0;}
+    8%{opacity:1;}
+    92%{opacity:1;}
+    100%{transform:translateX(46vw);opacity:0;}
   }
   .hero-text{
     position:relative;
@@ -312,11 +338,9 @@
 
   @media (max-width:1250px){
     .hero{min-height:min(78vh,660px);}
-    .hero-photo{object-position:45% 38%;}
   }
 
   @media (max-width:1100px){
-    .hero-veil{background:linear-gradient(100deg,rgba(255,255,255,.9) 0%,rgba(255,255,255,.7) 36%,rgba(255,255,255,0) 60%);}
     .hero .sub-col{font-size:17px;}
   }
 
@@ -324,16 +348,10 @@
     .hero{
       min-height:0;
       justify-content:flex-start;
-      background:linear-gradient(180deg,#EDF2F5 0%,#E4ECF1 100%);
+      padding-bottom:36px;
+      background:linear-gradient(180deg,#eef5fd 0%,#f3f1ec 100%);
     }
-    .hero-photo{
-      position:relative;
-      order:2;
-      width:100%;
-      height:min(66vw,340px);
-      object-position:42% 35%;
-    }
-    .hero-veil{display:none;}
+    .hero-flow{display:none;}
     .hero-text{
       order:1;
       padding:112px 24px 30px;
@@ -1482,8 +1500,26 @@
 <div class="nav-scrim" id="nav-scrim"></div>
 
 <header class="hero">
-  <img class="hero-photo" src="https://images.unsplash.com/photo-1776914579657-3396d13eb13e?auto=format&fit=crop&w=1800&q=80" alt="Fachada de vidro de um arranha-céus moderno, com reflexos dourados ao entardecer">
-  <div class="hero-veil" aria-hidden="true"></div>
+  <div class="hero-flow" aria-hidden="true">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="flow-chip" style="top:14%;animation-duration:17s;animation-delay:0s;">
+      <span class="flow-chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span>
+      CPCV aprovado
+    </div>
+    <div class="flow-chip flow-chip-rev" style="top:33%;animation-duration:20s;animation-delay:3.5s;">
+      <span class="flow-chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg></span>
+      Visita agendada
+    </div>
+    <div class="flow-chip" style="top:51%;animation-duration:18s;animation-delay:8s;">
+      <span class="flow-chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg></span>
+      Meta batida
+    </div>
+    <div class="flow-chip flow-chip-rev" style="top:67%;animation-duration:22s;animation-delay:1.5s;">
+      <span class="flow-chip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 9v6l-4 2v-8z"/></svg></span>
+      Lead qualificada
+    </div>
+  </div>
   <div class="hero-text">
     <p class="hero-eyebrow">Para agências imobiliárias</p>
     <h1 data-scramble>Sistemas que <br class="hb">vendem casas <span class="muted">por si.</span></h1>
