@@ -261,12 +261,11 @@
     from{opacity:0;transform:translateY(22px);}
     to{opacity:1;transform:translateY(0);}
   }
-  .hero-eyebrow,.hero h1,.hero .sub-col,.hero .hero-ctas,.hero-note{
+  .hero-eyebrow,.hero .sub-col,.hero .hero-ctas,.hero-note{
     opacity:0;
     animation:heroFadeUp .8s cubic-bezier(.2,.8,.2,1) forwards;
   }
   .hero-eyebrow{animation-delay:.05s;}
-  .hero h1{animation-delay:.16s;}
   .hero .sub-col{animation-delay:.32s;}
   .hero .hero-ctas{animation-delay:.46s;}
   .hero-note{animation-delay:.6s;}
@@ -416,46 +415,6 @@
   @media (max-width:760px){
     .compare-grid{grid-template-columns:1fr;}
     .compare-arrow{transform:rotate(90deg);padding:2px 0;}
-  }
-
-  /* CASA EM ASCII - secao escura de assinatura */
-  .ascii-house{
-    background:#0a1620;
-    padding:96px 0 104px;
-    text-align:center;
-    overflow:hidden;
-  }
-  .ascii-house .hero-eyebrow{color:rgba(255,255,255,.45);}
-  .ascii-house h2{
-    font-size:clamp(26px,3.1vw,38px);
-    color:#fff;
-    max-width:21ch;
-    margin:14px auto 0;
-    letter-spacing:-0.03em;
-  }
-  .ascii-house h2 .muted{color:rgba(255,255,255,.34);}
-  .ascii-stage{
-    margin:56px auto 0;
-    display:grid;
-    font-family:'SF Mono','Menlo','Consolas',monospace;
-    font-size:clamp(6px,1.4vw,9.5px);
-    line-height:1.08;
-    width:fit-content;
-    max-width:100%;
-  }
-  .ascii-cell{
-    width:1ch;
-    text-align:center;
-    opacity:0;
-    transition:opacity .6s ease;
-    color:rgba(130,178,255,.55);
-  }
-  .ascii-cell.is-roof{color:rgba(255,255,255,.72);}
-  .ascii-cell.is-door{color:#4b9eed;}
-  .ascii-cell.is-window{color:#ffce7a;}
-  .ascii-caption{margin-top:44px;font-size:14px;color:rgba(255,255,255,.38);}
-  @media (prefers-reduced-motion:reduce){
-    .ascii-cell{transition:none;}
   }
 
   /* COCKPIT SPOTLIGHT */
@@ -1398,7 +1357,7 @@
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-text">
     <p class="hero-eyebrow">IA para o setor imobiliário</p>
-    <h1>Sistemas que <br class="hb">vendem casas <span class="muted">por si.</span></h1>
+    <h1 data-scramble>Sistemas que <br class="hb">vendem casas <span class="muted">por si.</span></h1>
     <p class="sub-col">Automatize CPCVs, leads e follow-ups, e dê à sua equipa mais tempo para fechar negócio.</p>
     <div class="hero-ctas">
       <a href="#contacto" class="btn-dark">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
@@ -1425,15 +1384,6 @@
   </div>
 </header>
 
-<section class="ascii-house" id="construido-para-imobiliario">
-  <div class="wrap">
-    <p class="hero-eyebrow">Ace Labs</p>
-    <h2>Sistemas que se constroem <span class="muted">sozinhos.</span></h2>
-    <div class="ascii-stage" id="ascii-house-stage" aria-hidden="true"></div>
-    <p class="ascii-caption">Automação construída peça a peça, para cada agência.</p>
-  </div>
-</section>
-
 <section class="cockpit-spotlight" id="cockpit">
   <div class="wrap">
     <div class="spotlight-badge" data-reveal>
@@ -1441,7 +1391,7 @@
       Cockpit <span class="spotlight-sep">·</span> Powered by <strong>Ace Labs</strong>
     </div>
     <div class="spotlight-head" data-reveal style="transition-delay:.05s">
-      <h2>O produto que vai mudar <span class="muted">o dia a dia da sua agência.</span></h2>
+      <h2 data-scramble>O produto que vai mudar <span class="muted">o dia a dia da sua agência.</span></h2>
       <p class="sub-col">Dashboard, funil de vendas e angariações, tudo sincronizado com o calendário - sem folhas de cálculo.</p>
     </div>
 
@@ -1521,7 +1471,7 @@
 <section class="cpcv-demo" id="recursos">
   <div class="wrap">
     <p class="hero-eyebrow">Recursos</p>
-    <h2>O CPCV, <span class="muted">antes e depois da IA.</span></h2>
+    <h2 data-scramble>O CPCV, <span class="muted">antes e depois da IA.</span></h2>
     <p class="sub-col">O mesmo contrato-promessa, dois processos completamente diferentes.</p>
 
     <div class="compare-grid">
@@ -1681,7 +1631,7 @@
 
     <div class="services-copy">
       <p class="hero-eyebrow">Serviços</p>
-      <h2>Soluções que transformam o seu <span class="accent">dia a dia</span><i class="dot">.</i></h2>
+      <h2 data-scramble>Soluções que transformam o seu <span class="accent">dia a dia</span><i class="dot">.</i></h2>
       <p class="sub-col">Da estratégia à execução, criamos sistemas de IA e automação adaptados à realidade da sua agência.</p>
       <div class="flow-tabs services-filter" role="tablist">
         <button type="button" class="flow-tab is-active" data-audience-filter="todos" role="tab" aria-selected="true">Todos</button>
@@ -1705,7 +1655,7 @@
     <div class="how5-top">
       <div class="how5-intro">
         <p class="hero-eyebrow">Como trabalhamos</p>
-        <h2>Do desafio<br>ao <span class="muted">resultado.</span></h2>
+        <h2 data-scramble>Do desafio<br>ao <span class="muted">resultado.</span></h2>
         <p class="sub-col">Um processo simples, transparente e colaborativo, para transformar o seu negócio em resultados reais.</p>
       </div>
       <p class="hero-eyebrow how5-caption">Menos complexidade.<br>Mais impacto.</p>
@@ -1752,7 +1702,7 @@
 <section class="section flow-sim" id="fluxo-cockpit">
   <div class="wrap">
     <p class="hero-eyebrow">Cockpit em ação</p>
-    <h2 class="serif" style="font-size:clamp(28px,3.2vw,38px);max-width:22ch;">Automação que segue o agente, <span class="muted">passo a passo.</span></h2>
+    <h2 class="serif" data-scramble style="font-size:clamp(28px,3.2vw,38px);max-width:22ch;">Automação que segue o agente, <span class="muted">passo a passo.</span></h2>
     <p class="sub-col" style="margin-top:14px;max-width:48ch;">O Cockpit transforma o funil de vendas em lembretes automáticos - compradores e proprietários, cada um com o seu ritmo. Experimente o fluxo.</p>
 
     <div class="flow-tabs" role="tablist">
@@ -1775,7 +1725,7 @@
 <section class="team" id="empresa">
   <div class="wrap">
     <p class="hero-eyebrow">Empresa</p>
-    <h2>Uma equipa multifacetada, <span class="muted">não só developers.</span></h2>
+    <h2 data-scramble>Uma equipa multifacetada, <span class="muted">não só developers.</span></h2>
     <p class="sub-col">Banca, análise de dados e mercado imobiliário - do lado da angariação e do lado da gestão de património.</p>
 
     <div class="team-grid">
@@ -1808,7 +1758,7 @@
 
 <section class="closing" id="contacto">
   <div class="wrap">
-    <h2>Vamos ver onde está a perder mais tempo?</h2>
+    <h2 data-scramble>Vamos ver onde está a perder mais tempo?</h2>
     <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="contact-card">
       <div class="contact-card-head">
@@ -2207,108 +2157,61 @@
   })();
 
   (function(){
-    var stage = document.getElementById('ascii-house-stage');
-    if(!stage) return;
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-scramble]'));
+    if(!targets.length) return;
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var MS_PER_CHAR = 14;
 
-    var COLS = 52, ROWS = 30;
-    stage.style.gridTemplateColumns = 'repeat(' + COLS + ', 1ch)';
-
-    var ROOF_BOTTOM_Y = 0.42;
-    var BODY_LEFT_X = 0.22, BODY_RIGHT_X = 0.78;
-    var BODY_BOTTOM_Y = 0.92;
-    var ROOF_OVERHANG = 0.05;
-
-    var ROOF_CHARS = ['^', '.', ':', '*', '~'];
-    var BODY_CHARS = ['.', ':', '+', '#', '='];
-    var WINDOW_CHARS = ['o', '.', ':'];
-
-    function cellType(x, y){
-      if(y <= ROOF_BOTTOM_Y){
-        var roofHalfWidthAtBase = (BODY_RIGHT_X - BODY_LEFT_X) / 2 + ROOF_OVERHANG;
-        var halfWidth = (y / ROOF_BOTTOM_Y) * roofHalfWidthAtBase;
-        if(Math.abs(x - 0.5) <= halfWidth) return 'roof';
-        return null;
+    function scramble(el){
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      var n;
+      while((n = walker.nextNode())){
+        if(n.textContent.replace(/\s/g, '').length) nodes.push({ node: n, original: n.textContent });
       }
-      if(y > BODY_BOTTOM_Y) return null;
-      if(x < BODY_LEFT_X || x > BODY_RIGHT_X) return null;
-      if(y >= 0.68 && x >= 0.44 && x <= 0.56) return 'door';
-      if(y >= 0.5 && y <= 0.62){
-        if(x >= 0.28 && x <= 0.38) return 'window';
-        if(x >= 0.62 && x <= 0.72) return 'window';
-      }
-      return 'body';
-    }
+      if(!nodes.length) return;
 
-    function targetOpacity(type){
-      if(type === 'door' || type === 'window') return '0.92';
-      if(type === 'roof') return '0.72';
-      return '0.55';
-    }
-
-    function randChar(type){
-      var pool = type === 'roof' ? ROOF_CHARS : type === 'window' ? WINDOW_CHARS : BODY_CHARS;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-
-    var cells = [];
-    var frag = document.createDocumentFragment();
-    for(var r = 0; r < ROWS; r++){
-      var y = r / (ROWS - 1);
-      for(var c = 0; c < COLS; c++){
-        var x = c / (COLS - 1);
-        var type = cellType(x, y);
-        var span = document.createElement('span');
-        span.className = 'ascii-cell';
-        if(type){
-          span.classList.add('is-' + type);
-          span.textContent = type === 'door' ? '#' : randChar(type);
-          span.setAttribute('data-type', type);
-          span.setAttribute('data-row', r);
-          cells.push(span);
-        } else {
-          span.textContent = ' ';
-        }
-        frag.appendChild(span);
-      }
-    }
-    stage.appendChild(frag);
-
-    function startShimmer(){
-      setInterval(function(){
-        for(var i = 0; i < 8; i++){
-          var cell = cells[Math.floor(Math.random() * cells.length)];
-          var type = cell && cell.getAttribute('data-type');
-          if(!cell || type === 'door') continue;
-          cell.textContent = randChar(type);
-        }
-      }, 220);
-    }
-
-    function reveal(){
       if(reduceMotion){
-        cells.forEach(function(c){ c.style.opacity = targetOpacity(c.getAttribute('data-type')); });
+        nodes.forEach(function(o){ o.node.textContent = o.original; });
         return;
       }
-      cells.forEach(function(c){
-        var row = parseInt(c.getAttribute('data-row'), 10);
-        var delay = (ROWS - row) * 18 + Math.random() * 220;
-        setTimeout(function(){
-          c.style.opacity = targetOpacity(c.getAttribute('data-type'));
-        }, delay);
-      });
-      setTimeout(startShimmer, ROWS * 18 + 500);
+
+      var consumedBefore = [];
+      var acc = 0;
+      nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
+
+      var startTime = null;
+      function frame(ts){
+        if(!startTime) startTime = ts;
+        var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
+        var done = true;
+        nodes.forEach(function(o, idx){
+          var localRevealed = globalRevealed - consumedBefore[idx];
+          if(localRevealed < o.original.length) done = false;
+          var out = '';
+          for(var i = 0; i < o.original.length; i++){
+            var ch = o.original[i];
+            if(ch === ' ' || localRevealed > i) out += ch;
+            else out += CHARS[Math.floor(Math.random() * CHARS.length)];
+          }
+          o.node.textContent = out;
+        });
+        if(!done) requestAnimationFrame(frame);
+        else nodes.forEach(function(o){ o.node.textContent = o.original; });
+      }
+      requestAnimationFrame(frame);
     }
 
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         if(entry.isIntersecting){
-          reveal();
-          io.unobserve(stage);
+          scramble(entry.target);
+          io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.3 });
-    io.observe(stage);
+    }, { threshold: 0.4 });
+    targets.forEach(function(t){ io.observe(t); });
   })();
 
   (function(){
