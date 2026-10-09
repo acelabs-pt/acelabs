@@ -34,6 +34,22 @@
   a{color:inherit;text-decoration:none;}
   .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
   .serif{font-family:'Source Serif 4',Georgia,serif;}
+  .hero-eyebrow{
+    font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;
+    color:#6f7276;margin:0 0 16px;
+  }
+  .sub-col{margin-top:14px;max-width:52ch;font-size:16px;line-height:1.55;color:var(--ink-2);}
+
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .6s ease,transform .6s ease;
+    transition-delay:calc(var(--n,0) * 0.06s);
+  }
+  [data-reveal].is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal]{opacity:1;transform:none;transition:none;}
+  }
 
   /* NAV (igual ao site principal) */
   body > nav{
@@ -252,6 +268,56 @@
   .article-ctas{margin-top:28px;}
   .article-note{margin-top:14px;font-size:13px;color:var(--ink-2);}
 
+  /* FUNIL DE CRM */
+  .cockpit-funnels{padding:30px 0 90px;}
+  .funnel-grid{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .funnel-card{
+    border:1px solid var(--line);border-radius:20px;padding:26px 24px;background:#fff;
+  }
+  .funnel-card h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px;}
+  .funnel-stages{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .stage-chip{
+    display:inline-flex;align-items:center;
+    font-size:12px;font-weight:600;color:var(--ink-2);
+    background:var(--gray-bg);
+    padding:7px 12px;border-radius:980px;
+    white-space:nowrap;
+  }
+  .stage-chip.is-last{background:var(--blue-soft-bg);color:var(--blue-dark);}
+  .stage-chip{transition:background .35s ease,color .35s ease,transform .35s ease;}
+  .stage-chip.is-pulsing{background:#0071e3;color:#fff;transform:scale(1.05);}
+  .stage-arrow{color:#c7cad0;font-size:12px;}
+  .funnels-cta{margin-top:32px;}
+
+  @media (max-width:760px){
+    .funnel-grid{grid-template-columns:1fr;}
+  }
+
+  /* GESTOR DE ANGARIACOES */
+  .cockpit-timeline{padding:30px 0 90px;}
+  .timeline-scroll{margin-top:40px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .timeline-board{
+    min-width:640px;border:1px solid var(--line);border-radius:20px;
+    padding:26px 24px 20px;background:#fff;
+  }
+  .timeline-head,.timeline-days,.timeline-row{
+    display:grid;grid-template-columns:168px repeat(6,1fr);gap:4px;align-items:center;
+  }
+  .timeline-head .phase{
+    grid-column:span 2;text-align:center;
+    font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a9ca0;
+    padding-bottom:10px;border-bottom:2px solid var(--line);
+  }
+  .timeline-head .phase-label{grid-column:1;}
+  .timeline-days{margin-bottom:16px;}
+  .timeline-days span{text-align:center;font-size:11px;font-weight:650;color:#9a9ca0;}
+  .timeline-days .days-label{font-size:11px;font-weight:650;color:#9a9ca0;}
+  .timeline-row{padding:11px 0;border-top:1px solid var(--line);}
+  .timeline-label{font-size:13px;font-weight:600;color:var(--ink);}
+  .timeline-dot{width:9px;height:9px;border-radius:50%;background:var(--line);justify-self:center;}
+  .timeline-dot.on{background:#0071e3;}
+  .timeline-note{margin-top:18px;font-size:13px;color:var(--ink-2);}
+
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
   .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
@@ -336,7 +402,7 @@
     <div class="article-body">
       <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
       <span class="badge">Em breve</span>
-      <h1>Cockpit</h1>
+      <h1 data-scramble>Cockpit</h1>
       <p class="article-tagline">O CRM de bolso do agente imobiliário. Dashboard, funil de vendas e angariações, sincronizados com o calendário.</p>
 
       <div class="feature-list">
@@ -396,18 +462,18 @@
         <text x="128" y="80" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d1d1f">Dashboard</text>
 
         <rect x="128" y="94" width="62" height="56" rx="12" fill="#eaf2fd"/>
-        <text x="140" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0071e3">12</text>
+        <text x="140" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0071e3" id="cockpit-stat-1">0</text>
         <text x="140" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Visitas</text>
 
         <rect x="198" y="94" width="62" height="56" rx="12" fill="#e8f8ee"/>
-        <text x="210" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#1a8f49">5</text>
+        <text x="210" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#1a8f49" id="cockpit-stat-2">0</text>
         <text x="210" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#1a8f49">Angariações</text>
 
         <rect x="128" y="172" width="90" height="8" rx="4" fill="rgba(29,29,31,.4)"/>
-        <rect x="128" y="196" width="26" height="52" rx="6" fill="#0071e3"/>
-        <rect x="162" y="210" width="26" height="38" rx="6" fill="#4b9eed"/>
-        <rect x="196" y="222" width="26" height="26" rx="6" fill="#8cc1f5"/>
-        <rect x="230" y="234" width="18" height="14" rx="6" fill="#c7e0fa"/>
+        <rect x="128" y="248" width="26" height="0" rx="6" fill="#0071e3" id="cockpit-bar-1"/>
+        <rect x="162" y="248" width="26" height="0" rx="6" fill="#4b9eed" id="cockpit-bar-2"/>
+        <rect x="196" y="248" width="26" height="0" rx="6" fill="#8cc1f5" id="cockpit-bar-3"/>
+        <rect x="230" y="248" width="18" height="0" rx="6" fill="#c7e0fa" id="cockpit-bar-4"/>
 
         <rect x="128" y="266" width="132" height="1" fill="rgba(0,0,0,.08)"/>
         <rect x="128" y="282" width="92" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
@@ -423,6 +489,93 @@
     </div>
   </div>
 </header>
+
+<section class="cockpit-funnels">
+  <div class="wrap">
+    <p class="hero-eyebrow" data-reveal style="--n:0">CRM com funil automático</p>
+    <h2 class="serif" data-scramble data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:26ch;">Compradores e proprietários, <span class="muted" style="color:#9a9ca0;">cada um com o seu funil.</span></h2>
+    <p class="sub-col" data-reveal style="--n:2">Cada contacto avança sozinho pelas suas etapas, com alertas automáticos sempre que fica parado tempo a mais.</p>
+
+    <div class="funnel-grid">
+      <div class="funnel-card" data-reveal style="--n:3">
+        <h4>Funil de compradores</h4>
+        <div class="funnel-stages">
+          <span class="stage-chip">Lead Qualificada</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Imóveis Enviados</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Visitas Realizadas</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Propostas Efetuadas</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">CPCV</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Escritura</span><span class="stage-arrow">→</span>
+          <span class="stage-chip is-last">Negócio Concluído</span>
+        </div>
+      </div>
+      <div class="funnel-card" data-reveal style="--n:4">
+        <h4>Funil de proprietários</h4>
+        <div class="funnel-stages">
+          <span class="stage-chip">FSBO</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Marcação de Reunião</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Reunião de Angariação</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Dossier + Instagram</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Follow-up 1</span><span class="stage-arrow">→</span>
+          <span class="stage-chip">Follow-up 2</span><span class="stage-arrow">→</span>
+          <span class="stage-chip is-last">Angariado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-ctas funnels-cta" data-reveal style="--n:5">
+      <a href="../index.html#fluxo-cockpit" class="btn-outline">Experimentar o fluxo interativo <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="cockpit-timeline">
+  <div class="wrap">
+    <p class="hero-eyebrow" data-reveal style="--n:0">Gestor de Angariações</p>
+    <h2 class="serif" data-scramble data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:24ch;">Um plano de marketing <span class="muted" style="color:#9a9ca0;">que não esquece nada.</span></h2>
+    <p class="sub-col" data-reveal style="--n:2">Cronograma automático por imóvel - 180 ou 120 dias, à escolha - com lembrete em cada etapa até à venda.</p>
+
+    <div class="timeline-scroll" data-reveal style="--n:3">
+      <div class="timeline-board">
+        <div class="timeline-head">
+          <span class="phase-label"></span>
+          <span class="phase">1ª Fase</span>
+          <span class="phase">2ª Fase</span>
+          <span class="phase">3ª Fase</span>
+        </div>
+        <div class="timeline-days">
+          <span class="days-label"></span>
+          <span>30</span><span>60</span><span>90</span><span>120</span><span>150</span><span>180</span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Fotografias/Vídeo</span>
+          <span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot"></span><span class="timeline-dot"></span><span class="timeline-dot"></span><span class="timeline-dot"></span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Inserção Portais/Site</span>
+          <span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot"></span><span class="timeline-dot"></span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Propostas Múltiplas</span>
+          <span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Campanha Social Media</span>
+          <span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span><span class="timeline-dot on"></span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Open House</span>
+          <span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-label">Refresh do Anúncio</span>
+          <span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span>
+        </div>
+      </div>
+    </div>
+    <p class="timeline-note" data-reveal style="--n:4">O agente escolhe, adiciona ou remove ações do plano a qualquer momento - isto é só o ponto de partida.</p>
+  </div>
+</section>
 
 <section class="closing" id="contacto">
   <div class="wrap">
@@ -479,6 +632,146 @@
     });
     window.addEventListener('resize', function(){
       if(window.innerWidth > 860) closeMenu();
+    });
+  })();
+
+  (function(){
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+    if(!targets.length) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    targets.forEach(function(t){ io.observe(t); });
+  })();
+
+  (function(){
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-scramble]'));
+    if(!targets.length) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var MS_PER_CHAR = 24;
+
+    function scramble(el){
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      var n;
+      while((n = walker.nextNode())){
+        if(n.textContent.replace(/\s/g, '').length) nodes.push({ node: n, original: n.textContent });
+      }
+      if(!nodes.length) return;
+
+      if(reduceMotion){
+        nodes.forEach(function(o){ o.node.textContent = o.original; });
+        return;
+      }
+
+      var consumedBefore = [];
+      var acc = 0;
+      nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
+
+      var startTime = null;
+      function frame(ts){
+        if(!startTime) startTime = ts;
+        var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
+        var done = true;
+        nodes.forEach(function(o, idx){
+          var localRevealed = globalRevealed - consumedBefore[idx];
+          if(localRevealed < o.original.length) done = false;
+          var out = '';
+          for(var i = 0; i < o.original.length; i++){
+            var ch = o.original[i];
+            if(ch === ' ' || localRevealed > i) out += ch;
+            else out += CHARS[Math.floor(Math.random() * CHARS.length)];
+          }
+          o.node.textContent = out;
+        });
+        if(!done) requestAnimationFrame(frame);
+        else nodes.forEach(function(o){ o.node.textContent = o.original; });
+      }
+      requestAnimationFrame(frame);
+    }
+
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          scramble(entry.target);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    targets.forEach(function(t){ io.observe(t); });
+  })();
+
+  (function(){
+    var svg = document.querySelector('.article-media svg');
+    if(!svg) return;
+    var stat1 = document.getElementById('cockpit-stat-1');
+    var stat2 = document.getElementById('cockpit-stat-2');
+    var bars = [
+      { el: document.getElementById('cockpit-bar-1'), h: 52 },
+      { el: document.getElementById('cockpit-bar-2'), h: 38 },
+      { el: document.getElementById('cockpit-bar-3'), h: 26 },
+      { el: document.getElementById('cockpit-bar-4'), h: 14 }
+    ];
+    var BOTTOM = 248;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function setFinal(){
+      bars.forEach(function(b){ b.el.setAttribute('height', b.h); b.el.setAttribute('y', BOTTOM - b.h); });
+      if(stat1) stat1.textContent = '12';
+      if(stat2) stat2.textContent = '5';
+    }
+
+    function animate(){
+      if(reduceMotion){ setFinal(); return; }
+      var start = null;
+      var duration = 900;
+      function frame(ts){
+        if(!start) start = ts;
+        var p = Math.min(1, (ts - start) / duration);
+        var eased = 1 - Math.pow(1 - p, 3);
+        bars.forEach(function(b){
+          var h = b.h * eased;
+          b.el.setAttribute('height', h);
+          b.el.setAttribute('y', BOTTOM - h);
+        });
+        if(stat1) stat1.textContent = String(Math.round(12 * eased));
+        if(stat2) stat2.textContent = String(Math.round(5 * eased));
+        if(p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          animate();
+          io.unobserve(svg);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(svg);
+  })();
+
+  (function(){
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.funnel-stages'));
+    if(!rows.length) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduceMotion) return;
+    rows.forEach(function(row, rowIdx){
+      var chips = Array.prototype.slice.call(row.querySelectorAll('.stage-chip'));
+      if(!chips.length) return;
+      var idx = 0;
+      setInterval(function(){
+        chips.forEach(function(c){ c.classList.remove('is-pulsing'); });
+        chips[idx].classList.add('is-pulsing');
+        idx = (idx + 1) % chips.length;
+      }, 650);
     });
   })();
 </script>

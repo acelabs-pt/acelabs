@@ -249,6 +249,77 @@
   }
   .article-ctas{margin-top:28px;}
 
+  /* SIMULADOR DE FASES DO CPCV */
+  .cpcv-sim{
+    border-radius:28px;overflow:hidden;background:#fff;
+    border:1px solid rgba(0,0,0,.08);
+    box-shadow:0 30px 60px -24px rgba(20,20,30,.25);
+    line-height:normal;
+  }
+  .cpcv-sim-head{
+    display:flex;align-items:center;gap:7px;
+    padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.06);background:#fafafa;
+  }
+  .sim-dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .sim-dot-r{background:#ff5f57;}
+  .sim-dot-y{background:#febc2e;}
+  .sim-dot-g{background:#28c840;}
+  .cpcv-sim-title{margin-left:8px;font-size:12px;font-weight:600;color:var(--ink-2);}
+  .cpcv-sim-body{position:relative;height:320px;}
+  .demo-phase{
+    position:absolute;inset:0;padding:30px 32px;
+    opacity:0;transform:translateY(10px);
+    transition:opacity .45s ease,transform .45s ease;
+    pointer-events:none;
+  }
+  .demo-phase.is-active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .phase-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0071e3;margin:0 0 22px;}
+
+  .upload-zone{
+    border:1.5px dashed rgba(0,113,227,.35);border-radius:16px;
+    padding:20px;display:flex;align-items:center;gap:12px;
+    background:var(--blue-soft-bg);margin-bottom:16px;
+  }
+  .upload-zone svg{flex:none;width:22px;height:22px;}
+  .upload-zone span{font-size:13px;font-weight:600;color:var(--blue-dark);}
+  .file-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink);}
+  .file-row:last-child{border-bottom:none;}
+  .file-row svg{flex:none;width:16px;height:16px;color:#1fae5a;}
+
+  .extract-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+  .extract-row:last-child{border-bottom:none;}
+  .extract-label{font-size:12px;color:var(--ink-2);}
+  .extract-value{font-size:13.5px;font-weight:650;color:var(--ink);}
+
+  .chat-bubble{max-width:82%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.45;margin-bottom:12px;}
+  .chat-q{background:#f5f5f7;color:var(--ink);border-bottom-left-radius:4px;}
+  .chat-a{background:var(--blue-soft-bg);color:var(--blue-dark);margin-left:auto;border-bottom-right-radius:4px;font-weight:600;}
+
+  .check-row{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink);}
+  .check-row svg{flex:none;width:17px;height:17px;color:#1fae5a;}
+  .approve-btn{
+    margin-top:14px;display:inline-flex;align-items:center;gap:8px;
+    background:#141414;color:#fff;border:none;
+    padding:11px 20px;border-radius:980px;font-size:13px;font-weight:600;font-family:inherit;
+  }
+
+  .doc-ready{display:flex;gap:10px;margin-bottom:18px;}
+  .doc-badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 18px;border-radius:12px;
+    background:var(--blue-soft-bg);color:var(--blue-dark);
+    font-size:12.5px;font-weight:700;
+  }
+  .ready-check{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:650;color:#1a8f49;}
+  .ready-check svg{flex:none;width:22px;height:22px;}
+
+  .cpcv-sim-steps{display:flex;justify-content:center;gap:7px;padding:16px 0 20px;border-top:1px solid var(--line);}
+  .step-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.14);transition:background .3s ease,width .3s ease,border-radius .3s ease;}
+  .step-dot.is-active{background:#0071e3;width:18px;border-radius:3px;}
+  @media (prefers-reduced-motion:reduce){
+    .demo-phase{transition:none;}
+  }
+
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
   .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
@@ -382,37 +453,57 @@
       </div>
     </div>
     <div class="article-media">
-      <svg viewBox="0 0 480 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um contrato CPCV a ser gerado automaticamente, com um chat a confirmar os dados em falta e um carimbo de aprovado.">
-        <rect width="480" height="420" rx="28" fill="#eaf2fd"/>
-
-        <rect x="54" y="48" width="252" height="332" rx="18" fill="#ffffff" stroke="rgba(0,0,0,.08)"/>
-        <rect x="82" y="84" width="150" height="14" rx="7" fill="#1d1d1f"/>
-        <rect x="82" y="112" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="130" width="176" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="148" width="186" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="178" width="196" height="1" fill="rgba(0,0,0,.08)"/>
-        <rect x="82" y="198" width="96" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="216" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="234" width="166" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="264" width="196" height="1" fill="rgba(0,0,0,.08)"/>
-        <rect x="82" y="284" width="130" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="82" y="302" width="196" height="8" rx="4" fill="rgba(29,29,31,.14)"/>
-        <rect x="192" y="332" width="62" height="26" rx="13" fill="#0071e3"/>
-        <text x="223" y="349" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">PDF</text>
-
-        <rect x="252" y="116" width="192" height="156" rx="20" fill="#ffffff" stroke="rgba(0,0,0,.08)"/>
-        <circle cx="284" cy="150" r="14" fill="#0071e3"/>
-        <text x="284" y="155" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">IA</text>
-        <rect x="308" y="142" width="112" height="9" rx="4.5" fill="rgba(29,29,31,.5)"/>
-        <rect x="308" y="158" width="86" height="8" rx="4" fill="rgba(29,29,31,.22)"/>
-        <rect x="276" y="186" width="144" height="34" rx="14" fill="#f5f5f7"/>
-        <text x="296" y="207" font-family="Inter, Arial, sans-serif" font-size="11" fill="#1d1d1f">Qual o prazo da escritura?</text>
-        <rect x="276" y="230" width="128" height="30" rx="14" fill="#eaf2fd"/>
-        <text x="296" y="249" font-family="Inter, Arial, sans-serif" font-size="11" fill="#0059b3">15 de dezembro</text>
-
-        <circle cx="414" cy="92" r="28" fill="#1fae5a"/>
-        <path d="M402 92l8 8 16-16" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <div class="cpcv-sim" id="cpcv-sim">
+        <div class="cpcv-sim-head">
+          <span class="sim-dot sim-dot-r"></span><span class="sim-dot sim-dot-y"></span><span class="sim-dot sim-dot-g"></span>
+          <span class="cpcv-sim-title">CPCV · Rua das Flores, 24</span>
+        </div>
+        <div class="cpcv-sim-body">
+          <div class="demo-phase is-active" data-phase="0">
+            <p class="phase-label">1. Documentos largados</p>
+            <div class="upload-zone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+              <span>Arraste os documentos para aqui</span>
+            </div>
+            <div class="file-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Caderneta predial.pdf</div>
+            <div class="file-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> CC comprador.pdf</div>
+            <div class="file-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> CC vendedor.pdf</div>
+          </div>
+          <div class="demo-phase" data-phase="1">
+            <p class="phase-label">2. A IA extrai os dados</p>
+            <div class="extract-row"><span class="extract-label">Nome</span><span class="extract-value">Rui Martins Pereira</span></div>
+            <div class="extract-row"><span class="extract-label">NIF</span><span class="extract-value">●●●●●●223</span></div>
+            <div class="extract-row"><span class="extract-label">Morada</span><span class="extract-value">Rua das Flores, 24</span></div>
+            <div class="extract-row"><span class="extract-label">Valor</span><span class="extract-value">€ 185.000</span></div>
+          </div>
+          <div class="demo-phase" data-phase="2">
+            <p class="phase-label">3. Pergunta só o que falta</p>
+            <div class="chat-bubble chat-q">Qual o prazo para a escritura?</div>
+            <div class="chat-bubble chat-a">15 de dezembro</div>
+          </div>
+          <div class="demo-phase" data-phase="3">
+            <p class="phase-label">4. Aprovação antes de seguir</p>
+            <div class="check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Dados das partes confirmados</div>
+            <div class="check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Condições do negócio</div>
+            <div class="check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Cláusulas especiais</div>
+            <button type="button" class="approve-btn" tabindex="-1">Aprovar CPCV</button>
+          </div>
+          <div class="demo-phase" data-phase="4">
+            <p class="phase-label">5. CPCV gerado</p>
+            <div class="doc-ready">
+              <span class="doc-badge">PDF</span>
+              <span class="doc-badge">Word</span>
+            </div>
+            <div class="ready-check">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1fae5a"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Pronto a enviar às partes
+            </div>
+          </div>
+        </div>
+        <div class="cpcv-sim-steps">
+          <span class="step-dot is-active"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -473,6 +564,28 @@
     window.addEventListener('resize', function(){
       if(window.innerWidth > 860) closeMenu();
     });
+  })();
+
+  (function(){
+    var sim = document.getElementById('cpcv-sim');
+    if(!sim) return;
+    var phases = Array.prototype.slice.call(sim.querySelectorAll('.demo-phase'));
+    var dots = Array.prototype.slice.call(sim.querySelectorAll('.step-dot'));
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var idx = 0;
+
+    function show(i){
+      phases.forEach(function(p, j){ p.classList.toggle('is-active', j === i); });
+      dots.forEach(function(d, j){ d.classList.toggle('is-active', j === i); });
+    }
+
+    show(0);
+    if(!reduceMotion){
+      setInterval(function(){
+        idx = (idx + 1) % phases.length;
+        show(idx);
+      }, 2300);
+    }
   })();
 </script>
 
