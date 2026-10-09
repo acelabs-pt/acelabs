@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
   }
   body = body || {};
 
-  const { nome, email, telefone, empresa, horario, contacto_preferido, mensagem, empresa_site } = body;
+  const { nome, email, telefone, empresa, horario, contacto_preferido, mensagem, origem, empresa_site } = body;
 
   // Campo honeypot: bots preenchem, humanos nunca veem este campo.
   if (empresa_site) {
@@ -43,6 +43,7 @@ module.exports = async function handler(req, res) {
   }
 
   const html = [
+    '<p><strong>Origem:</strong> ' + escapeHtml(origem || 'Site') + '</p>',
     '<p><strong>Nome:</strong> ' + escapeHtml(nome) + '</p>',
     '<p><strong>Email:</strong> ' + escapeHtml(email) + '</p>',
     '<p><strong>Telefone:</strong> ' + escapeHtml(telefone || '-') + '</p>',
@@ -64,7 +65,7 @@ module.exports = async function handler(req, res) {
         to: ['miguel@acelabs.pt'],
         bcc: ['pedro@acelabs.pt'],
         reply_to: email,
-        subject: 'Novo pedido de diagnostico - ' + nome,
+        subject: 'Novo pedido de diagnostico (' + (origem || 'Site') + ') - ' + nome,
         html: html,
       }),
     });
