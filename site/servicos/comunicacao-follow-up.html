@@ -66,6 +66,30 @@
     transition:color .15s ease;
   }
   .navlinks a:hover{color:#000;}
+  .nav-services{position:relative;}
+  .nav-services-trigger{display:inline-flex;align-items:center;gap:5px;}
+  .nav-chevron{width:10px;height:10px;transition:transform .2s ease;}
+  .nav-services:hover .nav-chevron,.nav-services:focus-within .nav-chevron{transform:rotate(180deg);}
+  .nav-services-menu{
+    position:absolute;top:30px;left:50%;
+    transform:translateX(-50%) translateY(-6px);
+    background:#fff;
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:16px;
+    box-shadow:0 24px 48px -16px rgba(20,20,30,.22);
+    padding:20px;
+    display:grid;grid-template-columns:168px 208px;gap:28px;
+    opacity:0;pointer-events:none;
+    transition:opacity .16s ease,transform .16s ease;
+    z-index:120;
+  }
+  .nav-services:hover .nav-services-menu,.nav-services:focus-within .nav-services-menu{
+    opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);
+  }
+  .nav-services-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a9ca0;margin:0 0 10px;}
+  .nav-services-group a{display:block;padding:6px 0;font-size:13.5px;color:#3d3d40;font-weight:450;}
+  .nav-services-group a:hover{color:#0071e3;}
+  .nav-services-soon{font-size:10px;color:#9a9ca0;font-weight:500;}
   .nav-cta{
     display:inline-flex;align-items:center;gap:9px;
     font-size:14px;
@@ -272,7 +296,26 @@
   <div class="wrap">
     <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
     <div class="navlinks">
-      <a href="../index.html#servicos">Serviços</a>
+      <div class="nav-services">
+        <a href="../index.html#servicos" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
+        <div class="nav-services-menu">
+          <div class="nav-services-group">
+            <p class="nav-services-label">Produtos</p>
+            <a href="cpcv-ia.html">CPCV com IA</a>
+            <a href="cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+          </div>
+          <div class="nav-services-group">
+            <p class="nav-services-label">Serviços à medida</p>
+            <a href="lead-engine.html">Lead Engine</a>
+            <a href="dashboards-tempo-real.html">Dashboards em tempo real</a>
+            <a href="comunicacao-follow-up.html">Comunicação com follow-up</a>
+            <a href="workflows-a-medida.html">Workflows à medida</a>
+            <a href="gestao-recrutamento.html">Gestão de Recrutamento</a>
+            <a href="formacao-estrategia-ai.html">Formação & Estratégia AI</a>
+            <a href="servicos-personalizados.html">Serviços personalizados</a>
+          </div>
+        </div>
+      </div>
       <a href="../index.html#como-funciona">Como funciona</a>
       <a href="../index.html#recursos">Recursos</a>
       <a href="../index.html#empresa">Empresa</a>
