@@ -33,6 +33,18 @@
   .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
   .serif{font-family:'Source Serif 4',Georgia,serif;}
 
+  /* REVELAR AO SCROLL (utilitario, usado em varias seccoes) */
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .6s ease,transform .6s ease;
+    transition-delay:calc(var(--n,0) * 0.06s);
+  }
+  [data-reveal].is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal]{opacity:1;transform:none;transition:none;}
+  }
+
   /* NAV */
   body > nav{
     position:fixed;top:0;left:0;right:0;
@@ -365,28 +377,98 @@
     .compare-arrow{transform:rotate(90deg);padding:2px 0;}
   }
 
-  /* COCKPIT SHOWCASE */
-  .cockpit-showcase{padding:20px 0 110px;}
-  .cockpit-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;}
-  .cockpit-copy h2{font-size:clamp(28px,3.2vw,38px);max-width:18ch;margin-top:14px;}
-  .cockpit-copy h2 .muted{color:#9a9ca0;}
-  .cockpit-copy .sub-col{margin-top:14px;max-width:42ch;}
-  .cockpit-features{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-direction:column;gap:14px;}
-  .cockpit-features li{display:flex;align-items:flex-start;gap:12px;font-size:14.5px;line-height:1.5;color:var(--ink-2);}
+  /* COCKPIT SPOTLIGHT */
+  .cockpit-spotlight{padding:24px 0 100px;text-align:center;}
+  .spotlight-badge{
+    display:inline-flex;align-items:center;gap:9px;
+    background:#101113;color:#fff;
+    padding:9px 18px;border-radius:980px;
+    font-size:13px;font-weight:500;letter-spacing:-0.005em;
+    margin-bottom:26px;
+  }
+  .spotlight-badge strong{font-weight:700;}
+  .spotlight-dot{width:7px;height:7px;border-radius:50%;background:#3ddc73;box-shadow:0 0 0 0 rgba(61,220,115,.5);animation:ai-pulse 2s infinite;}
+  .spotlight-sep{opacity:.4;}
+  .spotlight-head h2{font-size:clamp(28px,3.6vw,42px);max-width:22ch;margin:0 auto;}
+  .spotlight-head h2 .muted{color:#9a9ca0;}
+  .spotlight-head .sub-col{margin:16px auto 0;max-width:48ch;text-align:center;}
+
+  .spotlight-stage{position:relative;margin:56px auto 0;display:flex;align-items:center;justify-content:center;min-height:460px;}
+  .spotlight-phone{position:relative;z-index:2;width:240px;}
+  .phone-frame{background:#0e0e10;border-radius:36px;padding:14px 12px;box-shadow:0 44px 80px -30px rgba(10,20,40,.4);}
+  .phone-notch{width:70px;height:5px;border-radius:3px;background:#2a2a2e;margin:0 auto 10px;}
+  .phone-screen{background:#fff;border-radius:22px;padding:18px 16px 14px;text-align:left;}
+  .phone-title{font-size:14px;font-weight:700;color:#1d1d1f;margin-bottom:12px;}
+  .phone-stats{display:flex;gap:8px;margin-bottom:16px;}
+  .stat-tile{flex:1;border-radius:12px;padding:10px 0 10px 12px;}
+  .stat-blue{background:#eaf2fd;}
+  .stat-green{background:#e8f8ee;}
+  .stat-num{display:block;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .stat-blue .stat-num{color:#0071e3;}
+  .stat-green .stat-num{color:#1a8f49;}
+  .stat-label{display:block;font-size:9.5px;margin-top:1px;}
+  .stat-blue .stat-label{color:#0059b3;}
+  .stat-green .stat-label{color:#1a8f49;}
+  .phone-chart-label{font-size:9px;font-weight:650;color:rgba(29,29,31,.4);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
+  .phone-bars{display:flex;align-items:flex-end;gap:7px;height:56px;margin-bottom:14px;}
+  .bar{flex:1;border-radius:5px 5px 2px 2px;height:0;transition:height 1s cubic-bezier(.2,.8,.2,1);}
+  .bar-1{background:#0071e3;}
+  .bar-2{background:#4b9eed;}
+  .bar-3{background:#8cc1f5;}
+  .bar-4{background:#c7e0fa;}
+  .spotlight-phone.in-view .bar-1{height:100%;}
+  .spotlight-phone.in-view .bar-2{height:72%;}
+  .spotlight-phone.in-view .bar-3{height:48%;}
+  .spotlight-phone.in-view .bar-4{height:26%;}
+  .phone-line{height:1px;background:rgba(0,0,0,.08);margin-bottom:12px;}
+  .phone-row-sm{height:7px;border-radius:3.5px;background:rgba(29,29,31,.14);margin-bottom:8px;}
+  .phone-row-sm.short{width:60%;margin-bottom:0;}
+  .phone-nav{display:flex;justify-content:center;gap:16px;padding:12px 0 2px;}
+  .phone-nav-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);}
+  .phone-nav-dot.active{background:#fff;}
+
+  .float-card{
+    position:absolute;z-index:3;
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(16px);
+    -webkit-backdrop-filter:saturate(180%) blur(16px);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:14px;
+    padding:10px 16px;
+    font-size:13px;font-weight:600;color:#1d1d1f;
+    box-shadow:0 18px 36px -18px rgba(10,20,40,.3);
+    animation:float-y 4s ease-in-out infinite;
+  }
+  .float-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .float-dot-blue{background:#0071e3;}
+  .float-dot-amber{background:#ff9f0a;}
+  .float-dot-green{background:#1fae5a;}
+  .fc-1{left:4%;top:10%;animation-delay:0s;}
+  .fc-2{right:2%;top:40%;animation-delay:1.3s;}
+  .fc-3{left:10%;bottom:6%;animation-delay:2.6s;}
+  @keyframes float-y{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+  }
+
+  .cockpit-features{list-style:none;margin:56px auto 0;padding:0;max-width:760px;display:grid;grid-template-columns:repeat(2,1fr);gap:18px 32px;text-align:left;}
+  .cockpit-features li{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.5;color:var(--ink-2);}
   .cockpit-feat-icon{
-    flex:none;width:24px;height:24px;border-radius:50%;
+    flex:none;width:22px;height:22px;border-radius:50%;
     background:var(--blue-soft-bg,#eaf2fd);
     display:flex;align-items:center;justify-content:center;
     margin-top:1px;
   }
-  .cockpit-feat-icon svg{width:13px;height:13px;display:block;}
-  .cockpit-copy .hero-ctas{margin-top:30px;}
-  .cockpit-visual{line-height:0;}
-  .cockpit-visual svg{width:100%;max-width:320px;height:auto;display:block;margin:0 auto;}
+  .cockpit-feat-icon svg{width:12px;height:12px;display:block;}
+  .spotlight-ctas{margin-top:44px;justify-content:center;align-items:center;}
+  .spotlight-note{font-size:13px;color:var(--ink-2);}
 
-  @media (max-width:860px){
-    .cockpit-grid{grid-template-columns:1fr;gap:40px;}
-    .cockpit-visual{order:-1;max-width:260px;margin:0 auto;}
+  @media (max-width:760px){
+    .float-card{display:none;}
+    .spotlight-stage{min-height:0;}
+    .cockpit-features{grid-template-columns:1fr;max-width:420px;}
+    .spotlight-ctas{flex-direction:column;gap:14px;}
   }
 
   /* EMPRESA / EQUIPA */
@@ -1156,7 +1238,7 @@
 </nav>
 
 <header class="hero">
-  <img class="hero-photo" src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1800&q=80" alt="Moradia moderna com piscina ao entardecer">
+  <img class="hero-photo" src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1800&q=80" alt="Secretária organizada com laptop, junto a uma janela com vista sobre a cidade">
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-text">
     <p class="hero-eyebrow">IA para o setor imobiliário</p>
@@ -1187,6 +1269,90 @@
   </div>
 </header>
 
+<section class="cockpit-spotlight" id="cockpit">
+  <div class="wrap">
+    <div class="spotlight-badge" data-reveal>
+      <span class="spotlight-dot"></span>
+      Cockpit <span class="spotlight-sep">·</span> Powered by <strong>Ace Labs</strong>
+    </div>
+    <div class="spotlight-head" data-reveal style="transition-delay:.05s">
+      <h2>O produto que vai mudar <span class="muted">o dia a dia da sua agência.</span></h2>
+      <p class="sub-col">Dashboard, funil de vendas e angariações, tudo sincronizado com o calendário - sem folhas de cálculo.</p>
+    </div>
+
+    <div class="spotlight-stage">
+      <div class="float-card fc-1" data-reveal style="transition-delay:.1s">
+        <span class="float-dot float-dot-blue"></span> Novo lead recebido
+      </div>
+      <div class="float-card fc-2" data-reveal style="transition-delay:.2s">
+        <span class="float-dot float-dot-amber"></span> Visita agendada
+      </div>
+      <div class="float-card fc-3" data-reveal style="transition-delay:.3s">
+        <span class="float-dot float-dot-green"></span> CPCV aprovado
+      </div>
+
+      <div class="spotlight-phone" id="spotlight-phone" data-reveal style="transition-delay:.15s">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-title">Dashboard</div>
+            <div class="phone-stats">
+              <div class="stat-tile stat-blue">
+                <span class="stat-num" data-count="12">0</span>
+                <span class="stat-label">Visitas</span>
+              </div>
+              <div class="stat-tile stat-green">
+                <span class="stat-num" data-count="5">0</span>
+                <span class="stat-label">Angariações</span>
+              </div>
+            </div>
+            <div class="phone-chart-label">Funil esta semana</div>
+            <div class="phone-bars">
+              <span class="bar bar-1"></span>
+              <span class="bar bar-2"></span>
+              <span class="bar bar-3"></span>
+              <span class="bar bar-4"></span>
+            </div>
+            <div class="phone-line"></div>
+            <div class="phone-row-sm"></div>
+            <div class="phone-row-sm short"></div>
+          </div>
+          <div class="phone-nav">
+            <span class="phone-nav-dot active"></span>
+            <span class="phone-nav-dot"></span>
+            <span class="phone-nav-dot"></span>
+            <span class="phone-nav-dot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="cockpit-features" data-reveal style="transition-delay:.25s">
+      <li>
+        <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        Dashboard com metas e métricas - visitas, angariações e transações, com taxa de conversão calculada sozinha.
+      </li>
+      <li>
+        <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        CRM com funil automático - compradores e proprietários avançam sozinhos até à escritura.
+      </li>
+      <li>
+        <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        Plano de angariação de 180/120 dias, com lembretes de marketing em cada etapa.
+      </li>
+      <li>
+        <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+        Calendário e tarefas unificados - as automações do CRM caem sozinhas na agenda do agente.
+      </li>
+    </ul>
+
+    <div class="hero-ctas spotlight-ctas" data-reveal style="transition-delay:.3s">
+      <a href="servicos/cockpit.html" class="btn-dark">Conhecer o Cockpit <span aria-hidden="true">&rarr;</span></a>
+      <span class="spotlight-note">Em breve · fala connosco para a fase piloto</span>
+    </div>
+  </div>
+</section>
+
 <section class="cpcv-demo" id="recursos">
   <div class="wrap">
     <p class="hero-eyebrow">Recursos</p>
@@ -1194,7 +1360,7 @@
     <p class="sub-col">O mesmo contrato-promessa, dois processos completamente diferentes.</p>
 
     <div class="compare-grid">
-      <article class="compare-card compare-before">
+      <article class="compare-card compare-before" data-reveal style="--n:0">
         <span class="compare-tag">Antes</span>
         <div class="compare-visual">
           <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de documentos espalhados e desorganizados, representando o processo manual de preparar um CPCV.">
@@ -1234,7 +1400,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </div>
 
-      <article class="compare-card compare-after">
+      <article class="compare-card compare-after" data-reveal style="--n:2">
         <span class="compare-tag">Depois</span>
         <div class="compare-visual">
           <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um documento organizado com um chat de IA ao lado e um carimbo de aprovado, representando o CPCV gerado automaticamente.">
@@ -1276,7 +1442,7 @@
 <section class="services" id="servicos">
   <div class="wrap services-wrap">
     <div class="services-col">
-      <a class="service-card" style="--n:1" href="servicos/dashboards-tempo-real.html">
+      <a class="service-card" data-reveal style="--n:1" href="servicos/dashboards-tempo-real.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
         </div>
@@ -1286,7 +1452,7 @@
           <p>Acompanhe os dados mais importantes da empresa, atualizados ao minuto.</p>
         </div>
       </a>
-      <a class="service-card" style="--n:2" href="servicos/comunicacao-follow-up.html">
+      <a class="service-card" data-reveal style="--n:2" href="servicos/comunicacao-follow-up.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
         </div>
@@ -1296,7 +1462,7 @@
           <p>Um sistema simples para falar com clientes e fornecedores, sem deixar nada por seguir.</p>
         </div>
       </a>
-      <a class="service-card" style="--n:3" href="servicos/workflows-a-medida.html">
+      <a class="service-card" data-reveal style="--n:3" href="servicos/workflows-a-medida.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3.7v4h-4"/><path d="M6 20.3v-4h4"/></svg>
         </div>
@@ -1306,7 +1472,7 @@
           <p>Desenhamos e otimizamos os fluxos de trabalho da sua equipa.</p>
         </div>
       </a>
-      <a class="service-card" style="--n:4" href="servicos/servicos-personalizados.html">
+      <a class="service-card" data-reveal style="--n:4" href="servicos/servicos-personalizados.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
         </div>
@@ -1316,7 +1482,7 @@
           <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
         </div>
       </a>
-      <a class="service-card" style="--n:5" href="servicos/cpcv-ia.html">
+      <a class="service-card" data-reveal style="--n:5" href="servicos/cpcv-ia.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg>
         </div>
@@ -1326,7 +1492,7 @@
           <p>Gera contratos-promessa de compra e venda em minutos, com dados extraídos automaticamente.</p>
         </div>
       </a>
-      <a class="service-card" style="--n:6" href="servicos/cockpit.html">
+      <a class="service-card" data-reveal style="--n:6" href="servicos/cockpit.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg>
         </div>
@@ -1350,71 +1516,6 @@
         <p>Menos papelada.<br>Mais negócio fechado.</p>
       </div>
       <p class="hand-note">Mais tempo<br>para vender.</p>
-    </div>
-  </div>
-</section>
-
-<section class="cockpit-showcase">
-  <div class="wrap cockpit-grid">
-    <div class="cockpit-copy">
-      <p class="hero-eyebrow">Imobiliário · Em breve</p>
-      <h2>Cockpit: o CRM de bolso <span class="muted">do agente imobiliário.</span></h2>
-      <p class="sub-col">Dashboard, funil de vendas e angariações, tudo sincronizado com o calendário - sem folhas de cálculo.</p>
-      <ul class="cockpit-features">
-        <li>
-          <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Dashboard com metas e métricas - visitas, angariações e transações, com taxa de conversão calculada sozinha.
-        </li>
-        <li>
-          <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          CRM com funil automático - compradores e proprietários avançam sozinhos até à escritura.
-        </li>
-        <li>
-          <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Plano de angariação de 180/120 dias, com lembretes de marketing em cada etapa.
-        </li>
-        <li>
-          <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-          Calendário e tarefas unificados - as automações do CRM caem sozinhas na agenda do agente.
-        </li>
-      </ul>
-      <div class="hero-ctas">
-        <a href="servicos/cockpit.html" class="btn-dark">Conhecer o Cockpit <span aria-hidden="true">&rarr;</span></a>
-      </div>
-    </div>
-    <div class="cockpit-visual">
-      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de uma app móvel com ecrã de Dashboard, dois cartões de métricas, um mini funil de vendas em barras e uma barra de navegação inferior com quatro separadores.">
-        <rect width="380" height="420" rx="28" fill="#eaf2fd"/>
-        <rect x="98" y="26" width="184" height="368" rx="34" fill="#0e0e10"/>
-        <rect x="110" y="40" width="160" height="340" rx="24" fill="#ffffff"/>
-        <rect x="150" y="48" width="80" height="6" rx="3" fill="#0e0e10"/>
-        <text x="128" y="80" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d1d1f">Dashboard</text>
-
-        <rect x="128" y="94" width="62" height="56" rx="12" fill="#eaf2fd"/>
-        <text x="140" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0071e3">12</text>
-        <text x="140" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Visitas</text>
-
-        <rect x="198" y="94" width="62" height="56" rx="12" fill="#e8f8ee"/>
-        <text x="210" y="120" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#1a8f49">5</text>
-        <text x="210" y="135" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#1a8f49">Angariações</text>
-
-        <rect x="128" y="172" width="90" height="8" rx="4" fill="rgba(29,29,31,.4)"/>
-        <rect x="128" y="196" width="26" height="52" rx="6" fill="#0071e3"/>
-        <rect x="162" y="210" width="26" height="38" rx="6" fill="#4b9eed"/>
-        <rect x="196" y="222" width="26" height="26" rx="6" fill="#8cc1f5"/>
-        <rect x="230" y="234" width="18" height="14" rx="6" fill="#c7e0fa"/>
-
-        <rect x="128" y="266" width="132" height="1" fill="rgba(0,0,0,.08)"/>
-        <rect x="128" y="282" width="92" height="8" rx="4" fill="rgba(29,29,31,.5)"/>
-        <rect x="128" y="298" width="124" height="7" rx="3.5" fill="rgba(29,29,31,.2)"/>
-
-        <line x1="110" y1="330" x2="270" y2="330" stroke="rgba(0,0,0,.08)"/>
-        <circle cx="148" cy="354" r="5" fill="#0071e3"/>
-        <rect x="140" y="364" width="16" height="5" rx="2.5" fill="#0071e3"/>
-        <circle cx="179" cy="354" r="5" fill="rgba(29,29,31,.25)"/>
-        <circle cx="210" cy="354" r="5" fill="rgba(29,29,31,.25)"/>
-        <circle cx="241" cy="354" r="5" fill="rgba(29,29,31,.25)"/>
-      </svg>
     </div>
   </div>
 </section>
@@ -1475,21 +1576,21 @@
     <p class="sub-col">Banca, análise de dados e mercado imobiliário - do lado da angariação e do lado da gestão de património.</p>
 
     <div class="team-grid">
-      <div class="team-card">
+      <div class="team-card" data-reveal style="--n:0">
         <div class="team-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10 12 4l10 6"/><path d="M4 10v11M9 10v11M15 10v11M20 10v11"/><path d="M2 21h20"/></svg>
         </div>
         <h4>Banca</h4>
         <p>Anos em banca deram-nos à-vontade com processos rigorosos, risco e compliance - essencial quando se automatiza contratos e dados sensíveis de clientes.</p>
       </div>
-      <div class="team-card">
+      <div class="team-card" data-reveal style="--n:1">
         <div class="team-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
         </div>
         <h4>Análise de dados</h4>
         <p>Lemos métricas e funis como quem lê um relatório financeiro - por isso os dashboards que desenhamos mostram só o que importa decidir.</p>
       </div>
-      <div class="team-card">
+      <div class="team-card" data-reveal style="--n:2">
         <div class="team-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 21v-6h6v6"/></svg>
         </div>
@@ -1581,6 +1682,52 @@
     var n=document.querySelector("nav");
     var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
     f();window.addEventListener("scroll",f,{passive:true});
+  })();
+
+  (function(){
+    var els = document.querySelectorAll('[data-reveal]');
+    if(!els.length) return;
+    if(!('IntersectionObserver' in window)){
+      els.forEach(function(el){ el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    els.forEach(function(el){ io.observe(el); });
+  })();
+
+  (function(){
+    var phone = document.getElementById('spotlight-phone');
+    if(!phone || !('IntersectionObserver' in window)) return;
+    var done = false;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting && !done){
+          done = true;
+          phone.classList.add('in-view');
+          phone.querySelectorAll('.stat-num[data-count]').forEach(function(el){
+            var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+            var startTime = null;
+            function step(ts){
+              if(!startTime) startTime = ts;
+              var progress = Math.min((ts - startTime) / 900, 1);
+              el.textContent = Math.floor(progress * target);
+              if(progress < 1) requestAnimationFrame(step);
+              else el.textContent = target;
+            }
+            requestAnimationFrame(step);
+          });
+          io.unobserve(phone);
+        }
+      });
+    }, { threshold: 0.35 });
+    io.observe(phone);
   })();
 
   (function(){
