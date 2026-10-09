@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ace Labs - Lead Engine</title>
+<meta name="description" content="Capte e qualifique leads automaticamente, distribuídos pelo agente certo, sem nenhum a escapar por falta de resposta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --blue:#0071e3;
+    --blue-dark:#0059b3;
+    --blue-soft-bg:#eaf2fd;
+    --line:rgba(0,0,0,.08);
+    --amber-bg:#fff4e5;
+    --amber-text:#9a5b00;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background:linear-gradient(180deg, #ffffff 0%, #f4f5f7 55%, #eef0f3 100%);
+  }
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.015em;}
+  p{margin:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  .serif{font-family:'Source Serif 4',Georgia,serif;}
+
+  /* NAV (igual ao site principal) */
+  body > nav{
+    position:fixed;top:0;left:0;right:0;
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition:background .25s ease, border-color .25s ease;
+    z-index:100;
+  }
+  body > nav.scrolled{
+    background:rgba(250,250,250,.82);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom-color:rgba(0,0,0,.07);
+  }
+  body > nav .wrap{
+    height:70px;
+    max-width:1520px;
+    padding:0 clamp(24px,4vw,64px);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;
+  }
+  .logo{display:flex;align-items:center;}
+  .logo img{height:20px;width:auto;display:block;}
+  .navlinks{display:flex;gap:38px;}
+  .navlinks a{
+    font-size:14.5px;
+    color:#3d3d40;
+    font-weight:450;
+    letter-spacing:-0.005em;
+    transition:color .15s ease;
+  }
+  .navlinks a:hover{color:#000;}
+  .nav-cta{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:14px;
+    font-weight:500;
+    background:#141414;
+    color:#fff;
+    padding:12px 22px;
+    border-radius:980px;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:#000;}
+
+  /* MENU MOVEL */
+  .nav-burger{
+    display:none;
+    flex:none;
+    width:36px;height:36px;
+    border:none;background:none;padding:0;
+    cursor:pointer;
+    flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  }
+  .nav-burger span{display:block;width:20px;height:2px;background:#1d1d1f;border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
+  .nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .nav-mobile{
+    display:none;
+    position:absolute;top:70px;left:0;right:0;
+    background:rgba(255,255,255,.97);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.08);
+    flex-direction:column;
+    padding:6px 24px 22px;
+  }
+  .nav-mobile.open{display:flex;}
+  .nav-scrim{
+    display:none;
+    position:fixed;top:70px;left:0;right:0;bottom:0;
+    background:rgba(10,10,12,.28);
+    z-index:90;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .nav-scrim.open{display:block;opacity:1;}
+  body.nav-open{overflow:hidden;}
+  .nav-mobile a{
+    padding:15px 2px;
+    font-size:15.5px;font-weight:500;color:#1d1d1f;
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .nav-mobile-cta{
+    margin-top:14px;
+    display:inline-flex!important;align-items:center;justify-content:center;gap:9px;
+    background:#141414;color:#fff!important;
+    padding:14px 22px;border-radius:980px;
+    font-weight:500!important;border-bottom:none!important;
+  }
+  a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
+
+  /* BOTOES-PILULA */
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-dark{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:#141414;color:#fff;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease;
+  }
+  .btn-dark:hover{background:#000;}
+  .btn-outline{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:16px 28px;
+    background:rgba(255,255,255,.7);
+    border:1px solid rgba(20,20,20,.16);
+    color:#1c1c1e;
+    border-radius:980px;
+    font-size:15px;font-weight:500;
+    letter-spacing:-0.005em;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
+
+  /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
+  .article-hero{padding:100px 0 60px;}
+  .article-grid{
+    display:grid;
+    grid-template-columns:1fr 1.25fr;
+    gap:56px;
+    align-items:center;
+  }
+  .article-media{line-height:0;}
+  .article-media svg{width:100%;height:auto;display:block;border-radius:28px;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13.5px;font-weight:500;color:var(--ink-2);
+    margin-bottom:24px;
+  }
+  .back-link:hover{color:var(--ink);}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;font-weight:600;
+    color:var(--blue-dark);
+    background:var(--blue-soft-bg);
+    padding:6px 14px;
+    border-radius:980px;
+    margin-bottom:18px;
+  }
+
+  .article-body h1{
+    font-size:clamp(34px,4.4vw,50px);
+    line-height:1.05;
+    letter-spacing:-0.02em;
+    color:#0e0e10;
+  }
+  .article-body h1 .muted{color:#9a9ca0;}
+  .article-tagline{
+    font-size:clamp(19px,2vw,23px);
+    line-height:1.4;
+    color:var(--ink-2);
+    font-weight:500;
+    margin-top:20px;
+    max-width:34ch;
+  }
+
+  .feature-list{margin-top:44px;display:flex;flex-direction:column;gap:26px;}
+  .feature-item{display:flex;gap:16px;align-items:flex-start;}
+  .feature-icon{
+    flex:none;
+    width:52px;height:52px;
+    border-radius:14px;
+    background:var(--blue-soft-bg);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feature-icon svg{width:24px;height:24px;display:block;}
+  .feature-text h3{
+    font-size:16.5px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .feature-text p{
+    margin-top:5px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-2);
+  }
+
+  .article-divider{
+    margin-top:36px;
+    border-top:1px solid var(--line);
+  }
+  .article-ctas{margin-top:28px;}
+  .article-note{margin-top:14px;font-size:13px;color:var(--ink-2);}
+
+  /* CLOSING CTA (igual ao site principal) */
+  .closing{padding:120px 0;text-align:center;}
+  .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
+  .closing p{margin-top:18px;font-size:19px;color:var(--ink-2);max-width:40ch;margin-left:auto;margin-right:auto;}
+  .closing .hero-ctas{margin-top:34px;justify-content:center;}
+  .closing .btn-dark{background:var(--ink);color:#fff;}
+  .closing .btn-dark:hover{background:#000;}
+
+  footer{
+    padding:40px 0;
+    font-size:12px;
+    color:var(--ink-2);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:1px solid var(--line);
+  }
+  footer img{height:16px;width:auto;display:block;opacity:.85;}
+
+  @media (max-width:860px){
+    .article-hero{padding:130px 0 70px;}
+    .article-grid{grid-template-columns:1fr;gap:40px;}
+    .article-body{order:1;}
+    .article-media{order:2;max-width:380px;margin:0 auto;}
+    .navlinks{display:none;}
+    .nav-cta{display:none;}
+    .nav-burger{display:flex;}
+  }
+  @media (max-width:640px){
+    .closing{padding:80px 0;}
+    .closing h2{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <div class="navlinks">
+      <a href="../index.html#servicos">Serviços</a>
+      <a href="../index.html#como-funciona">Como funciona</a>
+      <a href="../index.html#recursos">Recursos</a>
+      <a href="../index.html#empresa">Empresa</a>
+    </div>
+    <a href="../index.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="../index.html#servicos">Serviços</a>
+    <a href="../index.html#como-funciona">Como funciona</a>
+    <a href="../index.html#recursos">Recursos</a>
+    <a href="../index.html#empresa">Empresa</a>
+    <a href="../index.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</nav>
+<div class="nav-scrim" id="nav-scrim"></div>
+
+<header class="article-hero">
+  <div class="wrap article-grid">
+    <div class="article-body">
+      <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <span class="badge">Para agências</span>
+      <h1>Lead <span class="muted">Engine</span></h1>
+      <p class="article-tagline">Leads captados, qualificados e distribuídos pela equipa certa - sem nenhum a escapar por falta de resposta.</p>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 9v6l-4 2v-8z"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Captação automática</h3>
+            <p>Formulários, landing pages e campanhas ligados diretamente ao seu funil, sem trabalho manual de copiar e colar.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Qualificação instantânea</h3>
+            <p>Cada lead é avaliado assim que entra, para a equipa focar primeiro em quem está mais perto de fechar negócio.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v1"/><path d="M16.5 4.5a3.2 3.2 0 0 1 0 6.4"/><path d="M21 20v-1a5.5 5.5 0 0 0-4-5.3"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Distribuição pela equipa certa</h3>
+            <p>Atribuição automática ao agente certo, por zona, disponibilidade ou especialidade.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </div>
+          <div class="feature-text">
+            <h3>Resposta rápida, sempre</h3>
+            <p>Alertas imediatos e lembretes de follow-up, para nenhum lead ficar por responder.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-divider"></div>
+      <div class="hero-ctas article-ctas">
+        <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+        <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
+      </div>
+    </div>
+    <div class="article-media">
+      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um funil de leads com três colunas - Novo lead, Qualificado e Atribuído - cada uma com cartões de contactos, e uma métrica de tempo médio de resposta.">
+        <rect width="380" height="420" rx="28" fill="#eaf2fd"/>
+        <rect x="24" y="36" width="332" height="352" rx="22" fill="#ffffff"/>
+
+        <text x="46" y="70" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">Lead Engine</text>
+        <text x="46" y="88" font-family="Inter, Arial, sans-serif" font-size="10" fill="#9a9ca0">12 leads esta semana</text>
+        <line x1="46" y1="104" x2="334" y2="104" stroke="rgba(0,0,0,.08)"/>
+
+        <circle cx="50" cy="126" r="4" fill="#ff9f0a"/>
+        <text x="60" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Novo lead</text>
+        <rect x="46" y="142" width="92" height="58" rx="10" fill="#fff8ee" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="64" cy="162" r="10" fill="#ffe3b0"/>
+        <rect x="80" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="80" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="58" y="180" width="68" height="12" rx="6" fill="#fff4e5"/>
+        <text x="64" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#9a5b00">Formulário</text>
+
+        <rect x="46" y="208" width="92" height="46" rx="10" fill="#fff8ee" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="64" cy="228" r="10" fill="#ffe3b0"/>
+        <rect x="80" y="223" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="80" y="234" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+
+        <circle cx="152" cy="126" r="4" fill="#0071e3"/>
+        <text x="162" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Qualificado</text>
+        <rect x="148" y="142" width="92" height="58" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="166" cy="162" r="10" fill="#c7e0fa"/>
+        <rect x="182" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="182" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="160" y="180" width="72" height="12" rx="6" fill="#eaf2fd"/>
+        <text x="166" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#0071e3">Alta prioridade</text>
+
+        <circle cx="254" cy="126" r="4" fill="#1fae5a"/>
+        <text x="264" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Atribuído</text>
+        <rect x="250" y="142" width="92" height="58" rx="10" fill="#f2faf5" stroke="rgba(0,0,0,.05)"/>
+        <circle cx="268" cy="162" r="10" fill="#bfe8cf"/>
+        <rect x="284" y="157" width="40" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+        <rect x="284" y="168" width="30" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <rect x="262" y="180" width="66" height="12" rx="6" fill="#e8f8ee"/>
+        <text x="268" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#1a8f49">Agente certo</text>
+
+        <rect x="46" y="296" width="288" height="1" fill="rgba(0,0,0,.08)"/>
+
+        <text x="46" y="322" font-family="Inter, Arial, sans-serif" font-size="9" fill="#9a9ca0">Tempo médio de resposta</text>
+        <text x="46" y="344" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700" fill="#0071e3">3 minutos</text>
+
+        <rect x="206" y="304" width="128" height="46" rx="12" fill="#eaf2fd"/>
+        <text x="220" y="324" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Leads qualificados</text>
+        <text x="220" y="341" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#0071e3">68%</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section class="closing" id="contacto">
+  <div class="wrap">
+    <h2>Vamos ver onde está a perder mais tempo?</h2>
+    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
+    <div class="hero-ctas">
+      <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+    <a href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
+    <span>Braga · Guimarães</span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var n=document.querySelector("nav");
+    var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
+    f();window.addEventListener("scroll",f,{passive:true});
+  })();
+  (function(){
+    var burger = document.getElementById('nav-burger');
+    var mobile = document.getElementById('nav-mobile');
+    var scrim = document.getElementById('nav-scrim');
+    if(!burger || !mobile) return;
+    function closeMenu(){
+      mobile.classList.remove('open');
+      if(scrim) scrim.classList.remove('open');
+      document.body.classList.remove('nav-open');
+      burger.setAttribute('aria-expanded', 'false');
+      burger.setAttribute('aria-label', 'Abrir menu');
+    }
+    function openMenu(){
+      mobile.classList.add('open');
+      if(scrim) scrim.classList.add('open');
+      document.body.classList.add('nav-open');
+      burger.setAttribute('aria-expanded', 'true');
+      burger.setAttribute('aria-label', 'Fechar menu');
+    }
+    burger.addEventListener('click', function(){
+      if(mobile.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
+    mobile.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+    if(scrim) scrim.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeMenu();
+    });
+    window.addEventListener('resize', function(){
+      if(window.innerWidth > 860) closeMenu();
+    });
+  })();
+</script>
+
+</body>
+</html>
