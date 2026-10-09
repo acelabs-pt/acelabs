@@ -35,6 +35,22 @@
   a{color:inherit;text-decoration:none;}
   .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
   .serif{font-family:'Source Serif 4',Georgia,serif;}
+  .hero-eyebrow{
+    font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;
+    color:#6f7276;margin:0 0 16px;
+  }
+  .sub-col{margin-top:14px;max-width:52ch;font-size:16px;line-height:1.55;color:var(--ink-2);}
+
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .6s ease,transform .6s ease;
+    transition-delay:calc(var(--n,0) * 0.06s);
+  }
+  [data-reveal].is-visible{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal]{opacity:1;transform:none;transition:none;}
+  }
 
   /* NAV (igual ao site principal) */
   body > nav{
@@ -253,6 +269,20 @@
   .article-ctas{margin-top:28px;}
   .article-note{margin-top:14px;font-size:13px;color:var(--ink-2);}
 
+  /* RELAY DO LEAD ENGINE */
+  .lead-relay{padding:30px 0 90px;}
+  .relay-list{margin-top:44px;max-width:720px;}
+  .relay-step{display:flex;gap:20px;padding:26px 0;border-top:1px solid var(--line);}
+  .relay-step:first-child{border-top:none;padding-top:0;}
+  .relay-num{
+    flex:none;width:40px;height:40px;border-radius:50%;
+    background:var(--blue-soft-bg);color:var(--blue-dark);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:700;
+  }
+  .relay-text h3{font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:-0.005em;}
+  .relay-text p{margin-top:6px;font-size:14px;line-height:1.55;color:var(--ink-2);}
+
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
   .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
@@ -294,7 +324,7 @@
     <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
     <div class="navlinks">
       <div class="nav-services">
-        <a href="../index.html#servicos" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
+        <a href="../agencias.html#servicos" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="nav-services-menu">
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
@@ -313,21 +343,21 @@
           </div>
         </div>
       </div>
-      <a href="../index.html#como-funciona">Como funciona</a>
-      <a href="../index.html#recursos">Recursos</a>
-      <a href="../index.html#empresa">Empresa</a>
+      <a href="../agencias.html#como-funciona">Como funciona</a>
+      <a href="../agencias.html#recursos">Recursos</a>
+      <a href="../agencias.html#empresa">Empresa</a>
     </div>
-    <a href="../index.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../agencias.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
     <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="nav-mobile" id="nav-mobile">
-    <a href="../index.html#servicos">Serviços</a>
-    <a href="../index.html#como-funciona">Como funciona</a>
-    <a href="../index.html#recursos">Recursos</a>
-    <a href="../index.html#empresa">Empresa</a>
-    <a href="../index.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../agencias.html#servicos">Serviços</a>
+    <a href="../agencias.html#como-funciona">Como funciona</a>
+    <a href="../agencias.html#recursos">Recursos</a>
+    <a href="../agencias.html#empresa">Empresa</a>
+    <a href="../agencias.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
 <div class="nav-scrim" id="nav-scrim"></div>
@@ -335,7 +365,7 @@
 <header class="article-hero">
   <div class="wrap article-grid">
     <div class="article-body">
-      <a class="back-link" href="../index.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <a class="back-link" href="../agencias.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
       <span class="badge">Para agências</span>
       <h1>Lead <span class="muted">Engine</span></h1>
       <p class="article-tagline">Leads captados, qualificados e distribuídos pela equipa certa - sem nenhum a escapar por falta de resposta.</p>
@@ -381,8 +411,8 @@
 
       <div class="article-divider"></div>
       <div class="hero-ctas article-ctas">
-        <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
-        <a href="../index.html#servicos" class="btn-outline">Ver todos os serviços</a>
+        <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+        <a href="../agencias.html#servicos" class="btn-outline">Ver todos os serviços</a>
       </div>
     </div>
     <div class="article-media">
@@ -439,12 +469,50 @@
   </div>
 </header>
 
+<section class="lead-relay">
+  <div class="wrap">
+    <p class="hero-eyebrow" data-reveal style="--n:0">Como funciona</p>
+    <h2 class="serif" data-scramble data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:22ch;">Do lead desconhecido <span class="muted" style="color:#9a9ca0;">à reunião marcada.</span></h2>
+
+    <div class="relay-list">
+      <div class="relay-step" data-reveal style="--n:2">
+        <span class="relay-num">01</span>
+        <div class="relay-text">
+          <h3>O lead chega</h3>
+          <p>De um formulário, portal imobiliário ou campanha - sem o agente ter de ir à procura.</p>
+        </div>
+      </div>
+      <div class="relay-step" data-reveal style="--n:3">
+        <span class="relay-num">02</span>
+        <div class="relay-text">
+          <h3>A IA qualifica e responde</h3>
+          <p>Em minutos, não em horas - antes que o lead vá procurar outra agência.</p>
+        </div>
+      </div>
+      <div class="relay-step" data-reveal style="--n:4">
+        <span class="relay-num">03</span>
+        <div class="relay-text">
+          <h3>Cai no CRM do agente certo</h3>
+          <p>Atribuído automaticamente por zona, disponibilidade ou especialidade.</p>
+        </div>
+      </div>
+      <div class="relay-step" data-reveal style="--n:5">
+        <span class="relay-num">04</span>
+        <div class="relay-text">
+          <h3>Lembretes até à primeira resposta</h3>
+          <p>Se o lead não responder, o sistema insiste por si - até haver uma reunião marcada.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
     <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
-      <a href="../index.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+      <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
   </div>
 </section>
@@ -495,6 +563,78 @@
     window.addEventListener('resize', function(){
       if(window.innerWidth > 860) closeMenu();
     });
+  })();
+
+  (function(){
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+    if(!targets.length) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    targets.forEach(function(t){ io.observe(t); });
+  })();
+
+  (function(){
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-scramble]'));
+    if(!targets.length) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var MS_PER_CHAR = 24;
+
+    function scramble(el){
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      var n;
+      while((n = walker.nextNode())){
+        if(n.textContent.replace(/\s/g, '').length) nodes.push({ node: n, original: n.textContent });
+      }
+      if(!nodes.length) return;
+
+      if(reduceMotion){
+        nodes.forEach(function(o){ o.node.textContent = o.original; });
+        return;
+      }
+
+      var consumedBefore = [];
+      var acc = 0;
+      nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
+
+      var startTime = null;
+      function frame(ts){
+        if(!startTime) startTime = ts;
+        var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
+        var done = true;
+        nodes.forEach(function(o, idx){
+          var localRevealed = globalRevealed - consumedBefore[idx];
+          if(localRevealed < o.original.length) done = false;
+          var out = '';
+          for(var i = 0; i < o.original.length; i++){
+            var ch = o.original[i];
+            if(ch === ' ' || localRevealed > i) out += ch;
+            else out += CHARS[Math.floor(Math.random() * CHARS.length)];
+          }
+          o.node.textContent = out;
+        });
+        if(!done) requestAnimationFrame(frame);
+        else nodes.forEach(function(o){ o.node.textContent = o.original; });
+      }
+      requestAnimationFrame(frame);
+    }
+
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          scramble(entry.target);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    targets.forEach(function(t){ io.observe(t); });
   })();
 </script>
 
