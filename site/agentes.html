@@ -81,6 +81,7 @@
     }
     .flow-chip{animation:none!important;}
     .flow-path{animation:none!important;}
+    .team-icon{animation:none!important;}
   }
 
   .skip-link{
@@ -648,7 +649,7 @@
     background:var(--blue-soft-bg,#eaf2fd);
     display:flex;align-items:center;justify-content:center;
     margin-bottom:18px;
-  }
+  animation:icon-3d 5s ease-in-out infinite;transform-style:preserve-3d;}@keyframes icon-3d{0%,100%{transform:perspective(400px) rotateY(0deg) rotateX(0deg);}25%{transform:perspective(400px) rotateY(16deg) rotateX(-8deg);}50%{transform:perspective(400px) rotateY(0deg) rotateX(8deg);}75%{transform:perspective(400px) rotateY(-16deg) rotateX(-6deg);}}.team-card:nth-of-type(1) .team-icon{animation-delay:0s;}.team-card:nth-of-type(2) .team-icon{animation-delay:-1.7s;}.team-card:nth-of-type(3) .team-icon{animation-delay:-3.4s;}
   .team-icon svg{width:22px;height:22px;display:block;}
   .team-card h4{font-size:16px;font-weight:650;color:#1d1d1f;letter-spacing:-0.005em;}
   .team-card p{margin-top:8px;font-size:13.5px;line-height:1.55;color:var(--ink-2);}
