@@ -407,6 +407,28 @@
   .timeline-dot.on{background:#0071e3;}
   .timeline-note{margin-top:18px;font-size:13px;color:var(--ink-2);}
 
+  .timeline-board{position:relative;}
+  .timeline-today{
+    position:absolute;top:50px;bottom:4px;left:0;width:2px;
+    background:#0071e3;opacity:0;
+    transition:left 1.1s cubic-bezier(.3,.7,.2,1),opacity .4s ease;
+    pointer-events:none;z-index:2;
+  }
+  .timeline-today.is-on{opacity:1;}
+  .timeline-today.is-landed{animation:timeline-today-pulse .7s ease-out;}
+  @keyframes timeline-today-pulse{
+    0%{box-shadow:0 0 0 0 rgba(0,113,227,.45);}
+    100%{box-shadow:0 0 0 10px rgba(0,113,227,0);}
+  }
+  .timeline-today-label{
+    position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+    font-size:10px;font-weight:700;color:#fff;background:#0071e3;
+    padding:2px 7px;border-radius:980px;white-space:nowrap;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .timeline-today{display:none;}
+  }
+
   /* FAQ */
   .cockpit-faq{padding:10px 0 100px;}
   .faq-list{margin-top:40px;display:flex;flex-direction:column;gap:12px;max-width:760px;}
@@ -698,6 +720,7 @@
           <span class="timeline-label">Refresh do Anúncio</span>
           <span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span><span class="timeline-dot"></span><span class="timeline-dot on"></span>
         </div>
+        <div class="timeline-today" aria-hidden="true"><span class="timeline-today-label">Hoje</span></div>
       </div>
     </div>
     <p class="timeline-note" data-reveal style="--n:4">O agente escolhe, adiciona ou remove ações do plano a qualquer momento - isto é só o ponto de partida.</p>
@@ -997,6 +1020,37 @@
         token.style.top = (chipRect.top - rowRect.top - 9) + 'px';
       });
     });
+  })();
+
+  (function(){
+    var board = document.querySelector('.timeline-board');
+    var marker = document.querySelector('.timeline-today');
+    if(!board || !marker) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduceMotion) return;
+    var dayEls = Array.prototype.slice.call(document.querySelectorAll('.timeline-days span:not(.days-label)'));
+    var targetEl = dayEls[2];
+    if(!targetEl) return;
+    var played = false;
+    function place(){
+      var boardRect = board.getBoundingClientRect();
+      var elRect = targetEl.getBoundingClientRect();
+      marker.style.left = (elRect.left - boardRect.left + elRect.width / 2) + 'px';
+    }
+    marker.addEventListener('transitionend', function(e){
+      if(e.propertyName === 'left') marker.classList.add('is-landed');
+    });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting && !played){
+          played = true;
+          place();
+          requestAnimationFrame(function(){ marker.classList.add('is-on'); });
+          io.unobserve(board);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(board);
   })();
 
   (function(){
