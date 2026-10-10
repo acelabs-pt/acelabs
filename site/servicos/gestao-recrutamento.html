@@ -39,7 +39,7 @@
     --amber-text:#9a5b00;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}}
+  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}.candidate-travel{transform:none!important;}}
   body{
     margin:0;
     color:var(--ink);
@@ -423,10 +423,13 @@
         <rect x="58" y="180" width="68" height="12" rx="6" fill="#eaf2fd"/>
         <text x="64" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#0071e3">Nova</text>
 
-        <rect x="46" y="208" width="92" height="46" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
-        <circle cx="64" cy="228" r="10" fill="#c7e0fa"/>
-        <rect x="80" y="223" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
-        <rect x="80" y="234" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+        <g class="candidate-travel">
+          <rect x="46" y="208" width="92" height="46" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
+          <circle cx="64" cy="228" r="10" fill="#c7e0fa"/>
+          <rect x="80" y="223" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
+          <rect x="80" y="234" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
+          <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 102,0; 102,0" keyTimes="0;0.3;0.7;1" dur="2.4s" begin="1s" fill="freeze"/>
+        </g>
 
         <circle cx="152" cy="126" r="4" fill="#ff9f0a"/>
         <text x="162" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Entrevista</text>
