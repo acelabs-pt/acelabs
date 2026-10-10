@@ -14,6 +14,9 @@ import { btnDanger, btnPrimary, btnSecondary, CabecalhoSecao, CORES_SECAO, grupo
 // arriscar a IA a lê-los mal.
 type Processo = {
   id: string;
+  imovel_concelho: string | null;
+  imovel_artigo_matricial: string | null;
+  imovel_descricao_predial: string | null;
   imovel_e_fracao_autonoma: boolean | null;
   imovel_fracao_letra: string | null;
   imovel_andar_fracao: string | null;
@@ -25,6 +28,22 @@ type Processo = {
   imovel_certificado_validade: string | null;
   imovel_certificado_classe: string | null;
   hipotecas_verificadas: boolean;
+};
+
+// Resultado de /api/cpcv/extrair-documento-imovel - só sugestões, nunca gravado directamente
+// (mesmo princípio de /api/cpcv/extrair-pessoa). Ao contrário do resto deste ficheiro (que é
+// 100% manual de propósito), estes campos vêm quase sempre impressos de forma mecânica e
+// previsível num sítio fixo da certidão predial/licença/certificado - vale a pena a IA ler, com
+// o aviso "lidoPorIA" a pedir confirmação antes de gravar (mesmo princípio já usado em
+// ParteCampos.tsx para os documentos de identificação).
+type ExtracaoImovel = {
+  fracao_letra?: string | null;
+  conservatoria?: string | null;
+  descricao_predial?: string | null;
+  artigo_matricial?: string | null;
+  licenca_data_emissao?: string | null;
+  certificado_validade?: string | null;
+  certificado_classe?: string | null;
 };
 
 type HipotecaLinha = {
@@ -75,8 +94,16 @@ export default function IdentificacaoImovel({
   const [orientacao, setOrientacao] = useState(processo.imovel_orientacao ?? "");
   const [finalidade, setFinalidade] = useState(processo.imovel_finalidade ?? "");
   const [conservatoria, setConservatoria] = useState(processo.imovel_conservatoria ?? "");
+  const [descricaoPredial, setDescricaoPredial] = useState(processo.imovel_descricao_predial ?? "");
+  const [artigoMatricial, setArtigoMatricial] = useState(processo.imovel_artigo_matricial ?? "");
   const [licencaDataEmissao, setLicencaDataEmissao] = useState(processo.imovel_licenca_data_emissao ?? "");
-  const [licencaEntidade, setLicencaEntidade] = useState(processo.imovel_licenca_entidade_emissora ?? "");
+  // "Assume sempre a entidade emissora a Câmara Municipal do concelho onde é o imóvel" - regra
+  // fixa do Miguel, não depende de leitura de nenhum documento (a licença raramente a imprime
+  // por extenso). Só serve de valor inicial quando ainda não há nada gravado - o agente pode
+  // sempre corrigir à mão se for um caso fora da regra.
+  const [licencaEntidade, setLicencaEntidade] = useState(
+    processo.imovel_licenca_entidade_emissora ?? (processo.imovel_concelho ? `Câmara Municipal de ${processo.imovel_concelho}` : "")
+  );
   const [certificadoValidade, setCertificadoValidade] = useState(processo.imovel_certificado_validade ?? "");
   const [certificadoClasse, setCertificadoClasse] = useState(processo.imovel_certificado_classe ?? "");
 
@@ -85,7 +112,70 @@ export default function IdentificacaoImovel({
   const [aAnalisar, setAAnalisar] = useState(false);
   const [erroAnalise, setErroAnalise] = useState("");
 
+  // A leitura automática destes campos (fracção/conservatória/datas/classe) já errou noutros
+  // campos do processo (nome, validade) - mesmo aviso persistente de ParteCampos.tsx, para o
+  // agente confirmar com o documento antes de gravar.
+  const [lidoPorIA, setLidoPorIA] = useState(false);
+  const [aAnalisarImovel, setAAnalisarImovel] = useState(false);
+  const [erroAnaliseImovel, setErroAnaliseImovel] = useState("");
+
   const certidoesPrediais = ficheiros.filter((f) => f.tipo === "certidao_predial");
+  const documentosImovel = ficheiros.filter((f) =>
+    ["certidao_predial", "caderneta_predial", "licenca_utilizacao", "certificado_energetico"].includes(f.tipo)
+  );
+
+  async function analisarDocumentosImovel() {
+    if (documentosImovel.length === 0) return;
+    setAAnalisarImovel(true);
+    setErroAnaliseImovel("");
+    try {
+      const res = await fetch("/api/cpcv/extrair-documento-imovel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caminhos: documentosImovel.map((f) => f.storage_path) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErroAnaliseImovel(data.error ?? "Erro ao analisar os documentos do imóvel.");
+        return;
+      }
+      const extraido: ExtracaoImovel = data.dados ?? {};
+      let alterou = false;
+      if (!fracaoLetra.trim() && extraido.fracao_letra) {
+        setFracaoLetra(extraido.fracao_letra);
+        alterou = true;
+      }
+      if (!conservatoria.trim() && extraido.conservatoria) {
+        setConservatoria(extraido.conservatoria);
+        alterou = true;
+      }
+      if (!descricaoPredial.trim() && extraido.descricao_predial) {
+        setDescricaoPredial(extraido.descricao_predial);
+        alterou = true;
+      }
+      if (!artigoMatricial.trim() && extraido.artigo_matricial) {
+        setArtigoMatricial(extraido.artigo_matricial);
+        alterou = true;
+      }
+      if (!licencaDataEmissao.trim() && extraido.licenca_data_emissao) {
+        setLicencaDataEmissao(extraido.licenca_data_emissao);
+        alterou = true;
+      }
+      if (!certificadoValidade.trim() && extraido.certificado_validade) {
+        setCertificadoValidade(extraido.certificado_validade);
+        alterou = true;
+      }
+      if (!certificadoClasse.trim() && extraido.certificado_classe) {
+        setCertificadoClasse(extraido.certificado_classe);
+        alterou = true;
+      }
+      if (alterou) setLidoPorIA(true);
+    } catch {
+      setErroAnaliseImovel("Erro de rede ao analisar os documentos do imóvel.");
+    } finally {
+      setAAnalisarImovel(false);
+    }
+  }
 
   function atualizarHipoteca<K extends keyof HipotecaDraft>(i: number, campo: K, valor: HipotecaDraft[K]) {
     setHipotecas((atual) => atual.map((h, idx) => (idx === i ? { ...h, [campo]: valor } : h)));
@@ -159,6 +249,8 @@ export default function IdentificacaoImovel({
         imovel_orientacao: orientacao.trim() || null,
         imovel_finalidade: finalidade.trim() || null,
         imovel_conservatoria: conservatoria.trim() || null,
+        imovel_descricao_predial: descricaoPredial.trim() || null,
+        imovel_artigo_matricial: artigoMatricial.trim() || null,
         imovel_licenca_data_emissao: licencaDataEmissao || null,
         imovel_licenca_entidade_emissora: licencaEntidade.trim() || null,
         imovel_certificado_validade: certificadoValidade || null,
@@ -245,6 +337,24 @@ export default function IdentificacaoImovel({
 
       {eFracao === "sim" && (
         <div className={grupoClass}>
+          {documentosImovel.length > 0 && (
+            <div className="flex items-center gap-3 mb-3">
+              <button type="button" onClick={analisarDocumentosImovel} disabled={aAnalisarImovel} className={btnSecondary}>
+                {aAnalisarImovel && <Spinner className="h-3.5 w-3.5" />}
+                {aAnalisarImovel ? "A analisar..." : "Analisar documentos"}
+              </button>
+              <span className="text-[11px] text-[#94A3B8]">
+                Lê a certidão predial, licença e certificado já carregados e preenche os campos vazios abaixo.
+              </span>
+            </div>
+          )}
+          {erroAnaliseImovel && <p className="text-xs text-[#9A5B00] mb-3">{erroAnaliseImovel}</p>}
+          {lidoPorIA && (
+            <p className="text-xs text-[#9A5B00] bg-[#FFF4E5] border border-[#F5D9A8] rounded-lg px-3 py-2 mb-3">
+              Dados lidos automaticamente dos documentos - confirma com o documento original antes de gravar.
+            </p>
+          )}
+
           <p className={subTituloClass}>Fracção</p>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -282,6 +392,18 @@ export default function IdentificacaoImovel({
                 Conservatória do Registo Predial
               </label>
               <input id="conservatoria" value={conservatoria} onChange={(e) => setConservatoria(e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label htmlFor="descricaoPredial" className={labelClass}>
+                Número de descrição predial
+              </label>
+              <input id="descricaoPredial" value={descricaoPredial} onChange={(e) => setDescricaoPredial(e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label htmlFor="artigoMatricial" className={labelClass}>
+                Artigo matricial
+              </label>
+              <input id="artigoMatricial" value={artigoMatricial} onChange={(e) => setArtigoMatricial(e.target.value)} className={campoClass} />
             </div>
           </div>
 

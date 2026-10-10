@@ -67,6 +67,12 @@ export default function ParteCampos({
 
   const [aAnalisar, setAAnalisar] = useState(false);
   const [erroAnalise, setErroAnalise] = useState("");
+  // A leitura automática já errou a ordem do nome, a validade e inventou naturalidade a partir
+  // de um apelido (casos reais, Outubro 2026) - fica um aviso persistente (nunca desaparece
+  // sozinho) sempre que algum campo tiver vindo da IA, para o agente confirmar com o documento
+  // antes de gravar. Não distingue campo a campo porque a leitura pode estar errada em
+  // qualquer um deles, não só nos que já falharam antes.
+  const [lidoPorIA, setLidoPorIA] = useState(false);
 
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
@@ -129,6 +135,9 @@ export default function ParteCampos({
     if (!next.representanteCargo.trim() && str(extraido.representante_cargo)) next.representanteCargo = str(extraido.representante_cargo);
     if (!next.certidaoPermanente.trim() && str(extraido.certidao_permanente)) next.certidaoPermanente = str(extraido.certidao_permanente);
 
+    if (Object.keys(next).some((chave) => next[chave as keyof ParteDraft] !== draftAntes[chave as keyof ParteDraft])) {
+      setLidoPorIA(true);
+    }
     onChange(next);
   }
 
@@ -257,6 +266,13 @@ export default function ParteCampos({
             {erroAnalise && <p className="text-xs text-red-500">{erroAnalise}</p>}
           </div>
         </div>
+      )}
+
+      {lidoPorIA && (
+        <p className="text-xs text-[#9A5B00] bg-[#FFF4E5] border border-[#F5D9A8] rounded-lg px-3 py-2">
+          Dados lidos automaticamente do documento - confirma nome, número e validade do documento,
+          e morada, antes de gravar. A leitura pode conter erros.
+        </p>
       )}
 
       <div className="grid sm:grid-cols-2 gap-3">
