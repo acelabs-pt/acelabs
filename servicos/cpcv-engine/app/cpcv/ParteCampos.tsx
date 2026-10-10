@@ -90,8 +90,10 @@ export default function ParteCampos({
     const moradaExtraida = composeMoradaPessoa(
       str(extraido.morada_rua),
       str(extraido.morada_numero),
+      "",
       str(extraido.morada_codigo_postal),
-      str(extraido.morada_localidade)
+      str(extraido.morada_localidade),
+      ""
     );
     if (!next.morada.trim() && moradaExtraida) {
       next.morada = moradaExtraida;
@@ -155,7 +157,7 @@ export default function ParteCampos({
     valor: string
   ) {
     const next = { ...draft, [chave]: valor };
-    onChange({ ...next, morada: composeMoradaPessoa(next.moradaRua, next.moradaNumero, next.moradaCodigoPostal, next.moradaLocalidade) });
+    onChange({ ...next, morada: composeMoradaPessoa(next.moradaRua, next.moradaNumero, next.moradaAndar, next.moradaCodigoPostal, next.moradaLocalidade, next.moradaFreguesia) });
   }
 
   function setNaturalidade<K extends "naturalidadeFreguesia" | "naturalidadeConcelho">(chave: K, valor: string) {
