@@ -7,6 +7,7 @@ import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import DadosApoio from "./DadosApoio";
 import DadosPartes from "./DadosPartes";
+import IdentificacaoImovel from "./IdentificacaoImovel";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
@@ -60,10 +61,11 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
 
   if (!processo) notFound();
 
-  const [{ data: partes }, { data: ficheiros }, { data: mensagens }] = await Promise.all([
+  const [{ data: partes }, { data: ficheiros }, { data: mensagens }, { data: hipotecas }] = await Promise.all([
     supabase.from("cpcv_partes").select("*").eq("processo_id", id),
     supabase.from("cpcv_ficheiros").select("*").eq("processo_id", id),
     supabase.from("cpcv_mensagens").select("*").eq("processo_id", id).order("criado_em"),
+    supabase.from("cpcv_hipotecas").select("*").eq("processo_id", id),
   ]);
 
   const temCamposEmFalta = (processo.campos_em_falta ?? []).length > 0;
@@ -179,6 +181,10 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
           )}
         </dl>
       </div>
+
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+        <IdentificacaoImovel processo={processo} ficheiros={ficheiros ?? []} hipotecasIniciais={hipotecas ?? []} />
+      )}
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
 

@@ -61,7 +61,28 @@ forma:
 "tipo_pessoa" só é "coletiva" se o documento for uma certidão permanente comercial ou identificar
 claramente uma empresa - nesse caso "nome" é a denominação social, e preenches
 "representante_nome"/"representante_cargo"/"certidao_permanente" em vez dos campos de pessoa
-singular (que ficam null). Para pessoa singular, esses três campos ficam null.`;
+singular (que ficam null). Para pessoa singular, esses três campos ficam null.
+
+Para "documento_numero" de um Cartão de Cidadão: o número impresso no cartão tem duas partes
+lado a lado, um espaço entre elas - o número civil (8 dígitos) e, logo a seguir, 4 caracteres
+alfanuméricos (a versão do documento, ex.: "2ZV5"). Devolve sempre as duas partes juntas,
+separadas por um espaço, exactamente como aparecem no cartão (ex.: "15664140 2ZV5"), nunca só
+os 8 dígitos iniciais. Para Passaporte ou Título de Residência, devolve o número tal como está
+impresso, sem tentar aplicar este formato.
+
+Para "nome" de uma pessoa singular lida de um Cartão de Cidadão: o cartão mostra o nome em dois
+campos separados, "Apelidos" (impresso primeiro, mais acima) e "Nome Próprio" (impresso depois,
+mais abaixo) - NUNCA devolvas pela ordem visual do cartão. Junta sempre o Nome Próprio primeiro,
+seguido dos Apelidos (ex.: Apelidos "Gonçalves Roque" + Nome Próprio "Pedro Manuel" -> "Pedro
+Manuel Gonçalves Roque"), que é a ordem usada em Portugal para escrever um nome completo. Lê o
+nome sempre dos campos "Apelidos"/"Nome Próprio" da zona visual do cartão (com acentos e
+cedilhas), nunca da banda de leitura óptica no fundo do cartão (linhas de letras maiúsculas sem
+acentos tipo "GONCALVES<<ROQUE<<PEDRO..."), que tem a ordem e a ortografia diferentes.
+
+O Cartão de Cidadão NUNCA mostra a naturalidade (freguesia/concelho de nascimento) - não é um dos
+campos impressos no cartão. "naturalidade_concelho"/"naturalidade_freguesia" ficam sempre null
+quando o documento é um Cartão de Cidadão, mesmo que outro campo do cartão (ex.: um apelido, ou a
+morada) se pareça com um nome de concelho ou freguesia - nunca confundir um com o outro.`;
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();

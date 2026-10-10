@@ -27,6 +27,7 @@ export type ParteDraft = {
   moradaCodigoPostal: string;
   moradaLocalidade: string;
   moradaFreguesia: string;
+  moradaConcelho: string;
   naturalidadeFreguesia: string;
   naturalidadeConcelho: string;
   nif: string;
@@ -48,17 +49,19 @@ export function composeMoradaPessoa(
   andar: string,
   codigoPostal: string,
   localidade: string,
-  freguesia: string
+  freguesia: string,
+  concelho: string
 ): string {
   const linha1 = [rua, numero ? `n.º ${numero}` : "", andar].filter(Boolean).join(", ");
   const linha2 = [codigoPostal, localidade].filter(Boolean).join(" ");
-  const linha3 = freguesia ? `freguesia de ${freguesia}` : "";
+  const linha3 = [freguesia ? `freguesia de ${freguesia}` : "", concelho ? `concelho de ${concelho}` : ""]
+    .filter(Boolean)
+    .join(", ");
   return [linha1, linha2, linha3].filter(Boolean).join(", ");
 }
 
 export function composeNaturalidade(freguesia: string, concelho: string): string {
-  const partes = [freguesia ? `freguesia de ${freguesia}` : "", concelho ? `concelho de ${concelho}` : ""];
-  return partes.filter(Boolean).join(", ");
+  return [freguesia, concelho].filter(Boolean).join(", ");
 }
 
 export const ESTADO_CIVIL_OPCOES = [
@@ -89,6 +92,7 @@ export function parteDraftVazia(): ParteDraft {
     moradaCodigoPostal: "",
     moradaLocalidade: "",
     moradaFreguesia: "",
+    moradaConcelho: "",
     naturalidadeFreguesia: "",
     naturalidadeConcelho: "",
     nif: "",
@@ -136,6 +140,7 @@ export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
     moradaCodigoPostal: "",
     moradaLocalidade: "",
     moradaFreguesia: "",
+    moradaConcelho: "",
     naturalidadeFreguesia: "",
     naturalidadeConcelho: "",
     nif: p.nif ?? "",

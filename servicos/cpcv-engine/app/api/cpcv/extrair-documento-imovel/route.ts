@@ -23,9 +23,9 @@ function mediaTypeFor(nome: string): "application/pdf" | "image/png" | "image/jp
   return null;
 }
 
-const SYSTEM_PROMPT = `Lês um documento sobre um imóvel em Portugal (caderneta predial, certidão
-predial, licença de utilização, certificado energético, ou documento semelhante) e devolves os
-dados do imóvel que conseguires ler com confiança.
+const SYSTEM_PROMPT = `Lês um ou mais documentos sobre um imóvel em Portugal (caderneta predial,
+certidão predial/permanente, licença de utilização, certificado energético, ou documento
+semelhante) e devolves os dados do imóvel que conseguires ler com confiança.
 
 NUNCA inventes valores - só devolves o que está mesmo escrito no documento. Qualquer campo que não
 consigas ler com confiança fica null.
@@ -34,12 +34,40 @@ consigas ler com confiança fica null.
 "Alvará de Licença n.º X" (ex.: "603/85") - nunca o número de um "Termo de Autenticação" ou de
 outro documento que acompanhe a licença.
 
-"certificado_energetico" é o número de registo do certificado energético (SCE), normalmente no
-canto superior do documento, com o prefixo "SCE" (ex.: "SCE386817639") - nunca a classe energética
-(a letra, ex. "B-").
+"licenca_data_emissao" é a data de emissão da própria licença de utilização (formato
+"YYYY-MM-DD"), normalmente a seguir ao número do alvará (ex.: em "licença de habitação nº 2128/79
+de 03/08/1979", a data é "1979-08-03") - não confundir com a data de emissão de uma certidão/cópia
+posterior desse documento.
 
-Se houver mais do que um ficheiro (ex.: várias páginas do mesmo documento), trata-os como o mesmo
-documento - não dupliques nem contradigas dados entre eles.
+"certificado_energetico" é o número de registo do certificado energético (SCE), normalmente no
+canto superior do documento, com o prefixo "SCE" (ex.: "SCE386817639") - nunca a classe energética.
+
+"certificado_validade" é a data de validade do certificado energético (formato "YYYY-MM-DD"),
+normalmente junto ao número SCE (ex.: "Válido até 10/02/2027" -> "2027-02-10").
+
+"certificado_classe" é só a letra da classe energética (ex.: "B-", "D") - nunca a percentagem ao
+lado nem o número de indicadores de desempenho.
+
+"fracao_letra" é a letra (ou letras) que identifica a fracção autónoma numa certidão predial/
+permanente ou num certificado energético (ex.: "AH") - normalmente no canto superior direito da
+certidão, a seguir ao número de inscrição e à data (ex.: "538 19980706 - AH" -> fracao_letra
+"AH"), ou na secção "Identificação Predial/Fiscal" de um certificado energético ("Fracção
+Autónoma AH").
+
+"conservatoria" é o nome da Conservatória do Registo Predial responsável pelo imóvel (ex.: "2ª
+Conservatória do Registo Predial de Braga"), normalmente no topo de uma certidão predial/
+permanente ou na secção "Identificação Predial/Fiscal" de um certificado energético.
+
+"descricao_predial" é o número de descrição/inscrição predial (ex.: "538" ou "538/19980706"),
+normalmente junto à conservatória - nunca uma categoria do imóvel como "fracção autónoma" ou
+"prédio urbano".
+
+"artigo_matricial" é o número do artigo matricial (ex.: em "Artigo Matricial nº 3", o valor é
+"3").
+
+Se houver mais do que um ficheiro - várias páginas do mesmo documento, ou documentos diferentes
+sobre o mesmo imóvel (ex.: certidão predial + licença + certificado energético) - usa todos para
+preencher o máximo de campos possível, sem duplicar nem contradizer dados entre eles.
 
 Responde APENAS com um objecto JSON válido, sem markdown, sem texto à volta, exactamente com esta
 forma:
@@ -54,7 +82,14 @@ forma:
   "concelho": string|null,
   "distrito": string|null,
   "licenca_utilizacao": string|null,
-  "certificado_energetico": string|null
+  "licenca_data_emissao": string|null,
+  "certificado_energetico": string|null,
+  "certificado_validade": string|null,
+  "certificado_classe": string|null,
+  "fracao_letra": string|null,
+  "conservatoria": string|null,
+  "descricao_predial": string|null,
+  "artigo_matricial": string|null
 }`;
 
 export async function POST(req: NextRequest) {

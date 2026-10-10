@@ -1,8 +1,9 @@
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } from "docx";
-import type { Parte, Processo, Helpers } from "./cpcv-types";
-import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL, descricaoPredialValida } from "./cpcv-types";
+import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
+import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL } from "./cpcv-types";
 import {
-  identificacoesGrupo,
+  montarBlocoOutorgantes,
+  pontosClausulaPrimeira,
   clausulaCondicoesSuspensivas as clausulaCondicoesSuspensivasBase,
   clausulaAlteracoes,
   clausulaNotificacoes,
@@ -55,6 +56,17 @@ function corpo(text: string): Paragraph {
   });
 }
 
+// Mesma tipografia/espaçamento de corpo(), só a negrito - usado para o cabeçalho de secção
+// dos outorgantes ("PRIMEIRO OUTORGANTE – PROMITENTE VENDEDOR:"), que não deve ficar
+// centrado/maiúsculas como titulo() (esse é só para títulos de cláusula).
+function corpoNegrito(text: string): Paragraph {
+  return new Paragraph({
+    alignment: AlignmentType.JUSTIFIED,
+    spacing: { after: 200, line: 360, lineRule: "auto" },
+    children: [new TextRun({ text, bold: true, font: "Segoe UI", color: "000000" })],
+  });
+}
+
 function titulo(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
@@ -64,14 +76,13 @@ function titulo(text: string): Paragraph {
   });
 }
 
-export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promise<Buffer> {
+export async function gerarDocxCpcv(processo: Processo, partes: Parte[], hipotecas: Hipoteca[] = []): Promise<Buffer> {
   const vendedores = partes.filter((p) => p.papel === "vendedor");
   const compradores = partes.filter((p) => p.papel === "comprador");
   if (vendedores.length === 0) vendedores.push(PARTE_EM_BRANCO);
   if (compradores.length === 0) compradores.push(PARTE_EM_BRANCO);
 
-  const identificacoesVendedores = identificacoesGrupo(helpers, vendedores);
-  const identificacoesCompradores = identificacoesGrupo(helpers, compradores);
+  const bloco = montarBlocoOutorgantes(helpers, vendedores, compradores);
 
   const children: Paragraph[] = [
     new Paragraph({
@@ -83,46 +94,40 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
       ],
     }),
     corpo("Entre:"),
-    ...identificacoesVendedores.map((texto, i) =>
-      corpo(
-        `${identificacoesVendedores.length > 1 ? `${i + 1}.º Outorgante - ` : ""}${texto}, doravante designado(a) PRIMEIRO OUTORGANTE ou PROMITENTE(S) VENDEDOR(A/ES).`
-      )
-    ),
+    corpoNegrito(bloco.cabecalhoVendedores),
+    ...bloco.identificacoesVendedores.map((texto) => corpo(`${texto}.`)),
     corpo("e"),
-    ...identificacoesCompradores.map((texto, i) =>
-      corpo(
-        `${identificacoesCompradores.length > 1 ? `${i + 1}.º Outorgante - ` : ""}${texto}, doravante designado(a) SEGUNDO OUTORGANTE ou PROMITENTE(S) COMPRADOR(A/ES).`
-      )
+    corpoNegrito(bloco.cabecalhoCompradores),
+    ...bloco.identificacoesCompradores.map((texto) => corpo(`${texto}.`)),
+    corpo(
+      "É celebrado de boa-fé o presente Contrato Promessa de Compra e Venda, que ambas as partes aceitam e reciprocamente se obrigam a cumprir, o qual se rege pelo conteúdo das cláusulas seguintes e no que for omisso pela legislação aplicável."
     ),
-    corpo("é celebrado o presente contrato-promessa de compra e venda, que se rege pelas cláusulas seguintes:"),
   ];
 
+  // Ver o comentário equivalente em lib/cpcv-template.ts (gerarHtmlCpcv) - os dois geradores
+  // têm de ficar alinhados.
+  const estadoImovelLicenciamento = processo.imovel_e_fracao_autonoma
+    ? processo.incluidos_no_imovel
+      ? { titulo: "Estado do Imóvel e Licenciamento", paragrafos: [`Ficam incluídos na transacção: ${v(processo.incluidos_no_imovel).replace(/\.+$/, "")}.`] }
+      : null
+    : {
+        titulo: "Estado do Imóvel e Licenciamento",
+        paragrafos: [
+          `O Imóvel é transaccionado no estado de conservação em que actualmente se encontra${
+            processo.imovel_estado ? `: ${v(processo.imovel_estado)}` : ""
+          }, o qual é do conhecimento do(s) SEGUNDO(S) OUTORGANTE(S), dispõe de licença de utilização n.º ${v(
+            processo.imovel_licenca_utilizacao
+          )} e de certificado energético n.º ${v(processo.imovel_certificado_energetico)}${
+            processo.imovel_anexos ? `, possuindo ainda os seguintes anexos: ${v(processo.imovel_anexos)}` : ""
+          }.`,
+          processo.incluidos_no_imovel
+            ? `Ficam incluídos na transacção: ${v(processo.incluidos_no_imovel).replace(/\.+$/, "")}.`
+            : "",
+        ].filter(Boolean),
+      };
+
   const clausulas: (ClausulaTexto | null)[] = [
-    {
-      titulo: "Objecto",
-      paragrafos: [
-        `O(s) PRIMEIRO(S) OUTORGANTE(S) é/são legítimo(s) proprietário(s) e possuidor(es) do prédio urbano sito em ${v(
-          processo.imovel_morada
-        )}${
-          processo.imovel_codigo_postal || processo.imovel_localidade
-            ? `, ${[processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" ")}`
-            : ""
-        }, freguesia de ${v(processo.imovel_freguesia)}, concelho de ${v(
-          processo.imovel_concelho
-        )}, distrito de ${v(processo.imovel_distrito)}, com a tipologia ${v(
-          processo.imovel_tipologia
-        )}, inscrito na matriz predial urbana sob o artigo n.º ${v(processo.imovel_artigo_matricial)}${
-          descricaoPredialValida(processo.imovel_descricao_predial as string | null)
-            ? `, descrito na Conservatória do Registo Predial sob o n.º ${v(processo.imovel_descricao_predial)}`
-            : ""
-        }, com a área de ${processo.imovel_area ? `${processo.imovel_area} m²` : "____________"}, doravante designado por "Imóvel".`,
-        processo.tem_fracoes_multiplas
-          ? `O Imóvel é composto por duas fracções, sendo atribuído à fracção principal o valor de ${euros(
-              processo.valor_fracao_principal
-            )} e à segunda fracção (garagem/arrumo) o valor de ${euros(processo.valor_fracao_secundaria)}.`
-          : "",
-      ].filter(Boolean),
-    },
+    { titulo: "Objecto", paragrafos: pontosClausulaPrimeira(helpers, processo, hipotecas) },
     {
       titulo: "Promessa",
       paragrafos: [
@@ -182,21 +187,7 @@ export async function gerarDocxCpcv(processo: Processo, partes: Parte[]): Promis
         ),
       ],
     },
-    {
-      titulo: "Estado do Imóvel e Licenciamento",
-      paragrafos: [
-        `O Imóvel é transaccionado no estado de conservação em que actualmente se encontra${
-          processo.imovel_estado ? `: ${v(processo.imovel_estado)}` : ""
-        }, o qual é do conhecimento do(s) SEGUNDO(S) OUTORGANTE(S), dispõe de licença de utilização n.º ${v(
-          processo.imovel_licenca_utilizacao
-        )} e de certificado energético n.º ${v(processo.imovel_certificado_energetico)}${
-          processo.imovel_anexos ? `, possuindo ainda os seguintes anexos: ${v(processo.imovel_anexos)}` : ""
-        }.`,
-        processo.incluidos_no_imovel
-          ? `Ficam incluídos na transacção: ${v(processo.incluidos_no_imovel).replace(/\.+$/, "")}.`
-          : "",
-      ].filter(Boolean),
-    },
+    estadoImovelLicenciamento,
     processo.imovel_condominio
       ? { titulo: "Declaração de Condomínio", paragrafos: clausulaDeclaracaoCondominio() }
       : null,

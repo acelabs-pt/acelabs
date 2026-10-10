@@ -67,6 +67,12 @@ export default function ParteCampos({
 
   const [aAnalisar, setAAnalisar] = useState(false);
   const [erroAnalise, setErroAnalise] = useState("");
+  // A leitura automática já errou a ordem do nome, a validade e inventou naturalidade a partir
+  // de um apelido (casos reais, Outubro 2026) - fica um aviso persistente (nunca desaparece
+  // sozinho) sempre que algum campo tiver vindo da IA, para o agente confirmar com o documento
+  // antes de gravar. Não distingue campo a campo porque a leitura pode estar errada em
+  // qualquer um deles, não só nos que já falharam antes.
+  const [lidoPorIA, setLidoPorIA] = useState(false);
 
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
@@ -93,6 +99,7 @@ export default function ParteCampos({
       "",
       str(extraido.morada_codigo_postal),
       str(extraido.morada_localidade),
+      "",
       ""
     );
     if (!next.morada.trim() && moradaExtraida) {
@@ -128,6 +135,9 @@ export default function ParteCampos({
     if (!next.representanteCargo.trim() && str(extraido.representante_cargo)) next.representanteCargo = str(extraido.representante_cargo);
     if (!next.certidaoPermanente.trim() && str(extraido.certidao_permanente)) next.certidaoPermanente = str(extraido.certidao_permanente);
 
+    if (Object.keys(next).some((chave) => next[chave as keyof ParteDraft] !== draftAntes[chave as keyof ParteDraft])) {
+      setLidoPorIA(true);
+    }
     onChange(next);
   }
 
@@ -152,12 +162,22 @@ export default function ParteCampos({
     }
   }
 
-  function setMorada<K extends "moradaRua" | "moradaNumero" | "moradaCodigoPostal" | "moradaLocalidade">(
-    chave: K,
-    valor: string
-  ) {
+  function setMorada<
+    K extends "moradaRua" | "moradaNumero" | "moradaAndar" | "moradaCodigoPostal" | "moradaLocalidade" | "moradaFreguesia" | "moradaConcelho"
+  >(chave: K, valor: string) {
     const next = { ...draft, [chave]: valor };
-    onChange({ ...next, morada: composeMoradaPessoa(next.moradaRua, next.moradaNumero, next.moradaAndar, next.moradaCodigoPostal, next.moradaLocalidade, next.moradaFreguesia) });
+    onChange({
+      ...next,
+      morada: composeMoradaPessoa(
+        next.moradaRua,
+        next.moradaNumero,
+        next.moradaAndar,
+        next.moradaCodigoPostal,
+        next.moradaLocalidade,
+        next.moradaFreguesia,
+        next.moradaConcelho
+      ),
+    });
   }
 
   function setNaturalidade<K extends "naturalidadeFreguesia" | "naturalidadeConcelho">(chave: K, valor: string) {
@@ -248,6 +268,13 @@ export default function ParteCampos({
         </div>
       )}
 
+      {lidoPorIA && (
+        <p className="text-xs text-[#9A5B00] bg-[#FFF4E5] border border-[#F5D9A8] rounded-lg px-3 py-2">
+          Dados lidos automaticamente do documento - confirma nome, número e validade do documento,
+          e morada, antes de gravar. A leitura pode conter erros.
+        </p>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>{draft.tipoPessoa === "coletiva" ? "Denominação social" : "Nome"}</label>
@@ -278,7 +305,16 @@ export default function ParteCampos({
                 <input value={draft.moradaNumero} onChange={(e) => setMorada("moradaNumero", e.target.value)} className={campoClass} />
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className={labelClass}>Andar</label>
+                <input
+                  value={draft.moradaAndar}
+                  onChange={(e) => setMorada("moradaAndar", e.target.value)}
+                  placeholder="4º esquerdo"
+                  className={campoClass}
+                />
+              </div>
               <div>
                 <label className={labelClass}>Código postal</label>
                 <input
@@ -291,6 +327,24 @@ export default function ParteCampos({
               <div>
                 <label className={labelClass}>Localidade</label>
                 <input value={draft.moradaLocalidade} onChange={(e) => setMorada("moradaLocalidade", e.target.value)} className={campoClass} />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Freguesia</label>
+                <input
+                  value={draft.moradaFreguesia}
+                  onChange={(e) => setMorada("moradaFreguesia", e.target.value)}
+                  className={campoClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Concelho</label>
+                <input
+                  value={draft.moradaConcelho}
+                  onChange={(e) => setMorada("moradaConcelho", e.target.value)}
+                  className={campoClass}
+                />
               </div>
             </div>
           </div>
