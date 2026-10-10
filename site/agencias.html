@@ -888,7 +888,8 @@
   .service-card.is-fading{opacity:0;transform:scale(.93);}
   .service-card.is-hidden{display:none;}
 
-  .services-filter{margin-bottom:22px;}
+  .services-filter{margin-bottom:10px;}
+  .services-filter-count{margin:0 0 22px;font-size:12.5px;color:var(--ink-2);}
 
   .services-copy .hero-eyebrow{margin-bottom:20px;}
   .services-copy h2{
@@ -2058,6 +2059,7 @@
         <button type="button" class="flow-tab" data-audience-filter="agente" role="tab" aria-selected="false">Para agentes</button>
         <button type="button" class="flow-tab" data-audience-filter="agencia" role="tab" aria-selected="false">Para agências</button>
       </div>
+      <p class="services-filter-count" aria-live="polite"></p>
       <div class="hero-ctas">
         <a href="#contacto" class="btn-dark">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
         <a href="#contacto" class="btn-outline">Falar com um especialista</a>
@@ -2669,7 +2671,16 @@
   (function(){
     var buttons = Array.prototype.slice.call(document.querySelectorAll('.services-filter [data-audience-filter]'));
     var cards = Array.prototype.slice.call(document.querySelectorAll('.service-card[data-audience]'));
+    var countEl = document.querySelector('.services-filter-count');
     if(!buttons.length || !cards.length) return;
+
+    function updateCount(filter){
+      if(!countEl) return;
+      var total = cards.length;
+      var shown = filter === 'todos' ? total : cards.filter(function(c){ return c.getAttribute('data-audience') === filter; }).length;
+      countEl.textContent = filter === 'todos' ? ('A mostrar os ' + total + ' serviços') : ('A mostrar ' + shown + ' de ' + total + ' serviços');
+    }
+    updateCount('todos');
 
     buttons.forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -2679,6 +2690,7 @@
           b.classList.toggle('is-active', active);
           b.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        updateCount(filter);
         cards.forEach(function(card){
           var matches = filter === 'todos' || card.getAttribute('data-audience') === filter;
           if(matches){
