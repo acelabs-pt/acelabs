@@ -32,6 +32,17 @@ export type Processo = Record<string, unknown> & {
   imovel_anexos: string | null;
   imovel_estado: string | null;
   imovel_condominio: boolean | null;
+  imovel_e_fracao_autonoma: boolean | null;
+  imovel_fracao_letra: string | null;
+  imovel_andar_fracao: string | null;
+  imovel_orientacao: string | null;
+  imovel_finalidade: string | null;
+  imovel_conservatoria: string | null;
+  imovel_licenca_data_emissao: string | null;
+  imovel_licenca_entidade_emissora: string | null;
+  imovel_certificado_validade: string | null;
+  imovel_certificado_classe: string | null;
+  hipotecas_verificadas: boolean | null;
   preco_total: number | null;
   valor_sinal: number | null;
   forma_pagamento_sinal: string | null;
@@ -69,6 +80,13 @@ export type Processo = Record<string, unknown> & {
   email_comprador_contrato: string | null;
   data_assinatura_contrato: string | null;
   observacoes_adicionais: string | null;
+};
+
+export type Hipoteca = {
+  entidade_credora: string;
+  natureza: string | null;
+  numero_apresentacao: string | null;
+  data_registo: string | null;
 };
 
 export const PARTE_EM_BRANCO: Parte = {

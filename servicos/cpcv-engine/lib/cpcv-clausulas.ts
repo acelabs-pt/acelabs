@@ -1,5 +1,23 @@
-import type { Helpers, Parte, Processo } from "./cpcv-types";
-import { regimeBensValido } from "./cpcv-types";
+import type { Helpers, Hipoteca, Parte, Processo } from "./cpcv-types";
+import { descricaoPredialValida, regimeBensValido } from "./cpcv-types";
+
+// "Cartão de Cidadão" -> "cartão de cidadão" - para encaixar o tipo de documento a meio de
+// frase ("titular do cartão de cidadão n.º...") sem maiúsculas no meio do texto corrido. Ao
+// contrário de comPreposicaoDePagamento (que só baixa a primeira letra), aqui há mais do que
+// uma palavra com maiúscula ("Cartão de Cidadão", "Título de Residência"), por isso baixa a
+// frase toda.
+function documentoEmMinusculas(s: string): string {
+  return s.toLowerCase();
+}
+
+// "275146499" -> "275 146 499" - só quando o NIF tem os 9 dígitos esperados; um NIF
+// incompleto/malformado é devolvido tal como está, nunca cortado ou preenchido às cegas.
+export function formatarNif(nif: string | null): string | null {
+  if (!nif) return null;
+  const limpo = nif.replace(/\D/g, "");
+  if (limpo.length !== 9) return nif;
+  return `${limpo.slice(0, 3)} ${limpo.slice(3, 6)} ${limpo.slice(6, 9)}`;
+}
 
 // Biblioteca de texto de cláusulas partilhada pelos dois geradores (PDF em cpcv-template.ts,
 // Word em cpcv-docx.ts), para o texto legal não ficar duplicado (e a divergir) em dois sítios.
@@ -16,15 +34,19 @@ export function identificacaoParte(h: Helpers, p: Parte): string {
       p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""
     }`;
   }
-  return `${h.v(p.nome)}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
+  // Emitido pela República Portuguesa só é afirmado com confiança para o Cartão de Cidadão
+  // (sempre emitido pelo Estado português) - para Passaporte/Título de Residência/Outro não
+  // há dados para o garantir (pode ser estrangeiro), por isso fica omisso nesses casos em vez
+  // de inventado.
+  const emitidoPt = p.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
+  return `${h.v(p.nome)}, NIF ${h.v(formatarNif(p.nif))}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
     regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
-  }${p.naturalidade ? `, natural de ${h.v(p.naturalidade)}` : ""}${
-    p.nacionalidade ? `, de nacionalidade ${h.v(p.nacionalidade)}` : ""
-  }, contribuinte fiscal n.º ${h.v(p.nif)}, residente em ${h.v(
+  }, maior, titular do ${h.v(
+    p.documento_tipo ? documentoEmMinusculas(p.documento_tipo) : null,
+    "documento de identificação"
+  )} n.º ${h.v(p.documento_numero)}, válido até ${h.dataPT(p.documento_validade)}${emitidoPt}, residente em ${h.v(
     p.morada
-  )}, titular do ${h.v(p.documento_tipo, "documento de identificação")} n.º ${h.v(
-    p.documento_numero
-  )}, válido até ${h.dataPT(p.documento_validade)}`;
+  )}`;
 }
 
 // Nas 15 minutas lidas, um casal casado do mesmo papel (dois vendedores, ou dois compradores,
@@ -49,18 +71,21 @@ function generoFeminino(estadoCivil: string | null): boolean {
 
 function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
   const ligacao = generoFeminino(b.estado_civil) ? "e mulher" : "e marido";
-  return `${h.v(a.nome)}, contribuinte fiscal n.º ${h.v(a.nif)}, ${ligacao}, ${h.v(
+  const emitidoA = a.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
+  const emitidoB = b.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
+  return `${h.v(a.nome)}, NIF ${h.v(formatarNif(a.nif))}, ${ligacao}, ${h.v(
     b.nome
-  )}, contribuinte fiscal n.º ${h.v(b.nif)}, casados sob o regime de ${h.v(
+  )}, NIF ${h.v(formatarNif(b.nif))}, casados sob o regime de ${h.v(
     a.regime_bens
-  )}, titulares, respectivamente, do ${h.v(a.documento_tipo, "documento de identificação")} n.º ${h.v(
-    a.documento_numero
-  )}, válido até ${h.dataPT(a.documento_validade)}, e do ${h.v(
-    b.documento_tipo,
+  )}, ambos maiores, titulares, respectivamente, do ${h.v(
+    a.documento_tipo ? documentoEmMinusculas(a.documento_tipo) : null,
     "documento de identificação"
-  )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}${
-    a.nacionalidade ? `, ambos de nacionalidade ${h.v(a.nacionalidade)}` : ""
-  }, residentes em ${h.v(a.morada)}`;
+  )} n.º ${h.v(a.documento_numero)}, válido até ${h.dataPT(a.documento_validade)}${emitidoA}, e do ${h.v(
+    b.documento_tipo ? documentoEmMinusculas(b.documento_tipo) : null,
+    "documento de identificação"
+  )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}${emitidoB}, residentes em ${h.v(
+    a.morada
+  )}`;
 }
 
 // Devolve uma identificação por "unidade": um casal casado entre si conta como uma única
@@ -72,6 +97,52 @@ export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
     return [identificacaoCasal(h, partes[0], partes[1])];
   }
   return partes.map((p) => identificacaoParte(h, p));
+}
+
+// A) / B) / C)... - só usado quando há mais do que uma "unidade" de identificação do mesmo
+// lado (um casal casado entre si conta como uma única unidade, ver identificacoesGrupo).
+function letraOrdinal(i: number): string {
+  return String.fromCharCode(65 + i);
+}
+
+function comLetras(identificacoes: string[]): string[] {
+  if (identificacoes.length <= 1) return identificacoes;
+  return identificacoes.map((texto, i) => `${letraOrdinal(i)}) ${texto}`);
+}
+
+// Nunca usa a notação "(S)"/"(A/ES)" do resto do documento - escreve a forma singular OU
+// plural por extenso, consoante o número de unidades de identificação desse lado.
+function cabecalhoOutorgantes(
+  ordinalSingular: "PRIMEIRO" | "SEGUNDO",
+  designacaoSingular: "VENDEDOR" | "COMPRADOR",
+  quantidade: number
+): string {
+  if (quantidade <= 1) return `${ordinalSingular} OUTORGANTE – PROMITENTE ${designacaoSingular}:`;
+  const ordinalPlural = ordinalSingular === "PRIMEIRO" ? "PRIMEIROS" : "SEGUNDOS";
+  const designacaoPlural = designacaoSingular === "VENDEDOR" ? "VENDEDORES" : "COMPRADORES";
+  return `${ordinalPlural} OUTORGANTES – PROMITENTES ${designacaoPlural}:`;
+}
+
+export type BlocoOutorgantes = {
+  cabecalhoVendedores: string;
+  identificacoesVendedores: string[];
+  cabecalhoCompradores: string;
+  identificacoesCompradores: string[];
+};
+
+// Substitui o padrão antigo (frase "doravante designado(a) PRIMEIRO OUTORGANTE ou
+// PROMITENTE(S) VENDEDOR(A/ES)" repetida a seguir a cada pessoa) por um cabeçalho de secção
+// único antes da lista de nomes - a designação passa a ficar estabelecida uma vez só, não por
+// pessoa.
+export function montarBlocoOutorgantes(h: Helpers, vendedores: Parte[], compradores: Parte[]): BlocoOutorgantes {
+  const identificacoesVendedores = identificacoesGrupo(h, vendedores);
+  const identificacoesCompradores = identificacoesGrupo(h, compradores);
+  return {
+    cabecalhoVendedores: cabecalhoOutorgantes("PRIMEIRO", "VENDEDOR", identificacoesVendedores.length),
+    identificacoesVendedores: comLetras(identificacoesVendedores),
+    cabecalhoCompradores: cabecalhoOutorgantes("SEGUNDO", "COMPRADOR", identificacoesCompradores.length),
+    identificacoesCompradores: comLetras(identificacoesCompradores),
+  };
 }
 
 // A IA extrai "forma_pagamento_sinal" do texto livre do agente tal como ele o escreveu (ex.:
@@ -199,6 +270,98 @@ export function clausulaDeclaracaoCondominio(): string[] {
     "O(s) PRIMEIRO(S) OUTORGANTE(S) compromete(m)-se a ter as prestações de condomínio, sejam elas provenientes de quotas ordinárias, extraordinárias ou para obras realizadas ou a realizar nas partes comuns do edifício, integralmente pagas até à data em que for outorgado o contrato definitivo de compra e venda, obrigando-se a entregar ao(s) SEGUNDO(S) OUTORGANTE(S), naquela data, documento comprovativo da não existência de dívidas, emitido pela administração do condomínio, com reconhecimento de assinatura pelo administrador, nos termos e em cumprimento do previsto pelo artigo 1424.º-A do Código Civil, com a redacção dada pela Lei n.º 8/2022, de 10 de Janeiro, em vigor desde 1 de Abril de 2022.",
     "No âmbito do diploma mencionado no número anterior, o(s) PRIMEIRO(S) OUTORGANTE(S) é/são responsável(eis) pela comunicação da venda, por carta registada com aviso de recepção ou email, ao administrador do condomínio, no prazo máximo de 15 (quinze) dias a contar da data da escritura, com informação do nome completo e do número de identificação fiscal do novo proprietário.",
   ];
+}
+
+// Uma frase por hipoteca (ou uma frase única se só houver uma), seguida de uma única
+// obrigação de cancelamento a cobrir todas - não repete essa obrigação por hipoteca. Nunca
+// chamada quando a lista vem vazia (ver pontosClausulaPrimeira).
+function textoHipotecas(h: Helpers, hipotecas: Hipoteca[]): string {
+  const frases = hipotecas.map((hip) => {
+    const natureza = hip.natureza || "hipoteca voluntária";
+    const detalhe = hip.numero_apresentacao
+      ? `, através da ${h.v(hip.numero_apresentacao)}${hip.data_registo ? ` de ${h.dataPT(hip.data_registo)}` : ""}`
+      : hip.data_registo
+        ? `, registada em ${h.dataPT(hip.data_registo)}`
+        : "";
+    return `uma ${h.v(natureza)} registada a favor de ${h.v(hip.entidade_credora)}${detalhe}`;
+  });
+  const sujeito = frases.length === 1 ? "incide" : "incidem";
+  return `Sobre a referida fracção ${sujeito} ${frases.join("; ")}, cujo cancelamento terá de ser assegurado pelo(s) PRIMEIRO(S) OUTORGANTE(S) até à data da escritura definitiva de compra e venda.`;
+}
+
+// Cláusula Primeira (Objecto). Dois formatos distintos, nunca inferidos pela IA:
+// - Imóvel NÃO é fracção autónoma (imovel_e_fracao_autonoma null/false - inclui todos os
+//   processos anteriores a esta funcionalidade): texto genérico actual, inalterado, sem
+//   numeração por pontos.
+// - Imóvel É fracção autónoma (resposta explícita em app/cpcv/[id]/IdentificacaoImovel.tsx):
+//   5 pontos numerados (imóvel, hipotecas se existirem, propriedade/posse, estado de
+//   conservação, visita antes da escritura), com o ponto das hipotecas omitido (e os
+//   seguintes renumerados) quando não há nenhuma hipoteca registada.
+export function pontosClausulaPrimeira(h: Helpers, processo: Processo, hipotecas: Hipoteca[]): string[] {
+  if (!processo.imovel_e_fracao_autonoma) {
+    return [
+      `O(s) PRIMEIRO(S) OUTORGANTE(S) é/são legítimo(s) proprietário(s) e possuidor(es) do prédio urbano sito em ${h.v(
+        processo.imovel_morada
+      )}${
+        processo.imovel_codigo_postal || processo.imovel_localidade
+          ? `, ${[processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" ")}`
+          : ""
+      }, freguesia de ${h.v(processo.imovel_freguesia)}, concelho de ${h.v(
+        processo.imovel_concelho
+      )}, distrito de ${h.v(processo.imovel_distrito)}, com a tipologia ${h.v(
+        processo.imovel_tipologia
+      )}, inscrito na matriz predial urbana sob o artigo n.º ${h.v(processo.imovel_artigo_matricial)}${
+        descricaoPredialValida(processo.imovel_descricao_predial as string | null)
+          ? `, descrito na Conservatória do Registo Predial sob o n.º ${h.v(processo.imovel_descricao_predial)}`
+          : ""
+      }, com a área de ${
+        processo.imovel_area ? `${processo.imovel_area} m²` : "____________"
+      }, doravante designado por "Imóvel".`,
+      processo.tem_fracoes_multiplas
+        ? `O Imóvel é composto por duas fracções, sendo atribuído à fracção principal o valor de ${h.euros(
+            processo.valor_fracao_principal
+          )} e à segunda fracção (garagem/arrumo) o valor de ${h.euros(processo.valor_fracao_secundaria)}.`
+        : "",
+    ].filter(Boolean);
+  }
+
+  const moradaCompleta = [
+    h.v(processo.imovel_morada),
+    [processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const orientacao = processo.imovel_orientacao ? `, virado a ${h.v(processo.imovel_orientacao)}` : "";
+
+  const pontos: string[] = [
+    `O(s) PRIMEIRO(S) OUTORGANTE(S) declara(m), para os devidos e legais efeitos, que é/são o(s) único(s) dono(s) e legítimo(s) proprietário(s) da fracção autónoma designada pela letra "${h.v(
+      processo.imovel_fracao_letra
+    )}", ${h.v(processo.imovel_andar_fracao)}${orientacao}, destinado a ${h.v(
+      processo.imovel_finalidade
+    )}, integrada num prédio urbano em regime de propriedade horizontal, sita em ${moradaCompleta}, freguesia de ${h.v(
+      processo.imovel_freguesia
+    )}, concelho de ${h.v(processo.imovel_concelho)}, descrita na Conservatória do Registo Predial de ${h.v(
+      processo.imovel_conservatoria
+    )} sob o n.º ${h.v(processo.imovel_descricao_predial)}, inscrito na matriz sob o artigo ${h.v(
+      processo.imovel_artigo_matricial
+    )}, com a licença de utilização n.º ${h.v(processo.imovel_licenca_utilizacao)}, emitida em ${h.dataPT(
+      processo.imovel_licenca_data_emissao
+    )}, pela ${h.v(processo.imovel_licenca_entidade_emissora)}, com o certificado de desempenho energético n.º ${h.v(
+      processo.imovel_certificado_energetico
+    )}, válido até ${h.dataPT(processo.imovel_certificado_validade)}, com a classe energética ${h.v(
+      processo.imovel_certificado_classe
+    )}.`,
+  ];
+
+  if (hipotecas.length > 0) pontos.push(textoHipotecas(h, hipotecas));
+
+  pontos.push(
+    "Por constituir este contrato uma promessa de compra e venda com entrega de sinal, o(s) SEGUNDO(S) OUTORGANTE(S) reconhece(m) que, com a assinatura do mesmo e, até à outorga da escritura de compra e venda, não lhe(s) é transmitida a propriedade da fracção nem lhe(s) é conferido o direito de tomar posse da mesma.",
+    "Que a fracção é vendida no estado de conservação em que se encontra, conforme visita ao imóvel, estado esse que o(s) SEGUNDO(S) OUTORGANTE(S) conhece(m) e aceita(m), não podendo pedir quaisquer obras ou reparações na mesma.",
+    "O(s) PRIMEIRO(S) OUTORGANTE(S) autoriza(m) o(s) SEGUNDO(S) OUTORGANTE(S) a visitar(em) a fracção, no dia anterior ou no próprio dia da outorga da escritura de compra e venda, a fim de verificar(em) que a mesma se mantém no exacto estado em que se encontra, à data de hoje, desde que para isso seja(m) contactado(s) com pelo menos três dias de antecedência pelo angariador imobiliário, sendo que, se existirem danos, terão de ser imediatamente reparados pelo(s) PRIMEIRO(S) OUTORGANTE(S), colocando a fracção no mesmo estado aquando da primeira visita."
+  );
+
+  return pontos.map((texto, i) => `${i + 1} – ${texto}`);
 }
 
 // Cláusulas "boilerplate" abaixo: texto extraído verbatim das 15 minutas reais da agência em

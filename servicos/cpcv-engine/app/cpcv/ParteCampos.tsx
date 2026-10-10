@@ -93,6 +93,7 @@ export default function ParteCampos({
       "",
       str(extraido.morada_codigo_postal),
       str(extraido.morada_localidade),
+      "",
       ""
     );
     if (!next.morada.trim() && moradaExtraida) {
@@ -152,12 +153,22 @@ export default function ParteCampos({
     }
   }
 
-  function setMorada<K extends "moradaRua" | "moradaNumero" | "moradaCodigoPostal" | "moradaLocalidade">(
-    chave: K,
-    valor: string
-  ) {
+  function setMorada<
+    K extends "moradaRua" | "moradaNumero" | "moradaAndar" | "moradaCodigoPostal" | "moradaLocalidade" | "moradaFreguesia" | "moradaConcelho"
+  >(chave: K, valor: string) {
     const next = { ...draft, [chave]: valor };
-    onChange({ ...next, morada: composeMoradaPessoa(next.moradaRua, next.moradaNumero, next.moradaAndar, next.moradaCodigoPostal, next.moradaLocalidade, next.moradaFreguesia) });
+    onChange({
+      ...next,
+      morada: composeMoradaPessoa(
+        next.moradaRua,
+        next.moradaNumero,
+        next.moradaAndar,
+        next.moradaCodigoPostal,
+        next.moradaLocalidade,
+        next.moradaFreguesia,
+        next.moradaConcelho
+      ),
+    });
   }
 
   function setNaturalidade<K extends "naturalidadeFreguesia" | "naturalidadeConcelho">(chave: K, valor: string) {
@@ -278,7 +289,16 @@ export default function ParteCampos({
                 <input value={draft.moradaNumero} onChange={(e) => setMorada("moradaNumero", e.target.value)} className={campoClass} />
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className={labelClass}>Andar</label>
+                <input
+                  value={draft.moradaAndar}
+                  onChange={(e) => setMorada("moradaAndar", e.target.value)}
+                  placeholder="4º esquerdo"
+                  className={campoClass}
+                />
+              </div>
               <div>
                 <label className={labelClass}>Código postal</label>
                 <input
@@ -291,6 +311,24 @@ export default function ParteCampos({
               <div>
                 <label className={labelClass}>Localidade</label>
                 <input value={draft.moradaLocalidade} onChange={(e) => setMorada("moradaLocalidade", e.target.value)} className={campoClass} />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Freguesia</label>
+                <input
+                  value={draft.moradaFreguesia}
+                  onChange={(e) => setMorada("moradaFreguesia", e.target.value)}
+                  className={campoClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Concelho</label>
+                <input
+                  value={draft.moradaConcelho}
+                  onChange={(e) => setMorada("moradaConcelho", e.target.value)}
+                  className={campoClass}
+                />
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { launchChromium } from "@/lib/cpcv-browser";
 import { enviarCpcvParaDrive } from "@/lib/google-drive";
 import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
+import { descricaoPredialValida } from "@/lib/cpcv-types";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -45,10 +46,30 @@ export async function POST(req: NextRequest) {
   const camposObrigatoriosEmFalta: string[] = [];
   if (!processo.imovel_licenca_utilizacao) camposObrigatoriosEmFalta.push("licença de utilização");
   if (!processo.imovel_certificado_energetico) camposObrigatoriosEmFalta.push("certificado energético");
+
+  // Quando o imóvel é fracção autónoma, a Cláusula Primeira passa a exigir estes campos
+  // adicionais (ver lib/cpcv-clausulas.ts, pontosClausulaPrimeira) - orientação fica de fora
+  // porque é o único campo opcional do novo texto.
+  if (processo.imovel_e_fracao_autonoma) {
+    if (!processo.imovel_fracao_letra) camposObrigatoriosEmFalta.push("letra da fracção");
+    if (!processo.imovel_andar_fracao) camposObrigatoriosEmFalta.push("andar/localização da fracção");
+    if (!processo.imovel_finalidade) camposObrigatoriosEmFalta.push("finalidade do imóvel");
+    if (!processo.imovel_morada) camposObrigatoriosEmFalta.push("morada do imóvel");
+    if (!processo.imovel_freguesia) camposObrigatoriosEmFalta.push("freguesia do imóvel");
+    if (!processo.imovel_concelho) camposObrigatoriosEmFalta.push("concelho do imóvel");
+    if (!processo.imovel_conservatoria) camposObrigatoriosEmFalta.push("conservatória do registo predial");
+    if (!descricaoPredialValida(processo.imovel_descricao_predial)) camposObrigatoriosEmFalta.push("número de descrição predial");
+    if (!processo.imovel_artigo_matricial) camposObrigatoriosEmFalta.push("artigo matricial");
+    if (!processo.imovel_licenca_data_emissao) camposObrigatoriosEmFalta.push("data de emissão da licença de utilização");
+    if (!processo.imovel_licenca_entidade_emissora) camposObrigatoriosEmFalta.push("entidade emissora da licença de utilização");
+    if (!processo.imovel_certificado_validade) camposObrigatoriosEmFalta.push("validade do certificado energético");
+    if (!processo.imovel_certificado_classe) camposObrigatoriosEmFalta.push("classe energética");
+  }
+
   if (camposObrigatoriosEmFalta.length > 0) {
     return NextResponse.json(
       {
-        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche em "Documentos obrigatórios" antes de aprovar.`,
+        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche esses campos antes de aprovar.`,
       },
       { status: 400 }
     );
@@ -59,6 +80,11 @@ export async function POST(req: NextRequest) {
     .select(
       "papel, tipo_pessoa, nome, estado_civil, regime_bens, nacionalidade, naturalidade, nif, morada, documento_tipo, documento_numero, documento_validade, representante_nome, certidao_permanente"
     )
+    .eq("processo_id", processo_id);
+
+  const { data: hipotecas } = await supabase
+    .from("cpcv_hipotecas")
+    .select("entidade_credora, natureza, numero_apresentacao, data_registo")
     .eq("processo_id", processo_id);
 
   if (!forcar) {
@@ -75,6 +101,14 @@ export async function POST(req: NextRequest) {
         `O sinal (${processo.valor_sinal} €) é maior ou igual ao preço total (${processo.preco_total} €) - confirma antes de gerar.`
       );
     }
+    // Zero linhas em cpcv_hipotecas não distingue "ninguém verificou" de "verificou-se e não
+    // há hipotecas" - por isso a confirmação é sempre explícita (ver
+    // app/cpcv/[id]/IdentificacaoImovel.tsx), não inferida da lista estar vazia.
+    if (!processo.hipotecas_verificadas) {
+      avisosDeterministicos.push(
+        "Ainda não foi confirmado se existem hipotecas sobre o imóvel - confirma em \"Identificação do imóvel\" antes de gerar."
+      );
+    }
 
     const avisosIA = await reverAntesDeGerar(processo, partes ?? []);
     const avisos = [...avisosDeterministicos, ...avisosIA];
@@ -83,7 +117,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const html = gerarHtmlCpcv(processo, partes ?? []);
+  const html = gerarHtmlCpcv(processo, partes ?? [], hipotecas ?? []);
 
   let pdfBuffer: Buffer;
   try {
@@ -104,7 +138,7 @@ export async function POST(req: NextRequest) {
 
   let docxBuffer: Buffer;
   try {
-    docxBuffer = await gerarDocxCpcv(processo, partes ?? []);
+    docxBuffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? []);
   } catch (e) {
     return NextResponse.json(
       { error: `Erro ao gerar o Word: ${e instanceof Error ? e.message : String(e)}` },

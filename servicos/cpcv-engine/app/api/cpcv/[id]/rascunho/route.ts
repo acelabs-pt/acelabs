@@ -45,10 +45,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     )
     .eq("processo_id", id);
 
+  const { data: hipotecas } = await supabase
+    .from("cpcv_hipotecas")
+    .select("entidade_credora, natureza, numero_apresentacao, data_registo")
+    .eq("processo_id", id);
+
   let buffer: Buffer;
   try {
     if (tipo === "pdf") {
-      const html = gerarHtmlCpcv(processo, partes ?? []);
+      const html = gerarHtmlCpcv(processo, partes ?? [], hipotecas ?? []);
       const browser = await launchChromium();
       try {
         const page = await browser.newPage();
@@ -58,7 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         await browser.close();
       }
     } else {
-      buffer = await gerarDocxCpcv(processo, partes ?? []);
+      buffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? []);
     }
   } catch (e) {
     return NextResponse.json(

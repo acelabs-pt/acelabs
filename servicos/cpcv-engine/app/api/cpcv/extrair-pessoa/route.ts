@@ -61,7 +61,14 @@ forma:
 "tipo_pessoa" só é "coletiva" se o documento for uma certidão permanente comercial ou identificar
 claramente uma empresa - nesse caso "nome" é a denominação social, e preenches
 "representante_nome"/"representante_cargo"/"certidao_permanente" em vez dos campos de pessoa
-singular (que ficam null). Para pessoa singular, esses três campos ficam null.`;
+singular (que ficam null). Para pessoa singular, esses três campos ficam null.
+
+Para "documento_numero" de um Cartão de Cidadão: o número impresso no cartão tem duas partes
+lado a lado, um espaço entre elas - o número civil (8 dígitos) e, logo a seguir, 4 caracteres
+alfanuméricos (a versão do documento, ex.: "2ZV5"). Devolve sempre as duas partes juntas,
+separadas por um espaço, exactamente como aparecem no cartão (ex.: "15664140 2ZV5"), nunca só
+os 8 dígitos iniciais. Para Passaporte ou Título de Residência, devolve o número tal como está
+impresso, sem tentar aplicar este formato.`;
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();

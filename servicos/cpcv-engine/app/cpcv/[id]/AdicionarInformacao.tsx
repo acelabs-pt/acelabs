@@ -24,6 +24,7 @@ const TIPOS = [
   { value: "cc_vendedor", label: "Cartão de Cidadão - Vendedor" },
   { value: "cc_comprador", label: "Cartão de Cidadão - Comprador" },
   { value: "caderneta_predial", label: "Caderneta Predial" },
+  { value: "certidao_predial", label: "Certidão Predial" },
   { value: "certificado_energetico", label: "Certificado Energético" },
   { value: "outro", label: "Outro" },
 ];
