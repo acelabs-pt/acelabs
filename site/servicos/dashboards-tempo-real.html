@@ -195,6 +195,20 @@
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
   /* ARTIGO DE SERVIÇO - imagem + texto lado a lado */
+  [data-reveal]{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .6s ease,transform .6s ease;
+    transition-delay:calc(var(--n,0) * 0.1s);
+  }
+  [data-reveal].is-visible{opacity:1;transform:translateY(0);}
+  .article-media[data-reveal]{transform:translateY(18px) scale(.97);}
+  .article-media[data-reveal].is-visible{transform:translateY(0) scale(1);}
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal]{opacity:1;transform:none;transition:none;}
+    .feature-icon{animation:none!important;}
+  }
+
   .article-hero{padding:100px 0 60px;}
   .article-grid{
     display:grid;
@@ -311,17 +325,17 @@
 
 <header class="article-hero">
   <div class="wrap article-grid">
-    <div class="article-media">
+    <div class="article-media" data-reveal style="--n:1">
       <img src="dashboards-tempo-real.png" alt="Dashboard Ace Labs com visão geral de receitas, clientes, leads e margem, a juntar dados do Excel, Google Ads, Meta Ads, Shopify, HubSpot e outras fontes numa única plataforma.">
     </div>
     <div class="article-body">
-      <a class="back-link" href="../agencias.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <h1>Os dados da sua empresa. Finalmente, <span class="muted">todos no mesmo lugar.</span></h1>
-      <p>A sua empresa gera informação todos os dias. Vendas, faturação, clientes, produtividade, objetivos e resultados.</p>
-      <p>Mas quantas folhas de Excel precisa de abrir para perceber como está realmente o seu negócio?</p>
-      <p>Na Ace Labs, transformamos informação dispersa em dashboards inteligentes, que reúnem os indicadores mais importantes da sua empresa numa única plataforma.</p>
-      <div class="article-divider"></div>
-      <div class="hero-ctas article-ctas">
+      <a class="back-link" href="../agencias.html#servicos" data-reveal style="--n:0"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <h1 data-reveal style="--n:1">Os dados da sua empresa. Finalmente, <span class="muted">todos no mesmo lugar.</span></h1>
+      <p data-reveal style="--n:2">A sua empresa gera informação todos os dias. Vendas, faturação, clientes, produtividade, objetivos e resultados.</p>
+      <p data-reveal style="--n:3">Mas quantas folhas de Excel precisa de abrir para perceber como está realmente o seu negócio?</p>
+      <p data-reveal style="--n:3">Na Ace Labs, transformamos informação dispersa em dashboards inteligentes, que reúnem os indicadores mais importantes da sua empresa numa única plataforma.</p>
+      <div class="article-divider" data-reveal style="--n:4"></div>
+      <div class="hero-ctas article-ctas" data-reveal style="--n:5">
         <a href="../agencias.html#servicos" class="btn-outline">Ver todos os serviços</a>
       </div>
     </div>
@@ -409,6 +423,19 @@
     window.addEventListener('resize', function(){
       if(window.innerWidth > 860) closeMenu();
     });
+  })();
+  (function(){
+    var targets = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+    if(!targets.length) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.15});
+    targets.forEach(function(t){ io.observe(t); });
   })();
 </script>
 
