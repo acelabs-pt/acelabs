@@ -293,7 +293,7 @@
     border:1px solid var(--line);border-radius:20px;padding:26px 24px;background:#fff;
   }
   .funnel-card h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px;}
-  .funnel-stages{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .funnel-stages{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .stage-chip{
     display:inline-flex;align-items:center;
     font-size:12px;font-weight:600;color:var(--ink-2);
@@ -304,6 +304,18 @@
   .stage-chip.is-last{background:var(--blue-soft-bg);color:var(--blue-dark);}
   .stage-chip{transition:background .35s ease,color .35s ease,transform .35s ease;}
   .stage-chip.is-pulsing{background:#0071e3;color:#fff;transform:scale(1.05);}
+  .funnel-token{
+    position:absolute;top:0;left:0;
+    width:10px;height:10px;margin:-5px 0 0 -5px;
+    border-radius:50%;background:#0071e3;
+    box-shadow:0 0 0 4px rgba(0,113,227,.18),0 0 10px rgba(0,113,227,.7);
+    transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1);
+    z-index:2;pointer-events:none;opacity:0;
+  }
+  .funnel-token.is-set{opacity:1;}
+  @media (prefers-reduced-motion:reduce){
+    .funnel-token{display:none;}
+  }
 
   /* SIMULADOR DE FASES DO COCKPIT */
   .cockpit-sim{display:flex;justify-content:center;line-height:normal;}
@@ -613,6 +625,7 @@
       <div class="funnel-card" data-reveal style="--n:3">
         <h4>Funil de compradores</h4>
         <div class="funnel-stages">
+          <span class="funnel-token" aria-hidden="true"></span>
           <span class="stage-chip">Lead Qualificada</span><span class="stage-arrow">→</span>
           <span class="stage-chip">Imóveis Enviados</span><span class="stage-arrow">→</span>
           <span class="stage-chip">Visitas Realizadas</span><span class="stage-arrow">→</span>
@@ -625,6 +638,7 @@
       <div class="funnel-card" data-reveal style="--n:4">
         <h4>Funil de proprietários</h4>
         <div class="funnel-stages">
+          <span class="funnel-token" aria-hidden="true"></span>
           <span class="stage-chip">FSBO</span><span class="stage-arrow">→</span>
           <span class="stage-chip">Marcação de Reunião</span><span class="stage-arrow">→</span>
           <span class="stage-chip">Reunião de Angariação</span><span class="stage-arrow">→</span>
@@ -951,15 +965,37 @@
     if(!rows.length) return;
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(reduceMotion) return;
-    rows.forEach(function(row, rowIdx){
+    rows.forEach(function(row){
       var chips = Array.prototype.slice.call(row.querySelectorAll('.stage-chip'));
+      var token = row.querySelector('.funnel-token');
       if(!chips.length) return;
+      function moveTokenTo(chip){
+        if(!token) return;
+        var rowRect = row.getBoundingClientRect();
+        var chipRect = chip.getBoundingClientRect();
+        token.style.left = (chipRect.left - rowRect.left + chipRect.width / 2) + 'px';
+        token.style.top = (chipRect.top - rowRect.top - 9) + 'px';
+        token.classList.add('is-set');
+      }
       var idx = 0;
+      moveTokenTo(chips[0]);
       setInterval(function(){
         chips.forEach(function(c){ c.classList.remove('is-pulsing'); });
         chips[idx].classList.add('is-pulsing');
+        moveTokenTo(chips[idx]);
         idx = (idx + 1) % chips.length;
       }, 650);
+    });
+    window.addEventListener('resize', function(){
+      rows.forEach(function(row){
+        var active = row.querySelector('.stage-chip.is-pulsing') || row.querySelector('.stage-chip');
+        var token = row.querySelector('.funnel-token');
+        if(!token || !active) return;
+        var rowRect = row.getBoundingClientRect();
+        var chipRect = active.getBoundingClientRect();
+        token.style.left = (chipRect.left - rowRect.left + chipRect.width / 2) + 'px';
+        token.style.top = (chipRect.top - rowRect.top - 9) + 'px';
+      });
     });
   })();
 
