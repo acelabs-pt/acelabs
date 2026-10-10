@@ -42,6 +42,7 @@
   html{scroll-behavior:smooth;}
   @media (prefers-reduced-motion:reduce){
     .diagram-node,.hub-card,.diagram-svg .flow-line{animation:none!important;}
+    .flow-pulse-group{display:none;}
   }
   body{
     margin:0;
@@ -415,6 +416,14 @@
           <circle cx="228" cy="353" r="3.5"/>
           <circle cx="412" cy="353" r="3.5"/>
           <circle cx="320" cy="383" r="3.5"/>
+        </g>
+        <g class="flow-pulse-group" fill="#0071e3">
+          <circle r="4.5"><animate attributeName="cx" from="320" to="320" dur=".8s" begin="0.3s" fill="freeze"/><animate attributeName="cy" from="135" to="320" dur=".8s" begin="0.3s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="0.3s" fill="freeze"/></circle>
+          <circle r="4.5"><animate attributeName="cx" from="116" to="320" dur=".8s" begin="0.45s" fill="freeze"/><animate attributeName="cy" from="248" to="320" dur=".8s" begin="0.45s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="0.45s" fill="freeze"/></circle>
+          <circle r="4.5"><animate attributeName="cx" from="524" to="320" dur=".8s" begin="0.6s" fill="freeze"/><animate attributeName="cy" from="248" to="320" dur=".8s" begin="0.6s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="0.6s" fill="freeze"/></circle>
+          <circle r="4.5"><animate attributeName="cx" from="116" to="320" dur=".8s" begin="0.75s" fill="freeze"/><animate attributeName="cy" from="393" to="320" dur=".8s" begin="0.75s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="0.75s" fill="freeze"/></circle>
+          <circle r="4.5"><animate attributeName="cx" from="524" to="320" dur=".8s" begin="0.9s" fill="freeze"/><animate attributeName="cy" from="393" to="320" dur=".8s" begin="0.9s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="0.9s" fill="freeze"/></circle>
+          <circle r="4.5"><animate attributeName="cx" from="320" to="320" dur=".8s" begin="1.05s" fill="freeze"/><animate attributeName="cy" from="460" to="320" dur=".8s" begin="1.05s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.75;1" dur=".8s" begin="1.05s" fill="freeze"/></circle>
         </g>
       </svg>
 
