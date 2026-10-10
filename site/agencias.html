@@ -505,6 +505,13 @@
   .ovn-list svg{flex:none;width:18px;height:18px;margin-top:1px;}
   .ovn-old .ovn-list svg{color:#c0392b;}
   .ovn-new .ovn-list svg{color:#1a8f49;}
+  .ovn-old .ovn-list li svg{transform:rotate(-25deg) scale(.6);transition:transform .35s ease;transition-delay:inherit;}
+  .ovn-old .ovn-list li[data-reveal].is-visible svg{transform:rotate(0deg) scale(1);}
+  .ovn-new .ovn-list li svg{transform:scale(0);transition:transform .4s cubic-bezier(.34,1.56,.64,1);transition-delay:inherit;}
+  .ovn-new .ovn-list li[data-reveal].is-visible svg{transform:scale(1);}
+  @media (prefers-reduced-motion:reduce){
+    .ovn-list li svg{transform:none!important;transition:none!important;}
+  }
   @media (max-width:760px){
     .ovn-grid{grid-template-columns:1fr;}
   }
@@ -1786,19 +1793,19 @@
       <div class="ovn-card ovn-old" data-reveal style="--n:2">
         <p class="ovn-label">O jeito antigo</p>
         <ul class="ovn-list">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Dados copiados à mão entre emails, PDFs e Word</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Leads sem resposta durante horas, às vezes dias</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Follow-ups esquecidos em folhas de cálculo</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Angariações sem plano de marketing definido</li>
+          <li data-reveal style="--n:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Dados copiados à mão entre emails, PDFs e Word</li>
+          <li data-reveal style="--n:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Leads sem resposta durante horas, às vezes dias</li>
+          <li data-reveal style="--n:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Follow-ups esquecidos em folhas de cálculo</li>
+          <li data-reveal style="--n:7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Angariações sem plano de marketing definido</li>
         </ul>
       </div>
       <div class="ovn-card ovn-new" data-reveal style="--n:3">
         <p class="ovn-label">O jeito Ace Labs</p>
         <ul class="ovn-list">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> A IA extrai os dados e gera o CPCV sozinha</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Resposta automática a cada lead em minutos</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Lembretes automáticos em cada etapa do funil</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Plano de angariação de 180/120 dias, sempre atualizado</li>
+          <li data-reveal style="--n:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> A IA extrai os dados e gera o CPCV sozinha</li>
+          <li data-reveal style="--n:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Resposta automática a cada lead em minutos</li>
+          <li data-reveal style="--n:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Lembretes automáticos em cada etapa do funil</li>
+          <li data-reveal style="--n:7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Plano de angariação de 180/120 dias, sempre atualizado</li>
         </ul>
       </div>
     </div>
