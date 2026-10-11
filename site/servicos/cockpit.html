@@ -461,7 +461,11 @@
   .faq-item.is-open .faq-icon::after{transform:translate(-50%,-50%) rotate(90deg);opacity:0;}
   .faq-answer{max-height:0;overflow:hidden;transition:max-height .35s ease;}
   .faq-item.is-open .faq-answer{max-height:220px;}
-  .faq-answer-inner{padding:0 22px 20px;font-size:13.5px;line-height:1.6;color:var(--ink-2);}
+  .faq-answer-inner{padding:0 22px 20px;font-size:13.5px;line-height:1.6;color:var(--ink-2);opacity:0;transition:opacity .3s ease;}
+  .faq-item.is-open .faq-answer-inner{opacity:1;transition-delay:.1s;}
+  @media (prefers-reduced-motion:reduce){
+    .faq-answer-inner{transition:none!important;opacity:1!important;}
+  }
 
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
