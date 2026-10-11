@@ -254,6 +254,14 @@
     display:flex;align-items:center;justify-content:center;
   animation:icon-3d 5s ease-in-out 3;transform-style:preserve-3d;}@keyframes icon-3d{0%,100%{transform:perspective(400px) rotateY(0deg) rotateX(0deg);}25%{transform:perspective(400px) rotateY(16deg) rotateX(-8deg);}50%{transform:perspective(400px) rotateY(0deg) rotateX(8deg);}75%{transform:perspective(400px) rotateY(-16deg) rotateX(-6deg);}}.feature-item:nth-of-type(1) .feature-icon{animation-delay:0s;}.feature-item:nth-of-type(2) .feature-icon{animation-delay:-1.3s;}.feature-item:nth-of-type(3) .feature-icon{animation-delay:-2.6s;}.feature-item:nth-of-type(4) .feature-icon{animation-delay:-3.9s;}
   .feature-icon svg{width:24px;height:24px;display:block;}
+  .icon-send path{stroke-dasharray:40;stroke-dashoffset:40;animation:icon-send-draw .5s ease forwards;animation-delay:.6s;}
+  .icon-send{animation:icon-send-nudge .3s ease forwards;animation-delay:1.15s;}
+  @keyframes icon-send-draw{to{stroke-dashoffset:0;}}
+  @keyframes icon-send-nudge{0%{transform:translate(0,0);}50%{transform:translate(4px,-3px);}100%{transform:translate(0,0);}}
+  @media (prefers-reduced-motion:reduce){
+    .icon-send path{animation:none!important;stroke-dashoffset:0!important;}
+    .icon-send{animation:none!important;}
+  }
   .feature-text h3{
     font-size:16.5px;
     font-weight:650;
@@ -365,7 +373,7 @@
       <div class="feature-list">
         <div class="feature-item">
           <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <svg class="icon-send" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </div>
           <div class="feature-text">
             <h3>Follow-ups automáticos</h3>
