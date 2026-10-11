@@ -314,9 +314,13 @@
 
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
-  .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);}
-  .closing p{margin-top:18px;font-size:19px;color:var(--ink-2);max-width:40ch;margin-left:auto;margin-right:auto;}
+  .closing h2{font-size:44px;max-width:16ch;margin:0 auto;color:var(--ink);opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease;}
+  .closing p{margin-top:18px;font-size:19px;color:var(--ink-2);max-width:40ch;margin-left:auto;margin-right:auto;opacity:0;transform:translateY(16px);transition:opacity .6s ease .1s,transform .6s ease .1s;}
+  .closing.is-visible h2,.closing.is-visible p{opacity:1;transform:translateY(0);}
   .closing .hero-ctas{margin-top:34px;justify-content:center;}
+  @media (prefers-reduced-motion:reduce){
+    .closing h2,.closing p{opacity:1!important;transform:none!important;transition:none!important;}
+  }
   .closing .btn-dark{background:var(--ink);color:#fff;}
   .closing .btn-dark:hover{background:#000;}
 
@@ -627,6 +631,20 @@
       });
     }, { threshold: 0.3 });
     io.observe(grid);
+  })();
+
+  (function(){
+    var closing = document.querySelector('.closing');
+    if(!closing) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          closing.classList.add('is-visible');
+          io.unobserve(closing);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(closing);
   })();
 </script>
 
