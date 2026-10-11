@@ -3,6 +3,8 @@ import { PARTE_EM_BRANCO, METODO_PAGAMENTO_LABEL } from "./cpcv-types";
 import {
   montarBlocoOutorgantes,
   pontosClausulaPrimeira,
+  pontosClausulaSegunda,
+  euroPorExtenso,
   clausulaCondicoesSuspensivas as clausulaCondicoesSuspensivasBase,
   clausulaAlteracoes,
   clausulaNotificacoes,
@@ -44,11 +46,7 @@ function v(value: unknown, fallback = "____________"): string {
 
 function euros(value: number | null): string {
   if (value === null || value === undefined) return "____________";
-  return `${value.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € (${valorPorExtenso(value)})`;
-}
-
-function valorPorExtenso(value: number): string {
-  return `${value.toLocaleString("pt-PT")} euros`;
+  return `${value.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € (${escapeHtml(euroPorExtenso(value))})`;
 }
 
 function dataPT(iso: string | null): string {
@@ -103,41 +101,53 @@ export function gerarHtmlCpcv(processo: Processo, partes: Parte[], hipotecas: Hi
         ].filter(Boolean),
       };
 
+  // Quando destino_sinal está preenchido (resposta explícita em CondicoesNegocio.tsx), a nova
+  // Cláusula "Preço e Condições de Pagamento" (pontosClausulaSegunda) já inclui a promessa de
+  // vender/comprar no seu ponto 1 - manter a cláusula "Promessa" separada duplicaria essa
+  // mesma declaração, por isso ela deixa de aparecer nesse caso. Com destino_sinal null
+  // (processos antigos, ou novos até o agente responder), as duas cláusulas ficam exactamente
+  // como estavam antes desta fase.
+  const clausulasPrometeEPreco: (ClausulaTexto | null)[] = processo.destino_sinal
+    ? [null, { titulo: "Preço e Condições de Pagamento", paragrafos: pontosClausulaSegunda(helpers, processo) }]
+    : [
+        {
+          titulo: "Promessa",
+          paragrafos: [
+            "Pela presente, o(s) PRIMEIRO(S) OUTORGANTE(S) promete(m) vender, livre de ónus ou encargos, e o(s) SEGUNDO(S) OUTORGANTE(S) promete(m) comprar o Imóvel identificado na Cláusula Primeira, nas condições constantes do presente contrato.",
+          ],
+        },
+        {
+          titulo: "Preço e Condições de Pagamento",
+          paragrafos: [
+            `O preço global e convencionado para a presente promessa de compra e venda é de ${euros(
+              processo.preco_total
+            )}, a pagar através de ${v(
+              METODO_PAGAMENTO_LABEL[processo.metodo_pagamento ?? ""],
+              "meio de pagamento a definir"
+            )}, da seguinte forma:`,
+            `a) A título de sinal e princípio de pagamento, a quantia de ${euros(
+              processo.valor_sinal
+            )}, paga ${textoFormaPagamentoSinal(helpers, processo)}${
+              processo.iban_sinal ? `, para o IBAN ${v(processo.iban_sinal)}` : ""
+            }${textoReforcosSinal(helpers, processo)};`,
+            "b) O remanescente do preço será pago na data da celebração da escritura pública de compra e venda, através de meio de pagamento idóneo.",
+            processo.reserva
+              ? `Foi entregue pelo(s) SEGUNDO(S) OUTORGANTE(S), a título de reserva, a quantia de ${euros(
+                  processo.valor_reserva
+                )}, a deduzir ao valor do sinal referido na alínea a)${
+                  processo.reserva_ate_data ? `, válida até ${dataPT(processo.reserva_ate_data)}` : ""
+                }.`
+              : "",
+            processo.valor_mobilia
+              ? `É atribuído à mobília e aos bens móveis incluídos na transacção o valor de ${euros(processo.valor_mobilia)}.`
+              : "",
+          ].filter(Boolean),
+        },
+      ];
+
   const clausulas: (ClausulaTexto | null)[] = [
     { titulo: "Objecto", paragrafos: pontosClausulaPrimeira(helpers, processo, hipotecas) },
-    {
-      titulo: "Promessa",
-      paragrafos: [
-        "Pela presente, o(s) PRIMEIRO(S) OUTORGANTE(S) promete(m) vender, livre de ónus ou encargos, e o(s) SEGUNDO(S) OUTORGANTE(S) promete(m) comprar o Imóvel identificado na Cláusula Primeira, nas condições constantes do presente contrato.",
-      ],
-    },
-    {
-      titulo: "Preço e Condições de Pagamento",
-      paragrafos: [
-        `O preço global e convencionado para a presente promessa de compra e venda é de ${euros(
-          processo.preco_total
-        )}, a pagar através de ${v(
-          METODO_PAGAMENTO_LABEL[processo.metodo_pagamento ?? ""],
-          "meio de pagamento a definir"
-        )}, da seguinte forma:`,
-        `a) A título de sinal e princípio de pagamento, a quantia de ${euros(
-          processo.valor_sinal
-        )}, paga ${textoFormaPagamentoSinal(helpers, processo)}${
-          processo.iban_sinal ? `, para o IBAN ${v(processo.iban_sinal)}` : ""
-        }${textoReforcosSinal(helpers, processo)};`,
-        "b) O remanescente do preço será pago na data da celebração da escritura pública de compra e venda, através de meio de pagamento idóneo.",
-        processo.reserva
-          ? `Foi entregue pelo(s) SEGUNDO(S) OUTORGANTE(S), a título de reserva, a quantia de ${euros(
-              processo.valor_reserva
-            )}, a deduzir ao valor do sinal referido na alínea a)${
-              processo.reserva_ate_data ? `, válida até ${dataPT(processo.reserva_ate_data)}` : ""
-            }.`
-          : "",
-        processo.valor_mobilia
-          ? `É atribuído à mobília e aos bens móveis incluídos na transacção o valor de ${euros(processo.valor_mobilia)}.`
-          : "",
-      ].filter(Boolean),
-    },
+    ...clausulasPrometeEPreco,
     financiamentoAvaliacaoAtivo(processo)
       ? { titulo: "Financiamento e Avaliação Bancária", paragrafos: clausulaFinanciamentoAvaliacao(helpers, processo) }
       : null,

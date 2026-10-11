@@ -58,6 +58,11 @@ export type Processo = Record<string, unknown> & {
   reforco_sinal: string | null;
   reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
+  destino_sinal: string | null;
+  conta_sinal_banco: string | null;
+  conta_sinal_titular: string | null;
+  comissao_modalidade: string | null;
+  comissao_valor: number | null;
   reserva: boolean | null;
   valor_reserva: number | null;
   reserva_ate_data: string | null;

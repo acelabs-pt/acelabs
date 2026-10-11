@@ -19,6 +19,85 @@ export function formatarNif(nif: string | null): string | null {
   return `${limpo.slice(0, 3)} ${limpo.slice(3, 6)} ${limpo.slice(6, 9)}`;
 }
 
+// Conversor número -> português por extenso, usado para escrever o preço/sinal em palavras
+// ao lado dos algarismos (ex.: "222.000,00 € (Duzentos e Vinte e Dois Mil Euros)"), tal como
+// pedido na Cláusula Segunda. Só a parte inteira dos euros - os cêntimos continuam visíveis
+// em algarismos (ver euros() em cpcv-template.ts/cpcv-docx.ts), por extenso só costuma cobrir
+// o valor redondo nestes contratos.
+const UNIDADES = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
+const DEZ_A_DEZANOVE = [
+  "dez", "onze", "doze", "treze", "catorze", "quinze", "dezasseis", "dezassete", "dezoito", "dezanove",
+];
+const DEZENAS = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+const CENTENAS = [
+  "", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos",
+];
+
+// 0-999 -> português. "cem" é um caso especial (não "cento", que só aparece seguido de "e X").
+function grupoDeTres(n: number): string {
+  if (n === 0) return "";
+  if (n === 100) return "cem";
+  const centena = Math.floor(n / 100);
+  const resto = n % 100;
+  const partes: string[] = [];
+  if (centena > 0) partes.push(CENTENAS[centena]);
+  if (resto > 0) {
+    if (resto < 10) partes.push(UNIDADES[resto]);
+    else if (resto < 20) partes.push(DEZ_A_DEZANOVE[resto - 10]);
+    else {
+      const dezena = Math.floor(resto / 10);
+      const unidade = resto % 10;
+      partes.push(unidade > 0 ? `${DEZENAS[dezena]} e ${UNIDADES[unidade]}` : DEZENAS[dezena]);
+    }
+  }
+  return partes.join(" e ");
+}
+
+// Inteiro (>= 0, cobre até às centenas de milhão - mais do que suficiente para qualquer preço
+// real de um imóvel) -> português por extenso em minúsculas, sem a palavra "euros".
+function numeroPorExtenso(n: number): string {
+  if (n === 0) return "zero";
+
+  const milhoes = Math.floor(n / 1_000_000);
+  const restoAposMilhoes = n % 1_000_000;
+  const milhares = Math.floor(restoAposMilhoes / 1000);
+  const unidades = restoAposMilhoes % 1000;
+
+  const grupos: string[] = [];
+  if (milhoes > 0) grupos.push(`${grupoDeTres(milhoes)} ${milhoes === 1 ? "milhão" : "milhões"}`);
+  if (milhares > 0) grupos.push(milhares === 1 ? "mil" : `${grupoDeTres(milhares)} mil`);
+  if (unidades > 0) grupos.push(grupoDeTres(unidades));
+
+  if (grupos.length === 1) return grupos[0];
+
+  // "e" só liga o último grupo aos anteriores quando esse último é um valor pequeno (<100) ou
+  // uma centena redonda (ex.: "...mil e cem", "...mil e cinco") - grupos maiores intermédios
+  // separam-se por vírgula, convenção comum em números por extenso em português.
+  const valorUltimoGrupo = unidades > 0 ? unidades : milhares > 0 ? milhares : milhoes;
+  const usaEntreUltimos = valorUltimoGrupo < 100 || valorUltimoGrupo % 100 === 0;
+  const ultimo = grupos[grupos.length - 1];
+  const anteriores = grupos.slice(0, -1).join(", ");
+  return usaEntreUltimos ? `${anteriores} e ${ultimo}` : `${anteriores}, ${ultimo}`;
+}
+
+function capitalizarExtenso(texto: string): string {
+  return texto
+    .split(" ")
+    .map((palavra) => (palavra === "e" ? palavra : palavra.charAt(0).toUpperCase() + palavra.slice(1)))
+    .join(" ");
+}
+
+export function euroPorExtenso(valor: number): string {
+  const inteiro = Math.round(valor);
+  const extenso = capitalizarExtenso(numeroPorExtenso(inteiro));
+  // "um milhão DE euros", "dois milhões DE euros" - "de" só entra quando "milhão(ões)" fica
+  // directamente colado a "euros" (nenhum milhar/unidade a seguir); "mil" nunca leva "de"
+  // ("mil euros", não "mil de euros"), por isso isto só se aplica a múltiplos exactos de
+  // 1.000.000.
+  const ligacaoMilhao = inteiro >= 1_000_000 && inteiro % 1_000_000 === 0 ? "de " : "";
+  return `${extenso} ${ligacaoMilhao}${inteiro === 1 ? "Euro" : "Euros"}`;
+}
+
 // Biblioteca de texto de cláusulas partilhada pelos dois geradores (PDF em cpcv-template.ts,
 // Word em cpcv-docx.ts), para o texto legal não ficar duplicado (e a divergir) em dois sítios.
 // Cada função recebe um `Helpers` (v/euros/dataPT) fornecido pelo gerador que a chama, porque o
@@ -364,6 +443,67 @@ export function pontosClausulaPrimeira(h: Helpers, processo: Processo, hipotecas
   return pontos.map((texto, i) => `${i + 1} – ${texto}`);
 }
 
+// Cláusula Segunda (Preço e Condições de Pagamento). Dois formatos, nunca inferidos pela IA:
+// - destino_sinal null (inclui todos os processos anteriores a esta funcionalidade, e qualquer
+//   processo novo até o agente responder): texto genérico actual, devolvido por
+//   clausulasPrometeEPreco() em cpcv-template.ts/cpcv-docx.ts (cláusula "Promessa" separada +
+//   esta função nem chega a ser chamada).
+// - destino_sinal "vendedor"/"agencia" (resposta explícita em
+//   app/cpcv/[id]/CondicoesNegocio.tsx): 4 ou 5 pontos numerados, já incluindo a promessa de
+//   vender/comprar que antes estava na cláusula "Promessa" separada (por isso essa cláusula
+//   deixa de aparecer nesse caso - ver clausulasPrometeEPreco).
+export function pontosClausulaSegunda(h: Helpers, processo: Processo): string[] {
+  const ehFracao = !!processo.imovel_e_fracao_autonoma;
+  const termoImovel = ehFracao ? "a fracção autónoma" : "o Imóvel";
+  const identificadoTermo = ehFracao ? "identificada" : "identificado";
+
+  const pontos: string[] = [
+    `Pelo presente contrato o(s) PRIMEIRO(S) OUTORGANTE(S) promete(m) vender ao(s) SEGUNDO(S) OUTORGANTE(S), que por sua vez prometem comprar àquele(s), ${termoImovel} ${identificadoTermo} na cláusula anterior, livre de ónus ou encargos, hipotecas e responsabilidades, sejam de que natureza forem, e livre de qualquer tipo de ocupação, arrendamento, servidão, comodato ou qualquer outro que limite a posse, e devoluto de pessoas e bens, pelo preço total de ${h.euros(
+      processo.preco_total
+    )}.`,
+  ];
+
+  const ehAgencia = processo.destino_sinal === "agencia";
+  const forma = ((processo.forma_pagamento_sinal as string | null) || "transferência bancária").trim();
+  const formaMinuscula = `${forma.charAt(0).toLowerCase()}${forma.slice(1)}`;
+  const titular = ehAgencia ? AGENCIA_NOME : h.v(processo.conta_sinal_titular);
+  const banco = ehAgencia ? AGENCIA_BANCO : h.v(processo.conta_sinal_banco);
+  const iban = ehAgencia ? AGENCIA_IBAN : h.v(processo.iban_sinal);
+  const quemRecebe = ehAgencia ? AGENCIA_NOME : "o(s) PRIMEIRO(S) OUTORGANTE(S)";
+
+  pontos.push(
+    `Na presente data, a título de sinal e princípio de pagamento, o(s) SEGUNDO(S) OUTORGANTE(S) terá(ão) de entregar a quantia de ${h.euros(
+      processo.valor_sinal
+    )}, através de ${h.v(formaMinuscula)}, para o IBAN ${iban}, do ${banco}, à ordem de ${titular}, de que ${quemRecebe} dará quitação após boa cobrança.`
+  );
+
+  if (ehAgencia) {
+    const temFinanciamento = !!processo.condicionado_financiamento;
+    const temAvaliacao = !!processo.condicionado_avaliacao;
+    const condicaoTexto =
+      temFinanciamento && temAvaliacao
+        ? "do financiamento e da avaliação bancária"
+        : temFinanciamento
+          ? "do financiamento bancário"
+          : temAvaliacao
+            ? "da avaliação bancária"
+            : null;
+
+    pontos.push(
+      condicaoTexto
+        ? `O(s) PRIMEIRO(S) OUTORGANTE(S) nomeia(m) a ${AGENCIA_NOME} para ficar como fiel depositária do valor acima mencionado, até resposta ${condicaoTexto} que o(s) SEGUNDO(S) OUTORGANTE(S) está(ão) a solicitar junto de uma instituição bancária, após o que transferirá o sinal ao(s) PRIMEIRO(S) OUTORGANTE(S), podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
+        : `O(s) PRIMEIRO(S) OUTORGANTE(S) nomeia(m) a ${AGENCIA_NOME} para ficar como fiel depositária do valor acima mencionado, até à assinatura do presente contrato-promessa por todos os outorgantes, após o que transferirá o sinal ao(s) PRIMEIRO(S) OUTORGANTE(S), podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
+    );
+  }
+
+  pontos.push(
+    "Os outorgantes convencionam, nos termos do disposto no artigo 432º do Código Civil, que se considera automaticamente resolvido, sem necessidade de qualquer interpelação, o presente contrato promessa de compra e venda, se o valor a título de sinal, não estiver disponível no prazo de 3 dias a contar da data da assinatura do presente contrato.",
+    "A restante parte do preço, será paga no ato da celebração da escritura de compra e venda, objeto do presente contrato, em cheque bancário."
+  );
+
+  return pontos.map((texto, i) => `${i + 1} – ${texto}`);
+}
+
 // Cláusulas "boilerplate" abaixo: texto extraído verbatim das 15 minutas reais da agência em
 // `servicos/cpcv-engine/minutas/` (ver plano em análise, ficheiro
 // `minutas/_extraido/analise-boilerplate.md`, não commitado - pasta com dados de cliente). Nas
@@ -374,6 +514,11 @@ export function pontosClausulaPrimeira(h: Helpers, processo: Processo, hipotecas
 
 const AGENCIA_NOME = process.env.CPCV_AGENCIA_NOME || "____________";
 const AGENCIA_AMI = process.env.CPCV_AGENCIA_AMI || "____________";
+// Conta bancária da agência - só usada na Cláusula Segunda quando destino_sinal = "agencia"
+// (ver pontosClausulaSegunda). Fixa por deployment, tal como nome/AMI acima - nunca escrita à
+// mão por processo (ver .env.example).
+const AGENCIA_IBAN = process.env.CPCV_AGENCIA_IBAN || "____________";
+const AGENCIA_BANCO = process.env.CPCV_AGENCIA_BANCO || "____________";
 
 // Texto abaixo copiado verbatim de minutas/_extraido/*.txt (via analise-boilerplate.md) - a
 // versão anterior destas cláusulas tinha sido parafraseada por engano (ex.: citava o

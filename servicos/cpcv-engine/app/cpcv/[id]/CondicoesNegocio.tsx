@@ -22,6 +22,11 @@ type Processo = {
   valor_mobilia: number | null;
   reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
+  destino_sinal: string | null;
+  conta_sinal_banco: string | null;
+  conta_sinal_titular: string | null;
+  comissao_modalidade: string | null;
+  comissao_valor: number | null;
   reserva: boolean | null;
   valor_reserva: number | null;
   reserva_ate_data: string | null;
@@ -111,6 +116,11 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
   const [condOutraSituacao, setCondOutraSituacao] = useState(processo.condicionado_outra_situacao ?? "");
   const [prazoOutraSituacaoDias, setPrazoOutraSituacaoDias] = useState(processo.prazo_outra_situacao_dias?.toString() ?? "");
   const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
+  const [destinoSinal, setDestinoSinal] = useState(processo.destino_sinal ?? "");
+  const [contaSinalBanco, setContaSinalBanco] = useState(processo.conta_sinal_banco ?? "");
+  const [contaSinalTitular, setContaSinalTitular] = useState(processo.conta_sinal_titular ?? "");
+  const [comissaoModalidade, setComissaoModalidade] = useState(processo.comissao_modalidade ?? "");
+  const [comissaoValor, setComissaoValor] = useState(processo.comissao_valor?.toString() ?? "");
   const [comodato, setComodato] = useState(simNao(processo.comodato));
   const [tempoComodato, setTempoComodato] = useState(processo.tempo_comodato ?? "");
   const [incluidos, setIncluidos] = useState(processo.incluidos_no_imovel ?? "");
@@ -179,6 +189,11 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
         dias_condicionamento: null,
         dias_condicionamento_tipo: null,
         iban_sinal: ibanSinal || null,
+        destino_sinal: destinoSinal || null,
+        conta_sinal_banco: contaSinalBanco || null,
+        conta_sinal_titular: destinoSinal === "vendedor" ? contaSinalTitular || null : null,
+        comissao_modalidade: destinoSinal === "agencia" ? comissaoModalidade || null : null,
+        comissao_valor: destinoSinal === "agencia" && comissaoValor ? Number(comissaoValor) : null,
         comodato: comodato ? comodato === "sim" : null,
         tempo_comodato: comodato === "sim" ? tempoComodato || null : null,
         incluidos_no_imovel: incluidos || null,
@@ -421,10 +436,67 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>IBAN</h3>
-            <div>
-              <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
-              <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
+            <h3 className={tituloSeccaoClass}>Destino do sinal</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="destinoSinal" className={labelClass}>Quem fica com o sinal?</label>
+                <select id="destinoSinal" value={destinoSinal} onChange={(e) => setDestinoSinal(e.target.value)} className={campoClass}>
+                  <option value="">-</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="agencia">Agência imobiliária</option>
+                </select>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
+                  <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="contaSinalBanco" className={labelClass}>Banco</label>
+                  <input id="contaSinalBanco" value={contaSinalBanco} onChange={(e) => setContaSinalBanco(e.target.value)} className={campoClass} />
+                </div>
+              </div>
+
+              {destinoSinal === "vendedor" && (
+                <div>
+                  <label htmlFor="contaSinalTitular" className={labelClass}>Titular da conta (vendedor)</label>
+                  <input id="contaSinalTitular" value={contaSinalTitular} onChange={(e) => setContaSinalTitular(e.target.value)} className={campoClass} />
+                </div>
+              )}
+
+              {destinoSinal === "agencia" && (
+                <>
+                  <p className="text-xs text-[#94A3B8] -mt-1">
+                    Titular da conta: a agência (dados fixos da empresa, não editáveis aqui).
+                    O CPCV passa a incluir a cláusula de fiel depositária.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="comissaoModalidade" className={labelClass}>Quando será paga a comissão imobiliária?</label>
+                      <select
+                        id="comissaoModalidade"
+                        value={comissaoModalidade}
+                        onChange={(e) => setComissaoModalidade(e.target.value)}
+                        className={campoClass}
+                      >
+                        <option value="">-</option>
+                        <option value="integral_cpcv">100% da comissão no CPCV</option>
+                        <option value="metade_cpcv">50% da comissão no CPCV e 50% na escritura</option>
+                        <option value="integral_escritura">100% da comissão na escritura</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="comissaoValor" className={labelClass}>Valor da comissão (com IVA)</label>
+                      <CampoEuros id="comissaoValor" value={comissaoValor} onChange={setComissaoValor} className={campoClass} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#94A3B8]">
+                    Nunca aparece no CPCV - só serve para confirmar que a comissão a reter não
+                    excede o valor do sinal.
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

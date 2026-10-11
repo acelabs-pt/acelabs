@@ -66,10 +66,45 @@ export async function POST(req: NextRequest) {
     if (!processo.imovel_certificado_classe) camposObrigatoriosEmFalta.push("classe energética");
   }
 
+  // Quando há uma resposta sobre quem fica com o sinal, a nova Cláusula "Preço e Condições de
+  // Pagamento" passa a exigir estes campos (ver lib/cpcv-clausulas.ts, pontosClausulaSegunda).
+  // Com destino_sinal null (processos antigos, ou novos até o agente responder), nada disto é
+  // pedido - a cláusula mantém-se no formato actual.
+  if (processo.destino_sinal) {
+    if (!processo.iban_sinal) camposObrigatoriosEmFalta.push("IBAN do sinal");
+    if (!processo.conta_sinal_banco) camposObrigatoriosEmFalta.push("banco da conta do sinal");
+    if (processo.destino_sinal === "vendedor" && !processo.conta_sinal_titular) {
+      camposObrigatoriosEmFalta.push("titular da conta do sinal");
+    }
+    if (processo.destino_sinal === "agencia") {
+      if (!processo.comissao_modalidade) camposObrigatoriosEmFalta.push("modalidade de pagamento da comissão");
+      if (processo.comissao_valor === null || processo.comissao_valor === undefined) {
+        camposObrigatoriosEmFalta.push("valor da comissão (com IVA)");
+      }
+    }
+  }
+
   if (camposObrigatoriosEmFalta.length > 0) {
     return NextResponse.json(
       {
         error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche esses campos antes de aprovar.`,
+      },
+      { status: 400 }
+    );
+  }
+
+  // A comissão a reter nunca pode exceder o sinal disponível - nunca inventar uma
+  // distribuição (ex.: descontar da parte do preço paga na escritura), a gestora decide
+  // expressamente o que fazer antes de gerar (ajustar a comissão, o sinal, ou a modalidade).
+  if (
+    processo.destino_sinal === "agencia" &&
+    typeof processo.comissao_valor === "number" &&
+    typeof processo.valor_sinal === "number" &&
+    processo.comissao_valor > processo.valor_sinal
+  ) {
+    return NextResponse.json(
+      {
+        error: `A comissão indicada (${processo.comissao_valor} €) é superior ao sinal (${processo.valor_sinal} €) - corrige em "Condições do negócio" antes de gerar.`,
       },
       { status: 400 }
     );

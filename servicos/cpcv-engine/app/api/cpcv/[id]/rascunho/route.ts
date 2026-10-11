@@ -5,6 +5,12 @@ import { gerarDocxCpcv } from "@/lib/cpcv-docx";
 import { launchChromium } from "@/lib/cpcv-browser";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 
+// Sem isto, um GET route handler fica sujeito ao Full Route Cache do Next.js e podia servir um
+// rascunho desactualizado para a mesma URL (mesmo processo, mesmo "?tipo=pdf/docx") mesmo depois
+// de o processo ter sido editado - ver o mesmo problema, confirmado em sessão de QA, na rota de
+// download (app/api/cpcv/[id]/download/route.ts).
+export const dynamic = "force-dynamic";
+
 const CONTENT_TYPE: Record<string, string> = {
   pdf: "application/pdf",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -77,6 +83,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       "Content-Type": CONTENT_TYPE[tipo],
       "Content-Disposition": `attachment; filename="cpcv-rascunho.${tipo}"`,
       "Content-Length": String(buffer.length),
+      // Ver o comentário equivalente em app/api/cpcv/[id]/download/route.ts - mesmo URL a cada
+      // pedido (mesmo processo, mesmo "?tipo="), por isso o browser tem de ser instruído a
+      // nunca reutilizar uma resposta já recebida.
+      "Cache-Control": "no-store, must-revalidate",
     },
   });
 }

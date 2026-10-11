@@ -10,6 +10,14 @@ const PADROES_PROIBIDOS = [
   /financiamento banc[aá]rio/i,
   /comodato/i,
   /iban/i,
+  // Destino do sinal/comissão (Fase 12) - mesmo princípio: campo próprio em "Condições do
+  // negócio" > "Destino do sinal", nunca perguntado no chat (a IA nem sequer é informada
+  // destes conceitos no system prompt, mas o filtro fica aqui por defesa em profundidade,
+  // igual aos restantes campos desta lista).
+  /comiss[ãa]o/i,
+  /fiel deposit[aá]ria/i,
+  /destino do sinal/i,
+  /quem fica com o sinal/i,
   /e-?mail/i,
   /inclu[ií]do.*im[oó]vel/i,
   // Dados de vendedor/comprador vêm de um formulário próprio, não da IA (ver
