@@ -239,6 +239,11 @@
     margin-top:28px;
     border-top:1px solid var(--line);
   }
+  .article-divider[data-reveal]{opacity:1;transform:scaleX(0);transform-origin:left;transition:transform .6s ease;}
+  .article-divider[data-reveal].is-visible{transform:scaleX(1);}
+  @media (prefers-reduced-motion:reduce){
+    .article-divider[data-reveal]{transform:scaleX(1)!important;transition:none!important;}
+  }
   .article-ctas{margin-top:28px;}
 
   /* CLOSING CTA (igual ao site principal) */
