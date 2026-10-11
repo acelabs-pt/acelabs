@@ -2,7 +2,7 @@ import { sbUserServer } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ChatForm from "./ChatForm";
-import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks } from "./GerarDocumento";
+import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks, ReabrirProcesso } from "./GerarDocumento";
 import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import DadosApoio from "./DadosApoio";
@@ -233,6 +233,12 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
           <div className="mt-4 flex flex-wrap items-start justify-end gap-2">
             <PedirAlteracoes processoId={processo.id} />
             <GerarButton processoId={processo.id} temCamposEmFalta={temCamposEmFalta} />
+          </div>
+        )}
+        {isGestora && processo.estado === "aprovado" && (
+          <div className="mt-4 flex flex-wrap items-start justify-end gap-2">
+            <ReabrirProcesso processoId={processo.id} />
+            <GerarButton processoId={processo.id} temCamposEmFalta={false} rotulo="Regerar PDF e Word" />
           </div>
         )}
         {processo.pdf_path && (
