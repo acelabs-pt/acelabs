@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { gerarHtmlCpcv } from "@/lib/cpcv-template";
+import { gerarPdfCpcv } from "@/lib/cpcv-pdf";
 import { gerarDocxCpcv } from "@/lib/cpcv-docx";
-import { launchChromium } from "@/lib/cpcv-browser";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 
 // Sem isto, um GET route handler fica sujeito ao Full Route Cache do Next.js e podia servir um
@@ -58,19 +57,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   let buffer: Buffer;
   try {
-    if (tipo === "pdf") {
-      const html = gerarHtmlCpcv(processo, partes ?? [], hipotecas ?? []);
-      const browser = await launchChromium();
-      try {
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: "networkidle" });
-        buffer = await page.pdf({ format: "A4", printBackground: true });
-      } finally {
-        await browser.close();
-      }
-    } else {
-      buffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? []);
-    }
+    // O Word também passa pelo PDF: é a paginação do PDF que dá o número de páginas usado como
+    // valor inicial do campo NUMPAGES no Word (ver lib/cpcv-pdf.ts e lib/cpcv-docx.ts).
+    const { pdf, paginas } = await gerarPdfCpcv(processo, partes ?? [], hipotecas ?? []);
+    buffer = tipo === "pdf" ? pdf : await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? [], paginas);
   } catch (e) {
     return NextResponse.json(
       { error: `Erro ao gerar o rascunho: ${e instanceof Error ? e.message : String(e)}` },

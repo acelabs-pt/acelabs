@@ -136,11 +136,31 @@ mesmo padrão já usado para método de pagamento/reserva/etc.
 
 ### Geração de documentos
 
-- `lib/cpcv-template.ts` (PDF, via HTML → Playwright `chromium.launch()` + `page.pdf()`) e
-  `lib/cpcv-docx.ts` (Word, via `docx`) duplicam a mesma lógica de composição de cláusulas a partir
-  dos campos estruturados - uma alteração num dos dois quase sempre implica a mesma alteração no
-  outro (ex.: a cláusula de condições suspensivas é composta a partir de
-  `condicionado_avaliacao`/`condicionado_financiamento`/`dias_condicionamento`, não de texto livre).
+- O CPCV gerado reproduz o contrato de referência aprovado pelo cliente («CPCV 126601064-8
+  Assinado.pdf», 16 cláusulas, Braga) - redacção verbatim, com variação só nos dados, no
+  singular/plural dos outorgantes e nas condições aprovadas (hipoteca, fiel depositária,
+  avaliação bancária, bens móveis, condomínio). Fonte única: `lib/cpcv-contrato.ts`
+  (`montarContrato`) monta a estrutura inteira já com as cláusulas filtradas e numeradas, a partir
+  do texto em `lib/cpcv-clausulas.ts`; `lib/cpcv-template.ts` (HTML → PDF) e `lib/cpcv-docx.ts`
+  (Word) só formatam essa estrutura - nenhum dos dois decide o que entra. Não parafrasear nem
+  "modernizar" texto de cláusula: `npm run verificar:clausulas` (correr com
+  `npx tsx --env-file=.env.local scripts/comparar-clausulas-minutas.ts`) compara ponto a ponto
+  contra o texto do PDF assinado, com a lista das únicas adaptações aprovadas, e corre os
+  cenários A-H do pedido - correr depois de qualquer alteração a `cpcv-clausulas.ts`.
+- Informação que a app recolhe mas não entra em nenhuma das 16 cláusulas (reserva, reforços,
+  mobília, comodato, observações, emails, ...) nunca gera cláusulas: `lib/cpcv-alertas.ts`
+  lista-a para a gestora/solicitadora (`AlertasSolicitadora.tsx` na página do processo e nos
+  avisos de `/api/cpcv/gerar`). Decisão do cliente - não voltar a acrescentar cláusulas por campo.
+- Mediadora fixa no código (`AGENCIA_NOME`/`AGENCIA_AMI` em `cpcv-clausulas.ts`), local de
+  assinatura fixo ("Braga" em `cpcv-contrato.ts`). Só IBAN/banco/email da agência vêm do `.env`.
+- Número de páginas no texto final: o PDF é gerado em duas passagens (`lib/cpcv-pdf.ts` - gera,
+  conta os `/Type /Page`, volta a gerar com o número por extenso); o Word usa um campo
+  `NUMPAGES \* CardText \* Upper` com o número do PDF como valor em cache, que o Word recalcula
+  sozinho. Por isso o Word passa sempre pelo PDF, mesmo quando só se pede o `.docx`.
+- Fonte Arial obrigatória nos dois formatos. No HTML/PDF há `@font-face "Arial"` com
+  `local("Arial")` e fallback para a Arimo embutida (`lib/fonts/arimo.ts`, SIL OFL, métrica igual à
+  Arial) - é o que garante a mesma paginação num servidor sem Arial (Vercel). Nunca incluir a
+  Arial da Microsoft no repositório (público).
 - Campos opcionais que podem estar vazios (`naturalidade`, etc.) devem ser omitidos da frase
   gerada quando `null` - nunca preencher com uma frase-placeholder tipo "naturalidade não
   indicada", fica com má cadência para um documento legal.

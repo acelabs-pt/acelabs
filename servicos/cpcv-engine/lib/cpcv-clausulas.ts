@@ -1,13 +1,34 @@
 import type { Helpers, Hipoteca, Parte, Processo } from "./cpcv-types";
-import { descricaoPredialValida, regimeBensValido } from "./cpcv-types";
+import { regimeBensValido } from "./cpcv-types";
+
+// Biblioteca de texto do CPCV, partilhada pelos dois geradores (PDF em cpcv-template.ts, Word em
+// cpcv-docx.ts) através de lib/cpcv-contrato.ts. A redacção de todas as cláusulas é a do contrato
+// de referência aprovado pelo Miguel («CPCV 126601064-8 Assinado.pdf», 16 cláusulas) - só os
+// elementos dinâmicos (nomes, valores, datas, singular/plural) e as condições expressamente
+// aprovadas variam. Não modernizar nem parafrasear: `npm run verificar:clausulas` compara estas
+// funções contra o texto desse contrato.
+//
+// Cada função recebe um `Helpers` (v/euros/dataPT/dataLongaPT) fornecido pelo gerador que a
+// chama, porque o PDF precisa de escapar HTML e o Word não.
+
+// Identificação da mediadora - fixa para todos os contratos (decisão do Miguel), nunca um campo
+// por processo nem variável de ambiente.
+export const AGENCIA_NOME = "Agência House Culture, Lda";
+export const AGENCIA_AMI = "21596";
+// Conta bancária da agência - só usada na Cláusula Segunda quando destino_sinal = "agencia"
+// (o sinal fica com a agência como fiel depositária). Fixa por deployment, via .env, por serem
+// dados bancários que não devem ficar num repositório público.
+const AGENCIA_IBAN = process.env.CPCV_AGENCIA_IBAN || "____________";
+const AGENCIA_BANCO = process.env.CPCV_AGENCIA_BANCO || "____________";
 
 // "Cartão de Cidadão" -> "cartão de cidadão" - para encaixar o tipo de documento a meio de
-// frase ("titular do cartão de cidadão n.º...") sem maiúsculas no meio do texto corrido. Ao
-// contrário de comPreposicaoDePagamento (que só baixa a primeira letra), aqui há mais do que
-// uma palavra com maiúscula ("Cartão de Cidadão", "Título de Residência"), por isso baixa a
-// frase toda.
+// frase ("titular do cartão de cidadão n.º...") sem maiúsculas no meio do texto corrido.
 function documentoEmMinusculas(s: string): string {
   return s.toLowerCase();
+}
+
+function maiusculas(s: string | null): string | null {
+  return s ? s.toLocaleUpperCase("pt-PT") : s;
 }
 
 // "275146499" -> "275 146 499" - só quando o NIF tem os 9 dígitos esperados; um NIF
@@ -19,11 +40,10 @@ export function formatarNif(nif: string | null): string | null {
   return `${limpo.slice(0, 3)} ${limpo.slice(3, 6)} ${limpo.slice(6, 9)}`;
 }
 
-// Conversor número -> português por extenso, usado para escrever o preço/sinal em palavras
-// ao lado dos algarismos (ex.: "222.000,00 € (Duzentos e Vinte e Dois Mil Euros)"), tal como
-// pedido na Cláusula Segunda. Só a parte inteira dos euros - os cêntimos continuam visíveis
-// em algarismos (ver euros() em cpcv-template.ts/cpcv-docx.ts), por extenso só costuma cobrir
-// o valor redondo nestes contratos.
+// ---------------------------------------------------------------------------------------------
+// Números por extenso
+// ---------------------------------------------------------------------------------------------
+
 const UNIDADES = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
 const DEZ_A_DEZANOVE = [
   "dez", "onze", "doze", "treze", "catorze", "quinze", "dezasseis", "dezassete", "dezoito", "dezanove",
@@ -55,7 +75,7 @@ function grupoDeTres(n: number): string {
 
 // Inteiro (>= 0, cobre até às centenas de milhão - mais do que suficiente para qualquer preço
 // real de um imóvel) -> português por extenso em minúsculas, sem a palavra "euros".
-function numeroPorExtenso(n: number): string {
+export function numeroPorExtenso(n: number): string {
   if (n === 0) return "zero";
 
   const milhoes = Math.floor(n / 1_000_000);
@@ -80,6 +100,11 @@ function numeroPorExtenso(n: number): string {
   return usaEntreUltimos ? `${anteriores} e ${ultimo}` : `${anteriores}, ${ultimo}`;
 }
 
+// "páginas" é feminino: "duas páginas", "vinte e uma páginas" - só a unidade final muda.
+export function numeroPorExtensoFeminino(n: number): string {
+  return numeroPorExtenso(n).replace(/\bum$/, "uma").replace(/\bdois$/, "duas");
+}
+
 function capitalizarExtenso(texto: string): string {
   return texto
     .split(" ")
@@ -87,38 +112,125 @@ function capitalizarExtenso(texto: string): string {
     .join(" ");
 }
 
+// "222000" -> "Duzentos e Vinte e Dois Mil Euros" (formato do contrato de referência). Só a parte
+// inteira - os cêntimos ficam visíveis em algarismos (ver euros() nos geradores).
 export function euroPorExtenso(valor: number): string {
   const inteiro = Math.round(valor);
   const extenso = capitalizarExtenso(numeroPorExtenso(inteiro));
-  // "um milhão DE euros", "dois milhões DE euros" - "de" só entra quando "milhão(ões)" fica
-  // directamente colado a "euros" (nenhum milhar/unidade a seguir); "mil" nunca leva "de"
-  // ("mil euros", não "mil de euros"), por isso isto só se aplica a múltiplos exactos de
-  // 1.000.000.
+  // "um milhão DE euros" - "de" só entra quando "milhão(ões)" fica directamente colado a
+  // "euros"; "mil" nunca leva "de", por isso isto só se aplica a múltiplos exactos de 1.000.000.
   const ligacaoMilhao = inteiro >= 1_000_000 && inteiro % 1_000_000 === 0 ? "de " : "";
   return `${extenso} ${ligacaoMilhao}${inteiro === 1 ? "Euro" : "Euros"}`;
 }
 
-// Biblioteca de texto de cláusulas partilhada pelos dois geradores (PDF em cpcv-template.ts,
-// Word em cpcv-docx.ts), para o texto legal não ficar duplicado (e a divergir) em dois sítios.
-// Cada função recebe um `Helpers` (v/euros/dataPT) fornecido pelo gerador que a chama, porque o
-// PDF precisa de escapar HTML e o Word não.
+// ---------------------------------------------------------------------------------------------
+// Concordância singular/plural
+// ---------------------------------------------------------------------------------------------
+
+// O contrato de referência escreve "o primeiro outorgante, declara..." / "os segundos outorgantes
+// terão de entregar..." com o número resolvido, não a notação "(S)". Este objecto dá a cada
+// cláusula as formas certas consoante quantos vendedores e compradores há. O género fica
+// masculino, como no modelo (concordância de género está fora do âmbito aprovado).
+export type Concordancia = {
+  prim: string;
+  Prim: string;
+  seg: string;
+  Seg: string;
+  aoPrim: string;
+  aoSeg: string;
+  doPrim: string;
+  doSeg: string;
+  peloPrim: string;
+  peloSeg: string;
+  aquele: string;
+  vp: (singular: string, plural: string) => string;
+  vs: (singular: string, plural: string) => string;
+};
+
+export function concordancia(nVendedores: number, nCompradores: number): Concordancia {
+  const pv = nVendedores > 1;
+  const ps = nCompradores > 1;
+  const vp = (s: string, p: string) => (pv ? p : s);
+  const vs = (s: string, p: string) => (ps ? p : s);
+  return {
+    prim: vp("o primeiro outorgante", "os primeiros outorgantes"),
+    Prim: vp("O primeiro outorgante", "Os primeiros outorgantes"),
+    seg: vs("o segundo outorgante", "os segundos outorgantes"),
+    Seg: vs("O segundo outorgante", "Os segundos outorgantes"),
+    aoPrim: vp("ao primeiro outorgante", "aos primeiros outorgantes"),
+    aoSeg: vs("ao segundo outorgante", "aos segundos outorgantes"),
+    doPrim: vp("do primeiro outorgante", "dos primeiros outorgantes"),
+    doSeg: vs("do segundo outorgante", "dos segundos outorgantes"),
+    peloPrim: vp("pelo primeiro outorgante", "pelos primeiros outorgantes"),
+    peloSeg: vs("pelo segundo outorgante", "pelos segundos outorgantes"),
+    aquele: vp("àquele", "àqueles"),
+    vp,
+    vs,
+  };
+}
+
+// Termo usado para o imóvel ao longo do contrato: "a fração" quando é fracção autónoma (texto do
+// modelo), "o imóvel" para moradias/terrenos/prédios inteiros.
+type TermosImovel = {
+  fracao: string;
+  Fracao: string;
+  daFracao: string;
+  naMesma: string;
+  daMesma: string;
+  aMesma: string;
+  referida: string;
+  daReferida: string;
+  vendida: string;
+  identificada: string;
+};
+
+function termosImovel(ehFracao: boolean): TermosImovel {
+  return ehFracao
+    ? {
+        fracao: "a fração",
+        Fracao: "A fração",
+        daFracao: "da fração",
+        naMesma: "na mesma",
+        daMesma: "da mesma",
+        aMesma: "a mesma",
+        referida: "a referida fração",
+        daReferida: "da referida fração",
+        vendida: "vendida",
+        identificada: "a fração autónoma identificada",
+      }
+    : {
+        fracao: "o imóvel",
+        Fracao: "O imóvel",
+        daFracao: "do imóvel",
+        naMesma: "no mesmo",
+        daMesma: "do mesmo",
+        aMesma: "o mesmo",
+        referida: "o referido imóvel",
+        daReferida: "do referido imóvel",
+        vendida: "vendido",
+        identificada: "o imóvel identificado",
+      };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Identificação dos outorgantes
+// ---------------------------------------------------------------------------------------------
 
 export function identificacaoParte(h: Helpers, p: Parte): string {
   if (p.tipo_pessoa === "coletiva") {
-    return `${h.v(p.nome)}, pessoa colectiva com o NIF ${h.v(p.nif)}, com sede em ${h.v(p.morada)}${
+    return `${h.v(maiusculas(p.nome))}, pessoa coletiva com o NIF ${h.v(formatarNif(p.nif))}, com sede em ${h.v(p.morada)}${
       p.certidao_permanente
         ? `, matriculada com o código de certidão permanente ${h.v(p.certidao_permanente)}`
         : ""
-    }, aqui representada por ${h.v(p.representante_nome, "representante com poderes para o acto")}${
+    }, aqui representada por ${h.v(maiusculas(p.representante_nome ?? null), "representante com poderes para o ato")}${
       p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""
     }`;
   }
-  // Emitido pela República Portuguesa só é afirmado com confiança para o Cartão de Cidadão
+  // "Emitido pela República Portuguesa" só é afirmado com confiança para o Cartão de Cidadão
   // (sempre emitido pelo Estado português) - para Passaporte/Título de Residência/Outro não
-  // há dados para o garantir (pode ser estrangeiro), por isso fica omisso nesses casos em vez
-  // de inventado.
+  // há dados para o garantir (pode ser estrangeiro), por isso fica omisso nesses casos.
   const emitidoPt = p.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
-  return `${h.v(p.nome)}, NIF ${h.v(formatarNif(p.nif))}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
+  return `${h.v(maiusculas(p.nome))}, NIF ${h.v(formatarNif(p.nif))}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
     regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
   }, maior, titular do ${h.v(
     p.documento_tipo ? documentoEmMinusculas(p.documento_tipo) : null,
@@ -128,12 +240,11 @@ export function identificacaoParte(h: Helpers, p: Parte): string {
   )}`;
 }
 
-// Nas 15 minutas lidas, um casal casado do mesmo papel (dois vendedores, ou dois compradores,
-// casados um com o outro) não aparece como dois parágrafos separados, mas sim numa única frase
-// ("A, NIF..., e mulher/marido, B, NIF..., casados sob o regime de..."), com o regime de bens e
-// a morada mencionados uma única vez. Não há na BD um campo explícito que ligue duas partes como
-// cônjuges entre si - o sinal usado é os dois terem o mesmo papel e o mesmo regime de bens válido
-// (ambos "casados"), o que na prática dos processos reais só acontece quando são o mesmo casal.
+// Um casal casado do mesmo papel (dois vendedores, ou dois compradores, casados um com o outro)
+// aparece numa única frase ("A, NIF..., e mulher/marido, B, NIF..., casados sob o regime de..."),
+// com o regime de bens e a morada mencionados uma única vez. Não há na BD um campo explícito que
+// ligue duas partes como cônjuges - o sinal usado é os dois terem o mesmo papel e o mesmo regime
+// de bens válido (ambos "casados"), o que na prática só acontece quando são o mesmo casal.
 function saoCasalEntreSi(a: Parte, b: Parte): boolean {
   return (
     a.tipo_pessoa !== "coletiva" &&
@@ -152,11 +263,11 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
   const ligacao = generoFeminino(b.estado_civil) ? "e mulher" : "e marido";
   const emitidoA = a.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
   const emitidoB = b.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
-  return `${h.v(a.nome)}, NIF ${h.v(formatarNif(a.nif))}, ${ligacao}, ${h.v(
-    b.nome
+  return `${h.v(maiusculas(a.nome))}, NIF ${h.v(formatarNif(a.nif))}, ${ligacao}, ${h.v(
+    maiusculas(b.nome)
   )}, NIF ${h.v(formatarNif(b.nif))}, casados sob o regime de ${h.v(
     a.regime_bens
-  )}, ambos maiores, titulares, respectivamente, do ${h.v(
+  )}, ambos maiores, titulares, respetivamente, do ${h.v(
     a.documento_tipo ? documentoEmMinusculas(a.documento_tipo) : null,
     "documento de identificação"
   )} n.º ${h.v(a.documento_numero)}, válido até ${h.dataPT(a.documento_validade)}${emitidoA}, e do ${h.v(
@@ -167,10 +278,8 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
   )}`;
 }
 
-// Devolve uma identificação por "unidade": um casal casado entre si conta como uma única
-// unidade (uma frase); qualquer outro caso (pessoa só, pessoa colectiva, ou mais do que duas
-// partes sem se conseguir determinar pares de cônjuges) devolve uma unidade por parte - fica ao
-// cuidado do gerador (PDF/Word) decidir como prefixar/separar as unidades.
+// Uma identificação por "unidade": um casal casado entre si conta como uma única unidade (uma
+// frase); qualquer outro caso devolve uma unidade por parte.
 export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
   if (partes.length === 2 && saoCasalEntreSi(partes[0], partes[1])) {
     return [identificacaoCasal(h, partes[0], partes[1])];
@@ -178,19 +287,16 @@ export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
   return partes.map((p) => identificacaoParte(h, p));
 }
 
-// A) / B) / C)... - só usado quando há mais do que uma "unidade" de identificação do mesmo
-// lado (um casal casado entre si conta como uma única unidade, ver identificacoesGrupo).
 function letraOrdinal(i: number): string {
   return String.fromCharCode(65 + i);
 }
 
+// A) / B) / C)... - só quando há mais do que uma unidade de identificação do mesmo lado.
 function comLetras(identificacoes: string[]): string[] {
   if (identificacoes.length <= 1) return identificacoes;
   return identificacoes.map((texto, i) => `${letraOrdinal(i)}) ${texto}`);
 }
 
-// Nunca usa a notação "(S)"/"(A/ES)" do resto do documento - escreve a forma singular OU
-// plural por extenso, consoante o número de unidades de identificação desse lado.
 function cabecalhoOutorgantes(
   ordinalSingular: "PRIMEIRO" | "SEGUNDO",
   designacaoSingular: "VENDEDOR" | "COMPRADOR",
@@ -209,10 +315,6 @@ export type BlocoOutorgantes = {
   identificacoesCompradores: string[];
 };
 
-// Substitui o padrão antigo (frase "doravante designado(a) PRIMEIRO OUTORGANTE ou
-// PROMITENTE(S) VENDEDOR(A/ES)" repetida a seguir a cada pessoa) por um cabeçalho de secção
-// único antes da lista de nomes - a designação passa a ficar estabelecida uma vez só, não por
-// pessoa.
 export function montarBlocoOutorgantes(h: Helpers, vendedores: Parte[], compradores: Parte[]): BlocoOutorgantes {
   const identificacoesVendedores = identificacoesGrupo(h, vendedores);
   const identificacoesCompradores = identificacoesGrupo(h, compradores);
@@ -224,137 +326,32 @@ export function montarBlocoOutorgantes(h: Helpers, vendedores: Parte[], comprado
   };
 }
 
-// A IA extrai "forma_pagamento_sinal" do texto livre do agente tal como ele o escreveu (ex.:
-// resposta a "como será feito o pagamento do sinal?" → "Transferência bancária"), sem garantir
-// que já vem com preposição. Encaixado directamente na frase "a quantia de X€, paga {forma}"
-// dava um erro de português no documento legal (testado: "paga Transferência bancária" em vez
-// de "paga por transferência bancária"). Normaliza aqui, não confiando em o agente/IA escrever
-// sempre com a preposição.
-function comPreposicaoDePagamento(forma: string): string {
-  if (/^(por|através de|atraves de|mediante|em|com|via)\s/i.test(forma)) return forma;
-  return `por ${forma.charAt(0).toLowerCase()}${forma.slice(1)}`;
+export const INTRO_BOA_FE =
+  "É celebrado de boa-fé o presente Contrato Promessa de Compra e Venda, que ambas as partes aceitam e reciprocamente se obrigam a cumprir, o qual se rege pelo conteúdo das cláusulas seguintes e no que for omisso pela legislação aplicável:";
+
+// ---------------------------------------------------------------------------------------------
+// Cláusulas
+// ---------------------------------------------------------------------------------------------
+
+// Pergunta A da Cláusula de Avaliação Bancária ("o comprador vai recorrer a financiamento
+// bancário?") é respondida pelo campo já existente "método de pagamento" - não há coluna nova.
+export function recorreAFinanciamento(processo: Processo): boolean {
+  return processo.metodo_pagamento === "financiamento" || processo.metodo_pagamento === "misto";
 }
 
-// "paga [forma], [prazo]" (ex.: "paga por transferência bancária, no acto da assinatura").
-// forma_pagamento_sinal (como) e prazo_pagamento_sinal (quando) só existem se a IA os extraiu
-// de texto livre - não há formulário estruturado para eles. Quando só "prazo" está preenchido,
-// concatenar directamente com o fallback antigo de "forma" ("na data da assinatura do presente
-// contrato") produzia frases com o tempo mencionado duas vezes (ex.: "paga na data da assinatura
-// do presente contrato, na assinatura do CPCV"); o fallback só entra em jogo quando não há nem
-// forma nem prazo.
-export function textoFormaPagamentoSinal(h: Helpers, processo: Processo): string {
-  const forma = processo.forma_pagamento_sinal as string | null;
-  const prazo = processo.prazo_pagamento_sinal as string | null;
-  if (forma && prazo) return `${h.v(comPreposicaoDePagamento(forma))}, ${h.v(prazo)}`;
-  if (forma) return h.v(comPreposicaoDePagamento(forma));
-  if (prazo) return h.v(prazo);
-  return "na data da assinatura do presente contrato";
+function numerar(pontos: string[]): string[] {
+  return pontos.map((texto, i) => `${i + 1} – ${texto}`);
 }
 
-// Pode haver vários reforços de sinal (cada um com o seu valor e a data limite de
-// pagamento) - substituiu o antigo campo de texto livre único "reforco_sinal", que não
-// dava para repetir nem associar uma data a cada reforço.
-export function textoReforcosSinal(h: Helpers, processo: Processo): string {
-  const reforcos =
-    (processo.reforcos_sinal as { valor: number | null; data: string | null }[] | null) ?? [];
-  const validos = reforcos.filter((r) => r.valor);
-  if (validos.length === 0) return "";
-
-  const partes = validos.map((r, i) => {
-    const rotulo = validos.length > 1 ? `${i + 1}.º reforço de sinal` : "reforço de sinal";
-    const prazo = r.data ? `, a pagar até ${h.dataPT(r.data)}` : "";
-    return `${rotulo} de ${h.euros(r.valor as number)}${prazo}`;
-  });
-
-  return `, com ${partes.join(", e ")}`;
+// "a favor do Banco Santander Totta, S.A" / "a favor da Caixa Geral de Depósitos" - o artigo
+// antes do nome do credor segue o género habitual do nome (quase todos os bancos são masculinos;
+// "Caixa", "Abanca", "UCI" e "União" são as excepções correntes).
+function aFavorDe(entidade: string): string {
+  return /^(caixa|abanca|uci\b|uni[ãa]o)/i.test(entidade.trim()) ? `da ${entidade}` : `do ${entidade}`;
 }
 
-// Texto do prazo de uma condição suspensiva - sempre em dias corridos, nunca úteis (eram
-// ambíguos e configuráveis antes - ver dias_condicionamento_tipo, agora sem uso). Cada
-// condição (avaliação, financiamento, outra situação) tem o seu próprio prazo opcional,
-// em vez de um único prazo genérico partilhado por todas (dias_condicionamento).
-function textoPrazoDiasCorridos(dias: number | null | undefined): string {
-  return dias ? ` a comunicar no prazo de ${dias} dias corridos a contar da data de assinatura do presente contrato` : "";
-}
-
-export function clausulaCondicoesSuspensivas(h: Helpers, processo: Processo): string {
-  if (processo.condicoes_suspensivas) return h.v(processo.condicoes_suspensivas);
-
-  const condicoes: string[] = [];
-  if (processo.condicionado_avaliacao) {
-    condicoes.push(
-      `avaliação do Imóvel em valor igual ou superior a ${
-        processo.valor_avaliacao_minimo ? h.euros(processo.valor_avaliacao_minimo as number) : "____________"
-      }${textoPrazoDiasCorridos(processo.prazo_avaliacao_dias as number | null)}`
-    );
-  }
-  if (processo.condicionado_financiamento) {
-    condicoes.push(
-      `obtenção de financiamento bancário pelo(s) SEGUNDO(S) OUTORGANTE(S) em montante igual ou superior a ${
-        processo.valor_financiamento_minimo ? h.euros(processo.valor_financiamento_minimo as number) : "____________"
-      }${textoPrazoDiasCorridos(processo.prazo_financiamento_dias as number | null)}`
-    );
-  }
-  if (processo.condicionado_outra_situacao) {
-    condicoes.push(
-      `${h.v(processo.condicionado_outra_situacao as string)}${textoPrazoDiasCorridos(
-        processo.prazo_outra_situacao_dias as number | null
-      )}`
-    );
-  }
-
-  if (condicoes.length === 0) {
-    return "Não foram estipuladas condições suspensivas para o presente contrato.";
-  }
-
-  const listaCondicoes =
-    condicoes.length === 1 ? condicoes[0] : condicoes.map((c, i) => `${i + 1}) ${c}`).join("; ");
-
-  return `O presente contrato fica sujeito às seguintes condições suspensivas: ${listaCondicoes}.`;
-}
-
-// Cláusula rica de financiamento/avaliação bancária (ver `minutas/_extraido/`, minutas com
-// "Cava"+"F" no nome). Só faz sentido quando ambos os condicionamentos estão activos - é o
-// mecanismo completo (prazo, contacto, e o que acontece à avaliação/ao sinal), não só a menção
-// genérica que a Cláusula de Condições Suspensivas dá. `avaliacao_prazo_data` e
-// `avaliacao_contacto_email` ainda não têm coluna na BD nem estão pedidos pela IA (ver
-// migration_fase3.sql) - até lá aparecem como "____________" no documento, tal como qualquer
-// outro campo em falta.
-export function financiamentoAvaliacaoAtivo(processo: Processo): boolean {
-  return !!(processo.condicionado_financiamento && processo.condicionado_avaliacao);
-}
-
-export function clausulaFinanciamentoAvaliacao(h: Helpers, processo: Processo): string[] {
-  return [
-    "O(s) SEGUNDO(S) OUTORGANTE(S), para aquisição do Imóvel, pretende(m) recorrer a financiamento bancário.",
-    `O presente contrato fica expressamente condicionado a avaliação, igual ou superior, ao montante de ${h.euros(
-      (processo.valor_avaliacao_minimo as number | null) ?? null
-    )}, montante necessário para que seja aprovado o referido financiamento bancário.`,
-    `O(s) SEGUNDO(S) OUTORGANTE(S) dispõe(m) até ao dia ${h.dataPT(
-      (processo.avaliacao_prazo_data as string | null) ?? null
-    )} para comunicar(em), via email, para ${h.v(
-      processo.avaliacao_contacto_email
-    )}, se a respectiva avaliação foi suficiente para a obtenção do financiamento.`,
-    "Se a avaliação do Imóvel não for suficiente para a aprovação do referido financiamento, este contrato considera-se automaticamente resolvido, sendo o montante entregue a título de sinal devolvido, em singelo, ao(s) SEGUNDO(S) OUTORGANTE(S), no prazo de 5 (cinco) dias.",
-    "Se, até ao prazo acima mencionado, o(s) SEGUNDO(S) OUTORGANTE(S) não enviar(em) qualquer email conforme referido nos números anteriores, considera-se que a avaliação foi positiva e o presente contrato mantém-se nos termos das restantes cláusulas.",
-  ];
-}
-
-// Declaração de Condomínio - só aparece nas minutas quando o imóvel é uma fracção em
-// condomínio constituído. Gatilhada por `imovel_condominio` (novo campo, ver
-// migration_fase3.sql) - ainda sem forma de o utilizador o definir (nem formulário nem IA), por
-// isso esta cláusula está pronta mas dormente até essa parte ser ligada.
-export function clausulaDeclaracaoCondominio(): string[] {
-  return [
-    "O(s) PRIMEIRO(S) OUTORGANTE(S) compromete(m)-se a ter as prestações de condomínio, sejam elas provenientes de quotas ordinárias, extraordinárias ou para obras realizadas ou a realizar nas partes comuns do edifício, integralmente pagas até à data em que for outorgado o contrato definitivo de compra e venda, obrigando-se a entregar ao(s) SEGUNDO(S) OUTORGANTE(S), naquela data, documento comprovativo da não existência de dívidas, emitido pela administração do condomínio, com reconhecimento de assinatura pelo administrador, nos termos e em cumprimento do previsto pelo artigo 1424.º-A do Código Civil, com a redacção dada pela Lei n.º 8/2022, de 10 de Janeiro, em vigor desde 1 de Abril de 2022.",
-    "No âmbito do diploma mencionado no número anterior, o(s) PRIMEIRO(S) OUTORGANTE(S) é/são responsável(eis) pela comunicação da venda, por carta registada com aviso de recepção ou email, ao administrador do condomínio, no prazo máximo de 15 (quinze) dias a contar da data da escritura, com informação do nome completo e do número de identificação fiscal do novo proprietário.",
-  ];
-}
-
-// Uma frase por hipoteca (ou uma frase única se só houver uma), seguida de uma única
-// obrigação de cancelamento a cobrir todas - não repete essa obrigação por hipoteca. Nunca
-// chamada quando a lista vem vazia (ver pontosClausulaPrimeira).
-function textoHipotecas(h: Helpers, hipotecas: Hipoteca[]): string {
+// Uma frase por hipoteca, seguida de uma única obrigação de cancelamento a cobrir todas.
+function textoHipotecas(h: Helpers, C: Concordancia, T: TermosImovel, hipotecas: Hipoteca[]): string {
   const frases = hipotecas.map((hip) => {
     const natureza = hip.natureza || "hipoteca voluntária";
     const detalhe = hip.numero_apresentacao
@@ -362,47 +359,23 @@ function textoHipotecas(h: Helpers, hipotecas: Hipoteca[]): string {
       : hip.data_registo
         ? `, registada em ${h.dataPT(hip.data_registo)}`
         : "";
-    return `uma ${h.v(natureza)} registada a favor de ${h.v(hip.entidade_credora)}${detalhe}`;
+    return `uma ${h.v(natureza)} registada a favor ${aFavorDe(h.v(hip.entidade_credora))}${detalhe}`;
   });
-  const sujeito = frases.length === 1 ? "incide" : "incidem";
-  return `Sobre a referida fracção ${sujeito} ${frases.join("; ")}, cujo cancelamento terá de ser assegurado pelo(s) PRIMEIRO(S) OUTORGANTE(S) até à data da escritura definitiva de compra e venda.`;
+  const verbo = frases.length === 1 ? "incide" : "incidem";
+  return `Sobre ${T.referida} ${verbo} ${frases.join("; ")}, cujo cancelamento terá de ser assegurado ${C.peloPrim} até à data da escritura definitiva de compra e venda.`;
 }
 
-// Cláusula Primeira (Objecto). Dois formatos distintos, nunca inferidos pela IA:
-// - Imóvel NÃO é fracção autónoma (imovel_e_fracao_autonoma null/false - inclui todos os
-//   processos anteriores a esta funcionalidade): texto genérico actual, inalterado, sem
-//   numeração por pontos.
-// - Imóvel É fracção autónoma (resposta explícita em app/cpcv/[id]/IdentificacaoImovel.tsx):
-//   5 pontos numerados (imóvel, hipotecas se existirem, propriedade/posse, estado de
-//   conservação, visita antes da escritura), com o ponto das hipotecas omitido (e os
-//   seguintes renumerados) quando não há nenhuma hipoteca registada.
-export function pontosClausulaPrimeira(h: Helpers, processo: Processo, hipotecas: Hipoteca[]): string[] {
-  if (!processo.imovel_e_fracao_autonoma) {
-    return [
-      `O(s) PRIMEIRO(S) OUTORGANTE(S) é/são legítimo(s) proprietário(s) e possuidor(es) do prédio urbano sito em ${h.v(
-        processo.imovel_morada
-      )}${
-        processo.imovel_codigo_postal || processo.imovel_localidade
-          ? `, ${[processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" ")}`
-          : ""
-      }, freguesia de ${h.v(processo.imovel_freguesia)}, concelho de ${h.v(
-        processo.imovel_concelho
-      )}, distrito de ${h.v(processo.imovel_distrito)}, com a tipologia ${h.v(
-        processo.imovel_tipologia
-      )}, inscrito na matriz predial urbana sob o artigo n.º ${h.v(processo.imovel_artigo_matricial)}${
-        descricaoPredialValida(processo.imovel_descricao_predial as string | null)
-          ? `, descrito na Conservatória do Registo Predial sob o n.º ${h.v(processo.imovel_descricao_predial)}`
-          : ""
-      }, com a área de ${
-        processo.imovel_area ? `${processo.imovel_area} m²` : "____________"
-      }, doravante designado por "Imóvel".`,
-      processo.tem_fracoes_multiplas
-        ? `O Imóvel é composto por duas fracções, sendo atribuído à fracção principal o valor de ${h.euros(
-            processo.valor_fracao_principal
-          )} e à segunda fracção (garagem/arrumo) o valor de ${h.euros(processo.valor_fracao_secundaria)}.`
-        : "",
-    ].filter(Boolean);
-  }
+// Cláusula Primeira (Objeto) - 5 pontos do modelo. O ponto 1 varia consoante o imóvel é fracção
+// autónoma (texto do modelo) ou não (mesma estrutura, para prédio urbano); o ponto 2 (hipoteca)
+// só entra quando há hipotecas registadas; os pontos 3-5 são fixos.
+export function pontosClausulaPrimeira(
+  h: Helpers,
+  C: Concordancia,
+  processo: Processo,
+  hipotecas: Hipoteca[]
+): string[] {
+  const ehFracao = !!processo.imovel_e_fracao_autonoma;
+  const T = termosImovel(ehFracao);
 
   const moradaCompleta = [
     h.v(processo.imovel_morada),
@@ -410,89 +383,118 @@ export function pontosClausulaPrimeira(h: Helpers, processo: Processo, hipotecas
   ]
     .filter(Boolean)
     .join(", ");
-  const orientacao = processo.imovel_orientacao ? `, virado a ${h.v(processo.imovel_orientacao)}` : "";
+  const registoELicencas = `descrit${ehFracao ? "a" : "o"} na Conservatória do Registo Predial de ${h.v(
+    processo.imovel_conservatoria
+  )} sob o n.º ${h.v(processo.imovel_descricao_predial)}, inscrito na matriz sob o artigo ${h.v(
+    processo.imovel_artigo_matricial
+  )}, com a licença de utilização n.º ${h.v(processo.imovel_licenca_utilizacao)}, emitida em ${h.dataLongaPT(
+    processo.imovel_licenca_data_emissao
+  )}, pela ${h.v(processo.imovel_licenca_entidade_emissora)}, com o certificado de desempenho energético n.º ${h.v(
+    processo.imovel_certificado_energetico
+  )}, válido até ${h.dataPT(processo.imovel_certificado_validade)}, com a classe energética ${h.v(
+    processo.imovel_certificado_classe
+  )}.`;
+  const localizacao = `freguesia de ${h.v(processo.imovel_freguesia)}, concelho de ${h.v(processo.imovel_concelho)}`;
+  const declara = `${C.Prim}, ${C.vp("declara", "declaram")} para os devidos e legais efeitos, que ${C.vp(
+    "é o único dono e legítimo proprietário",
+    "são os únicos donos e legítimos proprietários"
+  )}`;
 
-  const pontos: string[] = [
-    `O(s) PRIMEIRO(S) OUTORGANTE(S) declara(m), para os devidos e legais efeitos, que é/são o(s) único(s) dono(s) e legítimo(s) proprietário(s) da fracção autónoma designada pela letra "${h.v(
-      processo.imovel_fracao_letra
-    )}", ${h.v(processo.imovel_andar_fracao)}${orientacao}, destinado a ${h.v(
+  let ponto1: string;
+  if (ehFracao) {
+    const letra = (processo.imovel_fracao_letra ?? "").trim();
+    const designacao = letra.length > 1 ? "pelas letras" : "pela letra";
+    const orientacao = processo.imovel_orientacao ? `, virado a ${h.v(processo.imovel_orientacao)}` : "";
+    ponto1 = `${declara} da fração autónoma designada ${designacao} “${h.v(letra || null)}”, ${h.v(
+      processo.imovel_andar_fracao
+    )}${orientacao}, destinado a ${h.v(
       processo.imovel_finalidade
-    )}, integrada num prédio urbano em regime de propriedade horizontal, sita em ${moradaCompleta}, freguesia de ${h.v(
-      processo.imovel_freguesia
-    )}, concelho de ${h.v(processo.imovel_concelho)}, descrita na Conservatória do Registo Predial de ${h.v(
-      processo.imovel_conservatoria
-    )} sob o n.º ${h.v(processo.imovel_descricao_predial)}, inscrito na matriz sob o artigo ${h.v(
-      processo.imovel_artigo_matricial
-    )}, com a licença de utilização n.º ${h.v(processo.imovel_licenca_utilizacao)}, emitida em ${h.dataPT(
-      processo.imovel_licenca_data_emissao
-    )}, pela ${h.v(processo.imovel_licenca_entidade_emissora)}, com o certificado de desempenho energético n.º ${h.v(
-      processo.imovel_certificado_energetico
-    )}, válido até ${h.dataPT(processo.imovel_certificado_validade)}, com a classe energética ${h.v(
-      processo.imovel_certificado_classe
-    )}.`,
-  ];
+    )}, integrada num prédio urbano em regime de propriedade horizontal, sita em ${moradaCompleta}, ${localizacao}, ${registoELicencas}`;
+  } else {
+    ponto1 = `${declara} do prédio urbano sito em ${moradaCompleta}, ${localizacao}, ${registoELicencas}`;
+  }
 
-  if (hipotecas.length > 0) pontos.push(textoHipotecas(h, hipotecas));
+  const pontos: string[] = [ponto1];
+  if (hipotecas.length > 0) pontos.push(textoHipotecas(h, C, T, hipotecas));
 
   pontos.push(
-    "Por constituir este contrato uma promessa de compra e venda com entrega de sinal, o(s) SEGUNDO(S) OUTORGANTE(S) reconhece(m) que, com a assinatura do mesmo e, até à outorga da escritura de compra e venda, não lhe(s) é transmitida a propriedade da fracção nem lhe(s) é conferido o direito de tomar posse da mesma.",
-    "Que a fracção é vendida no estado de conservação em que se encontra, conforme visita ao imóvel, estado esse que o(s) SEGUNDO(S) OUTORGANTE(S) conhece(m) e aceita(m), não podendo pedir quaisquer obras ou reparações na mesma.",
-    "O(s) PRIMEIRO(S) OUTORGANTE(S) autoriza(m) o(s) SEGUNDO(S) OUTORGANTE(S) a visitar(em) a fracção, no dia anterior ou no próprio dia da outorga da escritura de compra e venda, a fim de verificar(em) que a mesma se mantém no exacto estado em que se encontra, à data de hoje, desde que para isso seja(m) contactado(s) com pelo menos três dias de antecedência pelo angariador imobiliário, sendo que, se existirem danos, terão de ser imediatamente reparados pelo(s) PRIMEIRO(S) OUTORGANTE(S), colocando a fracção no mesmo estado aquando da primeira visita."
+    `Por constituir este contrato uma promessa de compra e venda com entrega de sinal, ${C.seg} ${C.vs(
+      "reconhece",
+      "reconhecem"
+    )} que, com a assinatura do mesmo e, até à outorga da escritura de compra e venda, não ${C.vs(
+      "lhe",
+      "lhes"
+    )} é transmitida a propriedade ${T.daFracao} nem ${C.vs("lhe", "lhes")} é conferido o direito de tomar posse ${T.daMesma}.`,
+    `Que ${T.fracao} é ${T.vendida} no estado de conservação em que se encontra, conforme visita ao imóvel, no estado esse que ${C.seg} ${C.vs(
+      "conhece e aceita",
+      "conhecem e aceitam"
+    )} não podendo pedir quaisquer obras ou reparações ${T.naMesma}.`,
+    `${C.Prim} ${C.vp("autoriza", "autorizam")} ${C.seg} a ${C.vs("visitar", "visitarem")} ${
+      T.fracao
+    }, no dia anterior ou no próprio dia da outorga da escritura de compra e venda, a fim de ${C.vs(
+      "verificar",
+      "verificarem"
+    )} que ${T.aMesma} se mantém no exato estado em que se encontra, à data de hoje, desde que para isso ${C.vp(
+      "seja contactado",
+      "sejam contactados"
+    )} com pelo menos três dias de antecedência, pelo angariador imobiliário, sendo que se existirem danos terão de ser imediatamente reparados ${
+      C.peloPrim
+    } colocando ${T.fracao} no mesmo estado aquando da primeira visita.`
   );
 
-  return pontos.map((texto, i) => `${i + 1} – ${texto}`);
+  return numerar(pontos);
 }
 
-// Cláusula Segunda (Preço e Condições de Pagamento). Dois formatos, nunca inferidos pela IA:
-// - destino_sinal null (inclui todos os processos anteriores a esta funcionalidade, e qualquer
-//   processo novo até o agente responder): texto genérico actual, devolvido por
-//   clausulasPrometeEPreco() em cpcv-template.ts/cpcv-docx.ts (cláusula "Promessa" separada +
-//   esta função nem chega a ser chamada).
-// - destino_sinal "vendedor"/"agencia" (resposta explícita em
-//   app/cpcv/[id]/CondicoesNegocio.tsx): 4 ou 5 pontos numerados, já incluindo a promessa de
-//   vender/comprar que antes estava na cláusula "Promessa" separada (por isso essa cláusula
-//   deixa de aparecer nesse caso - ver clausulasPrometeEPreco).
-export function pontosClausulaSegunda(h: Helpers, processo: Processo): string[] {
-  const ehFracao = !!processo.imovel_e_fracao_autonoma;
-  const termoImovel = ehFracao ? "a fracção autónoma" : "o Imóvel";
-  const identificadoTermo = ehFracao ? "identificada" : "identificado";
-
-  const pontos: string[] = [
-    `Pelo presente contrato o(s) PRIMEIRO(S) OUTORGANTE(S) promete(m) vender ao(s) SEGUNDO(S) OUTORGANTE(S), que por sua vez prometem comprar àquele(s), ${termoImovel} ${identificadoTermo} na cláusula anterior, livre de ónus ou encargos, hipotecas e responsabilidades, sejam de que natureza forem, e livre de qualquer tipo de ocupação, arrendamento, servidão, comodato ou qualquer outro que limite a posse, e devoluto de pessoas e bens, pelo preço total de ${h.euros(
-      processo.preco_total
-    )}.`,
-  ];
-
+// Cláusula Segunda (Preço e Condições de Pagamento) - 5 pontos do modelo; o ponto 3 (fiel
+// depositária) só existe quando o sinal é transferido para a agência, e nunca menciona o valor
+// ou a percentagem da comissão (comissao_valor/comissao_modalidade são só para validação interna,
+// ver app/api/cpcv/gerar/route.ts).
+export function pontosClausulaSegunda(h: Helpers, C: Concordancia, processo: Processo): string[] {
+  const T = termosImovel(!!processo.imovel_e_fracao_autonoma);
   const ehAgencia = processo.destino_sinal === "agencia";
   const forma = ((processo.forma_pagamento_sinal as string | null) || "transferência bancária").trim();
   const formaMinuscula = `${forma.charAt(0).toLowerCase()}${forma.slice(1)}`;
-  const titular = ehAgencia ? AGENCIA_NOME : h.v(processo.conta_sinal_titular);
+  const aOrdemDe = ehAgencia ? `da ${AGENCIA_NOME}` : `de ${h.v(processo.conta_sinal_titular)}`;
   const banco = ehAgencia ? AGENCIA_BANCO : h.v(processo.conta_sinal_banco);
   const iban = ehAgencia ? AGENCIA_IBAN : h.v(processo.iban_sinal);
-  const quemRecebe = ehAgencia ? AGENCIA_NOME : "o(s) PRIMEIRO(S) OUTORGANTE(S)";
 
-  pontos.push(
-    `Na presente data, a título de sinal e princípio de pagamento, o(s) SEGUNDO(S) OUTORGANTE(S) terá(ão) de entregar a quantia de ${h.euros(
+  const pontos: string[] = [
+    `Pelo presente contrato ${C.prim}, ${C.vp("promete", "prometem")} vender ${C.aoSeg}, que por sua vez ${C.vs(
+      "promete",
+      "prometem"
+    )} comprar ${C.aquele}, ${
+      T.identificada
+    } na cláusula anterior, livre de ónus ou encargos, hipotecas e responsabilidades, sejam de que natureza forem, e livre de qualquer tipo de ocupação, arrendamento, servidão, comodato ou qualquer outro que limite a posse, e devoluto de pessoas e bens, pelo preço total de ${h.euros(
+      processo.preco_total
+    )}.`,
+    `Na presente data, a título de sinal e princípio de pagamento, ${C.seg} ${C.vs(
+      "terá",
+      "terão"
+    )} de entregar a quantia de ${h.euros(
       processo.valor_sinal
-    )}, através de ${h.v(formaMinuscula)}, para o IBAN ${iban}, do ${banco}, à ordem de ${titular}, de que ${quemRecebe} dará quitação após boa cobrança.`
-  );
+    )}, através de ${h.v(formaMinuscula)} para a conta com o IBAN ${iban}, do ${banco}, à ordem ${aOrdemDe}, de que ${
+      C.prim
+    } ${C.vp("dará", "darão")} quitação após boa cobrança.`,
+  ];
 
   if (ehAgencia) {
-    const temFinanciamento = !!processo.condicionado_financiamento;
+    const temFinanciamento = recorreAFinanciamento(processo);
     const temAvaliacao = !!processo.condicionado_avaliacao;
-    const condicaoTexto =
+    const condicao =
       temFinanciamento && temAvaliacao
-        ? "do financiamento e da avaliação bancária"
+        ? "do financiamento/avaliação"
         : temFinanciamento
-          ? "do financiamento bancário"
+          ? "do financiamento"
           : temAvaliacao
-            ? "da avaliação bancária"
+            ? "da avaliação"
             : null;
-
+    const ate = condicao
+      ? `até resposta ${condicao} que ${C.seg} ${C.vs("está", "estão")} a recorrer junto de uma instituição bancária`
+      : "até à assinatura do presente contrato-promessa por todos os outorgantes";
     pontos.push(
-      condicaoTexto
-        ? `O(s) PRIMEIRO(S) OUTORGANTE(S) nomeia(m) a ${AGENCIA_NOME} para ficar como fiel depositária do valor acima mencionado, até resposta ${condicaoTexto} que o(s) SEGUNDO(S) OUTORGANTE(S) está(ão) a solicitar junto de uma instituição bancária, após o que transferirá o sinal ao(s) PRIMEIRO(S) OUTORGANTE(S), podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
-        : `O(s) PRIMEIRO(S) OUTORGANTE(S) nomeia(m) a ${AGENCIA_NOME} para ficar como fiel depositária do valor acima mencionado, até à assinatura do presente contrato-promessa por todos os outorgantes, após o que transferirá o sinal ao(s) PRIMEIRO(S) OUTORGANTE(S), podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
+      `${C.Prim} ${C.vp("nomeia", "nomeiam")} a ${AGENCIA_NOME} para ficar como fiel depositária, do valor acima mencionado, ${ate}, após o que transferirá o sinal ${
+        C.aoPrim
+      }, podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
     );
   }
 
@@ -501,100 +503,213 @@ export function pontosClausulaSegunda(h: Helpers, processo: Processo): string[] 
     "A restante parte do preço, será paga no ato da celebração da escritura de compra e venda, objeto do presente contrato, em cheque bancário."
   );
 
-  return pontos.map((texto, i) => `${i + 1} – ${texto}`);
+  return numerar(pontos);
 }
 
-// Cláusulas "boilerplate" abaixo: texto extraído verbatim das 15 minutas reais da agência em
-// `servicos/cpcv-engine/minutas/` (ver plano em análise, ficheiro
-// `minutas/_extraido/analise-boilerplate.md`, não commitado - pasta com dados de cliente). Nas
-// 15 minutas lidas este texto não varia (ou varia apenas no nome/AMI da agência), por isso está
-// aqui fixo em vez de gerado a partir de campos da BD. Cada função devolve um array de
-// parágrafos (não uma string só) para cada gerador poder aplicar a sua própria formatação de
-// parágrafo (`<p>` no HTML, `corpo()` no Word).
+// Cláusula Terceira (Escritura Pública ou DPA) - 4 pontos do modelo; só a data é dinâmica.
+export function pontosClausulaTerceira(h: Helpers, C: Concordancia, processo: Processo): string[] {
+  return numerar([
+    `A escritura definitiva de compra e venda, de que o presente contrato é promessa será outorgada até ao dia ${h.dataLongaPT(
+      processo.prazo_escritura
+    )}, em cartório notarial, escritório de advogados, solicitadores ou casa pronta, a designar ${C.peloSeg}, devendo ${C.vs(
+      "este",
+      "estes"
+    )} avisar ${C.prim}, com a data, hora e local da mesma, com antecedência mínima de 15 (quinze) dias.`,
+    `Se a escritura não for realizada no prazo referido na cláusula anterior por facto imputável ${C.aoPrim}, ${C.seg} ${C.vs(
+      "deverá",
+      "deverão"
+    )} notificá-${C.vp("lo", "los")} de novo, em data posterior, por carta registada com aviso de receção com pelo menos 15 (quinze) dias de antecedência.`,
+    `Decorrido que esteja o prazo referido no n.º 1 desta cláusula sem se ter realizado a Escritura Pública e Definitiva por facto imputável ${C.aoSeg}, ${C.prim} ${C.vp(
+      "tem",
+      "têm"
+    )} a faculdade de reverter para si a obrigação de notificá-${C.vs(
+      "lo",
+      "los"
+    )}, em data posterior, por carta registada, com aviso de receção com pelo menos 15 (quinze) dias de antecedência, a comparecer no dia, hora e local determinado por ${C.vp(
+      "este",
+      "estes"
+    )}, para a celebração do referido ato.`,
+    "Se a escritura definitiva de compra e venda, não se realizar após as notificações acima mencionadas, acordam as partes que se aplica a cláusula do incumprimento do presente contrato promessa de compra e venda.",
+  ]);
+}
 
-const AGENCIA_NOME = process.env.CPCV_AGENCIA_NOME || "____________";
-const AGENCIA_AMI = process.env.CPCV_AGENCIA_AMI || "____________";
-// Conta bancária da agência - só usada na Cláusula Segunda quando destino_sinal = "agencia"
-// (ver pontosClausulaSegunda). Fixa por deployment, tal como nome/AMI acima - nunca escrita à
-// mão por processo (ver .env.example).
-const AGENCIA_IBAN = process.env.CPCV_AGENCIA_IBAN || "____________";
-const AGENCIA_BANCO = process.env.CPCV_AGENCIA_BANCO || "____________";
+// Cláusula Quarta (Avaliação Bancária) - condicional:
+// - sem financiamento e sem condição de avaliação: omitida (devolve []);
+// - com financiamento mas sem condição de avaliação: só o ponto 1;
+// - com condição de avaliação: os 5 pontos.
+export function pontosClausulaQuarta(h: Helpers, C: Concordancia, processo: Processo): string[] {
+  const T = termosImovel(!!processo.imovel_e_fracao_autonoma);
+  const financiamento = recorreAFinanciamento(processo);
+  const avaliacao = !!processo.condicionado_avaliacao;
+  if (!financiamento && !avaliacao) return [];
 
-// Texto abaixo copiado verbatim de minutas/_extraido/*.txt (via analise-boilerplate.md) - a
-// versão anterior destas cláusulas tinha sido parafraseada por engano (ex.: citava o
-// Regulamento 2016/679/GDPR em vez do Regulamento 276/2019 que as minutas reais usam, uma
-// referência legal diferente, não só uma diferença de redacção). `npm run verificar:clausulas`
-// compara estas funções contra o texto canónico - correr depois de qualquer alteração aqui.
-export function clausulaProtecaoDados(): string[] {
+  const ponto1 = `${C.Seg}, para aquisição ${T.daReferida}, ${C.vs("pretende", "pretendem")} recorrer a financiamento bancário.`;
+  if (!avaliacao) return numerar([ponto1]);
+
+  return numerar([
+    ponto1,
+    `O presente contrato, fica expressamente condicionado à avaliação no valor mínimo de ${h.euros(
+      processo.valor_avaliacao_minimo
+    )}, montante necessário para que seja aprovado o referido financiamento bancário.`,
+    `${C.Seg} ${C.vs("dispõe", "dispõem")} até ao dia ${h.dataLongaPT(
+      processo.avaliacao_prazo_data
+    )}, para comunicar via email, para ${h.v(
+      processo.avaliacao_contacto_email
+    )}, se o resultado da avaliação foi suficiente para a obtenção do financiamento.`,
+    `Se a avaliação do imóvel não for suficiente para a aprovação do referido financiamento, este contrato considera-se automaticamente resolvido, sendo o montante entregue a título de sinal devolvido, em singelo, ${C.aoSeg}, no prazo de 5 dias.`,
+    `Se até ao prazo acima mencionado, ${C.seg} não ${C.vs(
+      "enviar",
+      "enviarem"
+    )} nenhum email conforme referido nos pontos anteriores, considera-se que o crédito e avaliação foram positivas e o presente contrato de compra e venda mantêm-se conforme as restantes cláusulas.`,
+  ]);
+}
+
+// Cláusula Quinta (Bens Móveis) - só quando tem_bens_moveis = true; a lista vem de
+// incluidos_no_imovel. Texto do modelo com a correcção aprovada ("conservação").
+export function pontosClausulaQuinta(h: Helpers, C: Concordancia, processo: Processo): string[] {
+  if (!processo.tem_bens_moveis) return [];
+  const lista = h.v(processo.incluidos_no_imovel).replace(/[.\s]+$/, "");
+  return numerar([
+    `Que o imóvel é vendido com ${lista}, no estado de conservação em que se encontram e que já foi visitado e aceite ${C.peloSeg}.`,
+  ]);
+}
+
+// Cláusula Sexta (Encargos e Despesas) - a referência ao cancelamento da hipoteca só entra
+// quando existe hipoteca (mesma lista que decide o ponto 2 da Cláusula Primeira).
+export function pontosClausulaSexta(C: Concordancia, hipotecas: Hipoteca[]): string[] {
+  const hipoteca =
+    hipotecas.length === 0
+      ? "licença de utilização e certificado energético"
+      : hipotecas.length === 1
+        ? "licença de utilização, certificado energético, e cancelamento da referida hipoteca e o custo a esta associado"
+        : "licença de utilização, certificado energético, e cancelamento das referidas hipotecas e os custos a estas associados";
+  return numerar([
+    `Compete ${C.aoPrim} a organização e entrega ${C.aoSeg} de toda a documentação necessária à celebração da escritura de compra e venda, registo predial, caderneta predial, ${hipoteca}.`,
+    `São por conta ${C.doSeg} todos os encargos notariais, registais e fiscais inerentes à qualidade de ${C.vs(
+      "adquirente",
+      "adquirentes"
+    )}.`,
+  ]);
+}
+
+// Cláusula Sétima (Incumprimento do Contrato) - fixa.
+export function pontosClausulaSetima(C: Concordancia): string[] {
+  return numerar([
+    `Em caso de incumprimento definitivo do presente contrato, por causa comprovadamente imputável ${C.aoSeg}, ${C.vs(
+      "este sujeita-se",
+      "estes sujeitam-se"
+    )} às penalidades estabelecidas por lei, designadamente à perda, a favor ${
+      C.doPrim
+    }, de todas as quantias entregues por conta do preço do contrato, dito sinal, nos termos do artigo 442.º do Código Civil.`,
+    `Em caso de incumprimento definitivo do presente contrato, por causa comprovadamente imputável ${C.aoPrim}, ${C.vp(
+      "este obriga-se",
+      "estes obrigam-se"
+    )} à devolução, em dobro, de todas as quantias entretanto recebidas ${C.doSeg}, nos termos do artigo 442.º do Código Civil.`,
+    "Em qualquer dos casos previstos anteriormente, a parte não faltosa poderá, em alternativa, requerer a execução específica do presente contrato, nos termos do artigo 830.º do Código Civil. O incumprimento do contrato obriga ainda a parte faltosa ao pagamento de todos os prejuízos efetivamente causados à parte não faltosa, bem como de todas as despesas judiciais e extrajudiciais que o incumprimento determinar.",
+  ]);
+}
+
+// Cláusula Oitava (Alterações) - fixa.
+export function pontosClausulaOitava(): string[] {
+  return numerar([
+    "Eventuais alterações, anulações, aditamentos ou acordos de revogação do presente contrato só serão válidos se forem efetuados por escrito e assinados por todos os outorgantes, sendo nulos e ineficazes e sem qualquer validade jurídica acordos verbais.",
+  ]);
+}
+
+// Cláusula Nona (Notificações) - fixa; as moradas são as da identificação inicial, nunca emails.
+export function pontosClausulaNona(): string[] {
+  return numerar([
+    "Todas as notificações que venham a ser necessárias fazer na vigência do presente contrato, serão feitas para as moradas supra indicadas e em caso de alteração, devem ser comunicadas por escrito, através de carta registada com aviso de receção, à contraparte, no prazo máximo de 5 dias contados da data em que ocorrer a respetiva alteração.",
+    "O envio de carta registada com aviso de receção para a morada das partes será prova bastante para demonstrar que se efetuou qualquer notificação, ou seja se realizou a interpelação daquela para a realização da escritura definitiva de compra e venda, sendo este o caso.",
+  ]);
+}
+
+// Cláusula Décima (Proteção de Dados) - fixa, com alíneas.
+export function pontosClausulaDecima(): string[] {
   return [
-    "Os dados pessoais, recolhidos no presente documento destinam-se ao cumprimento do dever de identificação previsto na Lei nº83/2017, de 18 de agosto e Lei nº58/2019 de 08 de agosto e no Regulamento 276/2019, de 26 de Março e serão processados informaticamente e conservados pelo período de 7 anos.",
-    "As partes, enquanto titulares dos dados, têm o direito de aceder a todos os seus dados e o direito de exigir a sua limitação, retificação, oposição ou apagamento nos limites legalmente impostos.",
-    "As partes declaram para os devidos efeitos, sob o compromisso de honra:",
+    ...numerar([
+      "Os dados pessoais, recolhidos no presente documento destinam-se ao cumprimento do dever de identificação previsto na Lei nº83/2017, de 18 de agosto e Lei nº58/2019 de 08 de agosto e no Regulamento 276/2019, de 26 de Março e serão processados informaticamente e conservados pelo período de 7 anos.",
+      "As partes, enquanto titulares dos dados, têm o direito de aceder a todos os seus dados e o direito de exigir a sua limitação, retificação, oposição ou apagamento nos limites legalmente impostos.",
+      "As partes declaram para os devidos efeitos, sob o compromisso de honra:",
+    ]),
     "a. Que são verdadeiros os elementos indicados, e",
     "b. Que autorizam a reprodução dos documentos de identificação bem como qualquer outro documento necessário à concretização do negócio, em suporte físico e/ou eletrónico.",
   ];
 }
 
-export function clausulaAlteracoes(): string[] {
-  return [
-    "Eventuais alterações, anulações, aditamentos ou acordos de revogação do presente contrato só serão válidos se forem efetuados por escrito e assinados por todos os outorgantes, sendo nulos e ineficazes e sem qualquer validade jurídica acordos verbais.",
-  ];
+// Cláusula Décima Primeira (Direitos de Preferência) - única adaptação aprovada: "a parte
+// promitente vendedora" em vez de "a promitente vendedora".
+export function pontosClausulaDecimaPrimeira(C: Concordancia): string[] {
+  return numerar([
+    `Considerando que diversas entidades públicas são titulares de direito de preferência na aquisição do imóvel objeto deste contrato, fica acordado pelos outorgantes que, caso o referido direito seja exercido, o presente contrato cessa automaticamente os seus efeitos, obrigando-se a parte promitente vendedora a devolver, no prazo máximo de 8 (oito) dias, contados da data da comunicação ou ofício da entidade respetiva, ${C.vs(
+      "ao promitente comprador",
+      "aos promitentes compradores"
+    )}, a quantia total entregue a título de sinal, não havendo lugar a qualquer outra indemnização ou compensação.`,
+    "Sendo o caso disso, compete ao promitente vendedor a instrução do anúncio destinado à comunicação das condições da presente promessa às entidades preferentes através do site www.casapronta.mj.pt.",
+  ]);
 }
 
-export function clausulaNotificacoes(): string[] {
-  return [
-    "Todas as notificações que venham a ser necessárias fazer na vigência do presente contrato, serão feitas para as moradas supra indicadas e em caso de alteração, devem ser comunicadas por escrito, através de carta registada com aviso de receção, à contraparte, no prazo máximo de 5 dias contados da data em que ocorrer a respetiva alteração.",
-    "O envio de carta registada com aviso de receção para a morada das partes será prova bastante para demonstrar que se efetuou qualquer notificação, ou seja se realizou a interpelação daquela para a realização da escritura definitiva de compra e venda, sendo este o caso.",
-  ];
+// Cláusula Décima Segunda (Condomínio) - só quando imovel_condominio = true (resposta explícita,
+// nunca inferida de o imóvel ser fracção autónoma).
+export function pontosClausulaDecimaSegunda(): string[] {
+  return numerar([
+    "A Parte Promitente Vendedora compromete-se a ter as prestações do condomínio, sejam elas provenientes de quotas ordinárias, extraordinárias ou para obras realizadas ou a realizar nas partes comuns do edifício, integralmente pagas até à data em que for outorgado o contrato definitivo de compra e venda, obrigando-se a entregar à Parte Promitente Compradora, naquela data, documento comprovativo da não existência de dívidas, emitido pela administração do condomínio, com reconhecimento de assinatura pelo administrador, nos termos e em cumprimento do previsto pelo artigo 1424.º-A do Código Civil, com a redação dada pela Lei n.º 8/2022 de 10 de janeiro, em vigor desde 01/04/2022.",
+    "Ainda, no âmbito do Decreto-Lei mencionado no ponto anterior, a Parte Vendedora é responsável pela comunicação da venda, por carta registada com aviso de receção ou email, ao administrador do condomínio, no prazo máximo de 15 dias a contar da data de escritura, com informação do nome completo, e o número de identificação fiscal do novo proprietário.",
+  ]);
 }
 
-export function clausulaEncargosDespesas(): string[] {
-  return [
-    "Compete ao(s) PRIMEIRO(S) OUTORGANTE(S) a organização e entrega ao(s) SEGUNDO(S) OUTORGANTE(S) de toda a documentação necessária à celebração da escritura de compra e venda, nomeadamente registo predial, caderneta predial, licença de utilização, plantas e certificado energético.",
-    "São por conta do(s) SEGUNDO(S) OUTORGANTE(S) todos os encargos notariais, registais e fiscais inerentes à qualidade de adquirente(s).",
-  ];
-}
-
-export function clausulaLeiAplicavelForo(): string[] {
-  return [
+// Cláusula Décima Terceira (Lei Aplicável e Foro Competente) - fixa.
+export function pontosClausulaDecimaTerceira(): string[] {
+  return numerar([
     "Para a resolução de qualquer litígio eventualmente decorrente do presente contrato, e que as partes não consigam resolver por mútuo acordo, fica desde já convencionado, com a exclusão de qualquer outro, que é competente o foro da comarca do imóvel.",
     "O presente contrato promessa é exclusivamente regulado pela legislação portuguesa em vigor, nomeadamente pelo Código Civil.",
-  ];
+  ]);
 }
 
-export function clausulaReconhecimentoAssinaturas(): string[] {
-  return [
+// Cláusula Décima Quarta (Reconhecimento de Assinaturas) - fixa. Redacção ainda a validar pela
+// solicitadora quanto aos efeitos da dispensa do reconhecimento presencial.
+export function pontosClausulaDecimaQuarta(): string[] {
+  return numerar([
     "Os outorgantes acordam em prescindir livre e mutuamente das formalidades exigidas pelo artigo 410.º, nº 3 do Código Civil, abdicando assim do reconhecimento presencial das respetivas assinaturas, renunciando expressamente a invocar a nulidade deste contrato pela omissão de tais requisitos para todos os efeitos legais, tendo sido informados pela Mediadora Imobiliária das consequências inerentes.",
-  ];
+  ]);
 }
 
-export function clausulaPreviaAnalise(): string[] {
-  return [
+// Cláusula Décima Quinta (Prévia Análise) - fixa.
+export function pontosClausulaDecimaQuinta(): string[] {
+  return numerar([
     "As cláusulas que integram o presente Contrato Promessa de Compra e Venda de imóveis resultaram de um modelo prévio e atempadamente apresentado e discutido entre as partes, a quem foi dada a possibilidade de alterar, adaptar ou de qualquer forma influenciar a sua redação final.",
-  ];
+  ]);
 }
 
-// Só cobre o padrão de imóvel urbano (13 das 15 minutas lidas). O texto adicional para
-// confinantes de prédios rústicos (2 minutas) fica para quando o tipo de imóvel "rústico" for
-// suportado como campo próprio (plano, fase de variantes por tipo de imóvel).
-export function clausulaDireitoPreferencia(): string[] {
-  return [
-    "Considerando que diversas entidades públicas são titulares de direito de preferência na aquisição do Imóvel objeto deste contrato, fica acordado pelos outorgantes que, caso o referido direito seja exercido, o presente contrato cessa automaticamente os seus efeitos, obrigando-se o(s) PRIMEIRO(S) OUTORGANTE(S) a devolver, no prazo máximo de 8 (oito) dias contados da data da comunicação ou ofício da entidade respetiva, ao(s) SEGUNDO(S) OUTORGANTE(S), a quantia total entregue a título de sinal, não havendo lugar a qualquer outra indemnização ou compensação.",
-    "Sendo o caso disso, compete ao(s) PRIMEIRO(S) OUTORGANTE(S) a instrução do anúncio destinado à comunicação das condições da presente promessa às entidades preferentes através do site www.casapronta.mj.pt.",
-  ];
-}
-
-export function clausulaIntervencaoImobiliaria(): string[] {
-  return [
+// Cláusula Décima Sexta (Intervenção Imobiliária) - fixa, com a mediadora e a licença AMI.
+export function pontosClausulaDecimaSexta(): string[] {
+  return numerar([
     `O presente negócio teve intervenção imobiliária levada a cabo pela ${AGENCIA_NOME}, titular da licença AMI ${AGENCIA_AMI}.`,
     "As partes declaram expressamente que foram informadas da obrigação de utilização de meio de pagamento específico por se tratar de transação de montante igual ou superior a 3.000,00€ (Três Mil Euros), para residentes em Portugal ou 10.000,00€ (Dez Mil Euros), para não residentes, conforme estipulado na Lei nº 92/2017 de 22/08/2017.",
-  ];
+  ]);
+}
+
+// Texto final do contrato - em MAIÚSCULAS e negrito nos dois formatos. Dividido em duas partes à
+// volta do número de páginas, porque no Word esse número é um campo NUMPAGES (recalculado pelo
+// próprio Word) e no PDF é o número real contado depois de gerar (ver lib/cpcv-pdf.ts).
+export type TextoFinal = { antes: string; depois: string };
+
+export function textoFinal(exemplares: number): TextoFinal {
+  return {
+    antes: `O PRESENTE CONTRATO É FEITO EM ${numeroPorExtenso(exemplares).toLocaleUpperCase("pt-PT")} EXEMPLARES, COMPOSTO POR `,
+    depois:
+      " PÁGINAS, NUMERADAS E RUBRICADAS, TODOS COM O VALOR DE ORIGINAL, OS QUAIS VÃO SER ASSINADOS E RUBRICADOS PELOS OUTORGANTES, DEPOIS DE LIDO E EXPLICADO O SEU CONTEÚDO E O MESMO TER SIDO ACEITE POR TODOS NOS SEUS TERMOS E CONDIÇÕES, EM CONFORMIDADE COM AS ASSINATURAS CONSTANTES DOS RESPETIVOS DOCUMENTOS DE IDENTIFICAÇÃO, FICANDO UM EXEMPLAR EM PODER DE CADA UMA DAS PARTES.",
+  };
+}
+
+export function paginasPorExtenso(paginas: number | null): string {
+  if (!paginas) return "____________";
+  return numeroPorExtensoFeminino(paginas).toLocaleUpperCase("pt-PT");
 }
 
 // Ordinais femininos ("Cláusula Primeira", "Cláusula Décima Primeira", ...) - a lista de
-// cláusulas de um CPCV varia consoante o processo (comodato, observações, fracções múltiplas,
-// etc.), por isso os dois geradores montam uma lista de cláusulas presentes e numeram por
-// posição em vez de terem o número escrito directamente em cada título.
+// cláusulas varia consoante o processo (avaliação, bens móveis, condomínio), por isso o contrato é
+// numerado por posição depois de aplicadas todas as condições, em lib/cpcv-contrato.ts.
 export const ORDINAIS = [
   "Primeira",
   "Segunda",

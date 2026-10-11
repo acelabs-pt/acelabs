@@ -85,7 +85,8 @@ ser negociada, nunca os do prédio inteiro. Na dúvida sobre a qual das duas cer
 pertence, deixa o campo em "campos_em_falta" em vez de arriscar.
 
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
-(avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
+(avaliação/financiamento/dias), comodato, IBAN do sinal, emails para o contrato, bens móveis ou
+equipamentos incluídos na venda, ou se o imóvel está integrado num condomínio - esses campos
 são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Isto inclui o
 campo "condicoes_suspensivas": se a única condição suspensiva mencionada for financiamento
 bancário e/ou avaliação do imóvel, deixa "condicoes_suspensivas" a null (isso fica coberto pelo

@@ -20,6 +20,11 @@ const PADROES_PROIBIDOS = [
   /quem fica com o sinal/i,
   /e-?mail/i,
   /inclu[ií]do.*im[oó]vel/i,
+  // Bens móveis e condomínio decidem duas cláusulas inteiras (Quinta e Décima Segunda) - são
+  // sempre respostas explícitas em "Condições do negócio" / "Identificação do imóvel".
+  /bens m[oó]veis/i,
+  /equipamentos? inclu/i,
+  /condom[ií]nio/i,
   // Dados de vendedor/comprador vêm de um formulário próprio, não da IA (ver
   // lib/cpcv-partes-form.ts) - rede de segurança igual à de cima, caso o modelo pergunte
   // na mesma apesar de instruído a não o fazer.

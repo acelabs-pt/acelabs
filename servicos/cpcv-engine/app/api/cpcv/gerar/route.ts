@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { gerarHtmlCpcv } from "@/lib/cpcv-template";
+import { gerarPdfCpcv } from "@/lib/cpcv-pdf";
 import { gerarDocxCpcv } from "@/lib/cpcv-docx";
-import { launchChromium } from "@/lib/cpcv-browser";
 import { enviarCpcvParaDrive } from "@/lib/google-drive";
 import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { descricaoPredialValida } from "@/lib/cpcv-types";
+import { informacaoForaDoContrato } from "@/lib/cpcv-alertas";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -40,54 +40,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 });
   }
 
-  // Licença de utilização e certificado energético são obrigações legais para um CPCV -
-  // ao contrário dos outros campos em falta (que ficam em branco no documento), estes
-  // dois nunca podem faltar num documento gerado para assinatura.
-  const camposObrigatoriosEmFalta: string[] = [];
-  if (!processo.imovel_licenca_utilizacao) camposObrigatoriosEmFalta.push("licença de utilização");
-  if (!processo.imovel_certificado_energetico) camposObrigatoriosEmFalta.push("certificado energético");
+  // Tudo o que as 16 cláusulas do contrato de referência precisam para sair sem espaços em
+  // branco (ver lib/cpcv-contrato.ts). As perguntas de sim/não têm de estar respondidas - nunca
+  // se presume "não" (fracção autónoma, condomínio, avaliação, destino do sinal, financiamento).
+  const emFalta: string[] = [];
+  const falta = (condicao: boolean, nome: string) => {
+    if (condicao) emFalta.push(nome);
+  };
 
-  // Quando o imóvel é fracção autónoma, a Cláusula Primeira passa a exigir estes campos
-  // adicionais (ver lib/cpcv-clausulas.ts, pontosClausulaPrimeira) - orientação fica de fora
-  // porque é o único campo opcional do novo texto.
+  falta(processo.imovel_e_fracao_autonoma === null || processo.imovel_e_fracao_autonoma === undefined, "resposta se o imóvel é fracção autónoma");
+  falta(processo.imovel_condominio === null || processo.imovel_condominio === undefined, "resposta se o imóvel está integrado num condomínio");
+  falta(!processo.imovel_morada, "morada do imóvel");
+  falta(!processo.imovel_freguesia, "freguesia do imóvel");
+  falta(!processo.imovel_concelho, "concelho do imóvel");
+  falta(!processo.imovel_conservatoria, "conservatória do registo predial");
+  falta(!descricaoPredialValida(processo.imovel_descricao_predial), "número de descrição predial");
+  falta(!processo.imovel_artigo_matricial, "artigo matricial");
+  falta(!processo.imovel_licenca_utilizacao, "licença de utilização");
+  falta(!processo.imovel_licenca_data_emissao, "data de emissão da licença de utilização");
+  falta(!processo.imovel_licenca_entidade_emissora, "entidade emissora da licença de utilização");
+  falta(!processo.imovel_certificado_energetico, "certificado energético");
+  falta(!processo.imovel_certificado_validade, "validade do certificado energético");
+  falta(!processo.imovel_certificado_classe, "classe energética");
   if (processo.imovel_e_fracao_autonoma) {
-    if (!processo.imovel_fracao_letra) camposObrigatoriosEmFalta.push("letra da fracção");
-    if (!processo.imovel_andar_fracao) camposObrigatoriosEmFalta.push("andar/localização da fracção");
-    if (!processo.imovel_finalidade) camposObrigatoriosEmFalta.push("finalidade do imóvel");
-    if (!processo.imovel_morada) camposObrigatoriosEmFalta.push("morada do imóvel");
-    if (!processo.imovel_freguesia) camposObrigatoriosEmFalta.push("freguesia do imóvel");
-    if (!processo.imovel_concelho) camposObrigatoriosEmFalta.push("concelho do imóvel");
-    if (!processo.imovel_conservatoria) camposObrigatoriosEmFalta.push("conservatória do registo predial");
-    if (!descricaoPredialValida(processo.imovel_descricao_predial)) camposObrigatoriosEmFalta.push("número de descrição predial");
-    if (!processo.imovel_artigo_matricial) camposObrigatoriosEmFalta.push("artigo matricial");
-    if (!processo.imovel_licenca_data_emissao) camposObrigatoriosEmFalta.push("data de emissão da licença de utilização");
-    if (!processo.imovel_licenca_entidade_emissora) camposObrigatoriosEmFalta.push("entidade emissora da licença de utilização");
-    if (!processo.imovel_certificado_validade) camposObrigatoriosEmFalta.push("validade do certificado energético");
-    if (!processo.imovel_certificado_classe) camposObrigatoriosEmFalta.push("classe energética");
+    falta(!processo.imovel_fracao_letra, "letra da fracção");
+    falta(!processo.imovel_andar_fracao, "andar/localização da fracção");
+    falta(!processo.imovel_finalidade, "finalidade do imóvel");
   }
 
-  // Quando há uma resposta sobre quem fica com o sinal, a nova Cláusula "Preço e Condições de
-  // Pagamento" passa a exigir estes campos (ver lib/cpcv-clausulas.ts, pontosClausulaSegunda).
-  // Com destino_sinal null (processos antigos, ou novos até o agente responder), nada disto é
-  // pedido - a cláusula mantém-se no formato actual.
-  if (processo.destino_sinal) {
-    if (!processo.iban_sinal) camposObrigatoriosEmFalta.push("IBAN do sinal");
-    if (!processo.conta_sinal_banco) camposObrigatoriosEmFalta.push("banco da conta do sinal");
-    if (processo.destino_sinal === "vendedor" && !processo.conta_sinal_titular) {
-      camposObrigatoriosEmFalta.push("titular da conta do sinal");
-    }
-    if (processo.destino_sinal === "agencia") {
-      if (!processo.comissao_modalidade) camposObrigatoriosEmFalta.push("modalidade de pagamento da comissão");
-      if (processo.comissao_valor === null || processo.comissao_valor === undefined) {
-        camposObrigatoriosEmFalta.push("valor da comissão (com IVA)");
-      }
-    }
+  falta(processo.preco_total === null || processo.preco_total === undefined, "preço total");
+  falta(processo.valor_sinal === null || processo.valor_sinal === undefined, "valor do sinal");
+  falta(!processo.prazo_escritura, "data-limite da escritura");
+  falta(!processo.data_assinatura_contrato, "data de assinatura do contrato");
+  falta(!processo.metodo_pagamento, "método de pagamento (recurso a financiamento bancário)");
+
+  falta(!processo.destino_sinal, "destino do sinal (vendedor ou agência)");
+  if (processo.destino_sinal === "vendedor") {
+    falta(!processo.iban_sinal, "IBAN do sinal");
+    falta(!processo.conta_sinal_banco, "banco da conta do sinal");
+    falta(!processo.conta_sinal_titular, "titular da conta do sinal");
+  }
+  if (processo.destino_sinal === "agencia") {
+    falta(!processo.comissao_modalidade, "modalidade de pagamento da comissão");
+    falta(processo.comissao_valor === null || processo.comissao_valor === undefined, "valor da comissão (com IVA)");
   }
 
-  if (camposObrigatoriosEmFalta.length > 0) {
+  falta(processo.condicionado_avaliacao === null || processo.condicionado_avaliacao === undefined, "resposta se o CPCV fica condicionado a avaliação bancária");
+  if (processo.condicionado_avaliacao) {
+    falta(processo.valor_avaliacao_minimo === null || processo.valor_avaliacao_minimo === undefined, "valor mínimo da avaliação");
+    falta(!processo.avaliacao_prazo_data, "data-limite para comunicar o resultado da avaliação");
+    falta(!processo.avaliacao_contacto_email, "email para comunicar o resultado da avaliação");
+  }
+
+  if (processo.tem_bens_moveis) falta(!processo.incluidos_no_imovel, "lista de bens móveis incluídos na venda");
+
+  if (emFalta.length > 0) {
     return NextResponse.json(
       {
-        error: `Não é possível gerar o CPCV sem: ${camposObrigatoriosEmFalta.join(", ")}. Preenche esses campos antes de aprovar.`,
+        error: `Não é possível gerar o CPCV sem: ${emFalta.join(", ")}. Preenche esses campos antes de aprovar.`,
       },
       { status: 400 }
     );
@@ -124,8 +134,7 @@ export async function POST(req: NextRequest) {
 
   if (!forcar) {
     // Verificações determinísticas primeiro - "sinal >= preço" é um cálculo exacto, não faz
-    // sentido depender de a IA reparar nisso de cada vez (testado: numa ronda de simulação com
-    // sinal de 150.000€ e preço de 100.000€, a revisão por IA não gerou nenhum aviso).
+    // sentido depender de a IA reparar nisso de cada vez.
     const avisosDeterministicos: string[] = [];
     if (
       typeof processo.preco_total === "number" &&
@@ -144,6 +153,19 @@ export async function POST(req: NextRequest) {
         "Ainda não foi confirmado se existem hipotecas sobre o imóvel - confirma em \"Identificação do imóvel\" antes de gerar."
       );
     }
+    if (processo.tem_bens_moveis === null || processo.tem_bens_moveis === undefined) {
+      avisosDeterministicos.push(
+        "Ainda não foi respondido se há bens móveis ou equipamentos incluídos na venda - sem resposta, o CPCV sai sem a Cláusula de Bens Móveis."
+      );
+    }
+    // Informação registada no processo que não entra em nenhuma das 16 cláusulas - a gestora
+    // vê-a aqui antes de gerar, para a tratar fora do documento (ver lib/cpcv-alertas.ts).
+    const foraDoContrato = informacaoForaDoContrato(processo);
+    if (foraDoContrato.length > 0) {
+      avisosDeterministicos.push(
+        `Informação registada que NÃO entra no CPCV gerado (fica só para a solicitadora): ${foraDoContrato.join(" | ")}`
+      );
+    }
 
     const avisosIA = await reverAntesDeGerar(processo, partes ?? []);
     const avisos = [...avisosDeterministicos, ...avisosIA];
@@ -152,18 +174,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const html = gerarHtmlCpcv(processo, partes ?? [], hipotecas ?? []);
-
+  // O PDF primeiro: é ele que diz quantas páginas o contrato tem, e esse número entra também no
+  // Word como valor inicial do campo NUMPAGES (ver lib/cpcv-pdf.ts e lib/cpcv-docx.ts).
   let pdfBuffer: Buffer;
+  let paginas: number;
   try {
-    const browser = await launchChromium();
-    try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "networkidle" });
-      pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-    } finally {
-      await browser.close();
-    }
+    ({ pdf: pdfBuffer, paginas } = await gerarPdfCpcv(processo, partes ?? [], hipotecas ?? []));
   } catch (e) {
     return NextResponse.json(
       { error: `Erro ao gerar o PDF: ${e instanceof Error ? e.message : String(e)}` },
@@ -173,7 +189,7 @@ export async function POST(req: NextRequest) {
 
   let docxBuffer: Buffer;
   try {
-    docxBuffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? []);
+    docxBuffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? [], paginas);
   } catch (e) {
     return NextResponse.json(
       { error: `Erro ao gerar o Word: ${e instanceof Error ? e.message : String(e)}` },

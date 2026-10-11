@@ -10,6 +10,7 @@ import DadosPartes from "./DadosPartes";
 import IdentificacaoImovel from "./IdentificacaoImovel";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
+import AlertasSolicitadora from "./AlertasSolicitadora";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { EstadoVazio, IconesVazio } from "../ui";
 
@@ -188,7 +189,11 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
 
-      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <CondicoesNegocio processo={processo} />}
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+        <CondicoesNegocio processo={processo} emailAgenciaPorOmissao={process.env.CPCV_AGENCIA_EMAIL ?? ""} />
+      )}
+
+      {isGestora && <AlertasSolicitadora processo={processo} />}
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
         <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Conversa</h2>
