@@ -305,10 +305,19 @@
   .relay-step:first-child{border-top:none;padding-top:0;}
   .relay-num{
     flex:none;width:40px;height:40px;border-radius:50%;
-    background:var(--blue-soft-bg);color:var(--blue-dark);
+    background:var(--gray-bg);color:var(--ink-2);
     display:flex;align-items:center;justify-content:center;
     font-size:14px;font-weight:700;
     border:2px solid #fff;
+    transition:background .3s ease,color .3s ease;
+  }
+  .relay-step:nth-child(2) .relay-num{transition-delay:.1s;}
+  .relay-step:nth-child(3) .relay-num{transition-delay:.5s;}
+  .relay-step:nth-child(4) .relay-num{transition-delay:.9s;}
+  .relay-step:nth-child(5) .relay-num{transition-delay:1.3s;}
+  .relay-list.is-visible .relay-num{background:var(--blue-soft-bg);color:var(--blue-dark);}
+  @media (prefers-reduced-motion:reduce){
+    .relay-num{transition:none!important;background:var(--blue-soft-bg)!important;color:var(--blue-dark)!important;}
   }
   .relay-text h3{font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:-0.005em;}
   .relay-text p{margin-top:6px;font-size:14px;line-height:1.55;color:var(--ink-2);}
