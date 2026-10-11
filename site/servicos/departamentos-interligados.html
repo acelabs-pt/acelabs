@@ -43,6 +43,7 @@
   @media (prefers-reduced-motion:reduce){
     .diagram-node,.hub-card,.diagram-svg .flow-line{animation:none!important;}
     .flow-pulse-group{display:none;}
+    .feature-icon{animation:none!important;}
   }
   body{
     margin:0;
@@ -169,7 +170,11 @@
     background:var(--blue-soft);
     display:flex;align-items:center;justify-content:center;
     color:var(--blue);
+    animation:icon-3d 5s ease-in-out 3;
   }
+  .feature-item:nth-of-type(1) .feature-icon{animation-delay:0s;}
+  .feature-item:nth-of-type(2) .feature-icon{animation-delay:.2s;}
+  .feature-item:nth-of-type(3) .feature-icon{animation-delay:.4s;}
   .feature-item h3{
     margin-top:13px;font-size:15px;font-weight:700;color:var(--ink);
   }
