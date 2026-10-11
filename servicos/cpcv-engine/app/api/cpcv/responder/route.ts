@@ -39,7 +39,8 @@ prefixo "SCE" (ex.: "SCE386817639") - nunca a classe energética (a letra, ex. "
 "licenca_utilizacao" é o número do alvará de licença de utilização (ex.: "603/85").
 
 NUNCA perguntes por método de pagamento, reserva, condições suspensivas estruturadas
-(avaliação/financiamento/dias), comodato, IBAN do sinal, ou emails para o contrato - esses campos
+(avaliação/financiamento/dias), comodato, IBAN do sinal, emails para o contrato, bens móveis ou
+equipamentos incluídos na venda, ou se o imóvel está integrado num condomínio - esses campos
 são preenchidos à parte, num formulário próprio, não fazem parte desta conversa. Se uma das
 "perguntas que foram feitas" for sobre um desses temas, ignora-a - não voltes a incluí-la em
 "campos_em_falta". Isto inclui o campo "condicoes_suspensivas": se a única condição suspensiva

@@ -27,6 +27,7 @@ type Processo = {
   imovel_licenca_entidade_emissora: string | null;
   imovel_certificado_validade: string | null;
   imovel_certificado_classe: string | null;
+  imovel_condominio: boolean | null;
   hipotecas_verificadas: boolean;
 };
 
@@ -88,6 +89,11 @@ export default function IdentificacaoImovel({
 
   const [eFracao, setEFracao] = useState<"" | "sim" | "nao">(
     processo.imovel_e_fracao_autonoma === true ? "sim" : processo.imovel_e_fracao_autonoma === false ? "nao" : ""
+  );
+  // Nunca inferido de o imóvel ser fracção autónoma - decide sozinho a Cláusula de Condomínio e
+  // tem de ser respondido antes de a gestora conseguir gerar (app/api/cpcv/gerar/route.ts).
+  const [condominio, setCondominio] = useState<"" | "sim" | "nao">(
+    processo.imovel_condominio === true ? "sim" : processo.imovel_condominio === false ? "nao" : ""
   );
   const [fracaoLetra, setFracaoLetra] = useState(processo.imovel_fracao_letra ?? "");
   const [andarFracao, setAndarFracao] = useState(processo.imovel_andar_fracao ?? "");
@@ -244,6 +250,7 @@ export default function IdentificacaoImovel({
       .from("cpcv_processos")
       .update({
         imovel_e_fracao_autonoma: eFracao === "" ? null : eFracao === "sim",
+        imovel_condominio: condominio === "" ? null : condominio === "sim",
         imovel_fracao_letra: fracaoLetra.trim() || null,
         imovel_andar_fracao: andarFracao.trim() || null,
         imovel_orientacao: orientacao.trim() || null,
@@ -316,26 +323,43 @@ export default function IdentificacaoImovel({
         cor="azul"
         icone={IconesSecao.predio}
         titulo="Identificação do imóvel"
-        subtitulo="Fracção autónoma e hipotecas, para a Cláusula Primeira do CPCV"
+        subtitulo="Fracção autónoma, condomínio, registo predial e hipotecas - identificam o imóvel no CPCV"
       />
 
-      <div>
-        <label htmlFor="eFracao" className={labelClass}>
-          É fracção autónoma (apartamento em regime de propriedade horizontal)?
-        </label>
-        <select
-          id="eFracao"
-          value={eFracao}
-          onChange={(e) => setEFracao(e.target.value as "" | "sim" | "nao")}
-          className={campoClass}
-        >
-          <option value="">Por responder</option>
-          <option value="sim">Sim</option>
-          <option value="nao">Não (moradia, terreno, prédio inteiro...)</option>
-        </select>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="eFracao" className={labelClass}>
+            É fracção autónoma (apartamento em regime de propriedade horizontal)?
+          </label>
+          <select
+            id="eFracao"
+            value={eFracao}
+            onChange={(e) => setEFracao(e.target.value as "" | "sim" | "nao")}
+            className={campoClass}
+          >
+            <option value="">Por responder</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não (moradia, terreno, prédio inteiro...)</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="condominio" className={labelClass}>
+            O imóvel está integrado num condomínio? <span className="text-[#9A5B00] font-normal">(obrigatório)</span>
+          </label>
+          <select
+            id="condominio"
+            value={condominio}
+            onChange={(e) => setCondominio(e.target.value as "" | "sim" | "nao")}
+            className={campoClass}
+          >
+            <option value="">Por responder</option>
+            <option value="sim">Sim - o CPCV inclui a Cláusula de Condomínio</option>
+            <option value="nao">Não</option>
+          </select>
+        </div>
       </div>
 
-      {eFracao === "sim" && (
+      {eFracao !== "" && (
         <div className={grupoClass}>
           {documentosImovel.length > 0 && (
             <div className="flex items-center gap-3 mb-3">
@@ -355,38 +379,46 @@ export default function IdentificacaoImovel({
             </p>
           )}
 
-          <p className={subTituloClass}>Fracção</p>
+          {eFracao === "sim" && (
+            <>
+              <p className={subTituloClass}>Fracção</p>
+              <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="fracaoLetra" className={labelClass}>
+                    Letra da fracção
+                  </label>
+                  <input id="fracaoLetra" value={fracaoLetra} onChange={(e) => setFracaoLetra(e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="andarFracao" className={labelClass}>
+                    Andar / localização
+                  </label>
+                  <input
+                    id="andarFracao"
+                    value={andarFracao}
+                    onChange={(e) => setAndarFracao(e.target.value)}
+                    placeholder="quinto andar centro"
+                    className={campoClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="orientacao" className={labelClass}>
+                    Orientação <span className="text-[#94A3B8] font-normal">(opcional)</span>
+                  </label>
+                  <input id="orientacao" value={orientacao} onChange={(e) => setOrientacao(e.target.value)} placeholder="nascente" className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="finalidade" className={labelClass}>
+                    Finalidade
+                  </label>
+                  <input id="finalidade" value={finalidade} onChange={(e) => setFinalidade(e.target.value)} placeholder="habitação" className={campoClass} />
+                </div>
+              </div>
+            </>
+          )}
+
+          <p className={subTituloClass}>Registo predial e matriz</p>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="fracaoLetra" className={labelClass}>
-                Letra da fracção
-              </label>
-              <input id="fracaoLetra" value={fracaoLetra} onChange={(e) => setFracaoLetra(e.target.value)} className={campoClass} />
-            </div>
-            <div>
-              <label htmlFor="andarFracao" className={labelClass}>
-                Andar / localização
-              </label>
-              <input
-                id="andarFracao"
-                value={andarFracao}
-                onChange={(e) => setAndarFracao(e.target.value)}
-                placeholder="quinto andar centro"
-                className={campoClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="orientacao" className={labelClass}>
-                Orientação <span className="text-[#94A3B8] font-normal">(opcional)</span>
-              </label>
-              <input id="orientacao" value={orientacao} onChange={(e) => setOrientacao(e.target.value)} placeholder="nascente" className={campoClass} />
-            </div>
-            <div>
-              <label htmlFor="finalidade" className={labelClass}>
-                Finalidade
-              </label>
-              <input id="finalidade" value={finalidade} onChange={(e) => setFinalidade(e.target.value)} placeholder="habitação" className={campoClass} />
-            </div>
             <div className="sm:col-span-2">
               <label htmlFor="conservatoria" className={labelClass}>
                 Conservatória do Registo Predial

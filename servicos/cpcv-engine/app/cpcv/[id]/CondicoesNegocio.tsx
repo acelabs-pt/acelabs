@@ -22,12 +22,19 @@ type Processo = {
   valor_mobilia: number | null;
   reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
+  destino_sinal: string | null;
+  conta_sinal_banco: string | null;
+  conta_sinal_titular: string | null;
+  comissao_modalidade: string | null;
+  comissao_valor: number | null;
   reserva: boolean | null;
   valor_reserva: number | null;
   reserva_ate_data: string | null;
   condicionado_avaliacao: boolean | null;
   valor_avaliacao_minimo: number | null;
   prazo_avaliacao_dias: number | null;
+  avaliacao_prazo_data: string | null;
+  avaliacao_contacto_email: string | null;
   condicionado_financiamento: boolean | null;
   valor_financiamento_minimo: number | null;
   prazo_financiamento_dias: number | null;
@@ -35,6 +42,7 @@ type Processo = {
   prazo_outra_situacao_dias: number | null;
   comodato: boolean | null;
   tempo_comodato: string | null;
+  tem_bens_moveis: boolean | null;
   incluidos_no_imovel: string | null;
   email_proprietario_contrato: string | null;
   email_comprador_contrato: string | null;
@@ -81,7 +89,23 @@ function simNao(v: boolean | null): string {
   return "";
 }
 
-export default function CondicoesNegocio({ processo }: { processo: Processo }) {
+// Campos que continuam a ser recolhidos mas já não entram em nenhuma das 16 cláusulas do CPCV
+// gerado (ver lib/cpcv-alertas.ts) - assinalados para o agente não contar com eles no contrato.
+function NotaForaDoContrato() {
+  return <p className="text-[11px] text-[#9A5B00] mb-3">Não entra no CPCV gerado - fica registado para a solicitadora.</p>;
+}
+
+export default function CondicoesNegocio({
+  processo,
+  emailAgenciaPorOmissao,
+  ibanAgenciaPorOmissao,
+  bancoAgenciaPorOmissao,
+}: {
+  processo: Processo;
+  emailAgenciaPorOmissao: string;
+  ibanAgenciaPorOmissao: string;
+  bancoAgenciaPorOmissao: string;
+}) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -104,13 +128,35 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
   const [reservaAteData, setReservaAteData] = useState(processo.reserva_ate_data ?? "");
   const [condAvaliacao, setCondAvaliacao] = useState(simNao(processo.condicionado_avaliacao));
   const [valorAvaliacaoMinimo, setValorAvaliacaoMinimo] = useState(processo.valor_avaliacao_minimo?.toString() ?? "");
-  const [prazoAvaliacaoDias, setPrazoAvaliacaoDias] = useState(processo.prazo_avaliacao_dias?.toString() ?? "");
+  const [prazoAvaliacaoDias] = useState(processo.prazo_avaliacao_dias?.toString() ?? "");
+  const [avaliacaoPrazoData, setAvaliacaoPrazoData] = useState(processo.avaliacao_prazo_data ?? "");
+  const [avaliacaoEmail, setAvaliacaoEmail] = useState(processo.avaliacao_contacto_email ?? emailAgenciaPorOmissao);
+  const [temBensMoveis, setTemBensMoveis] = useState(simNao(processo.tem_bens_moveis));
   const [condFinanciamento, setCondFinanciamento] = useState(simNao(processo.condicionado_financiamento));
   const [valorFinanciamentoMinimo, setValorFinanciamentoMinimo] = useState(processo.valor_financiamento_minimo?.toString() ?? "");
   const [prazoFinanciamentoDias, setPrazoFinanciamentoDias] = useState(processo.prazo_financiamento_dias?.toString() ?? "");
   const [condOutraSituacao, setCondOutraSituacao] = useState(processo.condicionado_outra_situacao ?? "");
   const [prazoOutraSituacaoDias, setPrazoOutraSituacaoDias] = useState(processo.prazo_outra_situacao_dias?.toString() ?? "");
   const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
+  const [destinoSinal, setDestinoSinal] = useState(processo.destino_sinal ?? "");
+  const [contaSinalBanco, setContaSinalBanco] = useState(processo.conta_sinal_banco ?? "");
+
+  // Ao escolher "Agência imobiliária", o IBAN e o banco da agência aparecem já preenchidos (se
+  // estiverem vazios); ao mudar para "Vendedor", limpa-os só se ainda forem os da agência, para
+  // nunca ficar o IBAN da agência por engano num sinal que vai para o vendedor.
+  function mudarDestinoSinal(novo: string) {
+    setDestinoSinal(novo);
+    if (novo === "agencia") {
+      if (!ibanSinal.trim()) setIbanSinal(ibanAgenciaPorOmissao);
+      if (!contaSinalBanco.trim()) setContaSinalBanco(bancoAgenciaPorOmissao);
+    } else if (novo === "vendedor") {
+      if (ibanSinal === ibanAgenciaPorOmissao) setIbanSinal("");
+      if (contaSinalBanco === bancoAgenciaPorOmissao) setContaSinalBanco("");
+    }
+  }
+  const [contaSinalTitular, setContaSinalTitular] = useState(processo.conta_sinal_titular ?? "");
+  const [comissaoModalidade, setComissaoModalidade] = useState(processo.comissao_modalidade ?? "");
+  const [comissaoValor, setComissaoValor] = useState(processo.comissao_valor?.toString() ?? "");
   const [comodato, setComodato] = useState(simNao(processo.comodato));
   const [tempoComodato, setTempoComodato] = useState(processo.tempo_comodato ?? "");
   const [incluidos, setIncluidos] = useState(processo.incluidos_no_imovel ?? "");
@@ -171,6 +217,9 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
         condicionado_avaliacao: condAvaliacao ? condAvaliacao === "sim" : null,
         valor_avaliacao_minimo: condAvaliacao === "sim" && valorAvaliacaoMinimo ? Number(valorAvaliacaoMinimo) : null,
         prazo_avaliacao_dias: condAvaliacao === "sim" && prazoAvaliacaoDias ? Number(prazoAvaliacaoDias) : null,
+        avaliacao_prazo_data: condAvaliacao === "sim" ? avaliacaoPrazoData || null : null,
+        avaliacao_contacto_email: condAvaliacao === "sim" ? avaliacaoEmail.trim() || null : null,
+        tem_bens_moveis: temBensMoveis ? temBensMoveis === "sim" : null,
         condicionado_financiamento: condFinanciamento ? condFinanciamento === "sim" : null,
         valor_financiamento_minimo: condFinanciamento === "sim" && valorFinanciamentoMinimo ? Number(valorFinanciamentoMinimo) : null,
         prazo_financiamento_dias: condFinanciamento === "sim" && prazoFinanciamentoDias ? Number(prazoFinanciamentoDias) : null,
@@ -179,6 +228,11 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
         dias_condicionamento: null,
         dias_condicionamento_tipo: null,
         iban_sinal: ibanSinal || null,
+        destino_sinal: destinoSinal || null,
+        conta_sinal_banco: contaSinalBanco || null,
+        conta_sinal_titular: destinoSinal === "vendedor" ? contaSinalTitular || null : null,
+        comissao_modalidade: destinoSinal === "agencia" ? comissaoModalidade || null : null,
+        comissao_valor: destinoSinal === "agencia" && comissaoValor ? Number(comissaoValor) : null,
         comodato: comodato ? comodato === "sim" : null,
         tempo_comodato: comodato === "sim" ? tempoComodato || null : null,
         incluidos_no_imovel: incluidos || null,
@@ -232,10 +286,10 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
       {aberto && (
         <div className="mt-4">
           <p className="text-xs text-[#94A3B8] mb-4 -mt-1">
-            Estes campos ficam sempre aqui, nunca no chat com a IA - método de pagamento, IBAN,
-            reserva, condições suspensivas e comodato decidem cláusulas legais exactas do
-            contrato, por isso são sempre confirmados directamente por ti, não adivinhados a
-            partir de texto.
+            Estes campos ficam sempre aqui, nunca no chat com a IA - decidem cláusulas legais
+            exactas do contrato, por isso são sempre confirmados directamente por ti, não
+            adivinhados a partir de texto. O CPCV gerado segue sempre as 16 cláusulas do modelo
+            aprovado: os campos assinalados a laranja ficam registados mas não entram no documento.
           </p>
 
           <div className={seccaoClass}>
@@ -257,7 +311,24 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               </div>
 
               <div>
+                <label htmlFor="metodoPagamento" className={labelClass}>
+                  Método de pagamento - o comprador recorre a financiamento bancário?
+                </label>
+                <select id="metodoPagamento" value={metodoPagamento} onChange={(e) => setMetodoPagamento(e.target.value)} className={campoClass}>
+                  <option value="">-</option>
+                  <option value="capital_proprio">Capital próprio (sem financiamento)</option>
+                  <option value="financiamento">Financiamento bancário</option>
+                  <option value="misto">Misto (capital próprio + financiamento)</option>
+                </select>
+                <p className="text-[11px] text-[#94A3B8] mt-1">
+                  Com financiamento, o CPCV inclui a Cláusula de Avaliação Bancária (ponto 1); a condição de
+                  avaliação mínima decide-se mais abaixo.
+                </p>
+              </div>
+
+              <div>
                 <p className={labelClass}>Reforços de sinal (opcional, pode haver vários)</p>
+                <NotaForaDoContrato />
                 <div className="space-y-2">
                   {reforcos.map((r, i) => (
                     <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -295,16 +366,8 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
+                  <NotaForaDoContrato />
                   <CampoEuros id="valorMobilia" value={valorMobilia} onChange={setValorMobilia} className={campoClass} />
-                </div>
-                <div>
-                  <label htmlFor="metodoPagamento" className={labelClass}>Método de pagamento</label>
-                  <select id="metodoPagamento" value={metodoPagamento} onChange={(e) => setMetodoPagamento(e.target.value)} className={campoClass}>
-                    <option value="">-</option>
-                    <option value="capital_proprio">Capital próprio</option>
-                    <option value="financiamento">Financiamento</option>
-                    <option value="misto">Misto</option>
-                  </select>
                 </div>
               </div>
             </div>
@@ -312,6 +375,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
           <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Reserva</h3>
+            <NotaForaDoContrato />
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="reserva" className={labelClass}>Reserva</label>
@@ -338,6 +402,7 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
 
           <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Fracções</h3>
+            <NotaForaDoContrato />
             <label className="flex items-center gap-2 text-xs font-semibold text-[#475569]">
               <input type="checkbox" checked={temFracoes} onChange={(e) => setTemFracoes(e.target.checked)} />
               Há 2 fracções (ex.: apartamento + garagem)
@@ -357,31 +422,39 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Condições suspensivas</h3>
+            <h3 className={tituloSeccaoClass}>Avaliação bancária</h3>
             <div className="space-y-4">
-              <div className="grid sm:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="condAvaliacao" className={labelClass}>Condicionado à avaliação</label>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label htmlFor="condAvaliacao" className={labelClass}>
+                    O CPCV fica condicionado à obtenção de uma avaliação bancária mínima?{" "}
+                    <span className="text-[#9A5B00] font-normal">(obrigatório)</span>
+                  </label>
                   <select id="condAvaliacao" value={condAvaliacao} onChange={(e) => setCondAvaliacao(e.target.value)} className={campoClass}>
-                    <option value="">-</option>
-                    <option value="sim">Sim</option>
+                    <option value="">Por responder</option>
+                    <option value="sim">Sim - o CPCV inclui os 5 pontos da Cláusula de Avaliação Bancária</option>
                     <option value="nao">Não</option>
                   </select>
                 </div>
                 {condAvaliacao === "sim" && (
-                  <div>
-                    <label htmlFor="valorAvaliacaoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
-                    <CampoEuros id="valorAvaliacaoMinimo" value={valorAvaliacaoMinimo} onChange={setValorAvaliacaoMinimo} className={campoClass} />
-                  </div>
-                )}
-                {condAvaliacao === "sim" && (
-                  <div>
-                    <label htmlFor="prazoAvaliacaoDias" className={labelClass}>Prazo (dias corridos)</label>
-                    <input id="prazoAvaliacaoDias" type="number" value={prazoAvaliacaoDias} onChange={(e) => setPrazoAvaliacaoDias(e.target.value)} className={campoClass} />
-                  </div>
+                  <>
+                    <div>
+                      <label htmlFor="valorAvaliacaoMinimo" className={labelClass}>Valor mínimo da avaliação (pode ser diferente do preço)</label>
+                      <CampoEuros id="valorAvaliacaoMinimo" value={valorAvaliacaoMinimo} onChange={setValorAvaliacaoMinimo} className={campoClass} />
+                    </div>
+                    <div>
+                      <label htmlFor="avaliacaoPrazoData" className={labelClass}>Data-limite para comunicar o resultado</label>
+                      <input id="avaliacaoPrazoData" type="date" value={avaliacaoPrazoData} onChange={(e) => setAvaliacaoPrazoData(e.target.value)} className={campoClass} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="avaliacaoEmail" className={labelClass}>Email para onde o comprador comunica o resultado</label>
+                      <input id="avaliacaoEmail" type="email" value={avaliacaoEmail} onChange={(e) => setAvaliacaoEmail(e.target.value)} className={campoClass} />
+                    </div>
+                  </>
                 )}
               </div>
 
+              <NotaForaDoContrato />
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
@@ -421,15 +494,102 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>IBAN</h3>
-            <div>
-              <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
-              <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
+            <h3 className={tituloSeccaoClass}>Destino do sinal</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="destinoSinal" className={labelClass}>Quem fica com o sinal?</label>
+                <select id="destinoSinal" value={destinoSinal} onChange={(e) => mudarDestinoSinal(e.target.value)} className={campoClass}>
+                  <option value="">-</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="agencia">Agência imobiliária</option>
+                </select>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="ibanSinal" className={labelClass}>IBAN para envio do sinal</label>
+                  <input id="ibanSinal" value={ibanSinal} onChange={(e) => setIbanSinal(e.target.value)} className={campoClass} />
+                </div>
+                <div>
+                  <label htmlFor="contaSinalBanco" className={labelClass}>Banco</label>
+                  <input id="contaSinalBanco" value={contaSinalBanco} onChange={(e) => setContaSinalBanco(e.target.value)} className={campoClass} />
+                </div>
+              </div>
+
+              {destinoSinal === "vendedor" && (
+                <div>
+                  <label htmlFor="contaSinalTitular" className={labelClass}>Titular da conta (vendedor)</label>
+                  <input id="contaSinalTitular" value={contaSinalTitular} onChange={(e) => setContaSinalTitular(e.target.value)} className={campoClass} />
+                </div>
+              )}
+
+              {destinoSinal === "agencia" && (
+                <>
+                  <p className="text-xs text-[#94A3B8] -mt-1">
+                    Titular da conta: a agência. Indica acima o IBAN e o banco da agência.
+                    O CPCV passa a incluir a cláusula de fiel depositária.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="comissaoModalidade" className={labelClass}>Quando será paga a comissão imobiliária?</label>
+                      <select
+                        id="comissaoModalidade"
+                        value={comissaoModalidade}
+                        onChange={(e) => setComissaoModalidade(e.target.value)}
+                        className={campoClass}
+                      >
+                        <option value="">-</option>
+                        <option value="integral_cpcv">100% da comissão no CPCV</option>
+                        <option value="metade_cpcv">50% da comissão no CPCV e 50% na escritura</option>
+                        <option value="integral_escritura">100% da comissão na escritura</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="comissaoValor" className={labelClass}>Valor da comissão (com IVA)</label>
+                      <CampoEuros id="comissaoValor" value={comissaoValor} onChange={setComissaoValor} className={campoClass} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#94A3B8]">
+                    Nunca aparece no CPCV - fica registado só para a gestora/solicitadora.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className={seccaoClass}>
+            <h3 className={tituloSeccaoClass}>Bens móveis</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="temBensMoveis" className={labelClass}>Existem bens móveis ou equipamentos incluídos na venda?</label>
+                <select id="temBensMoveis" value={temBensMoveis} onChange={(e) => setTemBensMoveis(e.target.value)} className={campoClass}>
+                  <option value="">Por responder</option>
+                  <option value="sim">Sim - o CPCV inclui a Cláusula de Bens Móveis</option>
+                  <option value="nao">Não</option>
+                </select>
+              </div>
+              {temBensMoveis === "sim" && (
+                <div>
+                  <label htmlFor="incluidos" className={labelClass}>Bens móveis e equipamentos incluídos</label>
+                  <textarea
+                    id="incluidos"
+                    value={incluidos}
+                    onChange={(e) => setIncluidos(e.target.value)}
+                    rows={3}
+                    placeholder="cozinha equipada com placa, forno, exaustor, frigorífico; dois armários de roupa; o móvel da entrada"
+                    className={campoClass}
+                  />
+                  <p className="text-[11px] text-[#94A3B8] mt-1">
+                    Entra tal como está escrito: &quot;Que o imóvel é vendido com [lista], no estado de conservação em que se encontram...&quot;
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Comodato</h3>
+            <NotaForaDoContrato />
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="comodato" className={labelClass}>Necessidade de comodato</label>
@@ -449,13 +609,16 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
           </div>
 
           <div className={seccaoClass}>
-            <h3 className={tituloSeccaoClass}>Imóvel e contrato</h3>
+            <h3 className={tituloSeccaoClass}>Contrato</h3>
             <div className="space-y-4">
               <div>
-                <label htmlFor="incluidos" className={labelClass}>O que fica incluído no imóvel (opcional)</label>
-                <textarea id="incluidos" value={incluidos} onChange={(e) => setIncluidos(e.target.value)} rows={2} className={campoClass} />
+                <label htmlFor="dataAssinatura" className={labelClass}>
+                  Data de assinatura do contrato <span className="text-[#9A5B00] font-normal">(obrigatória - sai como &quot;Braga, dd de mês de aaaa&quot;)</span>
+                </label>
+                <input id="dataAssinatura" type="date" value={dataAssinatura} onChange={(e) => setDataAssinatura(e.target.value)} className={campoClass} />
               </div>
 
+              <NotaForaDoContrato />
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="emailProprietario" className={labelClass}>Email do proprietário (para o contrato)</label>
@@ -465,11 +628,6 @@ export default function CondicoesNegocio({ processo }: { processo: Processo }) {
                   <label htmlFor="emailComprador" className={labelClass}>Email do comprador (para o contrato)</label>
                   <input id="emailComprador" value={emailComprador} onChange={(e) => setEmailComprador(e.target.value)} className={campoClass} />
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="dataAssinatura" className={labelClass}>Data de assinatura do contrato</label>
-                <input id="dataAssinatura" type="date" value={dataAssinatura} onChange={(e) => setDataAssinatura(e.target.value)} className={campoClass} />
               </div>
 
               <div>

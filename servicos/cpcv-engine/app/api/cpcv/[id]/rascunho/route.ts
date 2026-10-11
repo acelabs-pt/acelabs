@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { gerarHtmlCpcv } from "@/lib/cpcv-template";
+import { gerarPdfCpcv } from "@/lib/cpcv-pdf";
 import { gerarDocxCpcv } from "@/lib/cpcv-docx";
-import { launchChromium } from "@/lib/cpcv-browser";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
+
+// Sem isto, um GET route handler fica sujeito ao Full Route Cache do Next.js e podia servir um
+// rascunho desactualizado para a mesma URL (mesmo processo, mesmo "?tipo=pdf/docx") mesmo depois
+// de o processo ter sido editado - ver o mesmo problema, confirmado em sessão de QA, na rota de
+// download (app/api/cpcv/[id]/download/route.ts).
+export const dynamic = "force-dynamic";
 
 const CONTENT_TYPE: Record<string, string> = {
   pdf: "application/pdf",
@@ -52,19 +57,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   let buffer: Buffer;
   try {
-    if (tipo === "pdf") {
-      const html = gerarHtmlCpcv(processo, partes ?? [], hipotecas ?? []);
-      const browser = await launchChromium();
-      try {
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: "networkidle" });
-        buffer = await page.pdf({ format: "A4", printBackground: true });
-      } finally {
-        await browser.close();
-      }
-    } else {
-      buffer = await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? []);
-    }
+    // O Word também passa pelo PDF: é a paginação do PDF que dá o número de páginas usado como
+    // valor inicial do campo NUMPAGES no Word (ver lib/cpcv-pdf.ts e lib/cpcv-docx.ts).
+    const { pdf, paginas } = await gerarPdfCpcv(processo, partes ?? [], hipotecas ?? []);
+    buffer = tipo === "pdf" ? pdf : await gerarDocxCpcv(processo, partes ?? [], hipotecas ?? [], paginas);
   } catch (e) {
     return NextResponse.json(
       { error: `Erro ao gerar o rascunho: ${e instanceof Error ? e.message : String(e)}` },
@@ -77,6 +73,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       "Content-Type": CONTENT_TYPE[tipo],
       "Content-Disposition": `attachment; filename="cpcv-rascunho.${tipo}"`,
       "Content-Length": String(buffer.length),
+      // Ver o comentário equivalente em app/api/cpcv/[id]/download/route.ts - mesmo URL a cada
+      // pedido (mesmo processo, mesmo "?tipo="), por isso o browser tem de ser instruído a
+      // nunca reutilizar uma resposta já recebida.
+      "Cache-Control": "no-store, must-revalidate",
     },
   });
 }

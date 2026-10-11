@@ -26,9 +26,11 @@ function useFaseRotativa(activo: boolean): string {
 export function GerarButton({
   processoId,
   temCamposEmFalta,
+  rotulo = "Aprovar e gerar CPCV",
 }: {
   processoId: string;
   temCamposEmFalta: boolean;
+  rotulo?: string;
 }) {
   const router = useRouter();
   const [aGerar, setAGerar] = useState(false);
@@ -98,7 +100,7 @@ export function GerarButton({
         </p>
       )}
       <button onClick={() => gerar(false)} disabled={aGerar} className={btnAccent}>
-        {aGerar ? <TextoShimmer tom="escuro">{fase}</TextoShimmer> : "Aprovar e gerar CPCV"}
+        {aGerar ? <TextoShimmer tom="escuro">{fase}</TextoShimmer> : rotulo}
       </button>
       {erro && <p className="text-xs text-red-600">{erro}</p>}
     </div>
@@ -236,6 +238,44 @@ export function DownloadLinks({ processoId }: { processoId: string }) {
       <a href={`/api/cpcv/${processoId}/download?tipo=docx`} className={btnAccentOutline}>
         Descarregar Word
       </a>
+    </div>
+  );
+}
+
+export function ReabrirProcesso({ processoId }: { processoId: string }) {
+  const router = useRouter();
+  const [aReabrir, setAReabrir] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function reabrir() {
+    setAReabrir(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/cpcv/reabrir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ processo_id: processoId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.error ?? "Erro desconhecido.");
+        setAReabrir(false);
+        return;
+      }
+      router.refresh();
+    } catch {
+      setErro("Erro de rede ao reabrir o processo.");
+      setAReabrir(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <button onClick={reabrir} disabled={aReabrir} className={btnSecondary}>
+        {aReabrir && <Spinner className="h-3.5 w-3.5" />}
+        {aReabrir ? "A reabrir..." : "Reabrir para edição"}
+      </button>
+      {erro && <p className="text-xs text-red-600">{erro}</p>}
     </div>
   );
 }

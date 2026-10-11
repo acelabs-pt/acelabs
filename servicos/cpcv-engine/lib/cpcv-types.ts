@@ -58,6 +58,11 @@ export type Processo = Record<string, unknown> & {
   reforco_sinal: string | null;
   reforcos_sinal: { valor: number | null; data: string | null }[] | null;
   iban_sinal: string | null;
+  destino_sinal: string | null;
+  conta_sinal_banco: string | null;
+  conta_sinal_titular: string | null;
+  comissao_modalidade: string | null;
+  comissao_valor: number | null;
   reserva: boolean | null;
   valor_reserva: number | null;
   reserva_ate_data: string | null;
@@ -75,6 +80,7 @@ export type Processo = Record<string, unknown> & {
   dias_condicionamento_tipo: string | null;
   comodato: boolean | null;
   tempo_comodato: string | null;
+  tem_bens_moveis: boolean | null;
   incluidos_no_imovel: string | null;
   email_proprietario_contrato: string | null;
   email_comprador_contrato: string | null;
@@ -121,7 +127,38 @@ export type Helpers = {
   v: (value: unknown, fallback?: string) => string;
   euros: (value: number | null) => string;
   dataPT: (iso: string | null) => string;
+  dataLongaPT: (iso: string | null) => string;
 };
+
+// "2026-09-08" -> "08-09-2026" / "08 de setembro de 2026" - os dois formatos usados no contrato
+// de referência (curto nas validades de documentos, longo nas datas de emissão/escritura/
+// assinatura). Partilhados pelos dois geradores; o do PDF escapa HTML por cima destes.
+const MESES_PT = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
+
+// "222000" -> "222.000,00" (formato do contrato de referência). Feito à mão porque o
+// toLocaleString("pt-PT") do Node separa os milhares com espaço ("222 000,00"), não com ponto.
+export function formatarEuros(valor: number): string {
+  const [inteiro, decimais] = valor.toFixed(2).split(".");
+  return `${inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${decimais}`;
+}
+
+export function formatarDataCurta(iso: string | null): string | null {
+  if (!iso) return null;
+  const [ano, mes, dia] = iso.split("-");
+  if (!ano || !mes || !dia) return iso;
+  return `${dia}-${mes}-${ano}`;
+}
+
+export function formatarDataLonga(iso: string | null): string | null {
+  if (!iso) return null;
+  const [ano, mes, dia] = iso.split("-");
+  const nomeMes = MESES_PT[Number(mes) - 1];
+  if (!ano || !nomeMes || !dia) return iso;
+  return `${dia} de ${nomeMes} de ${ano}`;
+}
 
 export function regimeBensValido(regimeBens: string | null): boolean {
   if (!regimeBens) return false;

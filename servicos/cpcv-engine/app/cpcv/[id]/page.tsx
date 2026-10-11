@@ -2,7 +2,7 @@ import { sbUserServer } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ChatForm from "./ChatForm";
-import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks } from "./GerarDocumento";
+import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks, ReabrirProcesso } from "./GerarDocumento";
 import AdicionarInformacao from "./AdicionarInformacao";
 import CondicoesNegocio from "./CondicoesNegocio";
 import DadosApoio from "./DadosApoio";
@@ -10,6 +10,7 @@ import DadosPartes from "./DadosPartes";
 import IdentificacaoImovel from "./IdentificacaoImovel";
 import FecharProcesso from "./FecharProcesso";
 import ResumoWhatsApp from "./ResumoWhatsApp";
+import AlertasSolicitadora from "./AlertasSolicitadora";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { EstadoVazio, IconesVazio } from "../ui";
 
@@ -188,7 +189,16 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
 
-      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <CondicoesNegocio processo={processo} />}
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+        <CondicoesNegocio
+          processo={processo}
+          emailAgenciaPorOmissao={process.env.CPCV_AGENCIA_EMAIL ?? ""}
+          ibanAgenciaPorOmissao={process.env.CPCV_AGENCIA_IBAN ?? ""}
+          bancoAgenciaPorOmissao={process.env.CPCV_AGENCIA_BANCO ?? ""}
+        />
+      )}
+
+      {isGestora && <AlertasSolicitadora processo={processo} />}
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
         <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Conversa</h2>
@@ -223,6 +233,12 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
           <div className="mt-4 flex flex-wrap items-start justify-end gap-2">
             <PedirAlteracoes processoId={processo.id} />
             <GerarButton processoId={processo.id} temCamposEmFalta={temCamposEmFalta} />
+          </div>
+        )}
+        {isGestora && processo.estado === "aprovado" && (
+          <div className="mt-4 flex flex-wrap items-start justify-end gap-2">
+            <ReabrirProcesso processoId={processo.id} />
+            <GerarButton processoId={processo.id} temCamposEmFalta={false} rotulo="Regerar PDF e Word" />
           </div>
         )}
         {processo.pdf_path && (
