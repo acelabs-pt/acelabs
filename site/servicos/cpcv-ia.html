@@ -321,12 +321,29 @@
   .chat-q{background:#f5f5f7;color:var(--ink);border-bottom-left-radius:4px;}
   .chat-a{background:var(--blue-soft-bg);color:var(--blue-dark);margin-left:auto;border-bottom-right-radius:4px;font-weight:600;}
 
-  .check-row{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink);}
+  .check-row{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink);opacity:0;transform:translateX(-6px);transition:opacity .35s ease,transform .35s ease;}
   .check-row svg{flex:none;width:17px;height:17px;color:#1fae5a;}
+  .check-row svg path{stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .3s ease;}
+  .demo-phase.is-active .check-row{opacity:1;transform:translateX(0);}
+  .demo-phase.is-active .check-row svg path{stroke-dashoffset:0;}
+  .demo-phase.is-active .check-row:nth-of-type(1){transition-delay:.1s;}
+  .demo-phase.is-active .check-row:nth-of-type(1) svg path{transition-delay:.2s;}
+  .demo-phase.is-active .check-row:nth-of-type(2){transition-delay:.35s;}
+  .demo-phase.is-active .check-row:nth-of-type(2) svg path{transition-delay:.45s;}
+  .demo-phase.is-active .check-row:nth-of-type(3){transition-delay:.6s;}
+  .demo-phase.is-active .check-row:nth-of-type(3) svg path{transition-delay:.7s;}
   .approve-btn{
     margin-top:14px;display:inline-flex;align-items:center;gap:8px;
     background:#141414;color:#fff;border:none;
     padding:11px 20px;border-radius:980px;font-size:13px;font-weight:600;font-family:inherit;
+    opacity:.4;transform:scale(.97);transition:opacity .35s ease .85s,transform .35s ease .85s;
+  }
+  .demo-phase.is-active .approve-btn{opacity:1;transform:scale(1);}
+  .chat-q{opacity:0;transform:translateY(6px);transition:opacity .3s ease .1s,transform .3s ease .1s;}
+  .chat-a{opacity:0;transform:translateY(6px);transition:opacity .3s ease .55s,transform .3s ease .55s;}
+  .demo-phase.is-active .chat-bubble{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .check-row,.check-row svg path,.approve-btn,.chat-bubble{opacity:1!important;transform:none!important;stroke-dashoffset:0!important;transition:none!important;}
   }
 
   .doc-ready{display:flex;gap:10px;margin-bottom:18px;}
