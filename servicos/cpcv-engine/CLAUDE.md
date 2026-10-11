@@ -172,3 +172,17 @@ micro-interacção ao clicar) em toda a secção.
   disso são ignoradas. Já aconteceu (`ListaProcessos.tsx`, filtro vindo de `?estado=` na URL): a
   correcção é sincronizar com `useEffect(() => setEstado(propInicial), [propInicial])`, não confiar
   só no valor inicial do `useState`.
+- Ler um ficheiro do Storage (`.storage.from(...).download(path)`) através do cliente Supabase da
+  sessão normal do utilizador (`sbUserServer()`), logo a seguir a um `upload(..., { upsert: true })`
+  no mesmo caminho, por vezes devolvia a versão anterior do ficheiro - confirmado em sessão de QA
+  (Fase 12): descarregar um CPCV logo depois de o regerar (ex.: corrigir e reaprovar) trazia o
+  PDF/Word antigo, mesmo com `export const dynamic = "force-dynamic"` na rota, `Cache-Control:
+  no-store` na resposta, e um `fetch` com `cache: "no-store"` injectado no cliente - nada disto
+  resolveu. O mesmo pedido através do cliente de serviço (`sbServer()` em `lib/supabase.ts`)
+  devolveu sempre o conteúdo actual em todos os testes, o que aponta para o Storage da Supabase
+  servir pedidos autenticados (não de serviço) a partir de uma camada com propagação mais lenta
+  após um upsert - não é um problema do Next.js nem deste código. Padrão usado em
+  `app/api/cpcv/[id]/download/route.ts`: validar o acesso ao processo com o cliente da sessão
+  (lê `pdf_path`/`docx_path`, já protegido por RLS), e só então ler os bytes do ficheiro com o
+  cliente de serviço - nunca o inverso, e nunca usar o cliente de serviço para decidir se o
+  utilizador pode ver o processo.
