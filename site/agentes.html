@@ -244,6 +244,11 @@
     transition:background .15s ease, border-color .15s ease;
   }
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
+  .btn-dark span[aria-hidden],.btn-outline span[aria-hidden]{display:inline-block;transition:transform .18s ease;}
+  .btn-dark:hover span[aria-hidden],.btn-outline:hover span[aria-hidden],.btn-dark:focus-visible span[aria-hidden],.btn-outline:focus-visible span[aria-hidden]{transform:translateX(3px);}
+  @media (prefers-reduced-motion:reduce){
+    .btn-dark span[aria-hidden],.btn-outline span[aria-hidden]{transition:none!important;}
+  }
 
   /* HERO - fundo de marca animado, sem fotografia */
   .hero{
