@@ -348,8 +348,13 @@
   .mini-bars{display:flex;align-items:flex-end;gap:7px;height:52px;}
   .mini-bar{flex:1;border-radius:5px 5px 2px 2px;height:0;transition:height 1s cubic-bezier(.2,.8,.2,1);}
 
-  .lead-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .lead-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);opacity:0;transform:translateX(-6px);transition:opacity .3s ease,transform .3s ease;}
   .lead-row:last-child{border-bottom:none;}
+  .demo-phase.is-active .lead-row{opacity:1;transform:translateX(0);}
+  .demo-phase.is-active .lead-row:nth-of-type(1){transition-delay:.05s;}
+  .demo-phase.is-active .lead-row:nth-of-type(2){transition-delay:.2s;}
+  .demo-phase.is-active .lead-row:nth-of-type(3){transition-delay:.35s;}
+  .demo-phase.is-active .lead-row:nth-of-type(4){transition-delay:.5s;}
   .lead-name{font-size:12px;font-weight:650;color:var(--ink);}
   .lead-stage{font-size:9px;font-weight:700;padding:4px 8px;border-radius:980px;white-space:nowrap;}
   .lead-stage-blue{background:var(--blue-soft-bg);color:var(--blue-dark);}
@@ -368,9 +373,16 @@
   .listing-next{font-size:10.5px;color:var(--ink-2);margin:0;}
 
   .cal-date{font-size:13px;font-weight:700;color:var(--ink);margin:0 0 14px;}
-  .cal-row{display:flex;gap:10px;padding:8px 0;align-items:flex-start;}
+  .cal-row{display:flex;gap:10px;padding:8px 0;align-items:flex-start;opacity:0;transform:translateX(-6px);transition:opacity .3s ease,transform .3s ease;}
+  .demo-phase.is-active .cal-row{opacity:1;transform:translateX(0);}
+  .demo-phase.is-active .cal-row:nth-of-type(1){transition-delay:.05s;}
+  .demo-phase.is-active .cal-row:nth-of-type(2){transition-delay:.25s;}
+  .demo-phase.is-active .cal-row:nth-of-type(3){transition-delay:.45s;}
   .cal-time{font-size:10.5px;font-weight:700;color:#0071e3;width:40px;flex:none;}
   .cal-text{font-size:12px;color:var(--ink);}
+  @media (prefers-reduced-motion:reduce){
+    .lead-row,.cal-row{opacity:1!important;transform:none!important;transition:none!important;}
+  }
 
   .phone-nav{display:flex;justify-content:center;gap:14px;padding:12px 0 2px;}
   .phone-nav-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .3s ease,width .3s ease,border-radius .3s ease;}
