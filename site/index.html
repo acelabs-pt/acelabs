@@ -193,6 +193,11 @@
     background:var(--blue-soft-bg);
     display:flex;align-items:center;justify-content:center;
     margin-bottom:22px;
+    transition:transform .25s cubic-bezier(.2,.8,.2,1);
+  }
+  .path-card:hover .path-icon,.path-card:focus-within .path-icon{transform:rotate(-4deg) scale(1.06);}
+  @media (prefers-reduced-motion:reduce){
+    .path-icon{transition:none!important;}
   }
   .path-icon svg{width:24px;height:24px;display:block;}
   .path-card h2{font-size:21px;letter-spacing:-0.01em;color:var(--ink);}
