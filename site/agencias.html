@@ -893,7 +893,11 @@
   .service-card.is-hidden{display:none;}
 
   .services-filter{margin-bottom:10px;}
-  .services-filter-count{margin:0 0 22px;font-size:12.5px;color:var(--ink-2);}
+  .services-filter-count{margin:0 0 22px;font-size:12.5px;color:var(--ink-2);opacity:1;transform:translateY(0);transition:opacity .2s ease,transform .2s ease;}
+  .services-filter-count.is-updating{opacity:0;transform:translateY(4px);}
+  @media (prefers-reduced-motion:reduce){
+    .services-filter-count{transition:none!important;}
+  }
 
   .services-copy .hero-eyebrow{margin-bottom:20px;}
   .services-copy h2{
@@ -2699,7 +2703,13 @@
       if(!countEl) return;
       var total = cards.length;
       var shown = filter === 'todos' ? total : cards.filter(function(c){ return c.getAttribute('data-audience') === filter; }).length;
-      countEl.textContent = filter === 'todos' ? ('A mostrar os ' + total + ' serviços') : ('A mostrar ' + shown + ' de ' + total + ' serviços');
+      var text = filter === 'todos' ? ('A mostrar os ' + total + ' serviços') : ('A mostrar ' + shown + ' de ' + total + ' serviços');
+      if(countEl.textContent === ''){ countEl.textContent = text; return; }
+      countEl.classList.add('is-updating');
+      setTimeout(function(){
+        countEl.textContent = text;
+        countEl.classList.remove('is-updating');
+      }, 180);
     }
     updateCount('todos');
 
