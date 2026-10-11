@@ -455,8 +455,10 @@ export function pontosClausulaSegunda(h: Helpers, C: Concordancia, processo: Pro
   const forma = ((processo.forma_pagamento_sinal as string | null) || "transferência bancária").trim();
   const formaMinuscula = `${forma.charAt(0).toLowerCase()}${forma.slice(1)}`;
   const aOrdemDe = ehAgencia ? `da ${AGENCIA_NOME}` : `de ${h.v(processo.conta_sinal_titular)}`;
-  const banco = ehAgencia ? AGENCIA_BANCO : h.v(processo.conta_sinal_banco);
-  const iban = ehAgencia ? AGENCIA_IBAN : h.v(processo.iban_sinal);
+  // O que o agente escreveu no formulário tem prioridade nos dois casos; para a agência, se o
+  // formulário estiver vazio, cai para a conta fixa do .env (CPCV_AGENCIA_IBAN/BANCO).
+  const banco = h.v(processo.conta_sinal_banco, ehAgencia ? AGENCIA_BANCO : undefined);
+  const iban = h.v(processo.iban_sinal, ehAgencia ? AGENCIA_IBAN : undefined);
 
   const pontos: string[] = [
     `Pelo presente contrato ${C.prim}, ${C.vp("promete", "prometem")} vender ${C.aoSeg}, que por sua vez ${C.vs(

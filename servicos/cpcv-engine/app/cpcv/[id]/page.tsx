@@ -190,7 +190,12 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
-        <CondicoesNegocio processo={processo} emailAgenciaPorOmissao={process.env.CPCV_AGENCIA_EMAIL ?? ""} />
+        <CondicoesNegocio
+          processo={processo}
+          emailAgenciaPorOmissao={process.env.CPCV_AGENCIA_EMAIL ?? ""}
+          ibanAgenciaPorOmissao={process.env.CPCV_AGENCIA_IBAN ?? ""}
+          bancoAgenciaPorOmissao={process.env.CPCV_AGENCIA_BANCO ?? ""}
+        />
       )}
 
       {isGestora && <AlertasSolicitadora processo={processo} />}

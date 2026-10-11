@@ -81,6 +81,8 @@ export async function POST(req: NextRequest) {
     falta(!processo.conta_sinal_titular, "titular da conta do sinal");
   }
   if (processo.destino_sinal === "agencia") {
+    falta(!processo.iban_sinal && !process.env.CPCV_AGENCIA_IBAN, "IBAN do sinal");
+    falta(!processo.conta_sinal_banco && !process.env.CPCV_AGENCIA_BANCO, "banco da conta do sinal");
     falta(!processo.comissao_modalidade, "modalidade de pagamento da comissão");
     falta(processo.comissao_valor === null || processo.comissao_valor === undefined, "valor da comissão (com IVA)");
   }

@@ -98,9 +98,13 @@ function NotaForaDoContrato() {
 export default function CondicoesNegocio({
   processo,
   emailAgenciaPorOmissao,
+  ibanAgenciaPorOmissao,
+  bancoAgenciaPorOmissao,
 }: {
   processo: Processo;
   emailAgenciaPorOmissao: string;
+  ibanAgenciaPorOmissao: string;
+  bancoAgenciaPorOmissao: string;
 }) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
@@ -136,6 +140,20 @@ export default function CondicoesNegocio({
   const [ibanSinal, setIbanSinal] = useState(processo.iban_sinal ?? "");
   const [destinoSinal, setDestinoSinal] = useState(processo.destino_sinal ?? "");
   const [contaSinalBanco, setContaSinalBanco] = useState(processo.conta_sinal_banco ?? "");
+
+  // Ao escolher "Agência imobiliária", o IBAN e o banco da agência aparecem já preenchidos (se
+  // estiverem vazios); ao mudar para "Vendedor", limpa-os só se ainda forem os da agência, para
+  // nunca ficar o IBAN da agência por engano num sinal que vai para o vendedor.
+  function mudarDestinoSinal(novo: string) {
+    setDestinoSinal(novo);
+    if (novo === "agencia") {
+      if (!ibanSinal.trim()) setIbanSinal(ibanAgenciaPorOmissao);
+      if (!contaSinalBanco.trim()) setContaSinalBanco(bancoAgenciaPorOmissao);
+    } else if (novo === "vendedor") {
+      if (ibanSinal === ibanAgenciaPorOmissao) setIbanSinal("");
+      if (contaSinalBanco === bancoAgenciaPorOmissao) setContaSinalBanco("");
+    }
+  }
   const [contaSinalTitular, setContaSinalTitular] = useState(processo.conta_sinal_titular ?? "");
   const [comissaoModalidade, setComissaoModalidade] = useState(processo.comissao_modalidade ?? "");
   const [comissaoValor, setComissaoValor] = useState(processo.comissao_valor?.toString() ?? "");
@@ -480,7 +498,7 @@ export default function CondicoesNegocio({
             <div className="space-y-4">
               <div>
                 <label htmlFor="destinoSinal" className={labelClass}>Quem fica com o sinal?</label>
-                <select id="destinoSinal" value={destinoSinal} onChange={(e) => setDestinoSinal(e.target.value)} className={campoClass}>
+                <select id="destinoSinal" value={destinoSinal} onChange={(e) => mudarDestinoSinal(e.target.value)} className={campoClass}>
                   <option value="">-</option>
                   <option value="vendedor">Vendedor</option>
                   <option value="agencia">Agência imobiliária</option>
@@ -508,7 +526,7 @@ export default function CondicoesNegocio({
               {destinoSinal === "agencia" && (
                 <>
                   <p className="text-xs text-[#94A3B8] -mt-1">
-                    Titular da conta: a agência (dados fixos da empresa, não editáveis aqui).
+                    Titular da conta: a agência. Indica acima o IBAN e o banco da agência.
                     O CPCV passa a incluir a cláusula de fiel depositária.
                   </p>
                   <div className="grid sm:grid-cols-2 gap-4">
