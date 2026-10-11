@@ -279,13 +279,17 @@
     grid-template-columns:repeat(4,1fr);
     gap:34px;
   }
-  .benefit-item{display:flex;gap:13px;align-items:flex-start;}
+  .benefit-item{display:flex;gap:13px;align-items:flex-start;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;}
+  .benefits-grid.is-visible .benefit-item{opacity:1;transform:translateY(0);}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(1){transition-delay:0s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(2){transition-delay:.08s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(3){transition-delay:.16s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(4){transition-delay:.24s;}
   .benefit-icon{
     width:42px;height:42px;border-radius:12px;
     background:var(--blue-soft);color:var(--blue);
     display:flex;align-items:center;justify-content:center;
     flex-shrink:0;
-    animation:icon-3d 5s ease-in-out 3;
   }
   @keyframes icon-3d{
     0%,100%{transform:perspective(400px) rotateY(0deg) rotateX(0deg);}
@@ -293,11 +297,12 @@
     50%{transform:perspective(400px) rotateY(0deg) rotateX(8deg);}
     75%{transform:perspective(400px) rotateY(-16deg) rotateX(-6deg);}
   }
-  .benefit-item:nth-of-type(1) .benefit-icon{animation-delay:0s;}
-  .benefit-item:nth-of-type(2) .benefit-icon{animation-delay:-1.3s;}
-  .benefit-item:nth-of-type(3) .benefit-icon{animation-delay:-2.6s;}
-  .benefit-item:nth-of-type(4) .benefit-icon{animation-delay:-3.9s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(1) .benefit-icon{animation:icon-3d 5s ease-in-out 3;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(2) .benefit-icon{animation:icon-3d 5s ease-in-out 3;animation-delay:.08s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(3) .benefit-icon{animation:icon-3d 5s ease-in-out 3;animation-delay:.16s;}
+  .benefits-grid.is-visible .benefit-item:nth-of-type(4) .benefit-icon{animation:icon-3d 5s ease-in-out 3;animation-delay:.24s;}
   @media (prefers-reduced-motion:reduce){
+    .benefit-item{opacity:1!important;transform:none!important;transition:none!important;}
     .benefit-icon{animation:none!important;}
   }
   .benefit-item h3{font-size:14.5px;font-weight:700;color:var(--ink);}
@@ -604,6 +609,20 @@
     var n=document.querySelector("nav");
     var f=function(){n.classList.toggle("scrolled",window.scrollY>12);};
     f();window.addEventListener("scroll",f,{passive:true});
+  })();
+
+  (function(){
+    var grid = document.querySelector('.benefits-grid');
+    if(!grid) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          grid.classList.add('is-visible');
+          io.unobserve(grid);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(grid);
   })();
 </script>
 
