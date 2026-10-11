@@ -128,11 +128,14 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
   #6e6e73, azul de marca #0071e3 (escuro #0059b3), secções escuras #0a1620, verde #1fae5a,
   âmbar #ff9f0a (par suave: fundo #fff4e5, texto #9a5b00).
 - Tipografia: stack de sistema `-apple-system, BlinkMacSystemFont, 'SF Pro Text'/'SF Pro Display',
-  'Inter', 'Segoe UI', Roboto, sans-serif` (corpo e títulos) + Source Serif 4 (serifada, usada no
-  logo "Ace Labs·" e em títulos de destaque). Mostra SF Pro real em Mac/iPhone/iPad; nos outros
-  sistemas cai para Inter (carregada via Google Fonts), a alternativa gratuita mais próxima do SF
-  Pro. Não incorporar ficheiros do SF Pro no site - a licença da Apple não cobre uso público fora
-  do ecossistema Apple.
+  'Inter', 'Segoe UI', Roboto, sans-serif`, para tudo - corpo e títulos, sem exceção. Mostra SF Pro
+  real em Mac/iPhone/iPad; nos outros sistemas cai para Inter (carregada via Google Fonts), a
+  alternativa gratuita mais próxima do SF Pro. Não incorporar ficheiros do SF Pro no site - a
+  licença da Apple não cobre uso público fora do ecossistema Apple.
+  **Nunca usar uma fonte serifada (Source Serif 4, Georgia, Garamond ou semelhante) em nenhuma
+  parte do site** - já foi usada no passado em títulos de secção e no rótulo do 404, mas o
+  utilizador pediu explicitamente para remover (2026-10-11); o webfont Source Serif 4 foi
+  removido de todos os `<link>` do Google Fonts.
 - Qualquer novo documento/página desta marca deve usar estas cores e fontes, não inventar outras.
 
 ## Backend / dados
