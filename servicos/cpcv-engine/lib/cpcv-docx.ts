@@ -1,4 +1,4 @@
-import { AlignmentType, Document, Header, Packer, PageNumber, Paragraph, SimpleField, TextRun } from "docx";
+import { AlignmentType, Document, Footer, Packer, PageNumber, Paragraph, SimpleField, TextRun } from "docx";
 import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "./cpcv-types";
 import { euroPorExtenso, paginasPorExtenso } from "./cpcv-clausulas";
@@ -59,6 +59,11 @@ export async function gerarDocxCpcv(
   const { outorgantes, assinaturas } = contrato;
 
   const children: Paragraph[] = [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+      children: [new TextRun({ text: TITULO_CONTRATO, bold: true, font: FONTE, size: 24, color: "000000" })],
+    }),
     paragrafo("OUTORGANTES:", { bold: true, antes: 200 }),
     paragrafo(outorgantes.cabecalhoVendedores, { bold: true, antes: 200 }),
     ...outorgantes.identificacoesVendedores.map((texto) => paragrafo(`${texto}.`)),
@@ -103,18 +108,13 @@ export async function gerarDocxCpcv(
     ...linhas(assinaturas.linhasCompradores)
   );
 
-  // Cabeçalho de todas as páginas, como no contrato de referência: título (Arial 12 negrito,
-  // centrado) e "Página X de Y" com campos PAGE/NUMPAGES.
-  const cabecalho = new Header({
+  // O título do contrato aparece só na primeira página (primeiro parágrafo do corpo); em todas as
+  // páginas fica apenas "Página X de Y" no canto inferior direito, com campos PAGE/NUMPAGES.
+  const rodape = new Footer({
     children: [
       new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 0 },
-        children: [new TextRun({ text: TITULO_CONTRATO, bold: true, font: FONTE, size: 24, color: "000000" })],
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
+        alignment: AlignmentType.RIGHT,
+        spacing: { before: 0, after: 0 },
         children: [
           new TextRun({ children: ["Página ", PageNumber.CURRENT, " de ", PageNumber.TOTAL_PAGES], font: FONTE, size: 20, color: "000000" }),
         ],
@@ -146,10 +146,10 @@ export async function gerarDocxCpcv(
     },
     sections: [
       {
-        // Margens em twips (1 mm = 56,7): 30 mm em cima (para o cabeçalho), 25 mm em baixo,
-        // 20 mm aos lados - as mesmas do PDF (lib/cpcv-pdf.ts).
-        properties: { page: { margin: { top: 1701, bottom: 1417, left: 1134, right: 1134, header: 567 } } },
-        headers: { default: cabecalho },
+        // Margens em twips (1 mm = 56,7): 25 mm em cima e em baixo, 20 mm aos lados - as mesmas
+        // do PDF (lib/cpcv-pdf.ts).
+        properties: { page: { margin: { top: 1417, bottom: 1417, left: 1134, right: 1134, footer: 567 } } },
+        footers: { default: rodape },
         children,
       },
     ],

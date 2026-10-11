@@ -1,20 +1,20 @@
 import type { Hipoteca, Parte, Processo } from "./cpcv-types";
 import { launchChromium } from "./cpcv-browser";
 import { gerarHtmlCpcv, FONT_FACE_CSS } from "./cpcv-template";
-import { TITULO_CONTRATO } from "./cpcv-contrato";
 
 // Margens iguais às do Word (lib/cpcv-docx.ts). Passadas aqui e não via @page porque o Chromium
 // só desenha o cabeçalho/rodapé quando as margens vêm nas opções de page.pdf().
-const MARGENS = { top: "30mm", bottom: "25mm", left: "20mm", right: "20mm" };
+const MARGENS = { top: "25mm", bottom: "25mm", left: "20mm", right: "20mm" };
 
-// O cabeçalho é um documento à parte no Chromium (não herda o CSS da página), por isso repete a
+// O título do contrato aparece só na primeira página (no corpo do documento, ver
+// lib/cpcv-template.ts); em todas as páginas fica apenas "Página X de Y" no canto inferior direito.
+// O rodapé é um documento à parte no Chromium (não herda o CSS da página), por isso repete a
 // @font-face e precisa do tamanho de letra explícito. pageNumber/totalPages são as classes
 // especiais que o Chromium preenche em cada página.
-const CABECALHO_HTML = `
+const RODAPE_HTML = `
 <style>${FONT_FACE_CSS}</style>
-<div style="font-family: Arial, sans-serif; width: 100%; text-align: center; color: #000; margin: 6mm 20mm 0 20mm;">
-  <div style="font-size: 12pt; font-weight: bold;">${TITULO_CONTRATO}</div>
-  <div style="font-size: 10pt;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></div>
+<div style="font-family: Arial, sans-serif; font-size: 10pt; width: 100%; box-sizing: border-box; text-align: right; color: #000; padding: 0 20mm 6mm 20mm;">
+  Página <span class="pageNumber"></span> de <span class="totalPages"></span>
 </div>`;
 
 // Conta as páginas de um PDF a partir dos objectos /Type /Page (o Chromium escreve-os em texto
@@ -48,8 +48,8 @@ export async function gerarPdfCpcv(
         format: "A4",
         printBackground: true,
         displayHeaderFooter: true,
-        headerTemplate: CABECALHO_HTML,
-        footerTemplate: "<span></span>",
+        headerTemplate: "<span></span>",
+        footerTemplate: RODAPE_HTML,
         margin: MARGENS,
       });
       contadas = contarPaginasPdf(pdf);

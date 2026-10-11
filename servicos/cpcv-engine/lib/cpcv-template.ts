@@ -87,10 +87,11 @@ export function gerarHtmlCpcv(
 <style>
   ${FONT_FACE_CSS}
   /* Formatação aprovada: Arial 11pt, justificado, espaçamento 1,5; títulos centrados a negrito.
-     As margens da página são definidas em lib/cpcv-pdf.ts (page.pdf), porque o cabeçalho com o
+     As margens da página são definidas em lib/cpcv-pdf.ts (page.pdf), porque o rodapé com o
      número de página só aparece com margens passadas por aí, não via @page. */
   body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; margin: 0; }
   p { text-align: justify; margin: 0 0 3mm 0; }
+  .titulo-principal { text-align: center; font-size: 12pt; font-weight: bold; margin: 0 0 4mm 0; }
   .cabecalho-outorgantes { font-weight: bold; margin-top: 4mm; }
   .intro { font-weight: bold; margin-top: 4mm; }
   .titulo { text-align: center; font-weight: bold; margin: 6mm 0 0 0; break-after: avoid; page-break-after: avoid; }
@@ -103,6 +104,7 @@ export function gerarHtmlCpcv(
 </style>
 </head>
 <body>
+  <p class="titulo-principal">${TITULO_CONTRATO}</p>
   <p class="cabecalho-outorgantes">OUTORGANTES:</p>
   <p class="cabecalho-outorgantes">${outorgantes.cabecalhoVendedores}</p>
   ${outorgantes.identificacoesVendedores.map((texto) => `<p>${texto}.</p>`).join("\n  ")}
