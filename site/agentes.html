@@ -622,6 +622,11 @@
     margin-top:1px;
   }
   .cockpit-feat-icon svg{width:12px;height:12px;display:block;}
+  .cockpit-feat-icon svg path{stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .4s ease .15s;}
+  .cockpit-features li[data-reveal].is-visible .cockpit-feat-icon svg path{stroke-dashoffset:0;}
+  @media (prefers-reduced-motion:reduce){
+    .cockpit-feat-icon svg path{stroke-dashoffset:0!important;transition:none!important;}
+  }
   .spotlight-ctas{margin-top:44px;justify-content:center;align-items:center;}
   .spotlight-note{font-size:13px;color:var(--ink-2);}
 
@@ -1655,19 +1660,19 @@
     </div>
 
     <ul class="cockpit-features" data-reveal style="transition-delay:.25s">
-      <li>
+      <li data-reveal style="--n:0">
         <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
         Dashboard com metas e métricas - visitas, angariações e transações, com taxa de conversão calculada sozinha.
       </li>
-      <li>
+      <li data-reveal style="--n:1">
         <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
         CRM com funil automático - compradores e proprietários avançam sozinhos até à escritura.
       </li>
-      <li>
+      <li data-reveal style="--n:2">
         <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
         Plano de angariação de 180/120 dias, com lembretes de marketing em cada etapa.
       </li>
-      <li>
+      <li data-reveal style="--n:3">
         <span class="cockpit-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
         Calendário e tarefas unificados - as automações do CRM caem sozinhas na agenda do agente.
       </li>
