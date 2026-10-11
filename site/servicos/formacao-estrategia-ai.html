@@ -39,7 +39,7 @@
     --amber-text:#9a5b00;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}.adoption-ping{display:none;}}
+  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}.adoption-ping{display:none;}.roadmap-progress-line{stroke-dashoffset:0!important;}}
   body{
     margin:0;
     color:var(--ink);
@@ -414,7 +414,9 @@
         <line x1="46" y1="104" x2="334" y2="104" stroke="rgba(0,0,0,.08)"/>
 
         <line x1="60" y1="150" x2="320" y2="150" stroke="rgba(0,0,0,.1)" stroke-width="2"/>
-        <line x1="60" y1="150" x2="190" y2="150" stroke="#0071e3" stroke-width="2"/>
+        <line x1="60" y1="150" x2="190" y2="150" stroke="#0071e3" stroke-width="2" stroke-dasharray="130" stroke-dashoffset="130" class="roadmap-progress-line">
+          <animate attributeName="stroke-dashoffset" from="130" to="0" dur="1s" begin="0.2s" fill="freeze"/>
+        </line>
 
         <circle cx="60" cy="150" r="7" fill="#0071e3"/>
         <text x="44" y="172" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="650" fill="#1d1d1f">Diagnóstico</text>
