@@ -103,23 +103,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // A comissão a reter nunca pode exceder o sinal disponível - nunca inventar uma
-  // distribuição (ex.: descontar da parte do preço paga na escritura), a gestora decide
-  // expressamente o que fazer antes de gerar (ajustar a comissão, o sinal, ou a modalidade).
-  if (
-    processo.destino_sinal === "agencia" &&
-    typeof processo.comissao_valor === "number" &&
-    typeof processo.valor_sinal === "number" &&
-    processo.comissao_valor > processo.valor_sinal
-  ) {
-    return NextResponse.json(
-      {
-        error: `A comissão indicada (${processo.comissao_valor} €) é superior ao sinal (${processo.valor_sinal} €) - corrige em "Condições do negócio" antes de gerar.`,
-      },
-      { status: 400 }
-    );
-  }
-
   const { data: partes } = await supabase
     .from("cpcv_partes")
     .select(

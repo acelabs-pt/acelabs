@@ -532,8 +532,7 @@ export default function CondicoesNegocio({
                     </div>
                   </div>
                   <p className="text-xs text-[#94A3B8]">
-                    Nunca aparece no CPCV - só serve para confirmar que a comissão a reter não
-                    excede o valor do sinal.
+                    Nunca aparece no CPCV - fica registado só para a gestora/solicitadora.
                   </p>
                 </>
               )}

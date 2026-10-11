@@ -13,6 +13,19 @@ function euros(valor: number | null | undefined): string {
 export function informacaoForaDoContrato(processo: Processo): string[] {
   const alertas: string[] = [];
 
+  // Comissão superior ao sinal não bloqueia a geração (a comissão nunca vai para o contrato) -
+  // fica só como nota para a gestora/solicitadora.
+  if (
+    processo.destino_sinal === "agencia" &&
+    typeof processo.comissao_valor === "number" &&
+    typeof processo.valor_sinal === "number" &&
+    processo.comissao_valor > processo.valor_sinal
+  ) {
+    alertas.push(
+      `Comissão (${euros(processo.comissao_valor)}) superior ao sinal (${euros(processo.valor_sinal)}) - o sinal não cobre a comissão`
+    );
+  }
+
   if (processo.reserva === true) {
     const data = processo.reserva_ate_data ? `, paga até ${formatarDataCurta(processo.reserva_ate_data)}` : "";
     alertas.push(`Reserva: ${euros(processo.valor_reserva)}${data}`);
