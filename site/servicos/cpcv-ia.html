@@ -412,55 +412,87 @@
     .closing{padding:80px 0;}
     .closing h2{font-size:30px;}
   }
+
+  .skip-link{
+    position:absolute;left:-9999px;top:0;z-index:1000;
+    background:#141414;color:#fff;
+    padding:12px 20px;border-radius:0 0 10px 0;
+    font-size:14px;font-weight:600;
+  }
+  .skip-link:focus{left:0;}
+  main:focus{outline:none;}
+
+  /* ===== design pass: servicos ===== */
+  body > nav .wrap{max-width:1120px;padding:0 24px;}
+  h1,h2{text-wrap:balance;}
+  .article-hero h1{letter-spacing:-0.04em;}
+  .related{padding:96px 0 40px;}
+  .related h2{font-size:clamp(28px,3.4vw,40px);line-height:1.08;letter-spacing:-0.03em;max-width:22ch;}
+  .related-lead{margin-top:14px;font-size:17px;line-height:1.5;color:#6e6e73;max-width:52ch;}
+  .related-grid{margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;}
+  .related-card{
+    display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+    background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:22px;padding:26px;
+    box-shadow:0 20px 40px -30px rgba(20,30,50,.3);
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .related-card:hover{transform:translateY(-3px);box-shadow:0 28px 50px -28px rgba(20,30,50,.35);border-color:rgba(0,113,227,.28);}
+  .related-ic{width:46px;height:46px;border-radius:14px;background:#eaf2fd;display:flex;align-items:center;justify-content:center;color:#0071e3;}
+  .related-ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .related-card h3{margin:0;font-size:19px;letter-spacing:-0.015em;color:#1d1d1f;}
+  .related-card p{margin:0;font-size:14.5px;line-height:1.5;color:#6e6e73;flex:1;}
+  .related-more{font-size:14.5px;font-weight:600;color:#0071e3;transition:gap .2s ease;display:inline-flex;gap:6px;}
+  .related-card:hover .related-more{gap:10px;}
+  .closing{background:#EDEBE5;}
+  @media (max-width:900px){.related-grid{grid-template-columns:1fr;}.related{padding:72px 0 24px;}}
+  @media (prefers-reduced-motion:reduce){.related-card,.related-more{transition:none;}}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
 
 <nav>
   <div class="wrap">
     <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
     <div class="navlinks">
       <div class="nav-services">
-        <a href="../agencias.html#servicos" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
+        <a href="../solucoes.html" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="nav-services-menu">
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
             <a href="cpcv-ia.html">CPCV com IA</a>
             <a href="cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+            <a href="painel-de-gestao.html">Painel de Gestão</a>
           </div>
           <div class="nav-services-group">
-            <p class="nav-services-label">Serviços à medida</p>
-            <a href="lead-engine.html">Lead Engine</a>
-            <a href="dashboards-tempo-real.html">Dashboards em tempo real</a>
-            <a href="comunicacao-follow-up.html">Comunicação com follow-up</a>
-            <a href="workflows-a-medida.html">Workflows à medida</a>
-            <a href="gestao-recrutamento.html">Gestão de Recrutamento</a>
-            <a href="formacao-estrategia-ai.html">Formação & Estratégia AI</a>
+            <p class="nav-services-label">Serviço à medida</p>
             <a href="servicos-personalizados.html">Serviços personalizados</a>
           </div>
         </div>
       </div>
-      <a href="../agencias.html#recursos">Recursos</a>
-      <a href="../agencias.html#empresa">Empresa</a>
+      <a href="../recursos.html">Recursos</a>
+      <a href="../empresa.html">Empresa</a>
     </div>
-    <a href="../agencias.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../contacto.html" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
     <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="nav-mobile" id="nav-mobile">
-    <a href="../agencias.html#servicos">Serviços</a>
-    <a href="../agencias.html#recursos">Recursos</a>
-    <a href="../agencias.html#empresa">Empresa</a>
-    <a href="../agencias.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../solucoes.html">Serviços</a>
+    <a href="../recursos.html">Recursos</a>
+    <a href="../empresa.html">Empresa</a>
+    <a href="../contacto.html" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
+
+<main id="main-content" tabindex="-1">
 <div class="nav-scrim" id="nav-scrim"></div>
 
 <header class="article-hero">
   <div class="wrap article-grid">
     <div class="article-body">
-      <a class="back-link" href="../agencias.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <a class="back-link" href="../solucoes.html"><span aria-hidden="true">&larr;</span> Serviços</a>
       <span class="badge">Para agências imobiliárias</span>
       <h1>CPCV <span class="muted">com IA</span></h1>
       <p class="article-tagline">Da papelada ao contrato pronto, em minutos - não em dias de troca de emails.</p>
@@ -506,8 +538,8 @@
 
       <div class="article-divider"></div>
       <div class="hero-ctas article-ctas">
-        <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
-        <a href="../agencias.html#servicos" class="btn-outline">Ver todos os serviços</a>
+        <a href="../contacto.html" class="btn-dark">Marcar diagnóstico gratuito</a>
+        <a href="../solucoes.html" class="btn-outline">Ver todos os serviços</a>
       </div>
     </div>
     <div class="article-media">
@@ -566,15 +598,44 @@
   </div>
 </header>
 
+<section class="related" aria-labelledby="rel-title">
+  <div class="wrap">
+    <h2 id="rel-title">Outros serviços que se ligam a este</h2>
+    <p class="related-lead">Cada serviço funciona sozinho, mas o ganho maior vem de os juntar.</p>
+    <div class="related-grid">
+      <a class="related-card" href="cockpit.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg></span>
+        <h3>Cockpit</h3>
+        <p>Dashboard, CRM com funil automático e angariações, tudo sincronizado com o calendário.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="related-card" href="painel-de-gestao.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg></span>
+        <h3>Painel de Gestão</h3>
+        <p>Os teus números num só ecrã, com totais calculados sozinhos e acesso protegido. Para investidores e agências.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="related-card" href="servicos-personalizados.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
+        <h3>Serviços personalizados</h3>
+        <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
     <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
-      <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+      <a href="../contacto.html" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -596,8 +657,8 @@
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Empresa</p>
-          <a href="../agencias.html#empresa">Empresa</a>
-          <a href="../agencias.html#contacto">Marcar diagnóstico</a>
+          <a href="../empresa.html">Empresa</a>
+          <a href="../contacto.html">Marcar diagnóstico</a>
         </div>
       </div>
     </div>

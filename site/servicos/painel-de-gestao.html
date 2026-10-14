@@ -4,24 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
-<title>Ace Labs - Gestão de Recrutamento</title>
-<meta name="description" content="O funil de recrutamento da sua agência, da candidatura à primeira angariação, sem perder ninguém pelo caminho.">
+<title>Painel de Gestão - Ace Labs</title>
+<meta name="description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ace Labs">
-<meta property="og:title" content="Ace Labs - Gestão de Recrutamento">
-<meta property="og:description" content="O funil de recrutamento da sua agência, da candidatura à primeira angariação, sem perder ninguém pelo caminho.">
+<meta property="og:title" content="Painel de Gestão - Ace Labs">
+<meta property="og:description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
 <meta property="og:image" content="https://acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Ace Labs - IA para o setor imobiliário">
-<meta property="og:url" content="https://acelabs.pt/servicos/gestao-recrutamento.html">
+<meta property="og:url" content="https://acelabs.pt/servicos/painel-de-gestao.html">
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ace Labs - Gestão de Recrutamento">
-<meta name="twitter:description" content="O funil de recrutamento da sua agência, da candidatura à primeira angariação, sem perder ninguém pelo caminho.">
+<meta name="twitter:title" content="Painel de Gestão - Ace Labs">
+<meta name="twitter:description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
 <meta name="twitter:image" content="https://acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="../favicon.png">
-<link rel="canonical" href="https://acelabs.pt/servicos/gestao-recrutamento.html">
+<link rel="canonical" href="https://acelabs.pt/servicos/painel-de-gestao.html">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -34,12 +34,11 @@
     --blue:#0071e3;
     --blue-dark:#0059b3;
     --blue-soft-bg:#eaf2fd;
+    --muted-2:#6c6d7c;
     --line:rgba(0,0,0,.08);
-    --amber-bg:#fff4e5;
-    --amber-text:#9a5b00;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}.candidate-travel{transform:none!important;}}
+  html{scroll-behavior:smooth;}@media (prefers-reduced-motion:reduce){.feature-icon{animation:none!important;}}
   body{
     margin:0;
     color:var(--ink);
@@ -197,21 +196,21 @@
   .btn-outline:hover{background:#fff;border-color:rgba(20,20,20,.3);}
 
   /* ARTIGO DE SERVIÇO - texto + imagem lado a lado */
-  .article-hero{padding:100px 0 60px;}
+  .article-hero{padding:86px 0 24px;}
   .article-grid{
     display:grid;
-    grid-template-columns:1fr 1.25fr;
-    gap:56px;
+    grid-template-columns:0.95fr 1.4fr;
+    gap:40px;
     align-items:center;
   }
-  .article-media{line-height:0;}
-  .article-media svg{width:100%;height:auto;display:block;border-radius:28px;}
-  .stat-resolve{opacity:0;filter:blur(6px);animation:stat-resolve .6s ease forwards;}
-  .stat-resolve-1{animation-delay:.6s;}
-  .stat-resolve-2{animation-delay:.9s;}
-  @keyframes stat-resolve{to{opacity:1;filter:blur(0);}}
-  @media (prefers-reduced-motion:reduce){
-    .stat-resolve{animation:none!important;opacity:1!important;filter:none!important;}
+  .article-media{overflow:visible;}
+  .article-media img{
+    width:100%;
+    display:block;
+    transform:scale(1.14);
+    transform-origin:center;
+    mask-image:radial-gradient(ellipse 68% 68% at 50% 50%, #000 58%, transparent 100%);
+    -webkit-mask-image:radial-gradient(ellipse 68% 68% at 50% 50%, #000 58%, transparent 100%);
   }
   .back-link{
     display:inline-flex;align-items:center;gap:8px;
@@ -220,52 +219,32 @@
   }
   .back-link:hover{color:var(--ink);}
 
-  .badge{
-    display:inline-flex;align-items:center;gap:6px;
-    font-size:12.5px;font-weight:600;
-    color:var(--blue-dark);
-    background:var(--blue-soft-bg);
-    padding:6px 14px;
-    border-radius:980px;
-    margin-bottom:18px;
-  }
-
   .article-body h1{
     font-size:clamp(34px,4.4vw,50px);
     line-height:1.05;
     letter-spacing:-0.02em;
     color:#0e0e10;
   }
-  .article-body h1 .muted{color:#9a9ca0;}
+  .article-body h1 .muted{color:var(--muted-2);}
   .article-tagline{
-    font-size:clamp(19px,2vw,23px);
+    font-size:clamp(18px,1.8vw,21px);
     line-height:1.4;
-    color:var(--ink-2);
+    color:#15161c;
     font-weight:500;
     margin-top:20px;
     max-width:34ch;
   }
 
-  .feature-list{margin-top:44px;display:flex;flex-direction:column;gap:26px;}
+  .feature-list{margin-top:28px;display:flex;flex-direction:column;gap:16px;}
   .feature-item{display:flex;gap:16px;align-items:flex-start;}
   .feature-icon{
     flex:none;
-    width:52px;height:52px;
-    border-radius:14px;
+    width:44px;height:44px;
+    border-radius:12px;
     background:var(--blue-soft-bg);
     display:flex;align-items:center;justify-content:center;
   animation:icon-3d 5s ease-in-out 3;transform-style:preserve-3d;}@keyframes icon-3d{0%,100%{transform:perspective(400px) rotateY(0deg) rotateX(0deg);}25%{transform:perspective(400px) rotateY(16deg) rotateX(-8deg);}50%{transform:perspective(400px) rotateY(0deg) rotateX(8deg);}75%{transform:perspective(400px) rotateY(-16deg) rotateX(-6deg);}}.feature-item:nth-of-type(1) .feature-icon{animation-delay:0s;}.feature-item:nth-of-type(2) .feature-icon{animation-delay:-1.3s;}.feature-item:nth-of-type(3) .feature-icon{animation-delay:-2.6s;}.feature-item:nth-of-type(4) .feature-icon{animation-delay:-3.9s;}
-  .feature-icon svg{width:24px;height:24px;display:block;}
-  .icon-bell-ring{transform-origin:50% 15%;animation:bell-shake 2.4s ease-in-out 1;animation-delay:1.4s;}
-  @keyframes bell-shake{
-    0%,34%,100%{transform:rotate(0);}
-    4%{transform:rotate(10deg);}8%{transform:rotate(-9deg);}12%{transform:rotate(7deg);}
-    16%{transform:rotate(-6deg);}20%{transform:rotate(4deg);}24%{transform:rotate(-3deg);}
-    28%{transform:rotate(2deg);}32%{transform:rotate(0);}
-  }
-  @media (prefers-reduced-motion:reduce){
-    .icon-bell-ring{animation:none!important;}
-  }
+  .feature-icon svg{width:21px;height:21px;display:block;}
   .feature-text h3{
     font-size:16.5px;
     font-weight:650;
@@ -275,16 +254,66 @@
   .feature-text p{
     margin-top:5px;
     font-size:14.5px;
-    line-height:1.55;
-    color:var(--ink-2);
+    line-height:1.45;
+    color:var(--muted-2);
   }
 
-  .article-divider{
-    margin-top:36px;
+  /* EXEMPLOS DE SOLUÇÕES À MEDIDA */
+  .examples{
+    padding:32px 0 40px;
     border-top:1px solid var(--line);
   }
-  .article-ctas{margin-top:28px;}
-  .article-note{margin-top:14px;font-size:13px;color:var(--ink-2);}
+  .examples-eyebrow{
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.14em;
+    color:var(--muted-2);
+    text-transform:uppercase;
+  }
+  .examples-grid{
+    margin-top:22px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:28px 32px;
+  }
+  .example-item .feature-icon{width:44px;height:44px;border-radius:12px;margin-bottom:12px;animation:none;}
+  .example-item .feature-icon svg{width:22px;height:22px;}
+  .example-item h3{
+    font-size:16px;
+    font-weight:650;
+    letter-spacing:-0.005em;
+    color:var(--ink);
+  }
+  .example-item p{
+    margin-top:7px;
+    font-size:14px;
+    line-height:1.45;
+    color:var(--muted-2);
+  }
+
+  .examples-footer{
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  .examples-quote{
+    font-style:italic;
+    font-size:20px;
+    color:var(--ink);
+  }
+  .examples-tag{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.12em;
+    color:var(--ink-2);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
 
   /* CLOSING CTA (igual ao site principal) */
   .closing{padding:120px 0;text-align:center;}
@@ -313,7 +342,8 @@
     .article-hero{padding:130px 0 70px;}
     .article-grid{grid-template-columns:1fr;gap:40px;}
     .article-body{order:1;}
-    .article-media{order:2;max-width:380px;margin:0 auto;}
+    .article-media{order:2;}
+    .examples-grid{grid-template-columns:1fr 1fr;}
     .navlinks{display:none;}
     .nav-cta{display:none;}
     .nav-burger{display:flex;}
@@ -321,172 +351,188 @@
   @media (max-width:640px){
     .closing{padding:80px 0;}
     .closing h2{font-size:30px;}
+    .examples-grid{grid-template-columns:1fr;}
+    .examples-footer{align-items:flex-start;}
   }
+
+  .skip-link{
+    position:absolute;left:-9999px;top:0;z-index:1000;
+    background:#141414;color:#fff;
+    padding:12px 20px;border-radius:0 0 10px 0;
+    font-size:14px;font-weight:600;
+  }
+  .skip-link:focus{left:0;}
+  main:focus{outline:none;}
+
+  /* ===== design pass: servicos ===== */
+  body > nav .wrap{max-width:1120px;padding:0 24px;}
+  h1,h2{text-wrap:balance;}
+  .article-hero h1{letter-spacing:-0.04em;}
+  .related{padding:96px 0 40px;}
+  .related h2{font-size:clamp(28px,3.4vw,40px);line-height:1.08;letter-spacing:-0.03em;max-width:22ch;}
+  .related-lead{margin-top:14px;font-size:17px;line-height:1.5;color:#6e6e73;max-width:52ch;}
+  .related-grid{margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;}
+  .related-card{
+    display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+    background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:22px;padding:26px;
+    box-shadow:0 20px 40px -30px rgba(20,30,50,.3);
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .related-card:hover{transform:translateY(-3px);box-shadow:0 28px 50px -28px rgba(20,30,50,.35);border-color:rgba(0,113,227,.28);}
+  .related-ic{width:46px;height:46px;border-radius:14px;background:#eaf2fd;display:flex;align-items:center;justify-content:center;color:#0071e3;}
+  .related-ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .related-card h3{margin:0;font-size:19px;letter-spacing:-0.015em;color:#1d1d1f;}
+  .related-card p{margin:0;font-size:14.5px;line-height:1.5;color:#6e6e73;flex:1;}
+  .related-more{font-size:14.5px;font-weight:600;color:#0071e3;transition:gap .2s ease;display:inline-flex;gap:6px;}
+  .related-card:hover .related-more{gap:10px;}
+  .closing{background:#EDEBE5;}
+  @media (max-width:900px){.related-grid{grid-template-columns:1fr;}.related{padding:72px 0 24px;}}
+  @media (prefers-reduced-motion:reduce){.related-card,.related-more{transition:none;}}
+
+  /* painel ilustrativo */
+  .pm{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;box-shadow:0 40px 70px -40px rgba(10,22,40,.4);overflow:hidden;max-width:520px;width:100%;}
+  .pm-bar{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid rgba(0,0,0,.08);font-size:13px;font-weight:600;}
+  .pm-bar span{display:inline-flex;gap:5px;margin-right:4px;}
+  .pm-bar span i{width:9px;height:9px;border-radius:50%;background:#e1e1e5;}
+  .pm-bar em{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:600;color:#9a5b00;background:#fff4e5;padding:4px 9px;border-radius:7px;}
+  .pm-body{padding:22px 22px 24px;}
+  .pm-t{margin:0 0 12px;font-size:12.5px;font-weight:600;color:#6e6e73;}
+  .pm-chart{display:flex;align-items:flex-end;gap:12px;height:130px;}
+  .pm-chart span{flex:1;height:var(--h);border-radius:8px 8px 3px 3px;background:#dbe8fb;transform-origin:bottom;animation:pm-up .8s cubic-bezier(.2,.8,.2,1) both;}
+  .pm-chart span.on{background:#0071e3;}
+  .pm-chart span:nth-child(2){animation-delay:.08s;}.pm-chart span:nth-child(3){animation-delay:.16s;}
+  .pm-chart span:nth-child(4){animation-delay:.24s;}.pm-chart span:nth-child(5){animation-delay:.32s;}.pm-chart span:nth-child(6){animation-delay:.4s;}
+  @keyframes pm-up{from{transform:scaleY(.1);opacity:.3;}to{transform:scaleY(1);opacity:1;}}
+  .pm-months{display:flex;gap:12px;margin-top:8px;font-size:11.5px;color:#9a9ca0;}
+  .pm-months span{flex:1;text-align:center;}
+  .pm-list{list-style:none;margin:0;padding:0;}
+  .pm-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(0,0,0,.07);font-size:14px;font-weight:500;}
+  .pm-list b{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;}
+  .pm-list b.ok{background:#e6f6ec;color:#14793f;}
+  .pm-list b.mid{background:#fff4e5;color:#9a5b00;}
+  .pm-list b.sell{background:#eaf2fd;color:#0059b3;}
+  .pm-note{margin:26px 0 0;font-size:13.5px;line-height:1.5;color:#6e6e73;max-width:44ch;}
+  @media (prefers-reduced-motion:reduce){.pm-chart span{animation:none;}}
+
+  .article-body p{margin:0 0 16px;}
+  .article-body h1{margin-bottom:22px;}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
 
 <nav>
   <div class="wrap">
     <a class="logo" href="../index.html"><img src="../ace-labs-logo.png" alt="Ace Labs"></a>
     <div class="navlinks">
       <div class="nav-services">
-        <a href="../agencias.html#servicos" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
+        <a href="../solucoes.html" class="nav-services-trigger">Serviços <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="nav-services-menu">
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
             <a href="cpcv-ia.html">CPCV com IA</a>
             <a href="cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+            <a href="painel-de-gestao.html">Painel de Gestão</a>
           </div>
           <div class="nav-services-group">
-            <p class="nav-services-label">Serviços à medida</p>
-            <a href="lead-engine.html">Lead Engine</a>
-            <a href="dashboards-tempo-real.html">Dashboards em tempo real</a>
-            <a href="comunicacao-follow-up.html">Comunicação com follow-up</a>
-            <a href="workflows-a-medida.html">Workflows à medida</a>
-            <a href="gestao-recrutamento.html">Gestão de Recrutamento</a>
-            <a href="formacao-estrategia-ai.html">Formação & Estratégia AI</a>
+            <p class="nav-services-label">Serviço à medida</p>
             <a href="servicos-personalizados.html">Serviços personalizados</a>
           </div>
         </div>
       </div>
-      <a href="../agencias.html#recursos">Recursos</a>
-      <a href="../agencias.html#empresa">Empresa</a>
+      <a href="../recursos.html">Recursos</a>
+      <a href="../empresa.html">Empresa</a>
     </div>
-    <a href="../agencias.html#contacto" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../contacto.html" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
     <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile">
       <span></span><span></span><span></span>
     </button>
   </div>
   <div class="nav-mobile" id="nav-mobile">
-    <a href="../agencias.html#servicos">Serviços</a>
-    <a href="../agencias.html#recursos">Recursos</a>
-    <a href="../agencias.html#empresa">Empresa</a>
-    <a href="../agencias.html#contacto" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
+    <a href="../solucoes.html">Serviços</a>
+    <a href="../recursos.html">Recursos</a>
+    <a href="../empresa.html">Empresa</a>
+    <a href="../contacto.html" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
+
+<main id="main-content" tabindex="-1">
 <div class="nav-scrim" id="nav-scrim"></div>
 
 <header class="article-hero">
   <div class="wrap article-grid">
-    <div class="article-body">
-      <a class="back-link" href="../agencias.html#servicos"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <span class="badge">Para team leaders e brokers</span>
-      <h1>Gestão de <span class="muted">Recrutamento</span></h1>
-      <p class="article-tagline">O funil de recrutamento da sua agência - da candidatura à primeira angariação, sem perder ninguém pelo caminho.</p>
-
-      <div class="feature-list">
-        <div class="feature-item">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3.7v4h-4"/><path d="M6 20.3v-4h4"/></svg>
+    <div class="article-media" data-reveal style="--n:1">
+      <div class="pm" role="img" aria-label="Exemplo ilustrativo de um painel de gestão: totais por mês e uma carteira de imóveis com o estado de cada um.">
+        <div class="pm-bar"><span><i></i><i></i><i></i></span>Painel de Gestão <em>Exemplo ilustrativo</em></div>
+        <div class="pm-body">
+          <p class="pm-t">Totais por mês</p>
+          <div class="pm-chart">
+            <span style="--h:46%"></span><span style="--h:62%"></span><span style="--h:38%"></span><span style="--h:74%"></span><span style="--h:58%"></span><span style="--h:86%" class="on"></span>
           </div>
-          <div class="feature-text">
-            <h3>Funil de candidatos automático</h3>
-            <p>Candidatura, primeira conversa, entrevista, proposta e onboarding - cada fase com lembrete automático para o recrutador nunca deixar um candidato parado.</p>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
-          </div>
-          <div class="feature-text">
-            <h3>Dashboard de recrutamento</h3>
-            <p>Candidaturas recebidas, taxa de conversão por fase e tempo médio até à contratação - tudo visível num único painel.</p>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/><path d="M7.5 14.5h9"/></svg>
-          </div>
-          <div class="feature-text">
-            <h3>Onboarding estruturado</h3>
-            <p>Checklist automático das primeiras semanas de um agente novo - formação, ferramentas e primeiras angariações - sincronizado com o calendário da equipa.</p>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">
-            <svg class="icon-bell-ring" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          </div>
-          <div class="feature-text">
-            <h3>Alertas de candidatos parados</h3>
-            <p>Aviso automático quando um candidato fica sem resposta há vários dias, para não perder talento por falta de follow-up.</p>
-          </div>
+          <div class="pm-months"><span>jun</span><span>jul</span><span>ago</span><span>set</span><span>out</span><span>nov</span></div>
+          <p class="pm-t" style="margin-top:20px">Carteira</p>
+          <ul class="pm-list">
+            <li><span>Apartamento T2, Porto</span><b class="ok">Arrendado</b></li>
+            <li><span>Moradia T4, Braga</span><b class="mid">Em obras</b></li>
+            <li><span>Loja, Guimarães</span><b class="sell">À venda</b></li>
+          </ul>
         </div>
       </div>
-
-      <div class="article-divider"></div>
-      <div class="hero-ctas article-ctas">
-        <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
-        <a href="../agencias.html#servicos" class="btn-outline">Ver todos os serviços</a>
-      </div>
-      <p class="article-note">Faz parte do pacote de Automação de Processos - construído à medida do funil de recrutamento da sua agência.</p>
     </div>
-    <div class="article-media">
-      <svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de um quadro de recrutamento com três colunas - Candidatura, Entrevista e Proposta - cada uma com cartões de candidatos, e métricas de tempo médio até à contratação e taxa de conversão.">
-        <rect width="380" height="420" rx="28" fill="#eaf2fd"/>
-        <rect x="24" y="36" width="332" height="352" rx="22" fill="#ffffff"/>
-
-        <text x="46" y="70" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">Recrutamento</text>
-        <text x="46" y="88" font-family="Inter, Arial, sans-serif" font-size="10" fill="#9a9ca0">8 candidaturas ativas</text>
-        <line x1="46" y1="104" x2="334" y2="104" stroke="rgba(0,0,0,.08)"/>
-
-        <circle cx="50" cy="126" r="4" fill="#0071e3"/>
-        <text x="60" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Candidatura</text>
-        <rect x="46" y="142" width="92" height="58" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
-        <circle cx="64" cy="162" r="10" fill="#c7e0fa"/>
-        <rect x="80" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
-        <rect x="80" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
-        <rect x="58" y="180" width="68" height="12" rx="6" fill="#eaf2fd"/>
-        <text x="64" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#0071e3">Nova</text>
-
-        <g class="candidate-travel">
-          <rect x="46" y="208" width="92" height="46" rx="10" fill="#f5f8fc" stroke="rgba(0,0,0,.05)"/>
-          <circle cx="64" cy="228" r="10" fill="#c7e0fa"/>
-          <rect x="80" y="223" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
-          <rect x="80" y="234" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
-          <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 102,0; 102,0" keyTimes="0;0.3;0.7;1" dur="2.4s" begin="1s" fill="freeze"/>
-        </g>
-
-        <circle cx="152" cy="126" r="4" fill="#ff9f0a"/>
-        <text x="162" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Entrevista</text>
-        <rect x="148" y="142" width="92" height="58" rx="10" fill="#fff8ee" stroke="rgba(0,0,0,.05)"/>
-        <circle cx="166" cy="162" r="10" fill="#ffe3b0"/>
-        <rect x="182" y="157" width="48" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
-        <rect x="182" y="168" width="34" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
-        <rect x="160" y="180" width="72" height="12" rx="6" fill="#fff4e5"/>
-        <text x="166" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#9a5b00">Agendada</text>
-
-        <circle cx="254" cy="126" r="4" fill="#1fae5a"/>
-        <text x="264" y="130" font-family="Inter, Arial, sans-serif" font-size="10.5" font-weight="650" fill="#1d1d1f">Proposta</text>
-        <rect x="250" y="142" width="92" height="58" rx="10" fill="#f2faf5" stroke="rgba(0,0,0,.05)"/>
-        <circle cx="268" cy="162" r="10" fill="#bfe8cf"/>
-        <rect x="284" y="157" width="40" height="6" rx="3" fill="rgba(29,29,31,.5)"/>
-        <rect x="284" y="168" width="30" height="5" rx="2.5" fill="rgba(29,29,31,.2)"/>
-        <rect x="262" y="180" width="66" height="12" rx="6" fill="#e8f8ee"/>
-        <text x="268" y="189" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="650" fill="#1a8f49">Enviada</text>
-
-        <rect x="46" y="296" width="288" height="1" fill="rgba(0,0,0,.08)"/>
-
-        <text x="46" y="322" font-family="Inter, Arial, sans-serif" font-size="9" fill="#9a9ca0">Tempo médio até contratação</text>
-        <text class="stat-resolve stat-resolve-1" x="46" y="344" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700" fill="#0071e3">18 dias</text>
-
-        <rect x="206" y="304" width="128" height="46" rx="12" fill="#eaf2fd"/>
-        <text x="220" y="324" font-family="Inter, Arial, sans-serif" font-size="8.5" fill="#0059b3">Taxa de conversão</text>
-        <text class="stat-resolve stat-resolve-2" x="220" y="341" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#0071e3">32%</text>
-      </svg>
+    <div class="article-body">
+      <a class="back-link" href="../solucoes.html" data-reveal style="--n:0"><span aria-hidden="true">&larr;</span> Serviços</a>
+      <h1 data-reveal style="--n:1">A tua carteira e o teu negócio, <span class="muted">num só painel.</span></h1>
+      <p data-reveal style="--n:2">Para investidores, gestores de património e agências que hoje juntam números em folhas de cálculo e emails.</p>
+      <p data-reveal style="--n:3">O Painel de Gestão reúne no mesmo ecrã os dados que já tens. Os totais são recalculados sempre que algo muda, por isso nunca dependem de contas feitas à mão.</p>
+      <p data-reveal style="--n:3">Se já trabalhas num Google Sheets, não perdes esse hábito: usamos a folha como fonte. O acesso fica protegido por login.</p>
+      <div class="article-divider" data-reveal style="--n:4"></div>
+      <div class="hero-ctas article-ctas" data-reveal style="--n:5">
+        <a href="../contacto.html" class="btn-dark">Falar sobre o painel</a>
+        <a href="../solucoes.html" class="btn-outline">Ver todos os serviços</a>
+      </div>
+      <p class="pm-note" data-reveal style="--n:6">Construído para um cliente real do setor imobiliário. A versão para investidores está em preparação.</p>
     </div>
   </div>
 </header>
+
+<section class="related" aria-labelledby="rel-title">
+  <div class="wrap">
+    <h2 id="rel-title">Outros serviços que se ligam a este</h2>
+    <p class="related-lead">Cada serviço funciona sozinho, mas o ganho maior vem de os juntar.</p>
+    <div class="related-grid">
+      <a class="related-card" href="cpcv-ia.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span>
+        <h3>CPCV com IA</h3>
+        <p>Gera contratos-promessa de compra e venda a partir dos documentos, com os dados extraídos automaticamente.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="related-card" href="cockpit.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg></span>
+        <h3>Cockpit</h3>
+        <p>Dashboard, CRM com funil automático e angariações, tudo sincronizado com o calendário.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="related-card" href="servicos-personalizados.html">
+        <span class="related-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
+        <h3>Serviços personalizados</h3>
+        <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
+        <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
+      </a>
+    </div>
+  </div>
+</section>
 
 <section class="closing" id="contacto">
   <div class="wrap">
     <h2>Vamos ver onde está a perder mais tempo?</h2>
     <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
-      <a href="../agencias.html#contacto" class="btn-dark">Marcar diagnóstico gratuito</a>
+      <a href="../contacto.html" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -508,8 +554,8 @@
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Empresa</p>
-          <a href="../agencias.html#empresa">Empresa</a>
-          <a href="../agencias.html#contacto">Marcar diagnóstico</a>
+          <a href="../empresa.html">Empresa</a>
+          <a href="../contacto.html">Marcar diagnóstico</a>
         </div>
       </div>
     </div>
