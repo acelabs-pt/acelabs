@@ -540,6 +540,86 @@
 
   /* estrategia ilustrativa: pontos desfocados */
   .timeline-dot{filter:blur(1.8px);}
+
+  /* ===== simulador do Cockpit ===== */
+  .sim-sec{padding:40px 0 100px;}
+  .sim{margin-top:36px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:26px;padding:22px;box-shadow:0 30px 60px -40px rgba(20,30,50,.35);}
+  .sim-bar{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;}
+  .sim-clock{display:flex;flex-direction:column;min-width:96px;}
+  .sim-day{font-size:22px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:#1d1d1f;}
+  .sim-week{font-size:12.5px;font-weight:600;color:#6e6e73;font-variant-numeric:tabular-nums;}
+  .sim-track{height:8px;border-radius:5px;background:#f0f1f3;overflow:hidden;}
+  .sim-track i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#0071e3,#4aa3ff);transition:width .25s linear;}
+  .sim-ctrl{display:flex;align-items:center;gap:8px;}
+  .sim-play,.sim-reset{width:40px;height:40px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease,transform .15s ease;}
+  .sim-play{background:#141414;color:#fff;}
+  .sim-play:hover{background:#000;}
+  .sim-reset{background:#f0f1f3;color:#1d1d1f;}
+  .sim-reset:hover{background:#e4e6ea;}
+  .sim-play:active,.sim-reset:active{transform:scale(.95);}
+  .sim-play svg,.sim-reset svg{width:18px;height:18px;}
+  .sim-play .i-play{display:none;}
+  .sim.is-paused .sim-play .i-play{display:block;}
+  .sim.is-paused .sim-play .i-pause{display:none;}
+  .sim-speed{display:flex;background:#f0f1f3;border-radius:980px;padding:3px;}
+  .sim-speed button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#6e6e73;padding:7px 11px;border-radius:980px;cursor:pointer;font-variant-numeric:tabular-nums;}
+  .sim-speed button.on{background:#fff;color:#1d1d1f;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+
+  .sim-new{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;border-radius:16px;background:#f7f7f9;}
+  .sim-new-t{font-size:13px;font-weight:700;color:#1d1d1f;margin-right:4px;}
+  .sim-new input,.sim-new select{font:inherit;font-size:14px;padding:9px 12px;border-radius:10px;border:1px solid rgba(0,0,0,.12);background:#fff;color:#1d1d1f;}
+  .sim-new input{flex:1;min-width:160px;}
+  .sim-new button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;padding:10px 14px;background:#0071e3;color:#fff;cursor:pointer;transition:background .15s ease;}
+  .sim-new button:hover{background:#0059b3;}
+
+  .sim-feed{margin:14px 2px 4px;font-size:13.5px;color:#6e6e73;min-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sim-feed b{color:#1d1d1f;}
+
+  .sim-funnel{margin-top:14px;}
+  .sim-ft{margin:0 0 8px 2px;font-size:13px;font-weight:700;color:#1d1d1f;}
+  .sim-cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(118px,1fr);gap:8px;overflow-x:auto;padding-bottom:4px;}
+  .sim-col{background:#f7f7f9;border-radius:14px;padding:10px;min-height:138px;display:flex;flex-direction:column;gap:6px;}
+  .sim-col.last{background:#e6f6ec;}
+  .sim-col-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:11.5px;font-weight:600;color:#6e6e73;line-height:1.25;}
+  .sim-col-h b{font-size:15px;color:#1d1d1f;font-variant-numeric:tabular-nums;}
+  .sim-chip{font-size:12px;font-weight:500;background:#fff;border-radius:9px;padding:6px 8px;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    box-shadow:0 1px 2px rgba(0,0,0,.06);}
+  .sim-chip.fresh{animation:sim-in .35s cubic-bezier(.2,.8,.2,1);}
+  .sim-chip.mine{background:#0071e3;color:#fff;}
+  .sim-chip.alert{box-shadow:inset 0 0 0 1.5px #ff9f0a;}
+  .sim-more{font-size:11.5px;color:#6e6e73;padding-left:2px;}
+  @keyframes sim-in{from{opacity:0;transform:translateY(6px) scale(.96);}to{opacity:1;transform:none;}}
+
+  .sim-stats{margin-top:18px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+  .sim-stats div{background:#f7f7f9;border-radius:14px;padding:12px;}
+  .sim-stats b{display:block;font-size:22px;letter-spacing:-0.02em;color:#1d1d1f;font-variant-numeric:tabular-nums;}
+  .sim-stats span{display:block;margin-top:2px;font-size:12px;color:#6e6e73;}
+  .sim-stats .sim-save{background:#eaf2fd;}
+  .sim-stats .sim-save b{color:#0059b3;}
+  .sim-stats .sim-money{background:#0071e3;}
+  .sim-stats .sim-money b,.sim-stats .sim-money span{color:#fff;}
+
+  .sim-assume{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:flex-end;}
+  .sim-assume label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:#6e6e73;}
+  .sim-assume input{width:110px;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px solid rgba(0,0,0,.12);}
+  .sim-assume p{flex:1 1 320px;margin:0;font-size:12.5px;line-height:1.5;color:#8d8d93;}
+
+  .sim button:focus-visible,.sim input:focus-visible,.sim select:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+
+  @media (max-width:900px){
+    .sim-bar{grid-template-columns:1fr auto;}
+    .sim-track{grid-column:1 / -1;order:3;}
+    .sim-stats{grid-template-columns:repeat(3,minmax(0,1fr));}
+  }
+  @media (max-width:560px){
+    .sim{padding:16px;border-radius:20px;}
+    .sim-bar{grid-template-columns:1fr;gap:12px;}
+    .sim-ctrl{flex-wrap:wrap;}
+    .sim-track{order:0;}
+    .sim-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .sim-speed button{padding:7px 8px;}
+  }
+  @media (prefers-reduced-motion:reduce){.sim-chip{animation:none;}.sim-track i{transition:none;}}
 </style>
 </head>
 <body>
@@ -564,7 +644,6 @@
           </div>
         </div>
       </div>
-      <a href="../recursos.html">Recursos</a>
       <a href="../empresa.html">Empresa</a>
     </div>
     <a href="../contacto.html" class="nav-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
@@ -574,7 +653,6 @@
   </div>
   <div class="nav-mobile" id="nav-mobile">
     <a href="../solucoes.html">Serviços</a>
-    <a href="../recursos.html">Recursos</a>
     <a href="../empresa.html">Empresa</a>
     <a href="../contacto.html" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
@@ -691,43 +769,75 @@
   </div>
 </header>
 
-<section class="cockpit-funnels">
+<section class="sim-sec" id="simulador" aria-labelledby="sim-title">
   <div class="wrap">
-    <p class="hero-eyebrow" data-reveal style="--n:0">CRM com funil automático</p>
-    <h2 data-scramble data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:26ch;">Compradores e proprietários, <span class="muted" style="color:#9a9ca0;">cada um com o seu funil.</span></h2>
-    <p class="sub-col" data-reveal style="--n:2">Cada contacto avança sozinho pelas suas etapas, com alertas automáticos sempre que fica parado tempo a mais.</p>
+    <p class="hero-eyebrow" data-reveal style="--n:0">Simulador</p>
+    <h2 id="sim-title" data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:26ch;">Vê o Cockpit a trabalhar <span class="muted" style="color:#9a9ca0;">sozinho.</span></h2>
+    <p class="sub-col" data-reveal style="--n:2">Cada passo do relógio é um dia. Entra um lead em cada funil, os contactos avançam pelas fases e o Cockpit trata dos registos e lembretes. Acelera o tempo, cria o teu próprio lead e vê quanto se poupa.</p>
 
-    <div class="funnel-grid">
-      <div class="funnel-card" data-reveal style="--n:3">
-        <h4>Funil de compradores</h4>
-        <div class="funnel-stages">
-          <span class="funnel-token" aria-hidden="true"></span>
-          <span class="stage-chip">Lead Qualificada</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Imóveis Enviados</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Visitas Realizadas</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Propostas Efetuadas</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">CPCV</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Escritura</span><span class="stage-arrow">→</span>
-          <span class="stage-chip is-last">Negócio Concluído</span>
+    <div class="sim" data-sim data-reveal style="--n:3">
+      <div class="sim-bar">
+        <div class="sim-clock">
+          <span class="sim-day" data-sim-day>Dia 0</span>
+          <span class="sim-week" data-sim-week>Semana 1</span>
+        </div>
+        <div class="sim-track" aria-hidden="true"><i data-sim-progress></i></div>
+        <div class="sim-ctrl">
+          <button type="button" class="sim-play" data-sim-play aria-label="Pausar">
+            <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+          </button>
+          <div class="sim-speed" role="group" aria-label="Velocidade">
+            <button type="button" data-speed="0.5">0,5x</button>
+            <button type="button" data-speed="1" class="on" aria-pressed="true">1x</button>
+            <button type="button" data-speed="2">2x</button>
+            <button type="button" data-speed="4">4x</button>
+          </div>
+          <button type="button" class="sim-reset" data-sim-reset aria-label="Recomeçar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
         </div>
       </div>
-      <div class="funnel-card" data-reveal style="--n:4">
-        <h4>Funil de proprietários</h4>
-        <div class="funnel-stages">
-          <span class="funnel-token" aria-hidden="true"></span>
-          <span class="stage-chip">FSBO</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Marcação de Reunião</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Reunião de Angariação</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Dossier + Instagram</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Follow-up 1</span><span class="stage-arrow">→</span>
-          <span class="stage-chip">Follow-up 2</span><span class="stage-arrow">→</span>
-          <span class="stage-chip is-last">Angariado</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="hero-ctas funnels-cta" data-reveal style="--n:5">
-      <a href="../agentes.html#fluxo-cockpit" class="btn-outline">Experimentar o fluxo interativo <span aria-hidden="true">&rarr;</span></a>
+      <form class="sim-new" data-sim-form>
+        <span class="sim-new-t">Criar lead</span>
+        <input type="text" name="nome" placeholder="Nome do cliente" maxlength="28" required aria-label="Nome do cliente">
+        <select name="funil" aria-label="Funil">
+          <option value="c">Comprador</option>
+          <option value="p">Proprietário</option>
+        </select>
+        <button type="submit">Adicionar ao funil</button>
+      </form>
+
+      <p class="sim-feed" data-sim-feed>Carrega no play para começar.</p>
+
+      <div class="sim-funnel">
+        <p class="sim-ft">Funil de compradores</p>
+        <div class="sim-cols" data-sim-cols="c"></div>
+      </div>
+      <div class="sim-funnel">
+        <p class="sim-ft">Funil de proprietários</p>
+        <div class="sim-cols" data-sim-cols="p"></div>
+      </div>
+
+      <div class="sim-stats">
+        <div><b data-st="leads">0</b><span>Leads recebidos</span></div>
+        <div><b data-st="deals">0</b><span>Negócios concluídos</span></div>
+        <div><b data-st="listings">0</b><span>Angariações</span></div>
+        <div><b data-st="actions">0</b><span>Ações automáticas</span></div>
+        <div class="sim-save"><b data-st="time">0 h</b><span>Tempo poupado</span></div>
+        <div class="sim-save sim-money"><b data-st="money">0 €</b><span>Dinheiro poupado</span></div>
+      </div>
+
+      <div class="sim-assume">
+        <label>Minutos poupados por ação automática
+          <input type="number" min="1" max="60" step="1" value="5" data-sim-min>
+        </label>
+        <label>Custo de uma hora do agente (€)
+          <input type="number" min="1" max="200" step="1" value="15" data-sim-cost>
+        </label>
+        <p>Simulação ilustrativa, com leads e nomes fictícios. Cada registo, lembrete ou alerta que o Cockpit faz sozinho conta como uma ação automática. A poupança depende dos valores que pões aqui.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1153,6 +1263,146 @@
         if(!wasOpen) item.classList.add('is-open');
       });
     });
+  })();
+
+  (function(){
+    var root = document.querySelector('[data-sim]');
+    if(!root) return;
+    var FUNNELS = {
+      c: { stages: ['Lead qualificada','Imóveis enviados','Visita realizada','Proposta efetuada','CPCV','Escritura','Negócio concluído'],
+           adv: [0.34,0.30,0.26,0.24,0.32,0.36] },
+      p: { stages: ['Contacto','Reunião marcada','Reunião de angariação','Proposta de angariação','Follow-up','Angariado'],
+           adv: [0.36,0.32,0.28,0.26,0.30] }
+    };
+    var FIRST = ['Rui','Ana','Pedro','Marta','Tiago','Inês','João','Sofia','Miguel','Beatriz','Nuno','Carla','André','Rita','Luís','Joana','Hugo','Catarina','Diogo','Helena'];
+    var LAST = ['Martins','Costa','Alves','Sousa','Almeida','Ferreira','Pereira','Carvalho','Ribeiro','Lopes','Rocha','Matos','Pinto','Teixeira'];
+    var DAYS_SHOWN = 120;          // a barra de tempo enche em 120 dias e recomeça a contar
+    var DROP = 0.08;               // probabilidade diaria de um lead se perder
+    var STUCK = 7;                 // dias parado numa fase ate gerar alerta
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var el = function(s){ return root.querySelector(s); };
+    var dayEl = el('[data-sim-day]'), weekEl = el('[data-sim-week]'), prog = el('[data-sim-progress]');
+    var feed = el('[data-sim-feed]'), playBtn = el('[data-sim-play]');
+    var minIn = el('[data-sim-min]'), costIn = el('[data-sim-cost]');
+    var st = {}; root.querySelectorAll('[data-st]').forEach(function(n){ st[n.getAttribute('data-st')] = n; });
+    var euro = new Intl.NumberFormat('pt-PT', { style:'currency', currency:'EUR', maximumFractionDigits:0 });
+
+    var state, timer = null, speed = 1, playing = false, visible = false, uid = 0, seen = {};
+
+    function rnd(a){ return a[Math.floor(Math.random() * a.length)]; }
+    function name(){ return rnd(FIRST) + ' ' + rnd(LAST); }
+    function reset(){
+      state = { day:0, leads:[], total:0, deals:0, listings:0, actions:0 }; seen = {};
+      say('Carrega no play para começar.');
+      render();
+    }
+    function say(html){ feed.innerHTML = html; }
+    function add(f, nm, mine){
+      state.leads.push({ id:++uid, f:f, name:nm, stage:0, since:state.day, mine:!!mine, alerted:false, doneAt:null });
+      state.total++; state.actions++;                       // registo automatico do lead
+    }
+
+    function tick(){
+      state.day++;
+      add('c', name()); add('p', name());
+      var last = null;
+      state.leads.forEach(function(l){
+        var F = FUNNELS[l.f], end = F.stages.length - 1;
+        if(l.stage === end) return;
+        if(l.stage < end - 1 && !l.mine && Math.random() < DROP){ l.lost = true; return; }
+        if(Math.random() < F.adv[l.stage]){
+          l.stage++; l.since = state.day; l.alerted = false;
+          state.actions++;                                  // lembrete/registo da nova fase
+          if(l.stage === end){
+            l.doneAt = state.day;
+            if(l.f === 'c') state.deals++; else state.listings++;
+          }
+          if(l.mine || !last || Math.random() < 0.3) last = l;
+        } else if(!l.alerted && state.day - l.since >= STUCK){
+          l.alerted = true; state.actions++;                // alerta "sem contacto ha X dias"
+        }
+      });
+      // limpa perdidos e concluidos ha mais de 3 dias, para o quadro nao crescer sem fim
+      state.leads = state.leads.filter(function(l){ return !l.lost && !(l.doneAt !== null && !l.mine && state.day - l.doneAt > 3); });
+      if(last){
+        var F = FUNNELS[last.f];
+        say('Dia ' + state.day + ': <b>' + last.name + '</b> passou para <b>' + F.stages[last.stage] + '</b>' + (last.mine ? ' (o teu lead)' : '') + '.');
+      }
+      render();
+    }
+
+    function render(){
+      dayEl.textContent = 'Dia ' + state.day;
+      weekEl.textContent = 'Semana ' + (Math.floor(state.day / 7) + 1);
+      prog.style.width = ((state.day % DAYS_SHOWN) / DAYS_SHOWN * 100).toFixed(1) + '%';
+      ['c','p'].forEach(function(f){
+        var F = FUNNELS[f], wrap = root.querySelector('[data-sim-cols="' + f + '"]');
+        var html = '';
+        F.stages.forEach(function(sname, i){
+          var here = state.leads.filter(function(l){ return l.f === f && l.stage === i; });
+          here.sort(function(a, b){ return (b.mine - a.mine) || (b.id - a.id); });
+          html += '<div class="sim-col' + (i === F.stages.length - 1 ? ' last' : '') + '"><div class="sim-col-h"><span>' + sname + '</span><b>' + here.length + '</b></div>';
+          here.slice(0, 3).forEach(function(l){
+            var alert = l.alerted && i < F.stages.length - 1;
+            var key = l.id + ':' + i, fresh = !seen[key]; seen[key] = 1;
+            html += '<div class="sim-chip' + (fresh ? ' fresh' : '') + (l.mine ? ' mine' : '') + (alert ? ' alert' : '') + '" title="' + l.name + '" data-id="' + l.id + '">' + l.name + '</div>';
+          });
+          if(here.length > 3) html += '<span class="sim-more">+' + (here.length - 3) + '</span>';
+          html += '</div>';
+        });
+        wrap.innerHTML = html;
+      });
+      var mins = Math.max(1, +minIn.value || 5), cost = Math.max(1, +costIn.value || 15);
+      var hours = state.actions * mins / 60;
+      st.leads.textContent = state.total;
+      st.deals.textContent = state.deals;
+      st.listings.textContent = state.listings;
+      st.actions.textContent = state.actions;
+      st.time.textContent = (hours < 10 ? hours.toFixed(1).replace('.', ',') : Math.round(hours)) + ' h';
+      st.money.textContent = euro.format(hours * cost);
+    }
+
+    function schedule(){
+      clearInterval(timer); timer = null;
+      if(playing && visible) timer = setInterval(tick, 500 / speed);
+    }
+    function setPlaying(v){
+      playing = v;
+      root.classList.toggle('is-paused', !v);
+      playBtn.setAttribute('aria-label', v ? 'Pausar' : 'Continuar');
+      schedule();
+    }
+
+    playBtn.addEventListener('click', function(){ setPlaying(!playing); });
+    el('[data-sim-reset]').addEventListener('click', function(){ reset(); });
+    root.querySelectorAll('[data-speed]').forEach(function(b){
+      b.addEventListener('click', function(){
+        speed = parseFloat(b.getAttribute('data-speed'));
+        root.querySelectorAll('[data-speed]').forEach(function(x){ x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        schedule();
+      });
+    });
+    el('[data-sim-form]').addEventListener('submit', function(e){
+      e.preventDefault();
+      var f = e.target.funil.value, nm = (e.target.nome.value || '').replace(/[<>&"'`]/g, '').trim();
+      if(!nm) return;
+      add(f, nm, true);
+      say('<b>' + nm + '</b> entrou no funil de ' + (f === 'c' ? 'compradores' : 'proprietários') + '. O Cockpit já registou o contacto.');
+      e.target.nome.value = '';
+      render();
+      if(!playing) setPlaying(true);
+    });
+    [minIn, costIn].forEach(function(i){ i.addEventListener('input', render); });
+
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ visible = en.isIntersecting; schedule(); });
+      }, { threshold: 0.2 }).observe(root);
+    } else { visible = true; }
+
+    reset();
+    setPlaying(!reduce);   // com movimento reduzido, comeca em pausa
   })();
 </script>
 
