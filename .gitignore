@@ -8,3 +8,6 @@ business-center/
 # estado local do Claude Code (as skills em .claude/skills/ são partilhadas, o resto não)
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+
+# armazem interno do instalador de skills (as skills ativas estao em .claude/skills)
+.agents/
