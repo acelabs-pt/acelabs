@@ -183,6 +183,26 @@ cookies chegam para manter a sessão), depois lançar o Brave com
 e `userDataDir` para a cópia. A cópia do scratchpad não sobrevive entre sessões (é pasta temporária
 por sessão) - este procedimento tem de ser refeito do zero na próxima sessão.
 
+## Skills do projeto (design)
+
+Instaladas em `.claude/skills/` (partilhadas com o Miguel, vêm do hub KopkAI):
+
+- `frontend-design` (Anthropic): ponto de partida para qualquer página ou secção nova.
+- `redesign-existing-projects` (Taste): melhorar páginas que já existem sem partir o que funciona.
+- `design-taste-frontend` (Taste): direção visual própria, anti-genérico.
+
+**As skills sugerem coisas que a marca proíbe.** Os pedidos delas (fontes com serifa, paletas novas,
+roxos/gradientes, eyebrows em maiúsculas espaçadas) perdem sempre para a secção "Identidade visual"
+e "Estilo" deste ficheiro. Usar as skills para estrutura, ritmo, estados e acessibilidade, não para
+trocar fontes ou cores.
+
+Plugins pessoais (instalar com `/plugin marketplace add`): `pbakaus/impeccable` e
+`nextlevelbuilder/ui-ux-pro-max-skill`. O `ui-ux-pro-max` sugere paletas e pares de fontes: tratar
+como ideias, nunca como substituição da identidade.
+
+Verificar sempre no browser com script Playwright descartável (secção "Verificação no browser"),
+nunca com MCP de browser.
+
 ## Regras de resposta (Claude Code)
 
 - Responder sempre em português de Portugal.

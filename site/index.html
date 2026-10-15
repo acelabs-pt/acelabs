@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>Ace Labs - IA para o setor imobiliário</title>
-<meta name="description" content="Automação com IA para o setor imobiliário - para agentes e para agências. Diz-nos quem és.">
+<meta name="description" content="CPCV com IA, Cockpit e Painel de Gestão para o setor imobiliário - para agências, agentes e investidores. Diz-nos quem és.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ace Labs">
 <meta property="og:title" content="Ace Labs - IA para o setor imobiliário">
-<meta property="og:description" content="Automação com IA para o setor imobiliário - para agentes e para agências. Diz-nos quem és.">
+<meta property="og:description" content="CPCV com IA, Cockpit e Painel de Gestão para o setor imobiliário - para agências, agentes e investidores. Diz-nos quem és.">
 <meta property="og:image" content="https://acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -18,7 +18,7 @@
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ace Labs - IA para o setor imobiliário">
-<meta name="twitter:description" content="Automação com IA para o setor imobiliário - para agentes e para agências. Diz-nos quem és.">
+<meta name="twitter:description" content="CPCV com IA, Cockpit e Painel de Gestão para o setor imobiliário - para agências, agentes e investidores. Diz-nos quem és.">
 <meta name="twitter:image" content="https://acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="canonical" href="https://acelabs.pt/">
@@ -171,7 +171,13 @@
   /* ===== cena 3D do boneco ===== */
   .sc-wrap{position:relative;width:100%;display:flex;justify-content:center;}
   .sc{position:relative;width:520px;height:520px;perspective:1100px;perspective-origin:50% 38%;flex:none;}
-  .sc-world{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+  .sc-world{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(calc(var(--rx,0deg) + var(--sx,0deg))) rotateY(var(--ry,0deg));transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+  .sc-glow{position:absolute;left:0;top:0;width:340px;height:340px;margin:-170px 0 0 -170px;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(0,113,227,.22),rgba(0,113,227,0) 68%);transform:translate3d(var(--gx,260px),var(--gy,300px),0);transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .4s;opacity:var(--go,.55);}
+  .sc-shadow{position:absolute;left:50%;bottom:52px;width:190px;height:34px;margin-left:-95px;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(10,22,40,.34),rgba(10,22,40,0) 70%);transform:translateX(calc(var(--ry,0deg) * -1.6)) scaleX(calc(1 + var(--ry,0deg) * .006));transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+  .sc-in,.sc-out,.sc-ai,.sc-agent{translate:calc(var(--px,0) * var(--k,0) * 1px) calc(var(--py,0) * var(--k,0) * .6px);transition:translate .5s cubic-bezier(.2,.8,.2,1);}
+  .sc-in{--k:-16;}.sc-out{--k:-26;}.sc-ai{--k:-38;}.sc-agent{--k:8;}
   .sc-floor{position:absolute;left:50%;bottom:-6px;width:470px;height:470px;margin-left:-235px;transform:rotateX(76deg);transform-style:preserve-3d;border-radius:50%;
     background:radial-gradient(circle,rgba(0,113,227,.2) 0%,rgba(0,113,227,.07) 55%,rgba(0,113,227,0) 72%);}
   .sc-floor i{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(0,113,227,.36);animation:sc-pulse 5.4s ease-out infinite;}
@@ -245,7 +251,7 @@
   }
   @media (prefers-reduced-motion:reduce){
     .sc-world{transition:none;}
-    .sc-spin,.sc-face,.sc-agent,.sc-ai,.sc-floor i,.sc-flow path,.sc-row,.sc-ok,.sc-out-i{animation:none!important;}
+    .sc-spin,.sc-face,.sc-agent,.sc-ai,.sc-ai i,.sc-floor i,.sc-flow path,.sc-row,.sc-ok,.sc-out-i{animation:none!important;}
     .sc-dot{display:none;}
     .sc-ok{transform:scale(1);}
     .sc-spin{transform:rotateY(18deg);}
@@ -275,7 +281,7 @@
   .footer-tagline{margin-top:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;max-width:240px;}
   .footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
   .footer-col{display:flex;flex-direction:column;gap:10px;}
-  .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a9ca0;margin:0 0 4px;}
+  .footer-col-title{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 4px;}
   .footer-col a{font-size:13.5px;color:var(--ink-2);transition:color .15s ease;}
   .footer-col a:hover{color:var(--ink);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2);}
@@ -285,7 +291,7 @@
 
   /* responsive */
   @media (max-width:1000px){
-    .hero-grid{grid-template-columns:1fr;gap:56px;}
+    .hero-grid{grid-template-columns:1fr;gap:20px;}
     .proof-grid,.product{grid-template-columns:1fr;gap:44px;}
     .product.rev .product-copy{order:0;}
     .steps{grid-template-columns:1fr;gap:0;margin-top:48px;}
@@ -338,6 +344,36 @@
   .go-card p{margin:0;font-size:14.5px;line-height:1.5;color:#6e6e73;flex:1;}
   .go-more{font-size:14.5px;font-weight:600;color:#0071e3;display:inline-flex;gap:6px;transition:gap .2s ease;}
   .go-card:hover .go-more{gap:10px;}
+
+  /* mini cenas 3D dos cartoes "O que fazemos" */
+  .go-card{perspective:900px;transform-style:preserve-3d;will-change:transform;}
+  .go-card[data-tilt]{transform:rotateX(var(--trx,0deg)) rotateY(var(--try,0deg));transition:transform .25s ease,box-shadow .2s ease,border-color .2s ease;}
+  .go-card[data-tilt]:hover{transform:rotateX(var(--trx,0deg)) rotateY(var(--try,0deg)) translateY(-3px);}
+  .go-stage{align-self:stretch;height:132px;margin:-6px -6px 4px;border-radius:16px;background:linear-gradient(180deg,#f5f7fb,#eaf2fd);position:relative;overflow:hidden;perspective:520px;}
+  .go-stage>*{position:absolute;}
+  .gs-sheet{left:50%;top:50%;width:70px;height:92px;margin:-46px 0 0 -35px;border-radius:9px;background:#fff;border:1px solid rgba(0,0,0,.09);box-shadow:0 12px 20px -12px rgba(10,22,40,.4);
+    transition:transform .9s cubic-bezier(.2,.8,.2,1);transform:translate3d(calc(var(--x)*1px),calc(var(--y)*1px),0) rotate(calc(var(--r)*1deg));}
+  .gs-sheet::before{content:"";position:absolute;left:10px;right:10px;top:14px;height:5px;border-radius:3px;background:#dfe5ee;box-shadow:0 12px 0 #dfe5ee,0 24px 0 #dfe5ee,0 36px 0 #eaeef4;}
+  .gs-sheet:nth-child(1){--x:-62;--y:-10;--r:-16;}.gs-sheet:nth-child(2){--x:60;--y:8;--r:14;}.gs-sheet:nth-child(3){--x:-8;--y:-22;--r:6;}
+  .gs-ok{left:50%;top:50%;width:26px;height:26px;margin:14px 0 0 12px;border-radius:50%;background:#1fae5a;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform .5s .7s cubic-bezier(.3,1.6,.5,1);}
+  .gs-ok svg{width:13px;height:13px;}
+  .go-stage.is-in .gs-sheet{--x:0;--y:0;--r:0;}
+  .go-stage.is-in .gs-sheet:nth-child(2){transform:translate3d(3px,-3px,0);}.go-stage.is-in .gs-sheet:nth-child(1){transform:translate3d(-3px,3px,0);}
+  .go-stage.is-in .gs-ok{transform:scale(1);}
+  .gs-phone{left:50%;top:50%;width:62px;height:112px;margin:-56px 0 0 -31px;border-radius:14px;background:#0a1620;border:3px solid #1d2b38;box-shadow:0 18px 26px -14px rgba(10,22,40,.6);transform:rotateY(-24deg) rotateX(6deg);animation:gs-turn 7s ease-in-out infinite;}
+  .gs-phone::after{content:"";position:absolute;left:8px;right:8px;top:12px;height:6px;border-radius:3px;background:#2a3a4a;box-shadow:0 12px 0 #2a3a4a,0 24px 0 #2a3a4a;}
+  @keyframes gs-turn{0%,100%{transform:rotateY(-24deg) rotateX(6deg);}50%{transform:rotateY(18deg) rotateX(2deg);}}
+  .gs-note{height:22px;padding:0 9px;border-radius:11px;background:#fff;box-shadow:0 8px 14px -8px rgba(10,22,40,.4);font-size:12px;font-weight:600;color:#1d1d1f;display:flex;align-items:center;gap:6px;white-space:nowrap;opacity:0;animation:gs-note 6s ease-out infinite;}
+  .gs-note i{width:7px;height:7px;border-radius:50%;background:#1fae5a;}
+  .gs-note:nth-child(2){left:10px;top:14px;animation-delay:.2s;}.gs-note:nth-child(3){right:10px;top:50px;animation-delay:1.8s;}.gs-note:nth-child(4){left:14px;bottom:14px;animation-delay:3.4s;}
+  @keyframes gs-note{0%{opacity:0;transform:translateY(8px) scale(.9);}8%,40%{opacity:1;transform:none;}55%,100%{opacity:0;transform:translateY(-4px);}}
+  .gs-iso{left:50%;top:50%;width:132px;height:84px;margin:-44px 0 0 -66px;transform:rotateY(-30deg) rotateX(10deg);transform-style:preserve-3d;display:flex;align-items:flex-end;gap:12px;}
+  .gs-bar{position:relative;display:block;width:24px;height:calc(var(--h)*1px);flex:none;}
+  .gs-bar b{position:absolute;inset:0;background:linear-gradient(#4aa3ff,#0071e3);border-radius:3px 3px 0 0;transform-origin:50% 100%;transform:scaleY(0);transition:transform .8s calc(var(--i)*.15s) cubic-bezier(.2,.8,.2,1);}
+  .gs-bar b::after{content:"";position:absolute;left:100%;top:0;width:9px;height:100%;background:#0059b3;transform-origin:left;transform:skewY(-30deg);border-radius:0 3px 0 0;}
+  .go-stage.is-in .gs-bar b{transform:scaleY(1);}
+  .gs-base{left:50%;top:56%;width:130px;height:44px;margin:-14px 0 0 -65px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,113,227,.2),rgba(0,113,227,0) 70%);}
+  @media (prefers-reduced-motion:reduce){.gs-phone,.gs-note{animation:none;}.gs-note{opacity:1;}.gs-sheet,.gs-ok,.gs-bar b{transition:none;}.go-card[data-tilt]{transform:none!important;}}
   .go-cta{background:#EDEBE5;padding:96px 0;}
   .go-cta h2{max-width:20ch;}
   .go-cta p{margin:16px 0 0;font-size:18px;line-height:1.5;color:#55555a;max-width:48ch;}
@@ -347,6 +383,30 @@
   @media (prefers-reduced-motion:reduce){.go-card,.go-more{transition:none;}}
 
   .dest-note{display:none;}
+
+  .go-tag{font-size:12px;font-weight:600;color:#0059b3;background:#eaf2fd;padding:4px 10px;border-radius:8px;margin-top:2px;}
+  .go-also{margin:26px 0 0;display:flex;flex-wrap:wrap;gap:10px 28px;}
+  .go-also a{font-size:15px;font-weight:600;color:#1d1d1f;border-bottom:1px solid rgba(0,0,0,.2);padding-bottom:2px;transition:border-color .15s ease,color .15s ease;}
+  .go-also a:hover{color:#0071e3;border-color:#0071e3;}
+
+  @media (max-width:640px){
+    .sc-wrap:not(.sc-abs){height:380px;margin-top:0;}
+    .sc-wrap:not(.sc-abs) .sc{top:-8px;}
+    .sc-ai{top:118px;margin-left:30px;font-size:12px;padding:8px 12px;}
+    .sc-in{left:26px;}
+  }
+
+  /* legibilidade: minimo 12px e contraste AA nos rotulos pequenos */
+  .footer-col-title,.nav-services-label{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 8px;}
+  .nav-services-soon{font-size:12px;}
+  .callout-eyebrow{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .ck-notif-t,.flow-notif-top,.flow-notif-tag{font-size:12px;}
+
+  /* estados interativos coerentes em todo o site */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:10px;}
+  .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
+  .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
+  .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
 </style>
 </head>
 <body>
@@ -371,7 +431,7 @@
       <div>
         <p class="hero-kicker" data-reveal style="--n:0"><i aria-hidden="true"></i>IA para o setor imobiliário</p>
         <h1 data-reveal style="--n:1">Diz-nos quem és.</h1>
-        <p class="sub" data-reveal style="--n:2">Mostramos-te só o que interessa: o teu dia a dia no terreno, ou a gestão da tua agência.</p>
+        <p class="sub" data-reveal style="--n:2">Mostramos-te só o que interessa: o teu dia a dia no terreno, a gestão da tua agência ou a tua carteira de imóveis.</p>
 
         <div class="paths" data-reveal style="--n:3">
           <a class="path" href="agentes.html">
@@ -394,11 +454,22 @@
             </span>
             <span class="path-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </a>
+          <a class="path" href="servicos/painel-de-gestao.html">
+            <span class="path-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+            </span>
+            <span>
+              <h2>Sou investidor</h2>
+              <p>Propriedades, conciliação de faturas e yields num só painel.</p>
+            </span>
+            <span class="path-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
         </div>
       </div>
 
       <div class="sc-wrap " aria-hidden="true">
   <div class="sc" data-scene>
+    <i class="sc-glow"></i>
     <div class="sc-world">
       <div class="sc-floor"><i></i><i></i><i></i></div>
       <svg class="sc-flow" viewBox="0 0 520 520" fill="none">
@@ -407,6 +478,7 @@
       </svg>
       <i class="sc-dot sc-dot1"></i><i class="sc-dot sc-dot2"></i><i class="sc-dot sc-dot3"></i>
 
+      <i class="sc-shadow"></i>
       <svg class="sc-agent" viewBox="0 0 210 315" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="scSuit" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34343b"/><stop offset=".55" stop-color="#1a1a1e"/><stop offset="1" stop-color="#0b0b0d"/></linearGradient>
@@ -458,14 +530,38 @@
 
   <section class="go" aria-labelledby="home-go">
     <div class="wrap">
-      <h2 id="home-go">O que podes explorar.</h2>
-      <p class="go-lead">Páginas curtas, direto ao ponto. Escolhe por onde queres começar.</p>
-      <div class="go-grid">
-      <a class="go-card" href="solucoes.html"><span class="go-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><h3>Serviços</h3><p>CPCV com IA, Cockpit, Painel de Gestão e serviços à medida. Cada um com a sua página.</p><span class="go-more">Ver serviços <span aria-hidden="true">&rarr;</span></span></a>
-      <a class="go-card" href="servicos/cpcv-ia.html#antes-depois"><span class="go-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span><h3>CPCV, antes e depois</h3><p>O mesmo contrato-promessa, com e sem IA: da papelada ao documento pronto a assinar.</p><span class="go-more">Ver a diferença <span aria-hidden="true">&rarr;</span></span></a>
-      <a class="go-card" href="agentes.html#cockpit"><span class="go-ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span><h3>Cockpit para agentes</h3><p>O CRM de bolso com WhatsApp e chamada a um toque. Experimenta a simulação.</p><span class="go-more">Experimentar <span aria-hidden="true">&rarr;</span></span></a>
-      <a class="go-card" href="empresa.html"><span class="go-ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><h3>Como trabalhamos</h3><p>Do diagnóstico ao arranque, em cinco passos e quatro semanas de acompanhamento.</p><span class="go-more">Ver o processo <span aria-hidden="true">&rarr;</span></span></a>
+      <h2 id="home-go">O que fazemos.</h2>
+      <p class="go-lead">Três produtos para o setor imobiliário. E soluções à medida quando é preciso.</p>
+      <div class="go-grid go-3">
+        <a class="go-card" data-tilt href="servicos/cpcv-ia.html">
+          <div class="go-stage" aria-hidden="true"><i class="gs-sheet"></i><i class="gs-sheet"></i><i class="gs-sheet"></i><span class="gs-ok"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+          <span class="go-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span>
+          <span class="go-tag">Para agências</span>
+          <h3>CPCV com IA</h3>
+          <p>Contratos-promessa gerados a partir dos documentos, com aprovação da gestora.</p>
+          <span class="go-more">Ver o CPCV <span aria-hidden="true">&rarr;</span></span>
+        </a>
+        <a class="go-card" data-tilt href="servicos/cockpit.html#simulador">
+          <div class="go-stage" aria-hidden="true"><i class="gs-phone"></i><span class="gs-note"><i></i>Nova lead</span><span class="gs-note"><i></i>Visita às 15h</span><span class="gs-note"><i></i>WhatsApp</span></div>
+          <span class="go-ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span>
+          <span class="go-tag">Para agentes · em breve</span>
+          <h3>Cockpit</h3>
+          <p>O CRM de bolso: funil, WhatsApp e chamada, agenda e alertas.</p>
+          <span class="go-more">Experimentar <span aria-hidden="true">&rarr;</span></span>
+        </a>
+        <a class="go-card" data-tilt href="servicos/painel-de-gestao.html">
+          <div class="go-stage" aria-hidden="true"><i class="gs-base"></i><div class="gs-iso"><i class="gs-bar" style="--i:0;--h:34"><b></b></i><i class="gs-bar" style="--i:1;--h:58"><b></b></i><i class="gs-bar" style="--i:2;--h:44"><b></b></i><i class="gs-bar" style="--i:3;--h:76"><b></b></i></div></div>
+          <span class="go-ic"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg></span>
+          <span class="go-tag">Para investidores</span>
+          <h3>Painel de Gestão</h3>
+          <p>Os números da carteira ou da agência num só ecrã.</p>
+          <span class="go-more">Ver o painel <span aria-hidden="true">&rarr;</span></span>
+        </a>
       </div>
+      <p class="go-also">
+        <a href="servicos/servicos-personalizados.html">Precisas de algo à medida? <span aria-hidden="true">&rarr;</span></a>
+        <a href="empresa.html">Como trabalhamos <span aria-hidden="true">&rarr;</span></a>
+      </p>
     </div>
   </section>
 
@@ -496,6 +592,7 @@
           <p class="footer-col-title">Para quem</p>
           <a href="agentes.html">Agentes</a>
           <a href="agencias.html">Agências</a>
+          <a href="servicos/painel-de-gestao.html">Investidores</a>
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Produtos</p>
@@ -544,15 +641,60 @@
         px = Math.max(-1, Math.min(1, px)); py = Math.max(-1, Math.min(1, py));
         world.style.setProperty('--ry', (px * 14).toFixed(2) + 'deg');
         world.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');
+        sc.style.setProperty('--px', px.toFixed(3));
+        sc.style.setProperty('--py', py.toFixed(3));
+        sc.style.setProperty('--gx', (e.clientX - r.left).toFixed(0) + 'px');
+        sc.style.setProperty('--gy', (e.clientY - r.top).toFixed(0) + 'px');
+        sc.style.setProperty('--go', '.9');
       });
+      var vis = true;
+      new IntersectionObserver(function(en){ vis = en[0].isIntersecting; }, { threshold: 0 }).observe(sc);
+      window.addEventListener('scroll', function(){
+        if(!vis) return;
+        var r = sc.getBoundingClientRect();
+        var t = Math.max(-1, Math.min(1, r.top / window.innerHeight));
+        world.style.setProperty('--sx', (t * -6).toFixed(2) + 'deg');
+      }, { passive: true });
       host.addEventListener('pointerleave', function(){
         world.style.setProperty('--ry', '0deg');
         world.style.setProperty('--rx', '0deg');
+        sc.style.setProperty('--px', 0); sc.style.setProperty('--py', 0);
+        sc.style.setProperty('--go', '.55');
       });
     });
   })();
 
   
+
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var stages = document.querySelectorAll('.go-stage');
+    if('IntersectionObserver' in window && !reduce){
+      var io2 = new IntersectionObserver(function(en){ en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('is-in'); io2.unobserve(e.target);} }); }, { threshold: 0.5 });
+      stages.forEach(function(s){ io2.observe(s); });
+    } else { stages.forEach(function(s){ s.classList.add('is-in'); }); }
+    if(reduce) return;
+    document.querySelectorAll('.go-card[data-tilt]').forEach(function(c){
+      c.addEventListener('pointermove', function(e){
+        var r = c.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+        c.style.setProperty('--try', (x * 7).toFixed(2) + 'deg');
+        c.style.setProperty('--trx', (-y * 6).toFixed(2) + 'deg');
+      });
+      c.addEventListener('pointerleave', function(){ c.style.setProperty('--try','0deg'); c.style.setProperty('--trx','0deg'); });
+    });
+  })();
+
+  (function(){
+    if(!('IntersectionObserver' in window)) return;
+    var css = document.createElement('style');
+    css.textContent = '[data-offscreen],[data-offscreen] *{animation-play-state:paused!important;}';
+    document.head.appendChild(css);
+    var io = new IntersectionObserver(function(en){
+      en.forEach(function(e){ if(e.isIntersecting) e.target.removeAttribute('data-offscreen'); else e.target.setAttribute('data-offscreen',''); });
+    }, { rootMargin: '80px' });
+    document.querySelectorAll('.sc, .cockpit-sim, .ck-demo, .go-stage, .ad-stage, .sc-wrap').forEach(function(n){ io.observe(n); });
+  })();
 </script>
 
 </body>

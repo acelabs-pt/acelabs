@@ -145,7 +145,7 @@
   .nav-services:hover .nav-services-menu,.nav-services:focus-within .nav-services-menu{
     opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);
   }
-  .nav-services-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a9ca0;margin:0 0 10px;}
+  .nav-services-label{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 8px;}
   .nav-services-group a{display:block;padding:6px 0;font-size:13.5px;color:#3d3d40;font-weight:450;}
   .nav-services-group a:hover{color:#0071e3;}
   .nav-services-soon{font-size:10px;color:#9a9ca0;font-weight:500;}
@@ -823,6 +823,11 @@
     margin-bottom:18px;
   animation:icon-3d 5s ease-in-out 3;transform-style:preserve-3d;}@keyframes icon-3d{0%,100%{transform:perspective(400px) rotateY(0deg) rotateX(0deg);}25%{transform:perspective(400px) rotateY(16deg) rotateX(-8deg);}50%{transform:perspective(400px) rotateY(0deg) rotateX(8deg);}75%{transform:perspective(400px) rotateY(-16deg) rotateX(-6deg);}}.team-card:nth-of-type(1) .team-icon{animation-delay:0s;}.team-card:nth-of-type(2) .team-icon{animation-delay:-1.7s;}.team-card:nth-of-type(3) .team-icon{animation-delay:-3.4s;}
   .team-icon svg{width:22px;height:22px;display:block;}
+
+  /* tilt 3D dos cartoes da equipa */
+  .team-card[data-reveal].is-visible{transform:perspective(900px) rotateX(var(--trx,0deg)) rotateY(var(--try,0deg));transition:transform .25s ease,box-shadow .25s ease,opacity .6s;}
+  .team-card[data-reveal].is-visible:hover{box-shadow:0 30px 50px -30px rgba(20,30,50,.4);}
+  @media (prefers-reduced-motion:reduce){.team-card[data-reveal].is-visible{transform:none!important;}}
   .team-card h4{font-size:16px;font-weight:650;color:#1d1d1f;letter-spacing:-0.005em;}
   .team-card p{margin-top:8px;font-size:13.5px;line-height:1.55;color:var(--ink-2);}
   .team-closing{margin-top:36px;font-size:16px;line-height:1.6;color:var(--ink);max-width:56ch;font-weight:500;}
@@ -1616,7 +1621,7 @@
   .footer-tagline{margin-top:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;max-width:240px;}
   .footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
   .footer-col{display:flex;flex-direction:column;gap:10px;}
-  .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a9ca0;margin:0 0 4px;}
+  .footer-col-title{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 4px;}
   .footer-col a{font-size:13.5px;color:var(--ink-2);transition:color .15s ease;}
   .footer-col a:hover{color:var(--ink);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2);}
@@ -1886,6 +1891,39 @@
 
   .process{height:250vh;}
   @media (max-width:1000px){.process{height:auto;}}
+
+  /* processo: largura correta e passos em vertical no telemovel */
+  .process-pin > .wrap{width:100%;}
+  @media (max-width:1000px){
+    .process .steps{grid-template-columns:1fr;gap:0;margin-top:40px;}
+    .process .step{padding:0 0 34px 60px;opacity:1;}
+    .process .step::before{left:19px;right:auto;top:40px;bottom:0;width:1px;height:auto;}
+    .process .step:last-child::before{display:none;}
+    .process .step-n{position:absolute;left:0;top:0;}
+    .process .step h3{margin-top:0;padding-top:8px;}
+    .process .sec-head h2{font-size:clamp(30px,8vw,44px);}
+  }
+
+  /* empresa abre numa faixa escura: navegacao sempre legivel */
+  body > nav{background:rgba(250,250,250,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.07);}
+  @media (max-width:1000px){.process .step:last-child .step-n{background:#0071e3;border-color:#0071e3;}}
+  .process-pin{padding-top:110px;}
+
+  .walk{margin-top:76px;}
+  @media (max-width:1000px){.walk{margin-top:0;}}
+
+  /* legibilidade: minimo 12px e contraste AA nos rotulos pequenos */
+  .footer-col-title,.nav-services-label{font-size:12px;letter-spacing:.04em;color:#6e6e73;}
+  .nav-services-soon{font-size:12px;}
+  .callout-eyebrow{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .ck-notif-t,.flow-notif-top,.flow-notif-tag{font-size:12px;}
+
+  /* estados interativos coerentes em todo o site */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:10px;}
+  .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
+  .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
+  .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
+  .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
 </style>
 </head>
 <body>
@@ -2026,6 +2064,7 @@
           <p class="footer-col-title">Para quem</p>
           <a href="agentes.html">Agentes</a>
           <a href="agencias.html">Agências</a>
+          <a href="servicos/painel-de-gestao.html">Investidores</a>
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Produtos</p>
@@ -2573,6 +2612,29 @@
     window.addEventListener('scroll', req, { passive: true });
     window.addEventListener('resize', req);
     update();
+  })();
+
+  (function(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('.team-card').forEach(function(c){
+      c.addEventListener('pointermove', function(e){
+        var r = c.getBoundingClientRect();
+        c.style.setProperty('--try', (((e.clientX - r.left) / r.width - .5) * 8).toFixed(1) + 'deg');
+        c.style.setProperty('--trx', (-((e.clientY - r.top) / r.height - .5) * 6).toFixed(1) + 'deg');
+      });
+      c.addEventListener('pointerleave', function(){ c.style.removeProperty('--try'); c.style.removeProperty('--trx'); });
+    });
+  })();
+
+  (function(){
+    var dd = document.querySelector(".nav-services");
+    if(!dd) return;
+    document.addEventListener("keydown", function(e){
+      if(e.key !== "Escape") return;
+      dd.classList.add("is-esc");
+      if(dd.contains(document.activeElement)) document.activeElement.blur();
+    });
+    ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
   })();
 </script>
 

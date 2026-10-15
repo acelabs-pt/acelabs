@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
-<title>Painel de Gestão - Ace Labs</title>
-<meta name="description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
+<title>Painel de Gestão para investidores - Ace Labs</title>
+<meta name="description" content="Para investidores e gestores de património: propriedades, conciliação de faturas e yields num só painel, em vez de folhas de cálculo espalhadas.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ace Labs">
 <meta property="og:title" content="Painel de Gestão - Ace Labs">
-<meta property="og:description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
+<meta property="og:description" content="Para investidores e gestores de património: propriedades, conciliação de faturas e yields num só painel, em vez de folhas de cálculo espalhadas.">
 <meta property="og:image" content="https://acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -18,7 +18,7 @@
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Painel de Gestão - Ace Labs">
-<meta name="twitter:description" content="Os números da tua carteira ou da tua agência num só painel, com totais calculados sozinhos e acesso protegido. Para investidores, gestores de património e agências.">
+<meta name="twitter:description" content="Para investidores e gestores de património: propriedades, conciliação de faturas e yields num só painel, em vez de folhas de cálculo espalhadas.">
 <meta name="twitter:image" content="https://acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="../favicon.png">
 <link rel="canonical" href="https://acelabs.pt/servicos/painel-de-gestao.html">
@@ -104,7 +104,7 @@
   .nav-services:hover .nav-services-menu,.nav-services:focus-within .nav-services-menu{
     opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);
   }
-  .nav-services-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a9ca0;margin:0 0 10px;}
+  .nav-services-label{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 8px;}
   .nav-services-group a{display:block;padding:6px 0;font-size:13.5px;color:#3d3d40;font-weight:450;}
   .nav-services-group a:hover{color:#0071e3;}
   .nav-services-soon{font-size:10px;color:#9a9ca0;font-weight:500;}
@@ -329,7 +329,7 @@
   .footer-tagline{margin-top:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;max-width:240px;}
   .footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
   .footer-col{display:flex;flex-direction:column;gap:10px;}
-  .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a9ca0;margin:0 0 4px;}
+  .footer-col-title{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 4px;}
   .footer-col a{font-size:13.5px;color:var(--ink-2);transition:color .15s ease;}
   .footer-col a:hover{color:var(--ink);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2);}
@@ -405,6 +405,19 @@
   @keyframes pm-up{from{transform:scaleY(.1);opacity:.3;}to{transform:scaleY(1);opacity:1;}}
   .pm-months{display:flex;gap:12px;margin-top:8px;font-size:11.5px;color:#9a9ca0;}
   .pm-months span{flex:1;text-align:center;}
+
+  /* painel em 3D: tilt ao cursor, barras com volume, propriedades que se elevam */
+  .pm{transform:perspective(1100px) rotateY(var(--pry,-7deg)) rotateX(var(--prx,3deg));transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .4s;will-change:transform;}
+  .pm:hover{box-shadow:-30px 50px 70px -40px rgba(10,22,40,.5);}
+  .pm-chart span{position:relative;transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s;}
+  .pm-chart span::after{content:"";position:absolute;left:100%;top:5px;width:6px;height:calc(100% - 5px);background:rgba(0,40,100,.18);border-radius:0 3px 3px 0;}
+  .pm-chart span.on::after{background:#0059b3;}
+  .pm-chart span:hover{transform:translateY(-7px) scaleY(1.04);background:#9cc4f5;}
+  .pm-chart span.on:hover{background:#0059b3;}
+  .pm-list li{transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,box-shadow .25s;border-radius:10px;margin:0 -10px;padding-left:10px;padding-right:10px;}
+  .pm-list li:hover{transform:translateX(6px) scale(1.015);background:#f5f8fe;box-shadow:0 14px 22px -16px rgba(10,22,40,.45);}
+  @media (max-width:900px){.pm{transform:none;}}
+  @media (prefers-reduced-motion:reduce){.pm{transform:none!important;transition:none;}.pm-list li,.pm-chart span{transition:none;}}
   .pm-list{list-style:none;margin:0;padding:0;}
   .pm-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(0,0,0,.07);font-size:14px;font-weight:500;}
   .pm-list b{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;}
@@ -416,6 +429,42 @@
 
   .article-body p{margin:0 0 16px;}
   .article-body h1{margin-bottom:22px;}
+
+  .pm-soon{display:inline-block;font-size:13px;font-weight:600;color:#9a5b00;background:#fff4e5;padding:5px 11px;border-radius:8px;margin:14px 0 4px;}
+  .pm-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .pm-kpis div{background:#f5f5f7;border-radius:12px;padding:10px 12px;}
+  .pm-kpis small{display:block;font-size:11.5px;font-weight:600;color:#6e6e73;}
+  .pm-kpis b{display:block;margin-top:2px;font-size:20px;letter-spacing:-0.02em;color:#1d1d1f;font-variant-numeric:tabular-nums;}
+  .pm-kpis .warn{background:#fff4e5;}
+  .pm-kpis .warn b{color:#9a5b00;}
+  .pm-chart{height:96px;}
+  .pm-list em{margin-left:auto;margin-right:10px;font-style:normal;font-size:13px;font-weight:600;color:#0059b3;font-variant-numeric:tabular-nums;}
+  .pm-feats{list-style:none;margin:6px 0 22px;padding:0;display:grid;gap:12px;}
+  .pm-feats li{display:grid;grid-template-columns:22px 1fr;gap:12px;font-size:15.5px;line-height:1.45;color:#3d3d40;}
+  .pm-feats svg{width:22px;height:22px;margin-top:1px;}
+  .pm-feats strong{color:#1d1d1f;font-weight:650;}
+
+  .pm-how{padding:72px 0 8px;}
+  .pm-how h2{font-size:clamp(28px,3.4vw,40px);line-height:1.08;letter-spacing:-0.03em;margin:0;}
+  .pm-how-list{list-style:none;margin:32px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;}
+  .pm-how-list li{padding-top:20px;border-top:2px solid #1d1d1f;}
+  .pm-n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:#eaf2fd;color:#0059b3;font-weight:700;font-size:14px;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+  .pm-how-list h3{margin:14px 0 6px;font-size:19px;letter-spacing:-0.015em;}
+  .pm-how-list p{margin:0;font-size:15px;line-height:1.55;color:#6e6e73;}
+  @media (max-width:900px){.pm-how-list{grid-template-columns:1fr;gap:22px;}}
+
+  /* legibilidade: minimo 12px e contraste AA nos rotulos pequenos */
+  .footer-col-title,.nav-services-label{font-size:12px;letter-spacing:.04em;color:#6e6e73;}
+  .nav-services-soon{font-size:12px;}
+  .callout-eyebrow{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .ck-notif-t,.flow-notif-top,.flow-notif-tag{font-size:12px;}
+
+  /* estados interativos coerentes em todo o site */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:10px;}
+  .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
+  .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
+  .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
+  .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
 </style>
 </head>
 <body>
@@ -460,38 +509,59 @@
 <header class="article-hero">
   <div class="wrap article-grid">
     <div class="article-media" data-reveal style="--n:1">
-      <div class="pm" role="img" aria-label="Exemplo ilustrativo de um painel de gestão: totais por mês e uma carteira de imóveis com o estado de cada um.">
-        <div class="pm-bar"><span><i></i><i></i><i></i></span>Painel de Gestão <em>Exemplo ilustrativo</em></div>
+      <div class="pm" role="img" aria-label="Exemplo ilustrativo de um painel para investidores: rendas por mês, yield de cada imóvel e faturas por conciliar.">
+        <div class="pm-bar"><span><i></i><i></i><i></i></span>Painel do investidor <em>Exemplo ilustrativo</em></div>
         <div class="pm-body">
-          <p class="pm-t">Totais por mês</p>
+          <div class="pm-kpis">
+            <div><small>Yield bruta</small><b>6,1%</b></div>
+            <div><small>Yield líquida</small><b>4,7%</b></div>
+            <div class="warn"><small>Faturas por conciliar</small><b>3</b></div>
+          </div>
+          <p class="pm-t" style="margin-top:18px">Rendas recebidas por mês</p>
           <div class="pm-chart">
-            <span style="--h:46%"></span><span style="--h:62%"></span><span style="--h:38%"></span><span style="--h:74%"></span><span style="--h:58%"></span><span style="--h:86%" class="on"></span>
+            <span style="--h:70%"></span><span style="--h:72%"></span><span style="--h:66%"></span><span style="--h:78%"></span><span style="--h:74%"></span><span style="--h:82%" class="on"></span>
           </div>
           <div class="pm-months"><span>jun</span><span>jul</span><span>ago</span><span>set</span><span>out</span><span>nov</span></div>
-          <p class="pm-t" style="margin-top:20px">Carteira</p>
+          <p class="pm-t" style="margin-top:18px">Propriedades</p>
           <ul class="pm-list">
-            <li><span>Apartamento T2, Porto</span><b class="ok">Arrendado</b></li>
-            <li><span>Moradia T4, Braga</span><b class="mid">Em obras</b></li>
-            <li><span>Loja, Guimarães</span><b class="sell">À venda</b></li>
+            <li><span>Apartamento T2, Porto</span><em>5,8%</em><b class="ok">Arrendado</b></li>
+            <li><span>Moradia T4, Braga</span><em>-</em><b class="mid">Em obras</b></li>
+            <li><span>Loja, Guimarães</span><em>6,4%</em><b class="ok">Arrendado</b></li>
           </ul>
         </div>
       </div>
     </div>
     <div class="article-body">
       <a class="back-link" href="../solucoes.html" data-reveal style="--n:0"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <h1 data-reveal style="--n:1">A tua carteira e o teu negócio, <span class="muted">num só painel.</span></h1>
-      <p data-reveal style="--n:2">Para investidores, gestores de património e agências que hoje juntam números em folhas de cálculo e emails.</p>
-      <p data-reveal style="--n:3">O Painel de Gestão reúne no mesmo ecrã os dados que já tens. Os totais são recalculados sempre que algo muda, por isso nunca dependem de contas feitas à mão.</p>
-      <p data-reveal style="--n:3">Se já trabalhas num Google Sheets, não perdes esse hábito: usamos a folha como fonte. O acesso fica protegido por login.</p>
+      <span class="pm-soon" data-reveal style="--n:1">Para investidores · em breve</span>
+      <h1 data-reveal style="--n:1">A tua carteira de imóveis, <span class="muted">sob controlo.</span></h1>
+      <p data-reveal style="--n:2">Para investidores e gestores de património que hoje controlam imóveis, faturas e rendas em folhas de cálculo espalhadas.</p>
+      <ul class="pm-feats" data-reveal style="--n:3">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span><strong>Propriedades</strong> Cada imóvel com o seu estado, contratos e rendas.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span><strong>Conciliação de faturas</strong> Cada fatura e despesa associada ao imóvel certo, com o que falta conciliar à vista.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span><strong>Yields</strong> Rentabilidade bruta e líquida de cada imóvel e da carteira toda.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span><strong>Totais sempre certos</strong> Recalculados sozinhos sempre que algo muda. Se já usas um Google Sheets, partimos dele.</span></li>
+      </ul>
       <div class="article-divider" data-reveal style="--n:4"></div>
       <div class="hero-ctas article-ctas" data-reveal style="--n:5">
-        <a href="../contacto.html" class="btn-dark">Falar sobre o painel</a>
+        <a href="../contacto.html" class="btn-dark">Quero o painel para a minha carteira</a>
         <a href="../solucoes.html" class="btn-outline">Ver todos os serviços</a>
       </div>
-      <p class="pm-note" data-reveal style="--n:6">Construído para um cliente real do setor imobiliário. A versão para investidores está em preparação.</p>
+      <p class="pm-note" data-reveal style="--n:6">Construído a partir de um painel já feito para um cliente real do setor imobiliário. A versão para investidores está em preparação: fala connosco para seres dos primeiros.</p>
     </div>
   </div>
 </header>
+
+<section class="pm-how" aria-labelledby="pm-how-t">
+  <div class="wrap">
+    <h2 id="pm-how-t">Como funciona.</h2>
+    <ol class="pm-how-list">
+      <li><span class="pm-n">1</span><h3>Ligamos o que já tens</h3><p>Folhas de cálculo, faturas e contratos entram no painel. Se já usas um Google Sheets, partimos dele e não perdes o teu hábito.</p></li>
+      <li><span class="pm-n">2</span><h3>Os totais fazem-se sozinhos</h3><p>Rendas, despesas e yields recalculam sempre que algo muda. Nada de contas feitas à mão no fim do mês.</p></li>
+      <li><span class="pm-n">3</span><h3>Vês tudo num só lugar</h3><p>Propriedades, faturas por conciliar e rentabilidade num único ecrã, com acesso protegido por login.</p></li>
+    </ol>
+  </div>
+</section>
 
 <section class="related" aria-labelledby="rel-title">
   <div class="wrap">
@@ -522,8 +592,8 @@
 
 <section class="closing" id="contacto">
   <div class="wrap">
-    <h2>Vamos ver onde está a perder mais tempo?</h2>
-    <p>30 minutos, sem custo, sem compromisso. Sai da reunião com um problema concreto identificado - connosco ou sem nós.</p>
+    <h2>Vamos ver onde estás a perder mais tempo?</h2>
+    <p>30 minutos, sem custo, sem compromisso. Sais da reunião com um problema concreto identificado - connosco ou sem nós.</p>
     <div class="hero-ctas">
       <a href="../contacto.html" class="btn-dark">Marcar diagnóstico gratuito</a>
     </div>
@@ -544,6 +614,7 @@
           <p class="footer-col-title">Para quem</p>
           <a href="../agentes.html">Agentes</a>
           <a href="../agencias.html">Agências</a>
+          <a href="painel-de-gestao.html">Investidores</a>
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Produtos</p>
@@ -603,6 +674,29 @@
     window.addEventListener('resize', function(){
       if(window.innerWidth > 860) closeMenu();
     });
+  })();
+
+  (function(){
+    var pm = document.querySelector('.pm');
+    if(!pm || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    pm.addEventListener('pointermove', function(e){
+      var r = pm.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      pm.style.setProperty('--pry', (x * 12 - 4).toFixed(1) + 'deg');
+      pm.style.setProperty('--prx', (3 - y * 8).toFixed(1) + 'deg');
+    });
+    pm.addEventListener('pointerleave', function(){ pm.style.removeProperty('--pry'); pm.style.removeProperty('--prx'); });
+  })();
+
+  (function(){
+    var dd = document.querySelector(".nav-services");
+    if(!dd) return;
+    document.addEventListener("keydown", function(e){
+      if(e.key !== "Escape") return;
+      dd.classList.add("is-esc");
+      if(dd.contains(document.activeElement)) document.activeElement.blur();
+    });
+    ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
   })();
 </script>
 

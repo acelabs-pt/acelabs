@@ -11,3 +11,6 @@ business-center/
 
 # armazem interno do instalador de skills (as skills ativas estao em .claude/skills)
 .agents/
+
+# loop local de qualidade de design (hook Stop do Pedro; nao partilhar)
+.claude/design-loop/

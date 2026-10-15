@@ -71,26 +71,58 @@
   }
 
   a:focus-visible,button:focus-visible{outline:2px solid #141414;outline-offset:3px;border-radius:980px;}
+
+  /* legibilidade: minimo 12px e contraste AA nos rotulos pequenos */
+  .footer-col-title,.nav-services-label{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 8px;}
+  .nav-services-soon{font-size:12px;}
+  .callout-eyebrow{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .ck-notif-t,.flow-notif-top,.flow-notif-tag{font-size:12px;}
+
+  /* estados interativos coerentes em todo o site */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:10px;}
+  .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
+  .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
+  .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
+
+  .code{font-size:14px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .quick{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:center;}
+  .quick a{font-size:14.5px;font-weight:600;color:var(--ink);border-bottom:1px solid rgba(0,0,0,.2);padding-bottom:2px;transition:color .15s ease,border-color .15s ease;}
+  .quick a:hover{color:var(--blue);border-color:var(--blue);}
+
+  .skip-link{position:absolute;left:-9999px;top:0;z-index:1000;background:#141414;color:#fff;padding:12px 20px;border-radius:0 0 10px 0;font-size:14px;font-weight:600;}
+  .skip-link:focus{left:0;}
+
+  .lost{position:relative;width:150px;height:120px;margin:0 auto 22px;perspective:600px;}
+  .lost-sheet{position:absolute;left:30px;top:6px;width:78px;height:100px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.09);box-shadow:0 22px 28px -16px rgba(10,22,40,.45);transform:rotateY(var(--ly,-24deg)) rotateX(var(--lx,10deg)) rotateZ(-6deg);transition:transform .4s cubic-bezier(.2,.8,.2,1);animation:lost-f 5s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#0071e3;letter-spacing:-.04em;}
+  .lost-sheet::before{content:"";position:absolute;left:12px;right:12px;top:14px;height:5px;border-radius:3px;background:#e4e8ef;box-shadow:0 10px 0 #e4e8ef;}
+  .lost-shadow{position:absolute;left:24px;bottom:0;width:90px;height:14px;border-radius:50%;background:radial-gradient(ellipse,rgba(10,22,40,.25),rgba(10,22,40,0) 70%);animation:lost-s 5s ease-in-out infinite;}
+  @keyframes lost-f{0%,100%{translate:0 0;}50%{translate:0 -9px;}}
+  @keyframes lost-s{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.82);opacity:.7;}}
+  @media (prefers-reduced-motion:reduce){.lost-sheet,.lost-shadow{animation:none;}}
 </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
   <header>
     <div class="wrap">
       <a class="logo" href="/"><img src="ace-labs-logo.png" alt="Ace Labs"></a>
     </div>
   </header>
-  <main>
+  <main id="main-content" tabindex="-1">
     <div class="wrap">
       <div class="content">
+        <div class="lost" aria-hidden="true"><i class="lost-shadow"></i><div class="lost-sheet">?</div></div>
         <p class="code">Erro 404</p>
         <h1>Esta página não existe.</h1>
-        <p class="sub">O link pode estar desatualizado ou mal escrito. Volta ao início e diz-nos quem és - agente ou agência.</p>
+        <p class="sub">O link pode estar desatualizado ou mal escrito. Volta ao início ou vai direto ao que procuravas.</p>
         <div class="actions">
           <a class="btn btn-primary" href="/">Página inicial</a>
           <a class="btn btn-ghost" href="/contacto.html">Marcar diagnóstico</a>
         </div>
+        <p class="quick"><a href="/solucoes.html">Serviços</a><a href="/servicos/cockpit.html#simulador">Simulador do Cockpit</a><a href="/servicos/painel-de-gestao.html">Painel de Gestão</a><a href="/empresa.html">Como trabalhamos</a></p>
       </div>
     </div>
   </main>
+<script>(function(){var s=document.querySelector(".lost-sheet");if(!s||matchMedia("(prefers-reduced-motion: reduce)").matches)return;addEventListener("pointermove",function(e){var x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;s.style.setProperty("--ly",(x*40-10).toFixed(1)+"deg");s.style.setProperty("--lx",(10-y*24).toFixed(1)+"deg");});})();</script>
 </body>
 </html>

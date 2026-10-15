@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>Ace Labs - Automação com IA para agências imobiliárias</title>
-<meta name="description" content="Sistemas de IA para a gestão da sua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
+<meta name="description" content="Sistemas de IA para a gestão da tua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ace Labs">
 <meta property="og:title" content="Ace Labs - Automação com IA para agências imobiliárias">
-<meta property="og:description" content="Sistemas de IA para a gestão da sua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
+<meta property="og:description" content="Sistemas de IA para a gestão da tua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
 <meta property="og:image" content="https://acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -18,7 +18,7 @@
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ace Labs - Automação com IA para agências imobiliárias">
-<meta name="twitter:description" content="Sistemas de IA para a gestão da sua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
+<meta name="twitter:description" content="Sistemas de IA para a gestão da tua agência - CPCVs, leads, dashboards e recrutamento, tudo automatizado.">
 <meta name="twitter:image" content="https://acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="canonical" href="https://acelabs.pt/agencias.html">
@@ -145,7 +145,7 @@
   .nav-services:hover .nav-services-menu,.nav-services:focus-within .nav-services-menu{
     opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);
   }
-  .nav-services-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a9ca0;margin:0 0 10px;}
+  .nav-services-label{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 8px;}
   .nav-services-group a{display:block;padding:6px 0;font-size:13.5px;color:#3d3d40;font-weight:450;}
   .nav-services-group a:hover{color:#0071e3;}
   .nav-services-soon{font-size:10px;color:#9a9ca0;font-weight:500;}
@@ -1616,7 +1616,7 @@
   .footer-tagline{margin-top:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5;max-width:240px;}
   .footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
   .footer-col{display:flex;flex-direction:column;gap:10px;}
-  .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a9ca0;margin:0 0 4px;}
+  .footer-col-title{font-size:12.5px;font-weight:600;letter-spacing:0;color:#6e6e73;margin:0 0 4px;}
   .footer-col a{font-size:13.5px;color:var(--ink-2);transition:color .15s ease;}
   .footer-col a:hover{color:var(--ink);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2);}
@@ -1744,7 +1744,7 @@
   .sc-ai i{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.7);animation:sc-ping 1.8s ease-out infinite;}
   @keyframes sc-ping{to{box-shadow:0 0 0 9px rgba(74,222,128,0);}}
 
-  .sc-abs{position:absolute;z-index:2;top:50%;right:max(0px,calc((100vw - 1120px)/2 - 6px));transform:translateY(-50%);width:520px;}
+  .sc-abs{position:absolute;z-index:2;top:50%;right:max(-40px,calc((100vw - 1120px)/2 - 46px));transform:translateY(-50%);width:520px;}
   .hero-ai-panel{display:none!important;}
   @media (max-width:1180px){.sc-abs{display:none;}}
   @media (max-width:1000px){.sc-wrap:not(.sc-abs){margin-top:8px;}}
@@ -1754,7 +1754,7 @@
   }
   @media (prefers-reduced-motion:reduce){
     .sc-world{transition:none;}
-    .sc-spin,.sc-face,.sc-agent,.sc-ai,.sc-floor i,.sc-flow path,.sc-row,.sc-ok,.sc-out-i{animation:none!important;}
+    .sc-spin,.sc-face,.sc-agent,.sc-ai,.sc-ai i,.sc-floor i,.sc-flow path,.sc-row,.sc-ok,.sc-out-i{animation:none!important;}
     .sc-dot{display:none;}
     .sc-ok{transform:scale(1);}
     .sc-spin{transform:rotateY(18deg);}
@@ -1809,6 +1809,19 @@
   @media (max-width:1000px){.go-grid,.go-grid.go-3{grid-template-columns:repeat(2,minmax(0,1fr));}}
   @media (max-width:620px){.go{padding:64px 0;}.go-grid,.go-grid.go-3{grid-template-columns:1fr;}.pg-head{padding:120px 0 20px;}}
   @media (prefers-reduced-motion:reduce){.go-card,.go-more{transition:none;}}
+
+  /* legibilidade: minimo 12px e contraste AA nos rotulos pequenos */
+  .footer-col-title,.nav-services-label{font-size:12px;letter-spacing:.04em;color:#6e6e73;}
+  .nav-services-soon{font-size:12px;}
+  .callout-eyebrow{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+  .ck-notif-t,.flow-notif-top,.flow-notif-tag{font-size:12px;}
+
+  /* estados interativos coerentes em todo o site */
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:10px;}
+  .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
+  .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
+  .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
+  .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
 </style>
 </head>
 <body>
@@ -1849,6 +1862,7 @@
 </nav>
 <div class="nav-scrim" id="nav-scrim"></div>
 
+<main>
 <header class="hero" id="main-content" tabindex="-1">
   <div class="hero-flow" aria-hidden="true">
     <div class="hero-blob hero-blob-1"></div>
@@ -1940,7 +1954,7 @@
   <div class="hero-text">
     <p class="hero-eyebrow">Para agências imobiliárias</p>
     <h1 data-scramble>Sistemas que <br class="hb">vendem casas <span class="muted">por si.</span></h1>
-    <p class="sub-col">Automatize os CPCVs, dê o Cockpit aos seus agentes e veja os números num só painel. Mais tempo para fechar negócio.</p>
+    <p class="sub-col">Automatiza os CPCVs, dá o Cockpit aos teus agentes e vê os números num só painel. Mais tempo para fechar negócio.</p>
     <div class="hero-ctas">
       <a href="contacto.html" class="btn-dark">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
       <a href="empresa.html" class="btn-outline">Ver como funciona</a>
@@ -1991,7 +2005,7 @@
       </div>
       <div class="callout-text">
         <p class="callout-eyebrow">Para toda a equipa</p>
-        <h3>Dê aos seus agentes o Cockpit.</h3>
+        <h3>Dá aos teus agentes o Cockpit.</h3>
         <p>Cada agente com o funil de clientes, angariações e calendário organizados no telemóvel - e a agência com visibilidade centralizada de toda a equipa, sem pedir relatórios a ninguém.</p>
       </div>
       <div class="callout-cta">
@@ -2004,7 +2018,7 @@
 <section class="go" aria-labelledby="ag-go">
   <div class="wrap">
     <h2 id="ag-go">Tudo o que a tua agência pode automatizar.</h2>
-    <p class="go-lead">Explora por onde quiseres. Cada página é curta e vai direta ao ponto.</p>
+    <p class="go-lead">CPCVs, Cockpit para os agentes e o processo com que trabalhamos.</p>
     <div class="go-grid go-3">
       <a class="go-card" href="solucoes.html"><span class="go-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><h3>Serviços</h3><p>CPCV com IA, Cockpit, Painel de Gestão e serviços à medida, cada um com a sua página.</p><span class="go-more">Ver serviços <span aria-hidden="true">&rarr;</span></span></a>
       <a class="go-card" href="servicos/cpcv-ia.html#antes-depois"><span class="go-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span><h3>CPCV, antes e depois</h3><p>O mesmo contrato-promessa, com e sem IA: da papelada ao documento pronto a assinar.</p><span class="go-more">Ver a diferença <span aria-hidden="true">&rarr;</span></span></a>
@@ -2021,6 +2035,7 @@
     </div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="wrap">
@@ -2034,6 +2049,7 @@
           <p class="footer-col-title">Para quem</p>
           <a href="agentes.html">Agentes</a>
           <a href="agencias.html">Agências</a>
+          <a href="servicos/painel-de-gestao.html">Investidores</a>
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Produtos</p>
@@ -2533,6 +2549,27 @@
         world.style.setProperty('--rx', '0deg');
       });
     });
+  })();
+  (function(){
+    if(!('IntersectionObserver' in window)) return;
+    var css = document.createElement('style');
+    css.textContent = '[data-offscreen],[data-offscreen] *{animation-play-state:paused!important;}';
+    document.head.appendChild(css);
+    var io = new IntersectionObserver(function(en){
+      en.forEach(function(e){ if(e.isIntersecting) e.target.removeAttribute('data-offscreen'); else e.target.setAttribute('data-offscreen',''); });
+    }, { rootMargin: '80px' });
+    document.querySelectorAll('.sc, .cockpit-sim, .ck-demo, .go-stage, .ad-stage, .sc-wrap').forEach(function(n){ io.observe(n); });
+  })();
+
+  (function(){
+    var dd = document.querySelector(".nav-services");
+    if(!dd) return;
+    document.addEventListener("keydown", function(e){
+      if(e.key !== "Escape") return;
+      dd.classList.add("is-esc");
+      if(dd.contains(document.activeElement)) document.activeElement.blur();
+    });
+    ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
   })();
 </script>
 
