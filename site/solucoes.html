@@ -10,18 +10,18 @@
 <meta property="og:site_name" content="Ace Labs">
 <meta property="og:title" content="Serviços - Ace Labs">
 <meta property="og:description" content="CPCV com IA, Cockpit, Painel de Gestão e serviços à medida. Soluções de IA e automação para agências e agentes imobiliários.">
-<meta property="og:image" content="https://acelabs.pt/og-image.png">
+<meta property="og:image" content="https://www.acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Ace Labs - IA para o setor imobiliário">
-<meta property="og:url" content="https://acelabs.pt/solucoes.html">
+<meta property="og:url" content="https://www.acelabs.pt/solucoes.html">
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Serviços - Ace Labs">
 <meta name="twitter:description" content="CPCV com IA, Cockpit, Painel de Gestão e serviços à medida. Soluções de IA e automação para agências e agentes imobiliários.">
-<meta name="twitter:image" content="https://acelabs.pt/og-image.png">
+<meta name="twitter:image" content="https://www.acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="canonical" href="https://acelabs.pt/solucoes.html">
+<link rel="canonical" href="https://www.acelabs.pt/solucoes.html">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script type="application/ld+json">
 {
@@ -34,7 +34,7 @@
   "provider": {
     "@type": "Organization",
     "name": "Ace Labs",
-    "url": "https://acelabs.pt/"
+    "url": "https://www.acelabs.pt/"
   }
 }
 </script>
@@ -914,7 +914,7 @@
   }
 
   .services-copy .hero-eyebrow{margin-bottom:20px;}
-  .services-copy h2{
+  .services-copy :is(h1,h2){
     font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;
     font-weight:700;
     font-size:clamp(28px,2.9vw,38px);
@@ -923,8 +923,8 @@
     color:#131313;
     max-width:15ch;
   }
-  .services-copy h2 .accent{color:inherit;}
-  .services-copy h2 .dot{font-style:normal;color:inherit;}
+  .services-copy :is(h1,h2) .accent{color:inherit;}
+  .services-copy :is(h1,h2) .dot{font-style:normal;color:inherit;}
   .services-copy .sub-col{margin-top:16px;max-width:42ch;font-size:15.5px;}
   .services-copy .hero-ctas{justify-content:flex-start;margin-top:24px;}
   .services-quote{
@@ -1783,7 +1783,7 @@
   .services-wrap{display:flex;flex-direction:column;gap:56px;align-items:stretch;}
   .services-copy{order:1;max-width:720px;}
   .services-col{order:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
-  .services-copy h2{max-width:20ch;font-size:clamp(34px,4.2vw,52px);line-height:1.05;}
+  .services-copy :is(h1,h2){max-width:20ch;font-size:clamp(34px,4.2vw,52px);line-height:1.05;}
   .services-copy .sub-col{max-width:56ch;font-size:18px;}
   .services-group-label,.services-group-label:not(:first-child){grid-column:1/-1;margin:14px 0 0;padding:0;border:0;align-self:end;}
   .services-group-label:first-child{margin-top:0;}
@@ -1941,6 +1941,7 @@
 
 <a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
 
+<div role="banner">
 <nav>
   <div class="wrap">
     <a class="logo" href="index.html"><img src="ace-labs-logo.png" alt="Ace Labs" class="logo-img"></a>
@@ -1973,6 +1974,7 @@
     <a href="contacto.html" class="nav-mobile-cta">Marcar diagnóstico <span aria-hidden="true">&rarr;</span></a>
   </div>
 </nav>
+</div>
 <div class="nav-scrim" id="nav-scrim"></div>
 
 <main id="main-content" tabindex="-1">
@@ -2027,7 +2029,7 @@
 
     <div class="services-copy">
       <p class="hero-eyebrow">Serviços</p>
-      <h2 data-scramble>Soluções que transformam o teu <span class="accent">dia a dia</span><i class="dot">.</i></h2>
+      <h1 data-scramble>Soluções que transformam o teu <span class="accent">dia a dia</span><i class="dot">.</i></h1>
       <p class="sub-col">Da estratégia à execução, criamos sistemas de IA e automação adaptados à realidade do teu negócio.</p>
       <div class="flow-tabs services-filter" role="tablist">
         <button type="button" class="flow-tab is-active" data-audience-filter="todos" role="tab" aria-selected="true">Todos</button>

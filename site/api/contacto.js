@@ -31,6 +31,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'missing_fields' });
   }
 
+  // Limites de tamanho: evita abuso e emails gigantes.
+  const LIMITS = { nome: 100, email: 200, telefone: 40, empresa: 120, horario: 60, contacto_preferido: 40, mensagem: 5000, origem: 60 };
+  const incoming = { nome, email, telefone, empresa, horario, contacto_preferido, mensagem, origem };
+  for (const k of Object.keys(LIMITS)) {
+    const v = incoming[k];
+    if (v !== undefined && v !== null && (typeof v !== 'string' || v.length > LIMITS[k])) {
+      return res.status(400).json({ error: 'invalid_field' });
+    }
+  }
+
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (email && (typeof email !== 'string' || !emailRe.test(email))) {
     return res.status(400).json({ error: 'invalid_email' });

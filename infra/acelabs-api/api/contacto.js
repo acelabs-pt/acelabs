@@ -1,0 +1,108 @@
+const ALLOWED = ['https://www.acelabs.pt', 'https://acelabs.pt'];
+
+function cors(req, res) {
+  const origin = req.headers.origin;
+  if (ALLOWED.indexOf(origin) > -1) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+module.exports = async function handler(req, res) {
+  cors(req, res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'method_not_allowed' });
+  }
+
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      body = {};
+    }
+  }
+  body = body || {};
+
+  const { nome, email, telefone, empresa, horario, contacto_preferido, mensagem, origem, empresa_site } = body;
+
+  // Campo honeypot: bots preenchem, humanos nunca veem este campo.
+  if (empresa_site) {
+    return res.status(200).json({ ok: true });
+  }
+
+  if (!nome || !mensagem || (!email && !telefone)) {
+    return res.status(400).json({ error: 'missing_fields' });
+  }
+
+  // Limites de tamanho: evita abuso e emails gigantes.
+  const LIMITS = { nome: 100, email: 200, telefone: 40, empresa: 120, horario: 60, contacto_preferido: 40, mensagem: 5000, origem: 60 };
+  const incoming = { nome, email, telefone, empresa, horario, contacto_preferido, mensagem, origem };
+  for (const k of Object.keys(LIMITS)) {
+    const v = incoming[k];
+    if (v !== undefined && v !== null && (typeof v !== 'string' || v.length > LIMITS[k])) {
+      return res.status(400).json({ error: 'invalid_field' });
+    }
+  }
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (email && (typeof email !== 'string' || !emailRe.test(email))) {
+    return res.status(400).json({ error: 'invalid_email' });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('RESEND_API_KEY nao configurada no Vercel');
+    return res.status(500).json({ error: 'server_misconfigured' });
+  }
+
+  const html = [
+    '<p><strong>Origem:</strong> ' + escapeHtml(origem || 'Site') + '</p>',
+    '<p><strong>Nome:</strong> ' + escapeHtml(nome) + '</p>',
+    '<p><strong>Email:</strong> ' + escapeHtml(email || '-') + '</p>',
+    '<p><strong>Telefone:</strong> ' + escapeHtml(telefone || '-') + '</p>',
+    '<p><strong>Empresa:</strong> ' + escapeHtml(empresa || '-') + '</p>',
+    '<p><strong>Melhor horário para ligar:</strong> ' + escapeHtml(horario || '-') + '</p>',
+    '<p><strong>Contacto preferido:</strong> ' + escapeHtml(contacto_preferido || '-') + '</p>',
+    '<p><strong>Mensagem:</strong><br>' + escapeHtml(mensagem).replace(/\n/g, '<br>') + '</p>',
+  ].join('\n');
+
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Ace Labs <site@acelabs.pt>',
+        to: ['miguel@acelabs.pt'],
+        bcc: ['pedro@acelabs.pt'],
+        reply_to: email || undefined,
+        subject: 'Novo pedido de diagnostico (' + (origem || 'Site') + ') - ' + nome,
+        html: html,
+      }),
+    });
+
+    if (!resendRes.ok) {
+      const errText = await resendRes.text();
+      console.error('Resend error', resendRes.status, errText);
+      return res.status(502).json({ error: 'send_failed' });
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao enviar email', err);
+    return res.status(500).json({ error: 'send_failed' });
+  }
+};

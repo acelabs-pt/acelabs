@@ -163,6 +163,14 @@ no projeto **`acelabs-api`** (https://acelabs-api.vercel.app/api/contacto).
   repetir o deploy do `acelabs-api` ou mudar o endereço.
 - A chave do Resend **nunca** vai para o repositório (público).
 
+## Documentação de infraestrutura
+
+- `README.md` (raiz): o que é cada pasta e como publicar.
+- `docs/infraestrutura.md`: contas, projetos Vercel, DNS, variáveis de ambiente, rotação de chaves e incidentes. Atualizar quando algo mudar.
+- `docs/privacidade-rascunho.md`: rascunho da política de privacidade (não publicado).
+- `infra/acelabs-api/`: função de contacto (deploy por CLI).
+- `site/vercel.json`: cabeçalhos de segurança e CSP. Ao acrescentar um serviço externo ao site, permiti-lo na CSP.
+
 ## Skills do projeto (design)
 
 Instaladas em `.claude/skills/` (partilhadas com o Miguel, vêm do hub KopkAI):

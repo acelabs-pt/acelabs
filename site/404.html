@@ -99,6 +99,13 @@
   @keyframes lost-f{0%,100%{translate:0 0;}50%{translate:0 -9px;}}
   @keyframes lost-s{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(.82);opacity:.7;}}
   @media (prefers-reduced-motion:reduce){.lost-sheet,.lost-shadow{animation:none;}}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .nf-nav{display:flex;gap:22px;}
+  .nf-nav a{font-size:14.5px;font-weight:500;color:#3d3d40;text-decoration:none;}
+  .nf-nav a:hover{color:#0071e3;}
+  @media (max-width:520px){.nf-nav{gap:14px;}.nf-nav a{font-size:13.5px;}.nf-nav a:last-child{display:none;}}
+  .nf-foot{padding:26px 0;border-top:1px solid rgba(0,0,0,.08);font-size:13px;color:#6e6e73;}
+  .nf-foot .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
@@ -106,6 +113,7 @@
   <header>
     <div class="wrap">
       <a class="logo" href="/"><img src="ace-labs-logo.png" alt="Ace Labs"></a>
+      <nav class="nf-nav" aria-label="Principal"><a href="/solucoes.html">Serviços</a><a href="/empresa.html">Empresa</a><a href="/contacto.html">Contacto</a></nav>
     </div>
   </header>
   <main id="main-content" tabindex="-1">
@@ -123,6 +131,7 @@
       </div>
     </div>
   </main>
+  <footer class="nf-foot"><div class="wrap"><span>© 2026 Ace Labs</span><span>Braga · Guimarães</span></div></footer>
 <script>(function(){var s=document.querySelector(".lost-sheet");if(!s||matchMedia("(prefers-reduced-motion: reduce)").matches)return;addEventListener("pointermove",function(e){var x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;s.style.setProperty("--ly",(x*40-10).toFixed(1)+"deg");s.style.setProperty("--lx",(10-y*24).toFixed(1)+"deg");});})();</script>
 </body>
 </html>
