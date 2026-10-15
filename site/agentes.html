@@ -1770,7 +1770,7 @@
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
             <a href="servicos/cpcv-ia.html">CPCV com IA</a>
-            <a href="servicos/cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+            <a href="servicos/cockpit.html">Cockpit</a>
             <a href="servicos/painel-de-gestao.html">Painel de Gestão</a>
           </div>
           <div class="nav-services-group">
@@ -1957,7 +1957,7 @@
 
       <div class="hero-ctas ck-ctas">
         <a href="servicos/cockpit.html" class="btn-dark ck-btn">Conhecer o Cockpit <span aria-hidden="true">&rarr;</span></a>
-        <span class="ck-note">Em breve. Fala connosco para a fase piloto.</span>
+        <span class="ck-note">Em desenvolvimento. Fala connosco para entrar na fase piloto.</span>
       </div>
     </div>
 
@@ -2088,7 +2088,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Ace Labs</span>
-      <span>Braga · Guimarães</span>
+      <span>Braga</span>
     </div>
   </div>
 </footer>
@@ -2476,7 +2476,10 @@
       nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
 
       var startTime = null;
+      var finished = false;
+      setTimeout(function(){ finished = true; nodes.forEach(function(o){ o.node.textContent = o.original; }); }, 3500);
       function frame(ts){
+        if(finished) return;
         if(!startTime) startTime = ts;
         var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
         var done = true;

@@ -94,6 +94,15 @@
   .logo{display:flex;align-items:center;}
   .logo img{height:20px;width:auto;display:block;}
   .nav-right{display:flex;align-items:center;gap:28px;}
+  .nav-burger{display:none;flex:none;width:44px;height:44px;margin-right:-10px;border:none;background:none;padding:0;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+  .nav-burger span{display:block;width:20px;height:2px;background:#1d1d1f;border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
+  .nav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav-burger[aria-expanded="true"] span:nth-child(2){opacity:0;}
+  .nav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+  .nav-mobile{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08);flex-direction:column;padding:4px 24px 18px;box-shadow:0 24px 40px -28px rgba(0,0,0,.35);}
+  .nav-mobile.open{display:flex;}
+  .nav-mobile a{padding:15px 2px;min-height:48px;display:flex;align-items:center;font-size:15.5px;font-weight:500;color:#1d1d1f;border-bottom:1px solid rgba(0,0,0,.06);}
+  .nav-mobile a:last-child{border-bottom:none;}
   .nav-link{font-size:14px;font-weight:500;color:var(--ink-2);transition:color .15s ease;}
   .nav-link:hover{color:var(--ink);}
   .nav-cta{
@@ -263,6 +272,12 @@
   .closing h2{font-size:clamp(34px,5vw,64px);line-height:1.02;letter-spacing:-0.04em;}
   .closing p{margin-top:20px;font-size:19px;line-height:1.5;color:#55555a;max-width:48ch;}
   .closing-ctas{margin-top:38px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+  .closing-facts{list-style:none;margin:56px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;max-width:1000px;}
+  .closing-facts li{border-top:2px solid #1d1d1f;padding-top:16px;}
+  .closing-facts strong{display:block;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#1d1d1f;}
+  .closing-facts span{display:block;margin-top:6px;font-size:14.5px;line-height:1.45;color:#6e6e73;}
+  @media (max-width:900px){.closing-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;}}
+  @media (max-width:520px){.closing-facts{grid-template-columns:1fr;gap:18px;margin-top:40px;}}
   .btn-dark{
     display:inline-flex;align-items:center;gap:10px;
     background:#141414;color:#fff;font-size:16px;font-weight:600;
@@ -303,6 +318,8 @@
   }
   @media (max-width:640px){
     .nav-right .nav-link{display:none;}
+    .nav-right{gap:14px;}
+    .nav-burger{display:flex;}
     .hero{padding:104px 0 64px;}
     
     .section{padding:76px 0;}
@@ -420,7 +437,16 @@
       <a class="nav-link" href="solucoes.html">Serviços</a>
       <a class="nav-link" href="empresa.html">Empresa</a>
       <a class="nav-cta" href="contacto.html">Marcar diagnóstico</a>
+      <button type="button" class="nav-burger" id="nav-burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile"><span></span><span></span><span></span></button>
     </div>
+  </div>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="solucoes.html">Serviços</a>
+    <a href="servicos/cpcv-ia.html">CPCV com IA</a>
+    <a href="servicos/cockpit.html">Cockpit</a>
+    <a href="servicos/painel-de-gestao.html">Painel de Gestão</a>
+    <a href="agentes.html">Para agentes</a>
+    <a href="empresa.html">Empresa</a>
   </div>
 </nav>
 
@@ -460,7 +486,7 @@
             </span>
             <span>
               <h2>Sou investidor</h2>
-              <p>Propriedades, conciliação de faturas e yields num só painel.</p>
+              <p>Propriedades, faturas associadas e yields num só painel.</p>
             </span>
             <span class="path-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </a>
@@ -544,7 +570,7 @@
         <a class="go-card" data-tilt href="servicos/cockpit.html#simulador">
           <div class="go-stage" aria-hidden="true"><i class="gs-phone"></i><span class="gs-note"><i></i>Nova lead</span><span class="gs-note"><i></i>Visita às 15h</span><span class="gs-note"><i></i>WhatsApp</span></div>
           <span class="go-ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span>
-          <span class="go-tag">Para agentes · em breve</span>
+          <span class="go-tag">Para agentes</span>
           <h3>Cockpit</h3>
           <p>O CRM de bolso: funil, WhatsApp e chamada, agenda e alertas.</p>
           <span class="go-more">Experimentar <span aria-hidden="true">&rarr;</span></span>
@@ -574,6 +600,12 @@
           <a class="btn-dark" href="contacto.html">Marcar diagnóstico gratuito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
           <a class="link-quiet" href="agencias.html">Ver todas as soluções</a>
         </div>
+        <ul class="closing-facts">
+          <li><strong>Reunião gratuita</strong><span>30 minutos, sem compromisso. Os valores só os apresentamos na reunião.</span></li>
+          <li><strong>Testado no terreno</strong><span>Já usado por agências do Minho, com resultados reais.</span></li>
+          <li><strong>Onboarding incluído</strong><span>Acompanhamos a tua equipa no arranque.</span></li>
+          <li><strong>Garantia de 12 meses</strong><span>Reembolso se não ficares satisfeito ao fim de 12 meses.</span></li>
+        </ul>
       </div>
     </div>
   </section>
@@ -608,7 +640,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Ace Labs</span>
-      <span>Braga · Guimarães</span>
+      <span>Braga</span>
     </div>
   </div>
 </footer>
@@ -694,6 +726,22 @@
       en.forEach(function(e){ if(e.isIntersecting) e.target.removeAttribute('data-offscreen'); else e.target.setAttribute('data-offscreen',''); });
     }, { rootMargin: '80px' });
     document.querySelectorAll('.sc, .cockpit-sim, .ck-demo, .go-stage, .ad-stage, .sc-wrap').forEach(function(n){ io.observe(n); });
+  })();
+
+  (function(){
+    var burger = document.getElementById('nav-burger');
+    var mobile = document.getElementById('nav-mobile');
+    if(!burger || !mobile) return;
+    function setOpen(o){
+      mobile.classList.toggle('open', o);
+      burger.setAttribute('aria-expanded', o ? 'true' : 'false');
+      burger.setAttribute('aria-label', o ? 'Fechar menu' : 'Abrir menu');
+    }
+    burger.addEventListener('click', function(e){ e.stopPropagation(); setOpen(!mobile.classList.contains('open')); });
+    mobile.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ setOpen(false); }); });
+    document.addEventListener('click', function(e){ if(!mobile.contains(e.target)) setOpen(false); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setOpen(false); });
+    window.addEventListener('resize', function(){ if(window.innerWidth > 640) setOpen(false); });
   })();
 </script>
 

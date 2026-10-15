@@ -783,7 +783,7 @@
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
             <a href="cpcv-ia.html">CPCV com IA</a>
-            <a href="cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+            <a href="cockpit.html">Cockpit</a>
             <a href="painel-de-gestao.html">Painel de Gestão</a>
           </div>
           <div class="nav-services-group">
@@ -813,7 +813,7 @@
   <div class="wrap article-grid">
     <div class="article-body">
       <a class="back-link" href="../solucoes.html"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <span class="badge">Em breve</span>
+      <span class="badge">Em desenvolvimento</span>
       <h1 data-scramble>Cockpit</h1>
       <p class="article-tagline">O CRM de bolso do agente imobiliário. Dashboard, funil de vendas e angariações, sincronizados com o calendário.</p>
 
@@ -1089,8 +1089,8 @@
         <div><b data-st="deals">0</b><span>Negócios concluídos</span></div>
         <div><b data-st="listings">0</b><span>Angariações</span></div>
         <div><b data-st="actions">0</b><span>Ações automáticas</span></div>
-        <div class="sim-save"><b data-st="time">0 h</b><span>Tempo poupado</span></div>
-        <div class="sim-save sim-money"><b data-st="money">0 €</b><span>Dinheiro poupado</span></div>
+        <div class="sim-save"><b data-st="time">0 h</b><span>Tempo poupado nesta simulação</span></div>
+        <div class="sim-save sim-money"><b data-st="money">0 €</b><span>Dinheiro poupado (estimativa)</span></div>
       </div>
 
       <div class="sim-assume">
@@ -1260,7 +1260,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Ace Labs</span>
-      <span>Braga · Guimarães</span>
+      <span>Braga</span>
     </div>
   </div>
 </footer>
@@ -1346,7 +1346,10 @@
       nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
 
       var startTime = null;
+      var finished = false;
+      setTimeout(function(){ finished = true; nodes.forEach(function(o){ o.node.textContent = o.original; }); }, 3500);
       function frame(ts){
+        if(finished) return;
         if(!startTime) startTime = ts;
         var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
         var done = true;

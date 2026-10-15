@@ -102,6 +102,15 @@ sincronização assíncrona.
 Commit e push apenas com confirmação explícita do utilizador antes de cada execução (push para
 `main` despoleta deploy automático em produção, ver secção Arquitetura).
 
+## Decisões de conteúdo do site (Pedro, 2026-10-15)
+
+- Reunião inicial de 30 minutos gratuita; o reembolso de 12 meses é gancho de captação e pode aparecer.
+- Cockpit e Painel de Gestão: já não são "em breve" (estão em desenvolvimento).
+- Não mostrar pessoas (nomes/fotos) por agora; localização só "Braga"; sem WhatsApp por agora.
+- Pode dizer-se "testado em agências do Minho, com resultados reais", sem números nem nomes.
+- Faturas entram por upload ou por agente que as vai buscar ao email; a yield é calculada como o utilizador quiser; oferecemos onboarding.
+- RGPD: ainda sem resposta, não escrever afirmações sobre dados/RGPD no site.
+
 ## Preçário oficial (não inventar outros valores)
 
 **Preços não vão para o site (decisão de negócio do Pedro, 2026-10-15):** valores só na reunião

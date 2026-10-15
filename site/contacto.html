@@ -1876,7 +1876,7 @@
   @keyframes ct-pop{from{transform:scale(0);}to{transform:scale(1);}}
   .ct-done h2{margin:0;font-size:26px;letter-spacing:-0.02em;}
   .ct-done p{margin:10px auto 0;max-width:34ch;font-size:16px;line-height:1.5;color:#6e6e73;}
-  .ct-done strong{color:#1d1d1f;word-break:break-all;}
+  .ct-done strong{color:#1d1d1f;overflow-wrap:anywhere;}
   .ct-again{margin-top:22px;font:inherit;font-size:14.5px;font-weight:600;padding:11px 18px;border-radius:12px;border:0;background:#f0f1f3;color:#1d1d1f;cursor:pointer;transition:background .2s;}
   .ct-again:hover{background:#e4e6ea;}
   .ct-again:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
@@ -1899,7 +1899,7 @@
           <div class="nav-services-group">
             <p class="nav-services-label">Produtos</p>
             <a href="servicos/cpcv-ia.html">CPCV com IA</a>
-            <a href="servicos/cockpit.html">Cockpit <span class="nav-services-soon">· em breve</span></a>
+            <a href="servicos/cockpit.html">Cockpit</a>
             <a href="servicos/painel-de-gestao.html">Painel de Gestão</a>
           </div>
           <div class="nav-services-group">
@@ -1966,7 +1966,7 @@
             <p class="ct-err" id="cf-email-e" role="alert"></p>
           </div>
         </div>
-        <p class="ct-hint" id="cf-contact-h">Basta um contacto: telefone ou email. Só o usamos para te responder.</p>
+        <p class="ct-hint" id="cf-contact-h">Basta um contacto: telefone ou email. Só o usamos para te responder. Nome e mensagem são obrigatórios.</p>
 
         <div class="ct-field" data-f="mensagem">
           <label for="cf-mensagem">O que queres resolver?</label>
@@ -2048,7 +2048,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Ace Labs</span>
-      <span>Braga · Guimarães</span>
+      <span>Braga</span>
     </div>
   </div>
 </footer>
@@ -2513,7 +2513,10 @@
       nodes.forEach(function(o){ consumedBefore.push(acc); acc += o.original.length; });
 
       var startTime = null;
+      var finished = false;
+      setTimeout(function(){ finished = true; nodes.forEach(function(o){ o.node.textContent = o.original; }); }, 3500);
       function frame(ts){
+        if(finished) return;
         if(!startTime) startTime = ts;
         var globalRevealed = Math.floor((ts - startTime) / MS_PER_CHAR);
         var done = true;
