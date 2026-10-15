@@ -457,8 +457,22 @@
     font-size:10px;font-weight:700;color:#fff;background:#0071e3;
     padding:2px 7px;border-radius:980px;white-space:nowrap;
   }
+  .timeline-today-label{transition:background .3s ease;}
+  .timeline-today.is-sweep .timeline-today-label{background:#1d1d1f;}
+  .timeline-today.is-rest .timeline-today-label{animation:timeline-live 2s ease-in-out infinite;}
+  @keyframes timeline-live{
+    0%,100%{box-shadow:0 0 0 0 rgba(0,113,227,.5);}
+    50%{box-shadow:0 0 0 7px rgba(0,113,227,0);}
+  }
+  .timeline-dot.hit{animation:timeline-hit .8s ease-out;}
+  @keyframes timeline-hit{
+    0%{transform:scale(1);box-shadow:0 0 0 0 rgba(0,113,227,.55);}
+    40%{transform:scale(1.9);}
+    100%{transform:scale(1);box-shadow:0 0 0 12px rgba(0,113,227,0);}
+  }
   @media (prefers-reduced-motion:reduce){
     .timeline-today{display:none;}
+    .timeline-dot.hit,.timeline-today.is-rest .timeline-today-label{animation:none;}
   }
 
   /* FAQ */
@@ -1496,28 +1510,82 @@
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(reduceMotion) return;
     var dayEls = Array.prototype.slice.call(document.querySelectorAll('.timeline-days span:not(.days-label)'));
-    var targetEl = dayEls[2];
-    if(!targetEl) return;
-    var played = false;
-    function place(){
-      var boardRect = board.getBoundingClientRect();
-      var elRect = targetEl.getBoundingClientRect();
-      marker.style.left = (elRect.left - boardRect.left + elRect.width / 2) + 'px';
+    var rows = Array.prototype.slice.call(board.querySelectorAll('.timeline-row'));
+    var label = marker.querySelector('.timeline-today-label');
+    if(dayEls.length < 6) return;
+    var TODAY = 2, SWEEP = 4600;
+    var live = false, running = false, timers = [];
+
+    function x(i){
+      var b = board.getBoundingClientRect(), r = dayEls[i].getBoundingClientRect();
+      return (r.left - b.left + r.width / 2);
     }
-    marker.addEventListener('transitionend', function(e){
-      if(e.propertyName === 'left') marker.classList.add('is-landed');
-    });
+    function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+    function clear(){ timers.forEach(clearTimeout); timers = []; }
+    function setLeft(px, ms, ease){
+      marker.style.transition = 'left ' + ms + 'ms ' + (ease || 'cubic-bezier(.3,.7,.2,1)') + ',opacity .4s ease';
+      marker.style.left = px + 'px';
+    }
+    function hit(col){
+      rows.forEach(function(r){
+        var d = r.querySelectorAll('.timeline-dot')[col];
+        if(d && d.classList.contains('on')){
+          d.classList.remove('hit'); void d.offsetWidth; d.classList.add('hit');
+        }
+      });
+    }
+    function rest(){
+      marker.classList.remove('is-sweep');
+      marker.classList.add('is-rest');
+      label.textContent = 'Hoje';
+    }
+    function cycle(){
+      if(!live) { running = false; return; }
+      running = true;
+      marker.classList.remove('is-rest');
+      marker.classList.add('is-sweep');
+      label.textContent = 'A avançar';
+      setLeft(x(0), 0);
+      void marker.offsetWidth;
+      later(function(){
+        setLeft(x(5), SWEEP, 'linear');
+        for(var c = 0; c < 6; c++){
+          (function(c){ later(function(){ hit(c); }, 80 + SWEEP * c / 5); })(c);
+        }
+        later(function(){
+          setLeft(x(TODAY), 1000);
+          later(function(){ rest(); }, 1000);
+          later(function(){ cycle(); }, 1000 + 4200);
+        }, SWEEP + 500);
+      }, 60);
+    }
+
+    // chegada inicial: do inicio ate hoje, e fica a "respirar"
+    function intro(){
+      marker.classList.add('is-on');
+      setLeft(x(0), 0);
+      void marker.offsetWidth;
+      requestAnimationFrame(function(){
+        setLeft(x(TODAY), 1100);
+        later(function(){ marker.classList.add('is-landed'); rest(); }, 1150);
+        later(function(){ cycle(); }, 1150 + 3200);
+      });
+    }
+
+    var started = false;
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
-        if(entry.isIntersecting && !played){
-          played = true;
-          place();
-          requestAnimationFrame(function(){ marker.classList.add('is-on'); });
-          io.unobserve(board);
-        }
+        live = entry.isIntersecting;
+        if(live && !started){ started = true; intro(); }
+        else if(live && !running){ cycle(); }
+        else if(!live){ clear(); running = false; }
       });
     }, { threshold: 0.3 });
     io.observe(board);
+    window.addEventListener('resize', function(){
+      if(!live || marker.classList.contains('is-sweep')) return;
+      setLeft(x(TODAY), 0);
+    });
   })();
 
   (function(){
