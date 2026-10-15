@@ -671,6 +671,103 @@
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
   .service-audience,.ovn-label,.examples-eyebrow,.phase-label,.timeline-head .phase,.timeline-head .phase-label{text-transform:none!important;letter-spacing:0!important;}
+
+  /* ===== animacao do dia de um agente com o Cockpit ===== */
+  .cv-sec{padding:20px 0 40px;}
+  .cv{margin-top:30px;}
+  .cv-steps{display:flex;gap:8px;margin:0 0 14px;padding:0;list-style:none;flex-wrap:wrap;}
+  .cv-steps button{font:inherit;font-size:13.5px;font-weight:600;color:#6e6e73;background:#f0f1f3;border:0;border-radius:980px;padding:9px 16px;cursor:pointer;transition:background .25s,color .25s,transform .15s;}
+  .cv-steps button:hover{color:#1d1d1f;}
+  .cv-steps button:active{transform:scale(.97);}
+  .cv-steps button.is-on{background:#0071e3;color:#fff;}
+  .cv-steps button.is-done{background:#e6f6ec;color:#14753c;}
+  .cv-steps button:focus-visible,.cv-ctrl button:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  .cv-stage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;padding:26px;border-radius:26px;background:linear-gradient(180deg,#f7f8fb,#eaf2fd);overflow:hidden;min-height:520px;}
+  .cv-phone{position:relative;width:272px;height:480px;margin:0 auto;border-radius:40px;padding:12px;background:linear-gradient(160deg,#2a2a30,#0c0c0f);box-shadow:0 40px 60px -34px rgba(10,22,40,.6),0 0 0 1px rgba(255,255,255,.1);}
+  .cv-screen{position:relative;width:100%;height:100%;border-radius:30px;background:#fff;overflow:hidden;}
+  .cv-notch{position:absolute;left:50%;top:8px;width:70px;height:18px;margin-left:-35px;border-radius:12px;background:#000;z-index:4;}
+  .cv-s{position:absolute;inset:0;padding:40px 16px 16px;opacity:0;transform:translateY(10px);transition:opacity .35s,transform .35s;pointer-events:none;}
+  .cv-s.is-on{opacity:1;transform:none;}
+  .cv-s h4{margin:0 0 12px;font-size:20px;letter-spacing:-0.02em;color:#1d1d1f;}
+  .cv-note{position:absolute;left:10px;right:10px;top:34px;z-index:5;display:flex;gap:9px;align-items:center;background:#0a1620;color:#fff;border-radius:16px;padding:10px 12px;font-size:12.5px;font-weight:600;box-shadow:0 14px 20px -12px rgba(0,0,0,.6);transform:translateY(-90px);transition:transform .5s cubic-bezier(.2,.9,.3,1.1);}
+  .cv-note.is-on{transform:none;}
+  .cv-note i{width:8px;height:8px;border-radius:50%;background:#4ade80;flex:none;}
+  .cv-lead{border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:12px;background:#fff;box-shadow:0 12px 18px -14px rgba(10,22,40,.4);opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s;}
+  .cv-lead.is-on{opacity:1;transform:none;}
+  .cv-lead small{display:block;font-size:11.5px;font-weight:600;color:#0071e3;}
+  .cv-lead strong{display:block;margin-top:2px;font-size:16px;color:#1d1d1f;}
+  .cv-lead span{display:block;font-size:12.5px;color:#6e6e73;margin-top:2px;}
+  .cv-acts{display:flex;gap:8px;margin-top:10px;}
+  .cv-acts button{flex:1;font:inherit;font-size:12.5px;font-weight:600;border:0;border-radius:10px;padding:9px 6px;background:#f0f1f3;color:#1d1d1f;cursor:default;}
+  .cv-acts button.wa{background:#1fae5a;color:#fff;}
+  .cv-task{margin-top:10px;font-size:12.5px;color:#6e6e73;padding:10px 12px;border-radius:12px;background:#f7f7f9;}
+  .cv-bub{max-width:86%;font-size:13px;line-height:1.4;padding:9px 12px;border-radius:14px;margin-bottom:8px;opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s;}
+  .cv-bub.is-on{opacity:1;transform:none;}
+  .cv-bub.out{background:#dcf8c6;margin-left:auto;border-bottom-right-radius:4px;color:#1d1d1f;}
+  .cv-bub.in{background:#f0f1f3;border-bottom-left-radius:4px;color:#1d1d1f;}
+  .cv-bub em{display:block;text-align:right;font-style:normal;font-size:11px;color:#14753c;margin-top:2px;}
+  .cv-chatbtn{position:absolute;left:16px;right:16px;bottom:16px;font:inherit;font-size:13.5px;font-weight:600;border:0;border-radius:12px;padding:11px;background:#0071e3;color:#fff;cursor:default;opacity:0;transition:opacity .3s;}
+  .cv-chatbtn.is-on{opacity:1;}
+  .cv-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+  .cv-slot{padding:12px 8px;border-radius:12px;background:#f0f1f3;text-align:center;font-size:13px;font-weight:600;color:#1d1d1f;transition:background .25s,color .25s;}
+  .cv-slot.is-sel{background:#0071e3;color:#fff;}
+  .cv-confirm{margin-top:14px;width:100%;font:inherit;font-size:14px;font-weight:600;border:0;border-radius:12px;padding:12px;background:#141414;color:#fff;cursor:default;transition:background .3s;}
+  .cv-confirm.is-ok{background:#1fae5a;}
+  .cv-track{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .cv-stg{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#f7f7f9;font-size:13px;font-weight:600;color:#9a9ca0;transition:background .3s,color .3s;}
+  .cv-stg i{width:10px;height:10px;border-radius:50%;background:#d6d9de;transition:background .3s;}
+  .cv-stg.is-now{background:#eaf2fd;color:#0059b3;}
+  .cv-stg.is-now i{background:#0071e3;}
+  .cv-stg.is-past{color:#14753c;}
+  .cv-stg.is-past i{background:#1fae5a;}
+  .cv-ag{display:flex;flex-direction:column;gap:10px;}
+  .cv-ag h3{margin:0 0 4px;font-size:13px;font-weight:600;color:#6e6e73;}
+  .cv-ev{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,.07);font-size:14px;font-weight:600;color:#1d1d1f;opacity:.0;transform:translateX(18px);transition:opacity .45s,transform .45s;box-shadow:0 14px 22px -18px rgba(10,22,40,.4);}
+  .cv-ev.is-on{opacity:1;transform:none;}
+  .cv-ev b{width:32px;height:32px;border-radius:10px;background:#eaf2fd;color:#0059b3;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;}
+  .cv-ev small{display:block;font-size:12.5px;font-weight:500;color:#6e6e73;}
+  .cv-sync{margin-top:4px;padding:12px 14px;border-radius:14px;background:#e6f6ec;color:#14753c;font-size:14px;font-weight:600;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s;}
+  .cv-sync.is-on{opacity:1;transform:none;}
+  .cv-offline{margin-top:2px;font-size:12.5px;color:#6e6e73;}
+  .cv-dash{position:absolute;inset:26px;display:flex;flex-direction:column;gap:16px;padding:20px;border-radius:20px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 30px 50px -34px rgba(10,22,40,.5);opacity:0;transform:translateY(16px) scale(.98);transition:opacity .6s,transform .6s;pointer-events:none;}
+  .cv-stage.is-dash .cv-dash{opacity:1;transform:none;}
+  .cv-stage.is-dash .cv-phone,.cv-stage.is-dash .cv-ag{opacity:0;transform:scale(.94);}
+  .cv-phone,.cv-ag{transition:opacity .5s,transform .5s;}
+  .cv-dash-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .cv-dash-h strong{font-size:16px;color:#1d1d1f;}
+  .cv-team{display:inline-flex;align-items:center;}
+  .cv-team i{width:30px;height:30px;border-radius:50%;background:#eaf2fd;color:#0059b3;font-style:normal;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-8px;}
+  .cv-team i:first-child{margin-left:0;}
+  .cv-team em{font-style:normal;font-size:12.5px;color:#6e6e73;margin-left:10px;}
+  .cv-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1;}
+  .cv-col{background:#f7f7f9;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:150px;}
+  .cv-col p{margin:0;font-size:12.5px;font-weight:600;color:#6e6e73;}
+  .cv-dc{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:8px 9px;font-size:13px;font-weight:600;color:#1d1d1f;transition:opacity .5s,transform .5s,background .4s,box-shadow .4s;flex-wrap:wrap;}
+  .cv-dc b{width:24px;height:24px;border-radius:50%;background:#eaf2fd;color:#0059b3;font-size:10.5px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .cv-dc small{flex-basis:100%;font-size:11.5px;font-weight:600;color:#9a5b00;margin-left:32px;}
+  .cv-dc.cv-new{opacity:0;transform:translateX(-30px) scale(.96);}
+  .cv-dc.cv-new.is-on{opacity:1;transform:none;background:#e6f6ec;border-color:#bfe6cd;box-shadow:0 0 0 3px rgba(31,174,90,.2);}
+  .cv-dc.is-out{opacity:0;transform:translateX(40px);max-height:0;padding-top:0;padding-bottom:0;margin:-4px 0;border-width:0;overflow:hidden;}
+  .cv-dc.cv-warn{border-color:#ffd8a0;}
+  .cv-dc.cv-warn.is-alert{background:#fff4e5;border-color:#ff9f0a;box-shadow:0 0 0 3px rgba(255,159,10,.25);}
+  .cv-dash-f{margin:0;font-size:14px;font-weight:600;color:#14753c;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s;}
+  .cv-dash-f.is-on{opacity:1;transform:none;}
+  @media (max-width:860px){.cv-dash{position:relative;inset:auto;display:none;}.cv-stage.is-dash .cv-dash{display:flex;}.cv-stage.is-dash .cv-phone,.cv-stage.is-dash .cv-ag{display:none;}.cv-cols{grid-template-columns:repeat(2,minmax(0,1fr));}.cv-col{min-height:0;}}
+  @media (prefers-reduced-motion:reduce){.cv-dash,.cv-dc,.cv-dash-f,.cv-phone,.cv-ag{transition:none;}}
+  .cv-cursor{position:absolute;left:0;top:0;width:22px;height:22px;z-index:7;pointer-events:none;opacity:0;transform:translate3d(60px,60px,0);transition:transform .85s cubic-bezier(.5,0,.2,1),opacity .3s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+  .cv-cursor.is-on{opacity:1;}
+  .cv-cursor svg{width:22px;height:22px;display:block;}
+  .cv-cursor::after{content:"";position:absolute;left:-8px;top:-8px;width:20px;height:20px;border-radius:50%;border:2px solid #0071e3;opacity:0;}
+  .cv-cursor.is-click::after{animation:cv-click .45s ease-out;}
+  @keyframes cv-click{from{opacity:.9;transform:scale(.3);}to{opacity:0;transform:scale(1.8);}}
+  .cv-ctrl{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .cv-ctrl button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:980px;padding:10px 18px;background:#141414;color:#fff;cursor:pointer;transition:background .15s,transform .15s;}
+  .cv-ctrl button:hover{background:#000;}
+  .cv-ctrl button.ghost{background:#f0f1f3;color:#1d1d1f;}
+  .cv-ctrl button:active{transform:scale(.97);}
+  .cv-note-t{font-size:12.5px;color:#9a9ca0;margin-left:auto;}
+  @media (max-width:860px){.cv-stage{grid-template-columns:1fr;padding:18px;gap:18px;}.cv-note-t{display:none;}}
+  @media (prefers-reduced-motion:reduce){.cv-s,.cv-note,.cv-lead,.cv-bub,.cv-ev,.cv-sync,.cv-cursor{transition:none;}}
 </style>
 </head>
 <body>
@@ -691,7 +788,7 @@
           </div>
           <div class="nav-services-group">
             <p class="nav-services-label">Serviço à medida</p>
-            <a href="servicos-personalizados.html">Serviços personalizados</a>
+            <a href="servicos-personalizados.html">Automações personalizadas</a>
           </div>
         </div>
       </div>
@@ -761,7 +858,7 @@
 
       <div class="article-divider"></div>
       <div class="hero-ctas article-ctas">
-        <a href="../contacto.html" class="btn-dark">Ser das primeiras agências a testar</a>
+        <a href="../contacto.html" class="btn-dark">Ser dos primeiros a testar</a>
         <a href="../solucoes.html" class="btn-outline">Ver todos os serviços</a>
       </div>
       <p class="article-note">Em desenvolvimento ativo. Fala connosco para te juntares à fase piloto.</p>
@@ -822,6 +919,110 @@
     </div>
   </div>
 </header>
+
+<section class="cv-sec" id="dia" aria-labelledby="cv-title">
+  <div class="wrap">
+    <p class="hero-eyebrow">Um dia com o Cockpit</p>
+    <h2 id="cv-title" style="font-size:clamp(28px,3.2vw,38px);max-width:24ch;margin:0;">Do primeiro contacto <span class="muted" style="color:#9a9ca0;">à agência a par de tudo.</span></h2>
+    <p class="sub-col" style="margin:12px 0 0;color:#6e6e73;font-size:17px;line-height:1.5;">Vê o agente a trabalhar no telemóvel e a agência a ver tudo ao mesmo tempo.</p>
+
+    <div class="cv" data-cv>
+      <ol class="cv-steps" aria-label="Fases">
+        <li><button type="button" data-go="0">1 Chega um lead</button></li>
+        <li><button type="button" data-go="1">2 WhatsApp</button></li>
+        <li><button type="button" data-go="2">3 Visita</button></li>
+        <li><button type="button" data-go="3">4 Funil</button></li>
+        <li><button type="button" data-go="4">5 Toda a agência</button></li>
+      </ol>
+
+      <div class="cv-stage" data-stage>
+        <div class="cv-phone" aria-hidden="true">
+          <div class="cv-screen">
+            <i class="cv-notch"></i>
+            <div class="cv-note" data-note><i></i>Nova lead · Rui Martins</div>
+
+            <div class="cv-s" data-s="0">
+              <h4>Hoje</h4>
+              <div class="cv-lead" data-lead>
+                <small>Novo lead</small>
+                <strong>Rui Martins</strong>
+                <span>T3 em Braga</span>
+                <div class="cv-acts"><button class="wa" data-wa>WhatsApp</button><button>Ligar</button><button>Visita</button></div>
+              </div>
+              <div class="cv-task" data-task hidden>Follow-up em 3 dias</div>
+            </div>
+
+            <div class="cv-s" data-s="1">
+              <h4>Rui Martins</h4>
+              <div class="cv-bub out" data-b="0"><span data-typed></span><em>✓✓</em></div>
+              <div class="cv-bub in" data-b="1">Boa, quando posso visitar?</div>
+              <button class="cv-chatbtn" data-visit>Agendar visita</button>
+            </div>
+
+            <div class="cv-s" data-s="2">
+              <h4>Visita</h4>
+              <div class="cv-slots">
+                <div class="cv-slot">Hoje 17h</div>
+                <div class="cv-slot" data-slot>Amanhã 15h</div>
+                <div class="cv-slot">Sex 10h</div>
+                <div class="cv-slot">Sáb 11h</div>
+              </div>
+              <button class="cv-confirm" data-confirm>Confirmar</button>
+            </div>
+
+            <div class="cv-s" data-s="3">
+              <h4>Funil</h4>
+              <div class="cv-track">
+                <div class="cv-stg" data-g="0"><i></i>Lead qualificada</div>
+                <div class="cv-stg" data-g="1"><i></i>Imóveis enviados</div>
+                <div class="cv-stg" data-g="2"><i></i>Visita marcada</div>
+                <div class="cv-stg" data-g="3"><i></i>Proposta</div>
+              </div>
+              <div class="cv-task is-on" style="margin-top:12px;">Follow-up em 3 dias criado</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cv-ag">
+          <h3>Painel da agência</h3>
+          <div class="cv-ev" data-e="0"><b>1</b><div>Nova lead<small>Rui Martins, T3 em Braga</small></div></div>
+          <div class="cv-ev" data-e="1"><b>2</b><div>Mensagem enviada<small>WhatsApp, na ficha do contacto</small></div></div>
+          <div class="cv-ev" data-e="2"><b>3</b><div>Visita marcada<small>Amanhã às 15h, na agenda do agente</small></div></div>
+          <div class="cv-ev" data-e="3"><b>4</b><div>Funil atualizado<small>Visita marcada</small></div></div>
+          <div class="cv-sync" data-sync>Registado sozinho. A agência vê tudo.</div>
+          <p class="cv-offline" data-offline>Sem rede na visita? Regista na mesma e sincroniza quando voltares a ter sinal.</p>
+        </div>
+        <div class="cv-dash" data-dash aria-hidden="true">
+          <div class="cv-dash-h"><strong>Painel da agência</strong><span class="cv-team"><i>RM</i><i>AC</i><i>JS</i><em>Toda a equipa</em></span></div>
+          <div class="cv-cols">
+            <div class="cv-col"><p>Lead</p>
+              <div class="cv-dc"><b>JS</b>Inês Costa</div>
+            </div>
+            <div class="cv-col"><p>Imóveis enviados</p>
+              <div class="cv-dc" data-ghost><b>RM</b>Rui Martins</div>
+              <div class="cv-dc"><b>AC</b>Hugo Silva</div>
+            </div>
+            <div class="cv-col"><p>Visita marcada</p>
+              <div class="cv-dc cv-new" data-new><b>RM</b>Rui Martins</div>
+              <div class="cv-dc cv-warn" data-warn><b>JS</b>Marta Sousa<small>Parada há 7 dias</small></div>
+            </div>
+            <div class="cv-col"><p>Proposta</p>
+              <div class="cv-dc"><b>AC</b>Pedro Alves</div>
+            </div>
+          </div>
+          <p class="cv-dash-f" data-dashf>Cada agente trabalha no seu telemóvel. A agência vê tudo, sem pedir relatórios a ninguém.</p>
+        </div>
+        <i class="cv-cursor" data-cursor aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10.4 19z" fill="#1d1d1f" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></i>
+      </div>
+
+      <div class="cv-ctrl">
+        <button type="button" data-play>Pausar</button>
+        <button type="button" class="ghost" data-replay>Ver outra vez</button>
+        <span class="cv-note-t">Exemplo ilustrativo, com dados fictícios.</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section class="sim-sec" id="simulador" aria-labelledby="sim-title">
   <div class="wrap">
@@ -965,7 +1166,7 @@
           Quando é que o Cockpit fica disponível?
           <span class="faq-icon" aria-hidden="true"></span>
         </button>
-        <div class="faq-answer"><p class="faq-answer-inner">Está em desenvolvimento ativo. As primeiras agências a juntar-se entram em fase piloto já este trimestre - fala connosco para garantir um lugar.</p></div>
+        <div class="faq-answer"><p class="faq-answer-inner">Está em desenvolvimento ativo. Os primeiros agentes e agências a juntar-se entram em fase piloto - fala connosco para garantir um lugar.</p></div>
       </div>
       <div class="faq-item" data-reveal style="--n:3">
         <button type="button" class="faq-question">
@@ -1011,7 +1212,7 @@
       </a>
       <a class="related-card" href="servicos-personalizados.html">
         <span class="related-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
-        <h3>Serviços personalizados</h3>
+        <h3>Automações personalizadas</h3>
         <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
         <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
       </a>
@@ -1512,6 +1713,151 @@
       if(dd.contains(document.activeElement)) document.activeElement.blur();
     });
     ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
+  })();
+
+  (function(){
+    var root = document.querySelector('[data-cv]');
+    if(!root) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var stage = root.querySelector('[data-stage]');
+    var cursor = root.querySelector('[data-cursor]');
+    var S = [].slice.call(root.querySelectorAll('[data-s]'));
+    var note = root.querySelector('[data-note]'), lead = root.querySelector('[data-lead]');
+    var wa = root.querySelector('[data-wa]'), task = root.querySelector('[data-task]');
+    var typed = root.querySelector('[data-typed]'), b0 = root.querySelector('[data-b="0"]'), b1 = root.querySelector('[data-b="1"]');
+    var visit = root.querySelector('[data-visit]'), slot = root.querySelector('[data-slot]'), confirmB = root.querySelector('[data-confirm]');
+    var stg = [].slice.call(root.querySelectorAll('[data-g]'));
+    var ev = [].slice.call(root.querySelectorAll('[data-e]'));
+    var sync = root.querySelector('[data-sync]');
+    var dash = root.querySelector('[data-dash]'), ghost = root.querySelector('[data-ghost]');
+    var nw = root.querySelector('[data-new]'), warn = root.querySelector('[data-warn]'), dashf = root.querySelector('[data-dashf]');
+    var pills = [].slice.call(root.querySelectorAll('[data-go]'));
+    var playBtn = root.querySelector('[data-play]');
+    var MSG = 'Olá Rui, tenho 3 imóveis que podem interessar.';
+    var token = 0, paused = false, visible = false, started = false;
+
+    function Cancel(){}
+    function wait(ms, my){
+      return new Promise(function(res, rej){
+        var left = ms;
+        (function step(){
+          if(my !== token) return rej(new Cancel());
+          if(paused || !visible){ setTimeout(step, 120); return; }
+          if(left <= 0) return res();
+          left -= 60; setTimeout(step, 60);
+        })();
+      });
+    }
+    function setPill(i){
+      pills.forEach(function(b, k){
+        b.classList.toggle('is-on', k === i && i < 4);
+        b.classList.toggle('is-done', k < i || (k === i && i === 4));
+      });
+    }
+    function moveTo(el, dx, dy){
+      var s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+      var x = r.left - s.left + (dx == null ? r.width * .5 : dx);
+      var y = r.top - s.top + (dy == null ? r.height * .5 : dy);
+      cursor.classList.add('is-on');
+      cursor.style.transform = 'translate3d(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px,0)';
+    }
+    function click(){ cursor.classList.remove('is-click'); void cursor.offsetWidth; cursor.classList.add('is-click'); }
+    function show(n){ S.forEach(function(s, i){ s.classList.toggle('is-on', i === n); }); }
+    function stages(n){ stg.forEach(function(g, i){ g.classList.toggle('is-past', i < n); g.classList.toggle('is-now', i === n); }); }
+
+    function renderStart(p){
+      cursor.classList.remove('is-on');
+      note.classList.remove('is-on'); lead.classList.remove('is-on'); task.hidden = true;
+      typed.textContent = ''; b0.classList.remove('is-on'); b1.classList.remove('is-on'); visit.classList.remove('is-on');
+      slot.classList.remove('is-sel'); confirmB.classList.remove('is-ok'); confirmB.textContent = 'Confirmar';
+      stages(-1); sync.classList.remove('is-on');
+      ev.forEach(function(e, i){ e.classList.toggle('is-on', i < p); });
+      show(0);
+      if(p >= 1){ lead.classList.add('is-on'); }
+      if(p >= 2){ show(1); typed.textContent = MSG; b0.classList.add('is-on'); b1.classList.add('is-on'); visit.classList.add('is-on'); }
+      if(p >= 3){ show(2); slot.classList.add('is-sel'); }
+      if(p >= 4){ show(3); stages(2); }
+      stage.classList.toggle('is-dash', p >= 4);
+      ghost.classList.remove('is-out'); nw.classList.remove('is-on'); warn.classList.remove('is-alert'); dashf.classList.remove('is-on');
+      if(p >= 5){
+        ghost.classList.add('is-out'); nw.classList.add('is-on'); warn.classList.add('is-alert'); dashf.classList.add('is-on');
+        sync.classList.add('is-on'); ev.forEach(function(e){ e.classList.add('is-on'); });
+      }
+    }
+
+    async function play(from){
+      var my = ++token;
+      try {
+        setPill(from); renderStart(from);
+        if(reduce){ return; }
+        if(from <= 0){
+          await wait(700, my);
+          note.classList.add('is-on'); await wait(1300, my);
+          lead.classList.add('is-on'); ev[0].classList.add('is-on');
+          await wait(900, my);
+          note.classList.remove('is-on'); await wait(500, my);
+        }
+        if(from <= 1){
+          setPill(1);
+          moveTo(wa); await wait(1000, my);
+          click(); await wait(350, my);
+          show(1); await wait(500, my);
+          cursor.classList.remove('is-on');
+          b0.classList.add('is-on');
+          for(var k = 0; k < MSG.length; k++){ typed.textContent = MSG.slice(0, k + 1); await wait(32, my); }
+          await wait(500, my);
+          ev[1].classList.add('is-on');
+          b1.classList.add('is-on'); await wait(900, my);
+          visit.classList.add('is-on'); await wait(500, my);
+        }
+        if(from <= 2){
+          setPill(2); if(from === 2) renderStart(2);
+          moveTo(visit); await wait(1000, my);
+          click(); await wait(300, my);
+          show(2); await wait(700, my);
+          moveTo(slot); await wait(900, my);
+          click(); slot.classList.add('is-sel'); await wait(500, my);
+          moveTo(confirmB); await wait(800, my);
+          click(); confirmB.classList.add('is-ok'); confirmB.textContent = 'Visita marcada'; await wait(500, my);
+          ev[2].classList.add('is-on'); await wait(900, my);
+          cursor.classList.remove('is-on');
+        }
+        if(from <= 3){
+          setPill(3); if(from === 3) renderStart(3);
+          show(3); stages(0); await wait(900, my);
+          stages(1); await wait(800, my);
+          stages(2); await wait(700, my);
+          ev[3].classList.add('is-on'); await wait(900, my);
+        }
+        setPill(4);
+        if(from === 4) renderStart(4);
+        stage.classList.add('is-dash');
+        await wait(1500, my);
+        ghost.classList.add('is-out'); await wait(350, my);
+        nw.classList.add('is-on'); await wait(1400, my);
+        warn.classList.add('is-alert'); await wait(1300, my);
+        dashf.classList.add('is-on'); await wait(600, my);
+      } catch(e){ if(!(e instanceof Cancel)) throw e; }
+    }
+
+    function go(p){ paused = false; playBtn.textContent = 'Pausar'; play(p); }
+    pills.forEach(function(b){ b.addEventListener('click', function(){ go(+b.getAttribute('data-go')); }); });
+    root.querySelector('[data-replay]').addEventListener('click', function(){ go(0); });
+    playBtn.addEventListener('click', function(){
+      paused = !paused;
+      playBtn.textContent = paused ? 'Continuar' : 'Pausar';
+    });
+
+    function finalState(){ setPill(4); renderStart(5); }
+    if(reduce){ finalState(); }
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){
+        en.forEach(function(e){
+          visible = e.isIntersecting;
+          if(visible && !started){ started = true; if(!reduce) play(0); }
+        });
+      }, { threshold: 0.35 }).observe(stage);
+    } else { visible = true; started = true; if(!reduce) play(0); }
   })();
 </script>
 

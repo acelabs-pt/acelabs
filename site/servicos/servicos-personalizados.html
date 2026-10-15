@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
-<title>Ace Labs - Serviços personalizados</title>
+<title>Ace Labs - Automações personalizadas</title>
 <meta name="description" content="Soluções à medida dos teus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a tua empresa precisa.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ace Labs">
-<meta property="og:title" content="Ace Labs - Serviços personalizados">
+<meta property="og:title" content="Ace Labs - Automações personalizadas">
 <meta property="og:description" content="Soluções à medida dos teus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a tua empresa precisa.">
 <meta property="og:image" content="https://acelabs.pt/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -17,7 +17,7 @@
 <meta property="og:url" content="https://acelabs.pt/servicos/servicos-personalizados.html">
 <meta property="og:locale" content="pt_PT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ace Labs - Serviços personalizados">
+<meta name="twitter:title" content="Ace Labs - Automações personalizadas">
 <meta name="twitter:description" content="Soluções à medida dos teus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a tua empresa precisa.">
 <meta name="twitter:image" content="https://acelabs.pt/og-image.png">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -402,6 +402,57 @@
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
   .service-audience,.ovn-label,.examples-eyebrow,.phase-label,.timeline-head .phase,.timeline-head .phase-label{text-transform:none!important;letter-spacing:0!important;}
+
+  /* ===== animacoes guiadas (cursor, fases, controlos) ===== */
+  .an-sec{padding:40px 0 70px;}
+  .an{margin-top:30px;}
+  .an-steps{display:flex;gap:8px;margin:0 0 14px;padding:0;list-style:none;flex-wrap:wrap;}
+  .an-steps button{font:inherit;font-size:13.5px;font-weight:600;color:#6e6e73;background:#f0f1f3;border:0;border-radius:980px;padding:9px 16px;cursor:pointer;transition:background .25s,color .25s,transform .15s;}
+  .an-steps button:hover{color:#1d1d1f;}
+  .an-steps button:active{transform:scale(.97);}
+  .an-steps button.is-on{background:#0071e3;color:#fff;}
+  .an-steps button.is-done{background:#e6f6ec;color:#14753c;}
+  .an-steps button:focus-visible,.an-ctrl button:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  .an-stage{position:relative;display:grid;gap:18px;padding:24px;border-radius:26px;background:linear-gradient(180deg,#f7f8fb,#eaf2fd);overflow:hidden;min-height:400px;}
+  .an-cursor{position:absolute;left:0;top:0;width:22px;height:22px;z-index:7;pointer-events:none;opacity:0;transform:translate3d(60px,60px,0);transition:transform .85s cubic-bezier(.5,0,.2,1),opacity .3s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+  .an-cursor.is-on{opacity:1;}
+  .an-cursor svg{width:22px;height:22px;display:block;}
+  .an-cursor::after{content:"";position:absolute;left:-8px;top:-8px;width:20px;height:20px;border-radius:50%;border:2px solid #0071e3;opacity:0;}
+  .an-cursor.is-click::after{animation:an-click .45s ease-out;}
+  @keyframes an-click{from{opacity:.9;transform:scale(.3);}to{opacity:0;transform:scale(1.8);}}
+  .an-ctrl{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .an-ctrl button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:980px;padding:10px 18px;background:#141414;color:#fff;cursor:pointer;transition:background .15s,transform .15s;}
+  .an-ctrl button:hover{background:#000;}
+  .an-ctrl button.ghost{background:#f0f1f3;color:#1d1d1f;}
+  .an-ctrl button:active{transform:scale(.97);}
+  .an-note{font-size:12.5px;color:#9a9ca0;margin-left:auto;}
+  .an-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:16px;box-shadow:0 26px 40px -32px rgba(10,22,40,.5);}
+  .an-card h3{margin:0 0 12px;font-size:13px;font-weight:600;color:#6e6e73;}
+  .an-pop{opacity:0;transform:translateY(10px) scale(.97);transition:opacity .45s,transform .45s;}
+  .an-pop.is-on{opacity:1;transform:none;}
+  @media (max-width:860px){.an-note{display:none;}}
+  @media (prefers-reduced-motion:reduce){.an-pop,.an-cursor{transition:none;}}
+
+  .au-stage{grid-template-columns:1fr;}
+  .au-say{display:flex;align-items:center;gap:12px;min-height:58px;font-size:15.5px;font-weight:600;color:#1d1d1f;}
+  .au-say span{display:block;padding:12px 16px;border-radius:14px 14px 14px 4px;background:#fff;border:1px solid rgba(0,0,0,.08);min-height:46px;}
+  .au-say span.is-typing::after{content:"";display:inline-block;width:2px;height:16px;margin-left:2px;vertical-align:-3px;background:#0071e3;animation:au-caret .8s steps(1) infinite;}
+  @keyframes au-caret{50%{opacity:0;}}
+  .au-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;align-items:center;margin-top:12px;position:relative;}
+  .au-node{position:relative;margin:0 14px;padding:16px 12px;border-radius:16px;background:#fff;border:1px solid rgba(0,0,0,.08);text-align:center;box-shadow:0 22px 30px -24px rgba(10,22,40,.5);}
+  .au-node b{display:flex;margin:0 auto 8px;width:38px;height:38px;border-radius:12px;background:#eaf2fd;align-items:center;justify-content:center;}
+  .au-node b svg{width:20px;height:20px;stroke:#0071e3;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .au-node strong{display:block;font-size:14px;color:#1d1d1f;}
+  .au-node small{display:block;margin-top:2px;font-size:12.5px;color:#6e6e73;}
+  .au-node.is-run{border-color:#0071e3;box-shadow:0 0 0 3px rgba(0,113,227,.18),0 22px 30px -24px rgba(10,22,40,.5);}
+  .au-link{position:absolute;top:50%;height:2px;margin-top:-1px;background:#c7d3e6;transform-origin:left;transform:scaleX(0);transition:transform .7s cubic-bezier(.3,.8,.2,1),background .3s;}
+  .au-link.is-on{transform:scaleX(1);background:#0071e3;}
+  .au-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;}
+  .au-done{font-size:13.5px;font-weight:600;padding:9px 14px;border-radius:12px;background:#e6f6ec;color:#14753c;transition:transform .25s;}
+  .au-done.is-bump{transform:scale(1.06);}
+  .au-care{font-size:13.5px;font-weight:600;padding:9px 14px;border-radius:12px;background:#0a1620;color:#fff;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s;}
+  .au-care.is-on{opacity:1;transform:none;}
+  @media (max-width:860px){.au-flow{grid-template-columns:1fr;gap:12px;}.au-node{margin:0;}.au-link{display:none;}.an-stage.au-stage{padding:16px;}}
 </style>
 </head>
 <body>
@@ -422,7 +473,7 @@
           </div>
           <div class="nav-services-group">
             <p class="nav-services-label">Serviço à medida</p>
-            <a href="servicos-personalizados.html">Serviços personalizados</a>
+            <a href="servicos-personalizados.html">Automações personalizadas</a>
           </div>
         </div>
       </div>
@@ -447,7 +498,7 @@
   <div class="wrap article-grid">
     <div class="article-body">
       <a class="back-link" href="../solucoes.html"><span aria-hidden="true">&larr;</span> Serviços</a>
-      <h1>Serviços <span class="muted">personalizados</span></h1>
+      <h1>Automações <span class="muted">personalizadas</span></h1>
       <p class="article-tagline">Soluções à medida dos teus desafios. Combinamos estratégia, IA e automação para criar exatamente aquilo que a tua empresa precisa.</p>
 
       <div class="feature-list">
@@ -518,6 +569,30 @@
         <h3>Outros projetos</h3>
         <p>Se o teu desafio não está na lista, fazemos a solução certa para ti.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="an-sec" id="automacao" aria-labelledby="au-title">
+  <div class="wrap">
+    <p class="hero-eyebrow">Simulação</p>
+    <h2 id="au-title" style="font-size:clamp(28px,3.2vw,38px);max-width:24ch;margin:0;">Do problema <span class="muted" style="color:#9a9ca0;">à automação.</span></h2>
+    <p class="sub-col" style="margin:12px 0 0;color:#6e6e73;font-size:17px;line-height:1.5;">Vê uma tarefa repetitiva a passar a correr sozinha.</p>
+    <div class="an" data-an="au">
+      <ol class="an-steps" aria-label="Fases"><li><button type="button" data-go="0">1 O problema</button></li><li><button type="button" data-go="1">2 Desenho</button></li><li><button type="button" data-go="2">3 Ligações</button></li><li><button type="button" data-go="3">4 Corre sozinha</button></li><li><button type="button" data-go="4">5 Acompanhamento</button></li></ol>
+      <div class="an-stage au-stage" data-stage>
+        <div class="au-say"><span data-say></span></div>
+        <div class="au-flow" data-flow>
+          <div class="au-node an-pop" data-n="0"><b><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></b><strong>Email</strong><small>Chega o pedido</small></div>
+          <div class="au-node an-pop" data-n="1"><b><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9l-4.7 1.8L12 15.5l-1.8-4.7L5.5 9l4.7-1.3z"/></svg></b><strong>IA lê</strong><small>Extrai os dados</small></div>
+          <div class="au-node an-pop" data-n="2"><b><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg></b><strong>Folha</strong><small>Fica registado</small></div>
+          <div class="au-node an-pop" data-n="3"><b><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></b><strong>Aviso</strong><small>Responsável notificado</small></div>
+          <i class="au-link" data-l="0"></i><i class="au-link" data-l="1"></i><i class="au-link" data-l="2"></i>
+        </div>
+        <div class="au-foot"><span class="au-done" data-done>Feito sozinha: 0</span><span class="au-care" data-care>Ajustamos contigo nas 4 semanas de arranque</span></div>
+        <i class="an-cursor" data-cursor aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10.4 19z" fill="#1d1d1f" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></i>
+      </div>
+      <div class="an-ctrl"><button type="button" data-play>Pausar</button><button type="button" class="ghost" data-replay>Ver outra vez</button><span class="an-note">Exemplo ilustrativo, com dados fictícios.</span></div>
     </div>
   </div>
 </section>
@@ -617,6 +692,121 @@
       if(dd.contains(document.activeElement)) document.activeElement.blur();
     });
     ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
+  })();
+
+  (function(){
+    function makeAnim(root, opt){
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var stage = root.querySelector('[data-stage]'), cursor = root.querySelector('[data-cursor]');
+      var pills = [].slice.call(root.querySelectorAll('[data-go]')), playBtn = root.querySelector('[data-play]');
+      var token = 0, paused = false, visible = false, started = false;
+      function Cancel(){}
+      function wait(ms, my){
+        return new Promise(function(res, rej){
+          var left = ms;
+          (function step(){
+            if(my !== token) return rej(new Cancel());
+            if(paused || !visible){ setTimeout(step, 120); return; }
+            if(left <= 0) return res();
+            left -= 60; setTimeout(step, 60);
+          })();
+        });
+      }
+      function setPill(i){
+        pills.forEach(function(b, k){
+          b.classList.toggle('is-on', k === i && i < pills.length - 1);
+          b.classList.toggle('is-done', k < i || (k === i && i === pills.length - 1));
+        });
+      }
+      function moveTo(el, dx, dy){
+        var s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+        cursor.classList.add('is-on');
+        cursor.style.transform = 'translate3d(' + (r.left - s.left + (dx == null ? r.width * .5 : dx)).toFixed(0) + 'px,' + (r.top - s.top + (dy == null ? r.height * .5 : dy)).toFixed(0) + 'px,0)';
+      }
+      function click(){ cursor.classList.remove('is-click'); void cursor.offsetWidth; cursor.classList.add('is-click'); }
+      function hide(){ cursor.classList.remove('is-on'); }
+      async function play(from){
+        var my = ++token;
+        var E = { wait: function(ms){ return wait(ms, my); }, moveTo: moveTo, click: click, hide: hide, setPill: setPill };
+        try {
+          setPill(from); hide(); opt.renderStart(from);
+          if(reduce) return;
+          await opt.run(from, E);
+        } catch(e){ if(!(e instanceof Cancel)) throw e; }
+      }
+      function go(p){ paused = false; playBtn.textContent = 'Pausar'; play(p); }
+      pills.forEach(function(b){ b.addEventListener('click', function(){ go(+b.getAttribute('data-go')); }); });
+      root.querySelector('[data-replay]').addEventListener('click', function(){ go(0); });
+      playBtn.addEventListener('click', function(){ paused = !paused; playBtn.textContent = paused ? 'Continuar' : 'Pausar'; });
+      if(reduce){ setPill(pills.length - 1); opt.renderStart(opt.final); }
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){
+          en.forEach(function(e){
+            visible = e.isIntersecting;
+            if(visible && !started){ started = true; if(!reduce) play(0); }
+          });
+        }, { threshold: 0.35 }).observe(stage);
+      } else { visible = true; started = true; if(!reduce) play(0); }
+    }
+
+    var root = document.querySelector('[data-an="au"]');
+    if(!root) return;
+    var $ = function(s){ return root.querySelector(s); };
+    var say = $('[data-say]'), flow = $('[data-flow]'), done = $('[data-done]'), care = $('[data-care]');
+    var nodes = [].slice.call(root.querySelectorAll('[data-n]')), links = [].slice.call(root.querySelectorAll('[data-l]'));
+    var TXT = 'Todos os dias copio os pedidos do email para a folha e aviso o responsável.';
+    function layoutLinks(){
+      var f = flow.getBoundingClientRect();
+      links.forEach(function(l, i){
+        var a = nodes[i].getBoundingClientRect(), b = nodes[i + 1].getBoundingClientRect();
+        l.style.left = (a.right - f.left) + 'px';
+        l.style.width = Math.max(0, b.left - a.right) + 'px';
+      });
+    }
+    window.addEventListener('resize', layoutLinks);
+    function setDone(n){ done.textContent = 'Feito sozinha: ' + n; }
+    function renderStart(p){
+      say.classList.remove('is-typing'); say.textContent = p >= 1 ? TXT : '';
+      nodes.forEach(function(n){ n.classList.remove('is-run'); n.classList.toggle('is-on', p >= 2); });
+      links.forEach(function(l){ l.classList.toggle('is-on', p >= 3); });
+      setDone(p >= 4 ? 3 : 0); care.classList.toggle('is-on', p >= 5);
+      layoutLinks();
+    }
+    async function run(from, E){
+      if(from <= 0){
+        await E.wait(500);
+        say.classList.add('is-typing');
+        for(var i = 0; i < TXT.length; i++){ say.textContent = TXT.slice(0, i + 1); await E.wait(28); }
+        say.classList.remove('is-typing'); await E.wait(700);
+      }
+      if(from <= 1){
+        E.setPill(1); layoutLinks();
+        for(var k = 0; k < nodes.length; k++){ nodes[k].classList.add('is-on'); await E.wait(520); }
+        await E.wait(400);
+      }
+      if(from <= 2){
+        E.setPill(2); layoutLinks();
+        for(var m = 0; m < links.length; m++){
+          E.moveTo(nodes[m], nodes[m].offsetWidth * .9, 30); await E.wait(700);
+          E.click(); links[m].classList.add('is-on'); await E.wait(500);
+        }
+        E.hide(); await E.wait(400);
+      }
+      if(from <= 3){
+        E.setPill(3);
+        for(var r = 1; r <= 3; r++){
+          for(var q = 0; q < nodes.length; q++){
+            nodes[q].classList.add('is-run'); await E.wait(380); nodes[q].classList.remove('is-run');
+          }
+          setDone(r); done.classList.add('is-bump'); await E.wait(200); done.classList.remove('is-bump');
+        }
+        await E.wait(400);
+      }
+      E.setPill(4);
+      care.classList.add('is-on'); await E.wait(900);
+    }
+    makeAnim(root, { renderStart: renderStart, run: run, final: 5 });
+
   })();
 </script>
 

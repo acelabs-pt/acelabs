@@ -583,6 +583,96 @@
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
   .service-audience,.ovn-label,.examples-eyebrow,.phase-label,.timeline-head .phase,.timeline-head .phase-label{text-transform:none!important;letter-spacing:0!important;}
+
+
+  /* ===== simulacao do CPCV: como um video, sem formularios ===== */
+  .vx-sec{padding:40px 0 100px;}
+  .vx{margin-top:32px;}
+  .vx-steps{display:flex;gap:8px;margin:0 0 14px;padding:0;list-style:none;flex-wrap:wrap;}
+  .vx-steps button{font:inherit;font-size:13.5px;font-weight:600;color:#6e6e73;background:#f0f1f3;border:0;border-radius:980px;padding:9px 16px;cursor:pointer;transition:background .25s,color .25s,transform .15s;}
+  .vx-steps button:hover{color:#1d1d1f;}
+  .vx-steps button:active{transform:scale(.97);}
+  .vx-steps button.is-on{background:#0071e3;color:#fff;}
+  .vx-steps button.is-done{background:#e6f6ec;color:#14753c;}
+  .vx-steps button:focus-visible,.vx-ctrl button:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  .vx-stage{position:relative;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:18px;padding:22px;border-radius:26px;background:linear-gradient(180deg,#f7f8fb,#eaf2fd);overflow:hidden;min-height:400px;perspective:1100px;}
+  .vx-h{margin:0 0 12px;font-size:13px;font-weight:600;color:#6e6e73;}
+  .vx-left{display:flex;flex-direction:column;gap:10px;}
+  .vx-doc{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:13px 14px;font-size:14px;font-weight:600;color:#1d1d1f;box-shadow:0 12px 20px -16px rgba(10,22,40,.4);transition:transform .8s cubic-bezier(.5,0,.2,1),opacity .6s,box-shadow .3s;}
+  .vx-doc svg{width:18px;height:18px;flex:none;stroke:#0071e3;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .vx-doc.is-grab{transform:translateX(40px) scale(1.04);box-shadow:0 22px 28px -16px rgba(10,22,40,.5);}
+  .vx-doc.is-gone{transform:none;opacity:.5;box-shadow:none;}
+  .vx-doc.is-gone::after{content:"lido";margin-left:auto;font-size:12px;font-weight:600;color:#14753c;}
+  .vx-main{position:relative;}
+  .vx-flip{position:relative;height:100%;min-height:380px;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.3,.9,.2,1);}
+  .vx-flip.is-paper{transform:rotateY(180deg);}
+  .vx-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 30px 50px -34px rgba(10,22,40,.5);padding:20px;}
+  .vx-paper-face{transform:rotateY(180deg);}
+  .vx-rows{display:flex;flex-direction:column;gap:10px;}
+  .vx-row{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;align-items:center;font-size:13.5px;}
+  .vx-row > span{color:#6e6e73;font-weight:600;}
+  .vx-val{min-height:36px;display:flex;align-items:center;padding:0 12px;border-radius:10px;background:#f7f7f9;border:1px dashed #cfd5df;font-weight:600;color:#1d1d1f;transition:background .3s,border-color .3s;white-space:nowrap;overflow:hidden;}
+  .vx-val.is-typing{background:#fff;border:1px solid #0071e3;}
+  .vx-val.is-typing::after{content:"";width:2px;height:16px;background:#0071e3;margin-left:2px;animation:vx-caret .8s steps(1) infinite;}
+  .vx-val.is-set{background:#fff;border:1px solid #9cc7f5;}
+  .vx-val.is-ask{background:#fff4e5;border:1px solid #ff9f0a;color:#9a5b00;}
+  .vx-val.is-ans{background:#fff;border:1px solid #1d1d1f;}
+  @keyframes vx-caret{50%{opacity:0;}}
+  .vx-ai{margin-top:14px;display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:14px;background:#0a1620;color:#fff;font-size:13.5px;font-weight:600;opacity:0;transform:translateY(8px) scale(.96);transition:opacity .4s,transform .4s;}
+  .vx-ai.is-on{opacity:1;transform:none;}
+  .vx-ai i{width:8px;height:8px;border-radius:50%;background:#4ade80;}
+  .vx-appr{margin-top:6px;display:none;flex-direction:column;gap:8px;}
+  .vx-face.is-appr .vx-rows,.vx-face.is-appr .vx-ai{display:none;}
+  .vx-face.is-appr .vx-appr{display:flex;animation:vx-in .45s ease-out;}
+  @keyframes vx-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .vx-ap{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:#f7f7f9;border:1px solid rgba(0,0,0,.06);transition:background .3s,border-color .3s;}
+  .vx-ap b{width:38px;height:38px;border-radius:50%;background:#e4e6ea;color:#1d1d1f;font-size:12.5px;display:flex;align-items:center;justify-content:center;transition:background .3s,color .3s;}
+  .vx-ap strong{display:block;font-size:14px;color:#1d1d1f;}
+  .vx-ap small{display:block;font-size:12.5px;color:#6e6e73;line-height:1.35;}
+  .vx-ap em{font-style:normal;font-size:13px;font-weight:600;padding:7px 12px;border-radius:10px;background:#0071e3;color:#fff;white-space:nowrap;transition:background .3s,color .3s;}
+  .vx-ap.is-wait em{background:#fff4e5;color:#9a5b00;}
+  .vx-ap.is-ok{background:#e6f6ec;border-color:#bfe6cd;}
+  .vx-ap.is-ok b{background:#1fae5a;color:#fff;}
+  .vx-ap.is-ok em{background:#1fae5a;color:#fff;}
+  .vx-ap.is-na{opacity:.55;}
+  .vx-ap.is-na em{background:#e4e6ea;color:#6e6e73;}
+  .vx-rule{margin:2px 2px 0;font-size:12.5px;color:#6e6e73;}
+  .vx-paper-txt{position:relative;}
+  .vx-paper-txt h4{margin:0 0 12px;text-align:center;font-size:14px;letter-spacing:0;color:#1d1d1f;}
+  .vx-paper-txt p{margin:0 0 9px;font-size:13.5px;line-height:1.55;color:#2a2a2d;}
+  .vx-paper-txt b{color:#0059b3;}
+  .vx-paper-face::before{content:"";position:absolute;left:0;right:0;top:0;height:60px;background:linear-gradient(180deg,rgba(0,113,227,0),rgba(0,113,227,.16),rgba(0,113,227,0));transform:translateY(-70px);opacity:0;pointer-events:none;}
+  .vx-flip.is-paper .vx-paper-face::before{animation:vx-scan 1.4s .5s ease-in-out both;}
+  @keyframes vx-scan{0%{opacity:1;transform:translateY(-70px);}100%{opacity:0;transform:translateY(340px);}}
+  .vx-send{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:auto;}
+  .vx-file{font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px;background:#e6f6ec;color:#14753c;}
+  .vx-sendbtn{margin-left:auto;font:inherit;font-size:14px;font-weight:600;border:0;border-radius:12px;padding:11px 16px;background:#0071e3;color:#fff;cursor:default;transition:background .3s,transform .2s;}
+  .vx-sendbtn.is-done{background:#1fae5a;}
+  .vx-sent{margin:6px 0 0;font-size:13px;font-weight:600;color:#14753c;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s;}
+  .vx-sent.is-on{opacity:1;transform:none;}
+  .vx-approve{margin-top:16px;font:inherit;font-size:14.5px;font-weight:600;border:0;border-radius:12px;padding:12px 20px;background:#0071e3;color:#fff;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s,background .3s;cursor:default;}
+  .vx-approve.is-on{opacity:1;transform:none;}
+  .vx-approve.is-ok{background:#1fae5a;}
+  .vx-paper-face{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+  
+  .vx-paper-blur h4{margin:0 0 10px;text-align:center;font-size:15px;color:#1d1d1f;}
+  .vx-paper-blur p{margin:0 0 9px;font-size:13px;line-height:1.55;color:#2a2a2d;}
+  .vx-badges{display:flex;gap:8px;margin-top:auto;}
+  .vx-badges span{font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px;background:#e6f6ec;color:#14753c;}
+  .vx-cursor{position:absolute;left:0;top:0;width:22px;height:22px;z-index:5;pointer-events:none;opacity:0;transform:translate3d(60px,60px,0);transition:transform .85s cubic-bezier(.5,0,.2,1),opacity .3s;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+  .vx-cursor.is-on{opacity:1;}
+  .vx-cursor svg{width:22px;height:22px;display:block;}
+  .vx-cursor::after{content:"";position:absolute;left:-8px;top:-8px;width:20px;height:20px;border-radius:50%;border:2px solid #0071e3;opacity:0;}
+  .vx-cursor.is-click::after{animation:vx-click .45s ease-out;}
+  @keyframes vx-click{from{opacity:.9;transform:scale(.3);}to{opacity:0;transform:scale(1.8);}}
+  .vx-ctrl{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .vx-ctrl button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:980px;padding:10px 18px;background:#141414;color:#fff;cursor:pointer;transition:background .15s,transform .15s;}
+  .vx-ctrl button:hover{background:#000;}
+  .vx-ctrl button.ghost{background:#f0f1f3;color:#1d1d1f;}
+  .vx-ctrl button:active{transform:scale(.97);}
+  .vx-note{font-size:12.5px;color:#9a9ca0;margin-left:auto;}
+  @media (max-width:820px){.vx-stage{grid-template-columns:1fr;padding:16px;}.vx-doc{padding:10px 12px;font-size:13px;}.vx-val{font-size:13px;padding:0 10px;}.vx-doc.is-grab{transform:translateY(6px) scale(1.04);}.vx-row{grid-template-columns:96px minmax(0,1fr);}.vx-flip{min-height:330px;}.vx-note{display:none;}}
+  @media (prefers-reduced-motion:reduce){.vx-doc,.vx-flip,.vx-ai,.vx-approve,.vx-cursor{transition:none;}.vx-val.is-typing::after{animation:none;}}
 </style>
 </head>
 <body>
@@ -603,7 +693,7 @@
           </div>
           <div class="nav-services-group">
             <p class="nav-services-label">Serviço à medida</p>
-            <a href="servicos-personalizados.html">Serviços personalizados</a>
+            <a href="servicos-personalizados.html">Automações personalizadas</a>
           </div>
         </div>
       </div>
@@ -777,6 +867,74 @@
   </div>
 </section>
 
+<section class="vx-sec" id="simulador" aria-labelledby="vx-title">
+  <div class="wrap">
+    <p class="hero-eyebrow">Simulação</p>
+    <h2 id="vx-title" style="font-size:clamp(28px,3.2vw,38px);max-width:24ch;margin:0;">Do documento <span class="muted" style="color:#9a9ca0;">ao contrato.</span></h2>
+    <p class="sub-col" style="margin:12px 0 0;color:#6e6e73;font-size:17px;line-height:1.5;">Vê as cinco fases a serem preenchidas.</p>
+
+    <div class="vx" data-vx>
+      <ol class="vx-steps" aria-label="Fases">
+        <li><button type="button" data-go="0">1 Documentos</button></li>
+        <li><button type="button" data-go="1">2 Dados</button></li>
+        <li><button type="button" data-go="2">3 Pergunta</button></li>
+        <li><button type="button" data-go="3">4 Aprovação</button></li>
+        <li><button type="button" data-go="4">5 CPCV e envio</button></li>
+      </ol>
+
+      <div class="vx-stage" data-stage>
+        <div class="vx-left" aria-hidden="true">
+          <p class="vx-h">Documentos</p>
+          <div class="vx-doc" data-d><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Caderneta predial</div>
+          <div class="vx-doc" data-d><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>CC do vendedor</div>
+          <div class="vx-doc" data-d><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>CC do comprador</div>
+        </div>
+        <div class="vx-main">
+          <div class="vx-flip" data-flip>
+            <div class="vx-face" data-face>
+              <p class="vx-h" data-title>Contrato-promessa</p>
+              <div class="vx-rows">
+                <div class="vx-row"><span>Vendedor</span><div class="vx-val" data-v="Rui Martins"></div></div>
+                <div class="vx-row"><span>Comprador</span><div class="vx-val" data-v="Ana Costa"></div></div>
+                <div class="vx-row"><span>Imóvel</span><div class="vx-val" data-v="Apartamento T2, Porto"></div></div>
+                <div class="vx-row"><span>Preço</span><div class="vx-val" data-v="240 000 €"></div></div>
+                <div class="vx-row"><span>Sinal</span><div class="vx-val" data-v="20 000 €" data-ask></div></div>
+              </div>
+              <div class="vx-ai" data-ai><i></i>Falta o sinal.</div>
+              <div class="vx-appr" data-appr>
+                <div class="vx-ap" data-ap><b>GP</b><div><strong>Gestora de processos</strong><small>Aprova todos os CPCV</small></div><em data-st>Aprovar</em></div>
+                <div class="vx-ap" data-ap><b>DI</b><div><strong>Diretor</strong><small>Se o preço passa o limite da agência</small></div><em data-st>Pendente</em></div>
+                <div class="vx-ap is-na" data-ap><b>JU</b><div><strong>Jurídico</strong><small>Só se houver cláusulas especiais</small></div><em data-st>Não necessário</em></div>
+                <p class="vx-rule">Cada agência define quem aprova e quando.</p>
+              </div>
+            </div>
+            <div class="vx-face vx-paper-face">
+              <div class="vx-paper-txt">
+                <h4>CONTRATO-PROMESSA DE COMPRA E VENDA</h4>
+                <p>Entre <b>Rui Martins</b>, promitente vendedor, e <b>Ana Costa</b>, promitente compradora, é celebrado o presente contrato-promessa.</p>
+                <p>Imóvel: <b>Apartamento T2, Porto</b>, artigo matricial 4821.</p>
+                <p>Preço: <b>240 000 €</b>. Sinal: <b>20 000 €</b>.</p>
+              </div>
+              <div class="vx-send">
+                <span class="vx-file">PDF</span><span class="vx-file">Word</span>
+                <button type="button" class="vx-sendbtn" data-send tabindex="-1">Enviar ao cliente</button>
+              </div>
+              <p class="vx-sent" data-sent>Enviado a Ana Costa, com o PDF em anexo.</p>
+            </div>
+          </div>
+        </div>
+        <i class="vx-cursor" data-cursor aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.6L10.4 19z" fill="#1d1d1f" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></i>
+      </div>
+
+      <div class="vx-ctrl">
+        <button type="button" data-play>Pausar</button>
+        <button type="button" class="ghost" data-replay>Ver outra vez</button>
+        <span class="vx-note">Exemplo ilustrativo, com dados fictícios.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="related" aria-labelledby="rel-title">
   <div class="wrap">
     <h2 id="rel-title">Outros serviços que se ligam a este</h2>
@@ -796,7 +954,7 @@
       </a>
       <a class="related-card" href="servicos-personalizados.html">
         <span class="related-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span>
-        <h3>Serviços personalizados</h3>
+        <h3>Automações personalizadas</h3>
         <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
         <span class="related-more">Ver serviço <span aria-hidden="true">&rarr;</span></span>
       </a>
@@ -962,6 +1120,176 @@
       if(dd.contains(document.activeElement)) document.activeElement.blur();
     });
     ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
+  })();
+
+
+
+  (function(){
+    var root = document.querySelector('[data-vx]');
+    if(!root) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var stage = root.querySelector('[data-stage]');
+    var flip = root.querySelector('[data-flip]');
+    var cursor = root.querySelector('[data-cursor]');
+    var docs = [].slice.call(root.querySelectorAll('[data-d]'));
+    var vals = [].slice.call(root.querySelectorAll('[data-v]'));
+    var ai = root.querySelector('[data-ai]');
+    var face = root.querySelector('[data-face]');
+    var title = root.querySelector('[data-title]');
+    var aps = [].slice.call(root.querySelectorAll('[data-ap]'));
+    var sendBtn = root.querySelector('[data-send]');
+    var sentMsg = root.querySelector('[data-sent]');
+    var pills = [].slice.call(root.querySelectorAll('[data-go]'));
+    var playBtn = root.querySelector('[data-play]');
+    var token = 0, paused = false, visible = false, phase = 0, started = false;
+
+    function Cancel(){}
+    function wait(ms, my){
+      return new Promise(function(res, rej){
+        var t0 = 0, left = ms;
+        (function step(){
+          if(my !== token) return rej(new Cancel());
+          if(paused || !visible){ setTimeout(step, 120); return; }
+          if(left <= 0) return res();
+          left -= 60; setTimeout(step, 60);
+        })();
+      });
+    }
+    function setPill(i){
+      phase = i;
+      pills.forEach(function(b, k){
+        b.classList.toggle('is-on', k === i && i < 4);
+        b.classList.toggle('is-done', k < i || (k === i && i === 4));
+      });
+    }
+    function moveTo(el, dx, dy){
+      var s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+      var x = r.left - s.left + (dx == null ? r.width * .55 : dx);
+      var y = r.top - s.top + (dy == null ? r.height * .55 : dy);
+      cursor.classList.add('is-on');
+      cursor.style.transform = 'translate3d(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px,0)';
+    }
+    function click(){ cursor.classList.remove('is-click'); void cursor.offsetWidth; cursor.classList.add('is-click'); }
+
+    function clearAll(){
+      docs.forEach(function(d){ d.classList.remove('is-grab', 'is-gone'); });
+      vals.forEach(function(v){ v.textContent = ''; v.className = 'vx-val'; });
+      ai.classList.remove('is-on');
+      face.classList.remove('is-appr'); title.textContent = 'Contrato-promessa';
+      aps.forEach(function(a, i){
+        a.classList.remove('is-ok', 'is-wait');
+        a.querySelector('[data-st]').textContent = i === 0 ? 'Aprovar' : i === 1 ? 'Pendente' : 'Não necessário';
+      });
+      sendBtn.classList.remove('is-done'); sendBtn.textContent = 'Enviar ao cliente';
+      sentMsg.classList.remove('is-on');
+      flip.classList.remove('is-paper');
+      cursor.classList.remove('is-on');
+    }
+    function renderStart(p){
+      clearAll();
+      if(p >= 1) docs.forEach(function(d){ d.classList.add('is-gone'); });
+      if(p >= 2) vals.forEach(function(v, i){ if(i < 4){ v.textContent = v.getAttribute('data-v'); v.classList.add('is-set'); } });
+      if(p >= 3){
+        var s = vals[4]; s.textContent = s.getAttribute('data-v'); s.classList.add('is-ans');
+        face.classList.add('is-appr'); title.textContent = 'Aprovação';
+      }
+      if(p >= 4){
+        aps[0].classList.add('is-ok'); aps[0].querySelector('[data-st]').textContent = 'Aprovado';
+        aps[1].classList.add('is-ok'); aps[1].querySelector('[data-st]').textContent = 'Aprovado';
+        flip.classList.add('is-paper');
+      }
+      if(p >= 5){ sendBtn.classList.add('is-done'); sendBtn.textContent = 'Enviado'; sentMsg.classList.add('is-on'); }
+    }
+
+    async function typeInto(el, text, my){
+      el.classList.add('is-typing');
+      el.textContent = '';
+      for(var i = 0; i < text.length; i++){
+        el.textContent = text.slice(0, i + 1);
+        await wait(38, my);
+      }
+      el.classList.remove('is-typing'); el.classList.add('is-set');
+    }
+
+    async function play(from){
+      var my = ++token;
+      try {
+        setPill(from); renderStart(from);
+        if(reduce){ return; }
+        if(from <= 0){
+          await wait(500, my);
+          for(var i = 0; i < docs.length; i++){
+            moveTo(docs[i], 40, 18); await wait(850, my);
+            click(); docs[i].classList.add('is-grab'); await wait(250, my);
+            moveTo(stage.querySelector('.vx-main'), 120, 40); docs[i].classList.add('is-gone'); await wait(900, my);
+          }
+          await wait(300, my);
+        }
+        if(from <= 1){
+          setPill(1);
+          for(var j = 0; j < 4; j++){
+            moveTo(vals[j], 30, 12); await wait(450, my);
+            await typeInto(vals[j], vals[j].getAttribute('data-v'), my);
+            await wait(150, my);
+          }
+          await wait(500, my);
+        }
+        if(from <= 2){
+          setPill(2); renderStart(2);
+          var s = vals[4]; s.classList.add('is-ask'); s.textContent = '?';
+          ai.classList.add('is-on'); await wait(1100, my);
+          moveTo(s, 30, 12); await wait(900, my);
+          click(); s.classList.remove('is-ask'); await typeInto(s, s.getAttribute('data-v'), my);
+          s.classList.remove('is-set'); s.classList.add('is-ans');
+          await wait(700, my);
+        }
+        if(from <= 3){
+          setPill(3);
+          ai.classList.remove('is-on');
+          renderStart(3);
+          await wait(1100, my);
+          var st0 = aps[0].querySelector('[data-st]');
+          moveTo(st0, 20, 12); await wait(950, my);
+          click(); aps[0].classList.add('is-ok'); st0.textContent = 'Aprovado';
+          await wait(900, my);
+          cursor.classList.remove('is-on');
+          var st1 = aps[1].querySelector('[data-st]');
+          aps[1].classList.add('is-wait'); st1.textContent = 'A rever...';
+          await wait(1500, my);
+          aps[1].classList.remove('is-wait'); aps[1].classList.add('is-ok'); st1.textContent = 'Aprovado';
+          await wait(1100, my);
+        }
+        setPill(4);
+        cursor.classList.remove('is-on');
+        flip.classList.add('is-paper');
+        await wait(1900, my);
+        moveTo(sendBtn, 40, 16); await wait(1000, my);
+        click(); sendBtn.classList.add('is-done'); sendBtn.textContent = 'Enviado';
+        await wait(500, my);
+        sentMsg.classList.add('is-on');
+        await wait(800, my);
+        cursor.classList.remove('is-on');
+        playBtn.textContent = 'Pausar';
+      } catch(e){ if(!(e instanceof Cancel)) throw e; }
+    }
+
+    function go(p){ paused = false; playBtn.textContent = 'Pausar'; play(p); }
+    pills.forEach(function(b){ b.addEventListener('click', function(){ go(+b.getAttribute('data-go')); }); });
+    root.querySelector('[data-replay]').addEventListener('click', function(){ go(0); });
+    playBtn.addEventListener('click', function(){
+      paused = !paused;
+      playBtn.textContent = paused ? 'Continuar' : 'Pausar';
+    });
+
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){
+        en.forEach(function(e){
+          visible = e.isIntersecting;
+          if(visible && !started){ started = true; if(reduce){ setPill(4); renderStart(5); } else { play(0); } }
+        });
+      }, { threshold: 0.35 }).observe(stage);
+    } else { visible = true; started = true; if(reduce){ setPill(4); renderStart(5); } else play(0); }
+    if(reduce){ setPill(4); renderStart(5); }
   })();
 </script>
 

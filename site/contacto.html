@@ -1829,7 +1829,7 @@
           </div>
           <div class="nav-services-group">
             <p class="nav-services-label">Serviço à medida</p>
-            <a href="servicos/servicos-personalizados.html">Serviços personalizados</a>
+            <a href="servicos/servicos-personalizados.html">Automações personalizadas</a>
           </div>
         </div>
       </div>
@@ -2076,7 +2076,7 @@
       submitBtn.textContent = 'A enviar...';
 
       try{
-        var res = await fetch('/api/contacto', {
+        var opts = {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -2090,7 +2090,13 @@
             origem: 'Agência',
             empresa_site: data.get('empresa_site') || ''
           })
-        });
+        };
+        var res = null;
+        try{ res = await fetch('/api/contacto', opts); }catch(e){ res = null; }
+        // se o endpoint do proprio site nao estiver configurado, usa o da API de contacto da Ace Labs
+        if(!res || res.status >= 500 || res.status === 404 || res.status === 405){
+          res = await fetch('https://acelabs-api.vercel.app/api/contacto', opts);
+        }
 
         if(!res.ok) throw new Error('bad status');
 

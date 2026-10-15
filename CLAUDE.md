@@ -148,40 +148,20 @@ Supabase é a base de dados/backend do projeto. O schema em uso está nos fichei
 `migration_fase2.sql`) e as tabelas do CPCV estão explicadas no CLAUDE.md dessa pasta. Um projeto
 Supabase por cliente, nunca reutilizar o mesmo entre projetos.
 
-## Pendente: configuração do Resend (email do formulário de diagnóstico)
+## Email do formulário de diagnóstico (Resend)
 
-`site/api/contacto.js` já está escrito e já faz o que é pedido: valida os campos, tem honeypot,
-e envia por Resend para `miguel@acelabs.pt` (to) com bcc para `pedro@acelabs.pt`, from
-`site@acelabs.pt`. Falta só confirmar/configurar a parte de infraestrutura, por 3 motivos ainda
-por resolver:
+Estado (2026-10-15): **a funcionar**. O domínio `acelabs.pt` está verificado no Resend (DKIM/SPF
+no DNS) e a chave `RESEND_API_KEY` está definida na Vercel, na equipa `acelabs1` (conta do Pedro),
+no projeto **`acelabs-api`** (https://acelabs-api.vercel.app/api/contacto).
 
-1. **Projeto Vercel do site não está acessível pela CLI autenticada nesta máquina.** A conta
-   Vercel ligada aqui (`pedroroquemail-6882`, team `acelabs1`) só mostra os projetos
-   `cpcv-engine` e `painel-gestao-base` - o projeto "ace-labs" que serve `acelabs.pt` (ver secção
-   Arquitetura) não aparece em `vercel project ls` nem `vercel ls --all` nessa conta/team. Deve
-   estar noutra conta Vercel (do Miguel, ou outra conta do Pedro). Próximo passo: confirmar no
-   dashboard (vercel.com) em que conta/equipa está o domínio `acelabs.pt`.
-2. **Por confirmar se `RESEND_API_KEY` já está definida** nesse projeto Vercel (Settings →
-   Environment Variables), pelo menos em Production.
-3. **Por confirmar se o domínio `acelabs.pt` está verificado no Resend** (resend.com → Domains,
-   registos SPF/DKIM no DNS) - sem isto o envio com `from: 'Ace Labs <site@acelabs.pt>'` falha
-   mesmo com API key válida.
-
-Tentativa nesta sessão de verificar isto diretamente (em vez de pedir ao utilizador para ir
-confirmar): copiar o perfil do Brave para o scratchpad e lançar
-`chromium.launchPersistentContext` (Playwright) apontado para essa cópia, para reutilizar as
-sessões já autenticadas (Vercel, Resend) sem mexer no Brave real do utilizador. **Ficou
-incompleto**: copiar a pasta do perfil com o Brave aberto corrompeu o ficheiro de cookies
-(`Default/Network/Cookies` - original 1.3MB, cópia só 20KB, porque é uma base SQLite escrita em
-tempo real e o `cp` fez uma leitura inconsistente). Login ficou por autenticar
-(`vercel.com/dashboard` redirecionou para `/login`).
-
-Para retomar: pedir ao utilizador para **fechar o Brave completamente** primeiro, copiar de novo
-só `Default/Network/Cookies` + `Local State` (não é preciso copiar o perfil todo, ~3.8GB, os
-cookies chegam para manter a sessão), depois lançar o Brave com
-`executablePath` a apontar para `Program Files/BraveSoftware/Brave-Browser/Application/brave.exe`
-e `userDataDir` para a cópia. A cópia do scratchpad não sobrevive entre sessões (é pasta temporária
-por sessão) - este procedimento tem de ser refeito do zero na próxima sessão.
+- `site/api/contacto.js` é a função original do site (envia para `miguel@acelabs.pt`, bcc
+  `pedro@acelabs.pt`, from `site@acelabs.pt`). O projeto Vercel do site (de outra conta) pode não
+  ter a chave, por isso `site/contacto.html` tenta primeiro `/api/contacto` e, se falhar (404, 405
+  ou 5xx), usa `https://acelabs-api.vercel.app/api/contacto`.
+- `acelabs-api` é uma cópia da mesma função com CORS só para `acelabs.pt`/`www.acelabs.pt`.
+  Está fora do repositório (deploy por CLI a partir de uma pasta local). Ao mudar `site/api/contacto.js`,
+  repetir o deploy do `acelabs-api` ou mudar o endereço.
+- A chave do Resend **nunca** vai para o repositório (público).
 
 ## Skills do projeto (design)
 

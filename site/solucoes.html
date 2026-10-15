@@ -1373,6 +1373,10 @@
     font-family:inherit;
   }
   .flow-tab.is-active{background:#101113;color:#fff;}
+  .services-filter{max-width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .services-filter::-webkit-scrollbar{display:none;}
+  .services-filter .flow-tab{white-space:nowrap;flex:none;}
+  @media (max-width:560px){.services-filter .flow-tab{padding:10px 14px;font-size:13px;}}
   .flow-tab:hover:not(.is-active){color:#1d1d1f;}
 
   .flow-sim-grid{margin-top:52px;display:grid;grid-template-columns:1fr 280px;gap:16px 56px;align-items:start;}
@@ -1875,7 +1879,7 @@
           </div>
           <div class="nav-services-group">
             <p class="nav-services-label">Serviço à medida</p>
-            <a href="servicos/servicos-personalizados.html">Serviços personalizados</a>
+            <a href="servicos/servicos-personalizados.html">Automações personalizadas</a>
           </div>
         </div>
       </div>
@@ -1920,25 +1924,25 @@
         </div>
       </a>
 
-      <a class="service-card" data-reveal data-audience="agencia" style="--n:3" href="servicos/painel-de-gestao.html">
+      <a class="service-card" data-reveal data-audience="investidor agencia" style="--n:3" href="servicos/painel-de-gestao.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
         </div>
         <div class="service-text">
-          <div class="service-meta"><span class="service-num">03</span><span class="service-audience service-audience-agencia">Investidores</span></div>
+          <div class="service-meta"><span class="service-num">03</span><span class="service-audience service-audience-agencia">Investidores · Agências</span></div>
           <h4>Painel de Gestão</h4>
           <p>Os teus números num só ecrã, com totais calculados sozinhos e acesso protegido. Para investidores e agências.</p>
         </div>
       </a>
 
       <p class="services-group-label" data-reveal style="--n:3">Serviço à medida</p>
-      <a class="service-card" data-reveal data-audience="agencia" style="--n:9" href="servicos/servicos-personalizados.html">
+      <a class="service-card" data-reveal data-audience="agente agencia investidor" style="--n:9" href="servicos/servicos-personalizados.html">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
         </div>
         <div class="service-text">
-          <div class="service-meta"><span class="service-num">04</span><span class="service-audience service-audience-agencia">Agência</span></div>
-          <h4>Serviços personalizados</h4>
+          <div class="service-meta"><span class="service-num">04</span><span class="service-audience service-audience-agencia">Para todos</span></div>
+          <h4>Automações personalizadas</h4>
           <p>Sempre que a necessidade for específica, construímos a solução à medida.</p>
         </div>
       </a>
@@ -1947,11 +1951,12 @@
     <div class="services-copy">
       <p class="hero-eyebrow">Serviços</p>
       <h2 data-scramble>Soluções que transformam o teu <span class="accent">dia a dia</span><i class="dot">.</i></h2>
-      <p class="sub-col">Da estratégia à execução, criamos sistemas de IA e automação adaptados à realidade da tua agência.</p>
+      <p class="sub-col">Da estratégia à execução, criamos sistemas de IA e automação adaptados à realidade do teu negócio.</p>
       <div class="flow-tabs services-filter" role="tablist">
         <button type="button" class="flow-tab is-active" data-audience-filter="todos" role="tab" aria-selected="true">Todos</button>
         <button type="button" class="flow-tab" data-audience-filter="agente" role="tab" aria-selected="false">Para agentes</button>
         <button type="button" class="flow-tab" data-audience-filter="agencia" role="tab" aria-selected="false">Para agências</button>
+        <button type="button" class="flow-tab" data-audience-filter="investidor" role="tab" aria-selected="false">Para investidores</button>
       </div>
       <p class="services-filter-count" aria-live="polite"></p>
       <div class="hero-ctas">
@@ -2504,8 +2509,9 @@
     function updateCount(filter){
       if(!countEl) return;
       var total = cards.length;
-      var shown = filter === 'todos' ? total : cards.filter(function(c){ return c.getAttribute('data-audience') === filter; }).length;
-      var text = filter === 'todos' ? ('A mostrar os ' + total + ' serviços') : ('A mostrar ' + shown + ' de ' + total + ' serviços');
+      var shown = filter === 'todos' ? total : cards.filter(function(c){ return c.getAttribute('data-audience').split(' ').indexOf(filter) > -1; }).length;
+      var who = { agente: 'para agentes', agencia: 'para agências', investidor: 'para investidores' }[filter];
+      var text = filter === 'todos' ? (total + ' serviços') : (shown + (shown === 1 ? ' serviço ' : ' serviços ') + who);
       if(countEl.textContent === ''){ countEl.textContent = text; return; }
       countEl.classList.add('is-updating');
       setTimeout(function(){
@@ -2514,6 +2520,26 @@
       }, 180);
     }
     updateCount('todos');
+
+    var AUD = { agente: 'Agentes', agencia: 'Agências', investidor: 'Investidores' };
+    function inAud(card, filter){ return card.getAttribute('data-audience').split(' ').indexOf(filter) > -1; }
+    function badgeFor(card, filter){
+      var a = card.getAttribute('data-audience').split(' ');
+      if(filter !== 'todos' && inAud(card, filter)) return AUD[filter];
+      if(a.length >= 3) return 'Para todos';
+      return a.map(function(k){ return AUD[k]; }).join(' · ');
+    }
+    function relabel(filter){
+      var n = 0;
+      cards.forEach(function(card){
+        var shown = filter === 'todos' || inAud(card, filter);
+        var b = card.querySelector('.service-audience');
+        if(b) b.textContent = badgeFor(card, filter);
+        var num = card.querySelector('.service-num');
+        if(num && shown){ n += 1; num.textContent = (n < 10 ? '0' : '') + n; }
+      });
+    }
+    relabel('todos');
 
     buttons.forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -2524,8 +2550,9 @@
           b.setAttribute('aria-selected', active ? 'true' : 'false');
         });
         updateCount(filter);
+        relabel(filter);
         cards.forEach(function(card){
-          var matches = filter === 'todos' || card.getAttribute('data-audience') === filter;
+          var matches = filter === 'todos' || card.getAttribute('data-audience').split(' ').indexOf(filter) > -1;
           if(matches){
             card.classList.remove('is-hidden');
             requestAnimationFrame(function(){ card.classList.remove('is-fading'); });
