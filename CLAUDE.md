@@ -104,6 +104,10 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
 
 ## Preçário oficial (não inventar outros valores)
 
+**Preços não vão para o site (decisão de negócio do Pedro, 2026-10-15):** valores só na reunião
+ou no pacote de serviços enviado. O site não mostra preços nem intervalos; pode dizer que o valor
+é apresentado na reunião de diagnóstico. A lista abaixo é de uso interno.
+
 - Diagnóstico (1 semana, pago, creditado no build): 900-1.500 EUR
 - Painel de Gestão: 4.500-8.000 EUR + 500-900 EUR/mes
 - Automação de Processos: 3.000-7.000 EUR + 300-600 EUR/mes
@@ -113,8 +117,9 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
 **O que o site pode anunciar (decisão do Pedro, 2026-10-14):** só o que existe ou está em
 construção - CPCV com IA, Cockpit, Painel de Gestão (investidores e gestores de património) e
 serviço à medida. Lead Engine e Compliance Pack **não existem**: foram retirados do preçário e do
-site, não voltar a escrevê-los. Não pôr no site números de tempo ou de poupança inventados
-(ex. "CPCV em 4 minutos"); usar formulações qualitativas.
+site, não voltar a escrevê-los. Números de tempo ou de poupança só como **estimativa máxima**, sempre com "até" (ex. "até 3 horas por
+semana") e com nota "estimativa para uma equipa pequena; depende do volume". Decisão do Pedro, 2026-10-15.
+Nunca afirmar tempos fixos nem ganhos garantidos (ex. "CPCV em 4 minutos").
 
 ## Estilo
 
