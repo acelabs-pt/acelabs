@@ -27,12 +27,12 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  if (!nome || !email || !mensagem) {
+  if (!nome || !mensagem || (!email && !telefone)) {
     return res.status(400).json({ error: 'missing_fields' });
   }
 
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (typeof email !== 'string' || !emailRe.test(email)) {
+  if (email && (typeof email !== 'string' || !emailRe.test(email))) {
     return res.status(400).json({ error: 'invalid_email' });
   }
 
@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
   const html = [
     '<p><strong>Origem:</strong> ' + escapeHtml(origem || 'Site') + '</p>',
     '<p><strong>Nome:</strong> ' + escapeHtml(nome) + '</p>',
-    '<p><strong>Email:</strong> ' + escapeHtml(email) + '</p>',
+    '<p><strong>Email:</strong> ' + escapeHtml(email || '-') + '</p>',
     '<p><strong>Telefone:</strong> ' + escapeHtml(telefone || '-') + '</p>',
     '<p><strong>Empresa:</strong> ' + escapeHtml(empresa || '-') + '</p>',
     '<p><strong>Melhor horário para ligar:</strong> ' + escapeHtml(horario || '-') + '</p>',
@@ -64,7 +64,7 @@ module.exports = async function handler(req, res) {
         from: 'Ace Labs <site@acelabs.pt>',
         to: ['miguel@acelabs.pt'],
         bcc: ['pedro@acelabs.pt'],
-        reply_to: email,
+        reply_to: email || undefined,
         subject: 'Novo pedido de diagnostico (' + (origem || 'Site') + ') - ' + nome,
         html: html,
       }),

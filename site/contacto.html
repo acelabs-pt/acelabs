@@ -1808,6 +1808,81 @@
   /* formulario: anel de foco bem visivel */
   .form-field input:focus-visible,.form-field textarea:focus-visible,.form-field select:focus-visible{outline:2px solid #0071e3;outline-offset:2px;border-color:#0071e3;box-shadow:0 0 0 5px rgba(0,113,227,.18);}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+
+  /* ===== contacto: formulario com melhor UX ===== */
+  .ct{padding:120px 0 90px;}
+  .ct-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr);gap:56px;align-items:start;}
+  .ct-intro h1{margin:0;font-size:clamp(30px,3.6vw,46px);line-height:1.06;letter-spacing:-0.035em;max-width:16ch;text-wrap:balance;}
+  .ct-lead{margin:16px 0 0;font-size:18px;line-height:1.55;color:#6e6e73;max-width:44ch;}
+  .ct-steps{list-style:none;margin:34px 0 0;padding:0;display:flex;flex-direction:column;gap:0;position:relative;}
+  .ct-steps li{display:grid;grid-template-columns:36px 1fr;gap:14px;padding-bottom:22px;position:relative;}
+  .ct-steps li:not(:last-child)::before{content:"";position:absolute;left:17px;top:38px;bottom:2px;width:2px;background:linear-gradient(#cfe0f7,#e9eef6);}
+  .ct-steps b{width:36px;height:36px;border-radius:50%;background:#eaf2fd;color:#0059b3;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .ct-steps strong{display:block;font-size:15.5px;color:#1d1d1f;}
+  .ct-steps span{display:block;margin-top:2px;font-size:14px;line-height:1.45;color:#6e6e73;}
+  .ct-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:26px;padding:28px;box-shadow:0 40px 70px -46px rgba(20,30,50,.45);position:relative;}
+  .ct-who{border:0;margin:0 0 20px;padding:0;}
+  .ct-who legend,.ct-field label{font-size:13.5px;font-weight:600;color:#1d1d1f;padding:0;margin-bottom:8px;display:block;}
+  .ct-opt{font-weight:500;color:#9a9ca0;}
+  .ct-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .ct-chips label{margin:0;cursor:pointer;}
+  .ct-chips input{position:absolute;opacity:0;width:1px;height:1px;}
+  .ct-chips span{display:inline-block;padding:10px 15px;border-radius:980px;background:#f3f4f6;color:#3d3d40;font-size:14px;font-weight:600;border:1.5px solid transparent;transition:background .2s,border-color .2s,color .2s,transform .15s;}
+  .ct-chips label:hover span{background:#e9ecf1;}
+  .ct-chips input:checked + span{background:#eaf2fd;border-color:#0071e3;color:#0059b3;}
+  .ct-chips input:focus-visible + span{outline:2px solid #0071e3;outline-offset:2px;}
+  .ct-chips label:active span{transform:scale(.97);}
+  .ct-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .ct-field{margin-bottom:4px;}
+  .ct-field input,.ct-field textarea,.ct-field select{width:100%;font:inherit;font-size:16px;color:#1d1d1f;padding:13px 14px;border-radius:12px;border:1.5px solid #dfe2e8;background:#fff;transition:border-color .2s,box-shadow .2s,background .2s;}
+  .ct-field textarea{resize:vertical;min-height:112px;line-height:1.5;}
+  .ct-field input::placeholder,.ct-field textarea::placeholder{color:#a3a6ad;}
+  .ct-field input:hover,.ct-field textarea:hover,.ct-field select:hover{border-color:#c4c9d2;}
+  .ct-field input:focus-visible,.ct-field textarea:focus-visible,.ct-field select:focus-visible{outline:0;border-color:#0071e3;box-shadow:0 0 0 4px rgba(0,113,227,.16);}
+  .ct-field.is-bad input,.ct-field.is-bad textarea{border-color:#d9482b;background:#fffaf9;}
+  .ct-field.is-bad input:focus-visible,.ct-field.is-bad textarea:focus-visible{box-shadow:0 0 0 4px rgba(217,72,43,.16);}
+  .ct-field.is-ok input{border-color:#9fd8b4;}
+  .ct-err{margin:5px 2px 0;font-size:13px;font-weight:600;color:#c0391d;min-height:20px;line-height:20px;visibility:hidden;}
+  .ct-field.is-bad .ct-err{visibility:visible;animation:ct-in .25s ease-out;}
+  @keyframes ct-in{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  .ct-hint{margin:2px 2px 16px;font-size:13px;color:#6e6e73;}
+  .ct-sugg{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;margin-bottom:10px;}
+  .ct-sugg button{font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border-radius:980px;border:1px dashed #b9c6da;background:#fff;color:#0059b3;cursor:pointer;transition:background .2s,transform .15s;}
+  .ct-sugg button:hover{background:#eaf2fd;}
+  .ct-sugg button:active{transform:scale(.97);}
+  .ct-sugg button:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  .ct-more{margin:2px 0 18px;border-top:1px solid rgba(0,0,0,.07);padding-top:14px;}
+  .ct-more summary{cursor:pointer;font-size:14px;font-weight:600;color:#0059b3;list-style:none;display:flex;align-items:center;gap:8px;padding:4px 0;margin-bottom:12px;}
+  .ct-more summary::-webkit-details-marker{display:none;}
+  .ct-more summary::before{content:"+";width:22px;height:22px;border-radius:50%;background:#eaf2fd;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:transform .25s;}
+  .ct-more[open] summary::before{content:"\2212";}
+  .ct-more summary:focus-visible{outline:2px solid #0071e3;outline-offset:3px;border-radius:8px;}
+  .ct-submit{position:relative;width:100%;font:inherit;font-size:16px;font-weight:600;color:#fff;background:#0071e3;border:0;border-radius:14px;padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 18px 28px -18px rgba(0,113,227,.8);}
+  .ct-submit:hover{background:#0059b3;}
+  .ct-submit:active{transform:scale(.99);}
+  .ct-submit:focus-visible{outline:3px solid rgba(0,113,227,.4);outline-offset:3px;}
+  .ct-submit[disabled]{cursor:progress;background:#4aa3ff;}
+  .ct-spin{display:none;width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:ct-rot .7s linear infinite;}
+  .ct-submit[disabled] .ct-spin{display:block;}
+  @keyframes ct-rot{to{transform:rotate(360deg);}}
+  .ct-banner{margin:14px 0 0;font-size:14px;font-weight:600;border-radius:12px;display:none;}
+  .ct-banner.is-err{display:block;padding:12px 14px;background:#fdecea;color:#a02b1f;animation:ct-shake .45s;}
+  @keyframes ct-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(5px);}60%{transform:translateX(-3px);}80%{transform:translateX(2px);}}
+  .ct-privacy{margin:14px 0 0;font-size:12.5px;line-height:1.5;color:#8d8d93;text-align:center;}
+  .ct-done{text-align:center;padding:30px 10px;animation:ct-in .4s ease-out;}
+  .ct-done[hidden]{display:none;}
+  .ct-check{width:72px;height:72px;margin:0 auto 18px;border-radius:50%;background:#1fae5a;display:flex;align-items:center;justify-content:center;animation:ct-pop .6s cubic-bezier(.3,1.6,.5,1);}
+  .ct-check svg{width:34px;height:34px;}
+  @keyframes ct-pop{from{transform:scale(0);}to{transform:scale(1);}}
+  .ct-done h2{margin:0;font-size:26px;letter-spacing:-0.02em;}
+  .ct-done p{margin:10px auto 0;max-width:34ch;font-size:16px;line-height:1.5;color:#6e6e73;}
+  .ct-done strong{color:#1d1d1f;word-break:break-all;}
+  .ct-again{margin-top:22px;font:inherit;font-size:14.5px;font-weight:600;padding:11px 18px;border-radius:12px;border:0;background:#f0f1f3;color:#1d1d1f;cursor:pointer;transition:background .2s;}
+  .ct-again:hover{background:#e4e6ea;}
+  .ct-again:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  @media (max-width:900px){.ct{padding:100px 0 70px;}.ct-grid{grid-template-columns:1fr;gap:36px;}.ct-intro h1{max-width:none;}.ct-steps{margin-top:26px;}}
+  @media (max-width:560px){.ct-card{padding:20px 16px;border-radius:20px;}.ct-row{grid-template-columns:1fr;gap:0;}}
+  @media (prefers-reduced-motion:reduce){.ct-check,.ct-done,.ct-banner.is-err,.ct-field.is-bad .ct-err{animation:none;}.ct-spin{animation-duration:2s;}}
 </style>
 </head>
 <body>
@@ -1849,68 +1924,97 @@
 <div class="nav-scrim" id="nav-scrim"></div>
 
 <main id="main-content" tabindex="-1">
-<section class="closing" id="contacto">
-  <div class="wrap">
-    <h2 data-scramble>Vamos ver onde estás a perder mais tempo?</h2>
-    <p>30 minutos, sem custo, sem compromisso. Sais da reunião com um problema concreto identificado - connosco ou sem nós.</p>
-    <div class="contact-card">
-      <div class="contact-card-head">
-        <h3>Marcar diagnóstico gratuito</h3>
-        <p>Respondemos em 1 dia útil para combinar a melhor hora para falar.</p>
-      </div>
-      <form class="contact-form" id="contact-form" novalidate>
-        <div class="form-row">
-          <div class="form-field">
+<section class="ct" id="contacto" aria-labelledby="ct-title">
+  <div class="wrap ct-grid">
+    <div class="ct-intro">
+      <p class="hero-eyebrow">Diagnóstico gratuito</p>
+      <h1 id="ct-title">Vamos ver onde estás a perder mais tempo?</h1>
+      <p class="ct-lead">30 minutos, sem custo, sem compromisso. Sais da conversa com um problema concreto identificado, connosco ou sem nós.</p>
+      <ol class="ct-steps" aria-label="O que acontece a seguir">
+        <li><b>1</b><div><strong>Respondemos em 1 dia útil</strong><span>Para combinar a melhor hora para ti.</span></div></li>
+        <li><b>2</b><div><strong>Falamos 30 minutos</strong><span>Percebemos o teu dia a dia e onde se perde tempo.</span></div></li>
+        <li><b>3</b><div><strong>Ficas com o problema identificado</strong><span>E decides se queres avançar. Sem pressão.</span></div></li>
+      </ol>
+    </div>
+
+    <div class="ct-card" data-ct>
+      <form class="ct-form" id="contact-form" novalidate>
+        <fieldset class="ct-who">
+          <legend>Sou <span class="ct-opt">(opcional)</span></legend>
+          <div class="ct-chips" role="radiogroup">
+            <label><input type="radio" name="perfil" value="Agente"><span>Agente imobiliário</span></label>
+            <label><input type="radio" name="perfil" value="Agência"><span>Tenho uma agência</span></label>
+            <label><input type="radio" name="perfil" value="Investidor"><span>Investidor</span></label>
+            <label><input type="radio" name="perfil" value="Outro"><span>Outro</span></label>
+          </div>
+        </fieldset>
+
+        <div class="ct-row">
+          <div class="ct-field" data-f="nome">
             <label for="cf-nome">Nome</label>
-            <input type="text" id="cf-nome" name="nome" autocomplete="name" required>
+            <input type="text" id="cf-nome" name="nome" autocomplete="name" placeholder="Como te chamas?" aria-describedby="cf-nome-e" required>
+            <p class="ct-err" id="cf-nome-e" role="alert"></p>
           </div>
-          <div class="form-field">
-            <label for="cf-email">Email</label>
-            <input type="email" id="cf-email" name="email" autocomplete="email" required>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="cf-telefone">Telefone <span class="optional">(opcional)</span></label>
-            <input type="tel" id="cf-telefone" name="telefone" autocomplete="tel">
-          </div>
-          <div class="form-field">
-            <label for="cf-empresa">Agência / Empresa <span class="optional">(opcional)</span></label>
-            <input type="text" id="cf-empresa" name="empresa" autocomplete="organization">
+          <div class="ct-field" data-f="telefone">
+            <label for="cf-telefone">Telefone</label>
+            <input type="tel" id="cf-telefone" name="telefone" autocomplete="tel" inputmode="tel" placeholder="9xx xxx xxx" aria-describedby="cf-telefone-e">
+            <p class="ct-err" id="cf-telefone-e" role="alert"></p>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="cf-horario">Melhor horário para ligar <span class="optional">(opcional)</span></label>
-            <select id="cf-horario" name="horario">
-              <option value="">Sem preferência</option>
-              <option value="Manhã (9h-12h)">Manhã (9h-12h)</option>
-              <option value="Almoço (12h-14h)">Almoço (12h-14h)</option>
-              <option value="Tarde (14h-18h)">Tarde (14h-18h)</option>
-              <option value="Fim do dia (18h-20h)">Fim do dia (18h-20h)</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="cf-contacto-pref">Contacto preferido <span class="optional">(opcional)</span></label>
-            <select id="cf-contacto-pref" name="contacto_preferido">
-              <option value="">Sem preferência</option>
-              <option value="Telefone">Telefone</option>
-              <option value="Email">Email</option>
-              <option value="WhatsApp">WhatsApp</option>
-            </select>
+        <div class="ct-field" data-f="email">
+          <label for="cf-email">Email</label>
+          <input type="email" id="cf-email" name="email" autocomplete="email" inputmode="email" placeholder="nome@exemplo.pt" aria-describedby="cf-email-e cf-contact-h">
+          <p class="ct-err" id="cf-email-e" role="alert"></p>
+        </div>
+        <p class="ct-hint" id="cf-contact-h">Basta um contacto: telefone ou email. Só o usamos para te responder.</p>
+
+        <div class="ct-field" data-f="mensagem">
+          <label for="cf-mensagem">O que queres resolver?</label>
+          <textarea id="cf-mensagem" name="mensagem" rows="4" placeholder="Ex.: perco horas a preparar contratos e a seguir leads" aria-describedby="cf-mensagem-e" required></textarea>
+          <p class="ct-err" id="cf-mensagem-e" role="alert"></p>
+          <div class="ct-sugg" aria-label="Sugestões">
+            <button type="button" data-add="Quero gerar CPCVs mais depressa.">CPCV mais rápido</button>
+            <button type="button" data-add="Quero organizar as minhas leads e visitas.">Organizar leads</button>
+            <button type="button" data-add="Quero controlar a carteira, as faturas e os yields.">Controlar a carteira</button>
+            <button type="button" data-add="Tenho uma tarefa repetitiva que quero automatizar.">Automatizar uma tarefa</button>
           </div>
         </div>
-        <div class="form-field">
-          <label for="cf-mensagem">Em que podemos ajudar?</label>
-          <textarea id="cf-mensagem" name="mensagem" rows="4" required></textarea>
-        </div>
+
+        <details class="ct-more">
+          <summary>Mais opções <span class="ct-opt">(empresa, horário)</span></summary>
+          <div class="ct-field"><label for="cf-empresa">Agência / Empresa</label><input type="text" id="cf-empresa" name="empresa" autocomplete="organization"></div>
+          <div class="ct-row">
+            <div class="ct-field"><label for="cf-horario">Melhor horário para ligar</label>
+              <select id="cf-horario" name="horario">
+                <option value="">Sem preferência</option>
+                <option value="Manhã (9h-12h)">Manhã (9h-12h)</option>
+                <option value="Almoço (12h-14h)">Almoço (12h-14h)</option>
+                <option value="Tarde (14h-18h)">Tarde (14h-18h)</option>
+                <option value="Fim do dia (18h-20h)">Fim do dia (18h-20h)</option>
+              </select></div>
+            <div class="ct-field"><label for="cf-contacto-pref">Contacto preferido</label>
+              <select id="cf-contacto-pref" name="contacto_preferido">
+                <option value="">Sem preferência</option>
+                <option value="Telefone">Telefone</option>
+                <option value="Email">Email</option>
+                <option value="WhatsApp">WhatsApp</option>
+              </select></div>
+          </div>
+        </details>
+
         <input type="text" name="empresa_site" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <div class="form-actions">
-          <button type="submit" class="btn-dark" id="cf-submit">Marcar diagnóstico gratuito</button>
-          <p class="form-status" id="cf-status" role="status" aria-live="polite"></p>
-        </div>
-        <p class="form-privacy">Usamos os teus dados só para responder a este pedido. Nunca partilhados com terceiros.</p>
+
+        <button type="submit" class="ct-submit" id="cf-submit"><span class="ct-submit-t">Marcar diagnóstico gratuito</span><i class="ct-spin" aria-hidden="true"></i></button>
+        <p class="ct-banner" id="cf-status" role="status" aria-live="polite"></p>
+        <p class="ct-privacy">Usamos os teus dados só para responder a este pedido. Nunca partilhados com terceiros.</p>
       </form>
+
+      <div class="ct-done" data-done hidden>
+        <div class="ct-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h2>Pedido enviado.</h2>
+        <p>Recebemos o teu pedido e respondemos em 1 dia útil para <strong data-done-email></strong>.</p>
+        <button type="button" class="ct-again" data-again>Enviar outro pedido</button>
+      </div>
     </div>
   </div>
 </section>
@@ -2050,66 +2154,137 @@
   (function(){
     var form = document.getElementById('contact-form');
     if(!form) return;
-    var status = document.getElementById('cf-status');
+    var card = form.closest('[data-ct]');
+    var done = card.querySelector('[data-done]');
+    var banner = document.getElementById('cf-status');
     var submitBtn = document.getElementById('cf-submit');
-    var defaultLabel = submitBtn.textContent;
+    var label = submitBtn.querySelector('.ct-submit-t');
+    var KEY = 'acelabs-contacto';
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function phoneOk(v){ return v.replace(/[^0-9]/g, '').length >= 9; }
+    var RULES = {
+      nome: function(v){ return v.length >= 2 ? '' : 'Diz-nos o teu nome.'; },
+      mensagem: function(v){ return v.length >= 5 ? '' : 'Conta-nos em poucas palavras o que queres resolver.'; },
+      telefone: function(v){
+        if(v) return phoneOk(v) ? '' : 'Este telefone parece incompleto.';
+        return val('email') ? '' : 'Deixa-nos um telefone ou um email.';
+      },
+      email: function(v){
+        if(v) return emailRe.test(v) ? '' : 'Este email não parece estar completo.';
+        return val('telefone') ? '' : 'Deixa-nos um email ou um telefone.';
+      }
+    };
+    var fields = ['nome', 'telefone', 'email', 'mensagem'];
+
+    function val(n){ return (form.elements[n].value || '').trim(); }
+    function check(n, show){
+      var wrap = form.querySelector('[data-f="' + n + '"]');
+      var msg = RULES[n](val(n));
+      var input = form.elements[n];
+      if(show){
+        wrap.classList.toggle('is-bad', !!msg);
+        wrap.classList.toggle('is-ok', !msg && !!val(n));
+        document.getElementById('cf-' + n + '-e').textContent = msg;
+        input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+      return msg;
+    }
+    fields.forEach(function(n){
+      var input = form.elements[n];
+      input.addEventListener('blur', function(){ if(val(n)) check(n, true); });
+      input.addEventListener('input', function(){
+        var wrap = form.querySelector('[data-f="' + n + '"]');
+        if(wrap.classList.contains('is-bad')) check(n, true);
+        if(n === 'email' || n === 'telefone'){
+          var other = n === 'email' ? 'telefone' : 'email';
+          var ow = form.querySelector('[data-f="' + other + '"]');
+          if(ow.classList.contains('is-bad')) check(other, true);
+        }
+        save();
+      });
+    });
+
+    // sugestoes que acrescentam texto
+    form.querySelectorAll('[data-add]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var t = form.elements.mensagem;
+        var add = b.getAttribute('data-add');
+        t.value = t.value.trim() ? (t.value.replace(/\s+$/, '') + ' ' + add) : add;
+        t.focus(); check('mensagem', true); save();
+      });
+    });
+
+    // rascunho (so nesta sessao)
+    function save(){
+      try {
+        var d = {}; ['nome','email','mensagem','telefone','empresa'].forEach(function(n){ d[n] = form.elements[n].value; });
+        sessionStorage.setItem(KEY, JSON.stringify(d));
+      } catch(e){}
+    }
+    try {
+      var d = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+      if(d) Object.keys(d).forEach(function(n){ if(form.elements[n] && d[n]) form.elements[n].value = d[n]; });
+    } catch(e){}
+
+    function showError(text){
+      banner.textContent = text;
+      banner.className = 'ct-banner is-err';
+    }
 
     form.addEventListener('submit', async function(e){
       e.preventDefault();
-      status.textContent = '';
-      status.className = 'form-status';
-
+      banner.className = 'ct-banner'; banner.textContent = '';
       var data = new FormData(form);
       if(data.get('empresa_site')) return;
 
-      var nome = (data.get('nome') || '').trim();
-      var email = (data.get('email') || '').trim();
-      var mensagem = (data.get('mensagem') || '').trim();
-
-      if(!nome || !email || !mensagem){
-        status.textContent = 'Preenche nome, email e mensagem.';
-        status.className = 'form-status error';
-        return;
-      }
+      var firstBad = null;
+      fields.forEach(function(n){ if(check(n, true) && !firstBad) firstBad = n; });
+      if(firstBad){ form.elements[firstBad].focus(); return; }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = 'A enviar...';
-
+      label.textContent = 'A enviar...';
+      var perfil = data.get('perfil') || '';
+      var opts = {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          nome: val('nome'),
+          email: val('email'),
+          telefone: (data.get('telefone') || '').trim(),
+          empresa: (data.get('empresa') || '').trim(),
+          horario: (data.get('horario') || '').trim(),
+          contacto_preferido: (data.get('contacto_preferido') || '').trim(),
+          mensagem: val('mensagem'),
+          origem: perfil ? 'Site (' + perfil + ')' : 'Site',
+          empresa_site: data.get('empresa_site') || ''
+        })
+      };
       try{
-        var opts = {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            nome: nome,
-            email: email,
-            telefone: (data.get('telefone') || '').trim(),
-            empresa: (data.get('empresa') || '').trim(),
-            horario: (data.get('horario') || '').trim(),
-            contacto_preferido: (data.get('contacto_preferido') || '').trim(),
-            mensagem: mensagem,
-            origem: 'Agência',
-            empresa_site: data.get('empresa_site') || ''
-          })
-        };
         var res = null;
-        try{ res = await fetch('/api/contacto', opts); }catch(e){ res = null; }
-        // se o endpoint do proprio site nao estiver configurado, usa o da API de contacto da Ace Labs
+        try{ res = await fetch('/api/contacto', opts); }catch(err){ res = null; }
+        // se o endpoint do proprio site nao estiver configurado, usa a API de contacto da Ace Labs
         if(!res || res.status >= 500 || res.status === 404 || res.status === 405){
           res = await fetch('https://acelabs-api.vercel.app/api/contacto', opts);
         }
-
         if(!res.ok) throw new Error('bad status');
-
-        status.textContent = 'Mensagem enviada. Vamos responder em breve.';
-        status.className = 'form-status success';
+        done.querySelector('[data-done-email]').textContent = val('email') || val('telefone');
+        form.hidden = true; done.hidden = false;
+        try{ sessionStorage.removeItem(KEY); }catch(err){}
         form.reset();
+        form.querySelectorAll('.ct-field').forEach(function(w){ w.classList.remove('is-bad', 'is-ok'); });
+        done.querySelector('h2').setAttribute('tabindex', '-1');
+        done.querySelector('h2').focus();
       }catch(err){
-        status.textContent = 'Não foi possível enviar agora. Tenta de novo dentro de momentos.';
-        status.className = 'form-status error';
+        showError('Não conseguimos enviar agora. Os teus dados continuam aqui: tenta de novo daqui a pouco.');
       }finally{
         submitBtn.disabled = false;
-        submitBtn.textContent = defaultLabel;
+        label.textContent = 'Marcar diagnóstico gratuito';
       }
+    });
+
+    card.querySelector('[data-again]').addEventListener('click', function(){
+      done.hidden = true; form.hidden = false;
+      form.elements.nome.focus();
     });
   })();
 
