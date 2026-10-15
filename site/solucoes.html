@@ -1858,6 +1858,56 @@
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
   .service-audience,.ovn-label,.examples-eyebrow,.phase-label,.timeline-head .phase,.timeline-head .phase-label{text-transform:none!important;letter-spacing:0!important;}
+
+  /* ===== antes e depois animado ===== */
+  .ba-sec{padding:70px 0 100px;}
+  .ba-sec h2{font-size:clamp(28px,3.2vw,38px);line-height:1.1;letter-spacing:-0.03em;max-width:24ch;margin:0;}
+  .ba-sec h2 .muted{color:#9a9ca0;}
+  .ba-sub{margin:12px 0 0;font-size:17px;line-height:1.5;color:#6e6e73;}
+  .ba{margin-top:28px;}
+  .ba-toggle{display:inline-flex;padding:4px;border-radius:980px;background:#f0f0f3;gap:2px;}
+  .ba-toggle button{font:inherit;font-size:14.5px;font-weight:600;color:#6e6e73;background:transparent;border:0;border-radius:980px;padding:9px 22px;cursor:pointer;transition:background .25s,color .25s,transform .15s;}
+  .ba-toggle button[aria-pressed="true"]{background:#fff;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  .ba-toggle button:active{transform:scale(.97);}
+  .ba-toggle button:focus-visible{outline:2px solid #0071e3;outline-offset:2px;}
+  .ba-flow{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:20px;padding:26px 22px;border-radius:24px;background:linear-gradient(180deg,#faf3ef,#f6e9e3);transition:background .8s;}
+  .ba[data-state="after"] .ba-flow{background:linear-gradient(180deg,#f7f8fb,#eaf2fd);}
+  .ba-node{position:relative;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;text-align:left;transition:border-color .4s,box-shadow .4s,background .4s,transform .4s;}
+  .ba-node b{display:flex;width:26px;height:26px;border-radius:50%;background:#e4e6ea;color:#6e6e73;font-size:12.5px;align-items:center;justify-content:center;margin-bottom:8px;transition:background .3s,color .3s;}
+  .ba-node strong{display:block;font-size:14.5px;color:#1d1d1f;}
+  .ba-node small{display:block;margin-top:2px;font-size:12.5px;color:#6e6e73;}
+  .ba-node.is-ok{border-color:#bfe6cd;background:#f2fbf5;}
+  .ba-node.is-ok b{background:#1fae5a;color:#fff;}
+  .ba-node.is-bad{border-color:#ffd0c7;background:#fff5f2;animation:ba-shake .5s;}
+  .ba-node.is-bad b{background:#d9482b;color:#fff;}
+  @keyframes ba-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-3px);}}
+  .ba-token{position:absolute;left:0;top:12px;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#0071e3;box-shadow:0 0 0 6px rgba(0,113,227,.2);opacity:0;z-index:3;transition:left .8s cubic-bezier(.5,0,.2,1),opacity .35s,background .3s;}
+  .ba-token.is-bad{background:#d9482b;box-shadow:0 0 0 6px rgba(217,72,43,.2);}
+  .ba-lost{position:absolute;right:22px;bottom:-14px;font-size:13px;font-weight:600;padding:8px 14px;border-radius:12px;background:#d9482b;color:#fff;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;box-shadow:0 14px 22px -14px rgba(217,72,43,.8);}
+  .ba-lost.is-on{opacity:1;transform:none;}
+  .ba-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px;}
+  .ba-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:16px;}
+  .ba-card h3{margin:0 0 12px;font-size:13px;font-weight:600;color:#6e6e73;}
+  .ba-card p{margin:12px 0 0;font-size:14px;line-height:1.45;color:#3d3d40;position:relative;min-height:42px;}
+  .ba-card p span{display:block;transition:opacity .5s,transform .5s;}
+  .ba-mini{position:relative;min-height:70px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px;}
+  .ba-mini > span{font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px;background:#f7f7f9;color:#1d1d1f;transition:transform .7s cubic-bezier(.2,.9,.3,1),opacity .5s,background .4s;}
+  .ba-card .ba-a{opacity:0;position:absolute;left:0;right:0;}
+  .ba-card p .ba-a{transform:translateY(6px);}
+  .ba-mini .ba-a{display:none;}
+  .ba[data-state="before"] .ba-contacts span{transform:rotate(var(--r)) translateX(var(--x));background:#fdeceb;}
+  .ba[data-state="after"] .ba-contacts span{transform:none;background:#e6f6ec;}
+  .ba[data-state="before"] .ba-docs .ba-b{background:#fff4e5;}
+  .ba[data-state="before"] .ba-mini .ba-b{display:block;}
+  .ba[data-state="after"] .ba-mini .ba-b{display:none;}
+  .ba[data-state="after"] .ba-mini .ba-a{display:block;position:static;opacity:1;background:#e6f6ec;animation:ba-in .5s ease-out;}
+  @keyframes ba-in{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:none;}}
+  .ba[data-state="before"] .ba-card p .ba-a{opacity:0;}
+  .ba[data-state="after"] .ba-card p .ba-b{opacity:0;transform:translateY(-6px);}
+  .ba[data-state="after"] .ba-card p .ba-a{opacity:1;transform:none;}
+  .ba[data-state="before"] .ba-card p .ba-b{opacity:1;}
+  @media (max-width:860px){.ba-flow{grid-template-columns:repeat(2,minmax(0,1fr));}.ba-token{display:none;}.ba-cards{grid-template-columns:1fr;}}
+  @media (prefers-reduced-motion:reduce){.ba-token,.ba-node,.ba-mini > span,.ba-card p span,.ba-lost{transition:none;animation:none;}}
 </style>
 </head>
 <body>
@@ -1966,76 +2016,51 @@
     </div>
   </div>
 </section>
-<section class="old-vs-new">
+<section class="ba-sec" id="antes-depois" aria-labelledby="ba-title">
   <div class="wrap">
-    <p class="hero-eyebrow" data-reveal style="--n:0">Porquê a Ace Labs</p>
-    <h2 data-scramble data-reveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max-width:22ch;">A forma antiga <span class="muted" style="color:#9a9ca0;">e a forma Ace Labs.</span></h2>
+    <p class="hero-eyebrow">Antes e depois</p>
+    <h2 id="ba-title">Um lead entra. <span class="muted">Um negócio fecha.</span></h2>
+    <p class="ba-sub">O mesmo caminho, sem passar por email nem folhas de cálculo.</p>
 
-    <div class="ovn-grid">
-      <div class="ovn-card ovn-old" data-reveal style="--n:2">
-        <p class="ovn-label">A forma antiga</p>
-        <ul class="ovn-list">
-          <li data-reveal style="--n:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Dados copiados à mão entre emails, PDFs e Word</li>
-          <li data-reveal style="--n:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Leads perdidos entre WhatsApp, email e apontamentos</li>
-          <li data-reveal style="--n:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Follow-ups esquecidos em folhas de cálculo</li>
-          <li data-reveal style="--n:7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> Angariações sem plano de marketing definido</li>
-        </ul>
+    <div class="ba" data-ba data-state="before">
+      <div class="ba-toggle" role="group" aria-label="Ver antes ou depois">
+        <button type="button" data-set="before" aria-pressed="true">Antes</button>
+        <button type="button" data-set="after" aria-pressed="false">Depois</button>
       </div>
-      <div class="ovn-card ovn-new" data-reveal style="--n:3">
-        <p class="ovn-label">A forma Ace Labs</p>
-        <ul class="ovn-list">
-          <li data-reveal style="--n:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> A IA extrai os dados e gera o CPCV sozinha</li>
-          <li data-reveal style="--n:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Cada lead registado no Cockpit, com alerta se ficar parado</li>
-          <li data-reveal style="--n:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Lembretes automáticos em cada etapa do funil</li>
-          <li data-reveal style="--n:7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg> Plano de angariação por imóvel, sempre atualizado</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="funnel-sim">
-  <div class="wrap">
-    <p class="hero-eyebrow" data-reveal style="--n:0">Em tempo real</p>
-    <h2 data-scramble data-reveal style="--n:1">Um lead entra. <span class="muted">Um negócio fecha.</span></h2>
-    <p class="sub-col" data-reveal style="--n:2">Do primeiro contacto à escritura, cada passo fica registado - sem passar pela caixa de email nem por uma folha de cálculo.</p>
+      <div class="ba-flow" aria-hidden="true">
+        <i class="ba-token" data-token></i>
+        <div class="ba-node" data-node="0"><b>1</b><strong>Lead entra</strong><small data-b="Email e folha" data-a="Cockpit">Email e folha</small></div>
+        <div class="ba-node" data-node="1"><b>2</b><strong>Visita registada</strong><small data-b="Na cabeça do agente" data-a="Cockpit">Na cabeça do agente</small></div>
+        <div class="ba-node" data-node="2"><b>3</b><strong>CPCV gerado</strong><small data-b="Word, à mão" data-a="CPCV com IA">Word, à mão</small></div>
+        <div class="ba-node" data-node="3"><b>4</b><strong>Negócio fechado</strong><small data-b="Sem registo" data-a="Escritura">Sem registo</small></div>
+        <span class="ba-lost" data-lost>Lead perdido pelo caminho</span>
+      </div>
 
-    <div class="funnel-track" data-reveal style="--n:3">
-      <svg class="funnel-line-svg" viewBox="0 0 800 4" preserveAspectRatio="none" aria-hidden="true">
-        <line class="flow-line" x1="0" y1="2" x2="800" y2="2"/>
-      </svg>
-      <div class="funnel-line-vert" aria-hidden="true"></div>
-      <div class="funnel-dot" aria-hidden="true" style="animation-delay:0s"></div>
-      <div class="funnel-dot" aria-hidden="true" style="animation-delay:-2.2s"></div>
-      <div class="funnel-dot" aria-hidden="true" style="animation-delay:-4.4s"></div>
-
-      <div class="funnel-node">
-        <div class="funnel-node-icon" aria-hidden="true" style="animation-delay:0s">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 9v6l-4 2v-8z"/></svg>
+      <div class="ba-cards" aria-hidden="true">
+        <div class="ba-card">
+          <h3>Contactos</h3>
+          <div class="ba-mini ba-contacts">
+            <span style="--r:-6deg;--x:6px">Rui</span><span style="--r:5deg;--x:-4px">Ana</span><span style="--r:-3deg;--x:8px">Hugo</span><span style="--r:7deg;--x:-2px">Marta</span>
+          </div>
+          <p><span class="ba-b">Espalhados por email e WhatsApp.</span><span class="ba-a">Num funil, sempre atualizado.</span></p>
         </div>
-        <p class="funnel-node-label">Lead entra</p>
-        <p class="funnel-node-sub">Cockpit</p>
-      </div>
-      <div class="funnel-node">
-        <div class="funnel-node-icon" aria-hidden="true" style="animation-delay:-1.5s">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 2v4M16 2v4"/></svg>
+        <div class="ba-card">
+          <h3>Documentos</h3>
+          <div class="ba-mini ba-docs">
+            <span class="ba-b">contrato_v2_final</span><span class="ba-b">contrato_v2_FINAL_ok</span><span class="ba-b">contrato_novo</span>
+            <span class="ba-a">CPCV.pdf</span>
+          </div>
+          <p><span class="ba-b">Versões a circular por email.</span><span class="ba-a">Uma versão, gerada e aprovada.</span></p>
         </div>
-        <p class="funnel-node-label">Visita registada</p>
-        <p class="funnel-node-sub">Cockpit</p>
-      </div>
-      <div class="funnel-node">
-        <div class="funnel-node-icon" aria-hidden="true" style="animation-delay:-3s">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg>
+        <div class="ba-card">
+          <h3>Aprovações</h3>
+          <div class="ba-mini ba-appr">
+            <span class="ba-b">Quem aprova isto?</span><span class="ba-b">Já viste o meu email?</span>
+            <span class="ba-a">Gestora ✓</span><span class="ba-a">Diretor ✓</span>
+          </div>
+          <p><span class="ba-b">Pedidos soltos por mensagem.</span><span class="ba-a">Cada um aprova o que lhe cabe.</span></p>
         </div>
-        <p class="funnel-node-label">CPCV gerado</p>
-        <p class="funnel-node-sub">CPCV com IA</p>
-      </div>
-      <div class="funnel-node">
-        <div class="funnel-node-icon" aria-hidden="true" style="animation-delay:-4.5s">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg>
-        </div>
-        <p class="funnel-node-label">Negócio fechado</p>
-        <p class="funnel-node-sub">Escritura</p>
       </div>
     </div>
   </div>
@@ -2622,6 +2647,92 @@
       if(dd.contains(document.activeElement)) document.activeElement.blur();
     });
     ["pointerleave","focusin"].forEach(function(ev){ dd.addEventListener(ev, function(){ dd.classList.remove("is-esc"); }); });
+  })();
+
+  (function(){
+    var root = document.querySelector('[data-ba]');
+    if(!root) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var token = root.querySelector('[data-token]'), lost = root.querySelector('[data-lost]');
+    var nodes = [].slice.call(root.querySelectorAll('[data-node]'));
+    var btns = [].slice.call(root.querySelectorAll('[data-set]'));
+    var flow = root.querySelector('.ba-flow');
+    var run = 0, visible = false, manual = false;
+    function wait(ms, my){
+      return new Promise(function(res, rej){
+        var left = ms;
+        (function step(){
+          if(my !== run) return rej('cancel');
+          if(!visible){ setTimeout(step, 150); return; }
+          if(left <= 0) return res();
+          left -= 60; setTimeout(step, 60);
+        })();
+      });
+    }
+    function setState(s){
+      root.setAttribute('data-state', s);
+      btns.forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-set') === s ? 'true' : 'false'); });
+      nodes.forEach(function(n){
+        n.classList.remove('is-ok', 'is-bad');
+        var sm = n.querySelector('small');
+        sm.textContent = sm.getAttribute(s === 'after' ? 'data-a' : 'data-b');
+      });
+      lost.classList.remove('is-on');
+      token.classList.remove('is-bad');
+      token.style.opacity = 0;
+    }
+    function tokenAt(i){
+      var f = flow.getBoundingClientRect(), r = nodes[i].getBoundingClientRect();
+      token.style.left = (r.left - f.left + r.width / 2) + 'px';
+      token.style.opacity = 1;
+    }
+    function finalState(s){
+      setState(s);
+      if(s === 'after') nodes.forEach(function(n){ n.classList.add('is-ok'); });
+      else { nodes[0].classList.add('is-ok'); nodes[1].classList.add('is-ok'); nodes[2].classList.add('is-bad'); lost.classList.add('is-on'); }
+    }
+    async function cycle(startAfter){
+      var my = ++run;
+      try {
+        while(true){
+          if(!startAfter){
+            setState('before'); await wait(600, my);
+            token.style.transition = 'none'; tokenAt(0); void token.offsetWidth; token.style.transition = '';
+            await wait(700, my);
+            nodes[0].classList.add('is-ok'); tokenAt(1); await wait(1100, my);
+            nodes[1].classList.add('is-ok'); tokenAt(2); await wait(1000, my);
+            nodes[2].classList.add('is-bad'); token.classList.add('is-bad');
+            lost.classList.add('is-on'); await wait(500, my);
+            token.style.opacity = 0; await wait(2400, my);
+          }
+          startAfter = false;
+          setState('after'); await wait(700, my);
+          token.style.transition = 'none'; tokenAt(0); void token.offsetWidth; token.style.transition = '';
+          await wait(500, my);
+          for(var i = 0; i < nodes.length; i++){
+            tokenAt(i); await wait(900, my);
+            nodes[i].classList.add('is-ok');
+          }
+          await wait(3200, my);
+        }
+      } catch(e){ if(e !== 'cancel') throw e; }
+    }
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        manual = true; run++;
+        finalState(b.getAttribute('data-set'));
+      });
+    });
+    if(reduce){ finalState('after'); return; }
+    finalState('before');
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){
+        en.forEach(function(e){
+          var was = visible; visible = e.isIntersecting;
+          if(visible && !was && !manual && run === 0) cycle(false);
+        });
+      }, { threshold: 0.35 }).observe(root);
+    } else { visible = true; cycle(false); }
   })();
 </script>
 

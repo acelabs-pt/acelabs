@@ -1924,6 +1924,36 @@
   .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
   .nav-services.is-esc .nav-services-menu{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+
+  /* processo: boneco autonomo, sem scroll preso */
+  .process{height:auto!important;}
+  .process-pin{position:relative;min-height:0;padding:110px 0 90px;}
+  .walker{will-change:transform;}
+  .walker-art{animation:wk-idle 3.2s ease-in-out infinite;}
+  .walker.is-moving .walker-art{animation:wk-walk .46s ease-in-out infinite;}
+  @keyframes wk-idle{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-4px) rotate(0deg);}}
+  @keyframes wk-walk{
+    0%{transform:translateY(0) rotate(calc(var(--lean,7deg) * .4));}
+    25%{transform:translateY(-14px) rotate(var(--lean,7deg));}
+    50%{transform:translateY(0) rotate(calc(var(--lean,7deg) * .4));}
+    75%{transform:translateY(-14px) rotate(var(--lean,7deg));}
+    100%{transform:translateY(0) rotate(calc(var(--lean,7deg) * .4));}
+  }
+  .walker-shadow{transition:transform .3s;}
+  .walker.is-moving .walker-shadow{animation:wk-sh .46s ease-in-out infinite;}
+  @keyframes wk-sh{0%,50%,100%{transform:scaleX(1);opacity:1;}25%,75%{transform:scaleX(.7);opacity:.6;}}
+  .walker-bubble.is-pop{animation:wk-pop .45s cubic-bezier(.2,.9,.3,1.3);}
+  @keyframes wk-pop{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.9);}to{opacity:1;transform:translateX(-50%);}}
+  .walk-dust{position:absolute;bottom:6px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:rgba(74,163,255,.55);pointer-events:none;animation:wk-dust .7s ease-out forwards;}
+  @keyframes wk-dust{from{opacity:.8;transform:translate(-6px,0) scale(1);}to{opacity:0;transform:translate(-18px,-16px) scale(.3);}}
+  .process .step{transition:opacity .4s;}
+  @media (prefers-reduced-motion:reduce){.walker-art,.walker.is-moving .walker-art{animation:none;}.walk-dust{display:none;}}
+  .walker-feet{position:absolute;left:50%;bottom:-2px;width:60px;margin-left:-30px;height:12px;pointer-events:none;}
+  .walker-feet i{position:absolute;bottom:0;width:24px;height:10px;border-radius:12px 12px 6px 6px;background:#0b0b0d;box-shadow:0 0 10px rgba(74,163,255,.5);}
+  .walker-feet i:first-child{left:2px;}.walker-feet i:last-child{right:2px;}
+  .walker.is-moving .walker-feet i:first-child{animation:wk-step .46s ease-in-out infinite;}
+  .walker.is-moving .walker-feet i:last-child{animation:wk-step .46s ease-in-out infinite;animation-delay:-.23s;}
+  @keyframes wk-step{0%,100%{transform:translate(-4px,0);}50%{transform:translate(8px,-8px);}}
 </style>
 </head>
 <body>
@@ -1995,7 +2025,7 @@
             <circle cx="105" cy="104" r="46" fill="url(#scHead)"/>
             <ellipse cx="88" cy="84" rx="22" ry="12" fill="#fff" opacity=".1" transform="rotate(-24 88 84)"/>
           </g></svg>
-            <span class="walker-shadow"></span>
+            <span class="walker-feet"><i></i><i></i></span><span class="walker-shadow"></span>
           </div>
         </div>
         <ol class="steps" style="list-style:none;padding:0">
@@ -2574,44 +2604,89 @@
     var bubble = sec.querySelector('.walker-bubble');
     var fill = sec.querySelector('.walk-fill');
     var line = sec.querySelector('.walk-line');
+    var walk = sec.querySelector('.walk');
     var track = sec.querySelector('.steps');
     var desktop = window.matchMedia('(min-width:1001px)');
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var ticking = false, lastIdx = -1;
-    function cx(i, tr){
+    var cur = 0, curX = null, anim = 0, auto = true, started = false, visible = false, lastDust = 0;
+
+    function cx(i){
+      var tr = track.getBoundingClientRect();
       var c = steps[i].querySelector('.step-n').getBoundingClientRect();
       return c.left + c.width / 2 - tr.left;
     }
-    function update(){
-      ticking = false;
-      if(!desktop.matches || reduce.matches) return;
-      var r = sec.getBoundingClientRect();
-      var total = r.height - window.innerHeight;
-      var p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0;
-      var f = p * (steps.length - 1);
-      var idx = Math.round(f);
-      var i0 = Math.floor(f), i1 = Math.min(steps.length - 1, i0 + 1), t = f - i0;
-      var tr = track.getBoundingClientRect();
-      var x0 = cx(0, tr), xN = cx(steps.length - 1, tr);
-      var x = cx(i0, tr) + (cx(i1, tr) - cx(i0, tr)) * t;
+    function place(x){
+      var x0 = cx(0), xN = cx(steps.length - 1);
       walker.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
-      line.style.left = x0 + 'px';
-      line.style.right = 'auto';
-      line.style.width = (xN - x0) + 'px';
-      fill.style.transform = 'scaleX(' + ((x - x0) / Math.max(xN - x0, 1)).toFixed(3) + ')';
-      if(idx !== lastIdx){
-        lastIdx = idx;
-        steps.forEach(function(s, i){
-          s.classList.toggle('is-done', i < idx);
-          s.classList.toggle('is-active', i === idx);
-        });
-        bubble.textContent = steps[idx].getAttribute('data-say');
+      line.style.left = x0 + 'px'; line.style.right = 'auto'; line.style.width = (xN - x0) + 'px';
+      fill.style.transform = 'scaleX(' + Math.min(1, Math.max(0, (x - x0) / Math.max(xN - x0, 1))).toFixed(3) + ')';
+      curX = x;
+    }
+    function arrive(i){
+      cur = i;
+      steps.forEach(function(s, k){ s.classList.toggle('is-done', k < i); s.classList.toggle('is-active', k === i); });
+      bubble.textContent = steps[i].getAttribute('data-say');
+      bubble.classList.remove('is-pop'); void bubble.offsetWidth; bubble.classList.add('is-pop');
+    }
+    function dust(x){
+      var d = document.createElement('i');
+      d.className = 'walk-dust';
+      d.style.left = x.toFixed(0) + 'px';
+      walk.appendChild(d);
+      setTimeout(function(){ d.remove(); }, 700);
+    }
+    function ease(t){ return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+    function walkTo(i, ms){
+      return new Promise(function(res){
+        var my = ++anim;
+        var from = curX == null ? cx(cur) : curX, to = cx(i);
+        if(reduce.matches || !desktop.matches || from === to){ place(to); arrive(i); return res(); }
+        var dist = Math.abs(i - cur);
+        var dur = (ms || 950) * Math.max(1, dist * .8);
+        var t0 = performance.now();
+        walker.classList.add('is-moving');
+        walker.style.setProperty('--lean', (to >= from ? 7 : -7) + 'deg');
+        (function frame(now){
+          if(my !== anim) return res();
+          var p = Math.min(1, (now - t0) / dur);
+          var x = from + (to - from) * ease(p);
+          place(x);
+          if(now - lastDust > 130){ lastDust = now; dust(x); }
+          if(p < 1) return requestAnimationFrame(frame);
+          walker.classList.remove('is-moving');
+          arrive(i);
+          res();
+        })(t0);
+      });
+    }
+    function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+    async function autoplay(){
+      var my = anim;
+      for(var i = 1; i < steps.length && auto; i++){
+        await sleep(1700);
+        if(!auto) return;
+        await walkTo(i);
       }
     }
-    function req(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
-    window.addEventListener('scroll', req, { passive: true });
-    window.addEventListener('resize', req);
-    update();
+    steps.forEach(function(s, i){
+      s.style.cursor = 'pointer';
+      s.addEventListener('click', function(){ auto = false; walkTo(i); });
+    });
+    window.addEventListener('resize', function(){ if(curX != null) place(cx(cur)); });
+
+    function init(){
+      place(cx(0)); arrive(0);
+      if(reduce.matches || !desktop.matches) return;
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){
+          en.forEach(function(e){
+            visible = e.isIntersecting;
+            if(visible && !started){ started = true; autoplay(); }
+          });
+        }, { threshold: 0.5 }).observe(walk);
+      } else { started = true; autoplay(); }
+    }
+    if(document.readyState === 'complete') init(); else window.addEventListener('load', init);
   })();
 
   (function(){
