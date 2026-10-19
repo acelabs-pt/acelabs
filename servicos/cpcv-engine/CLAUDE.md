@@ -205,6 +205,16 @@ Ainda não há atribuição de um processo a uma gestora específica (qualquer g
   ficheiros rejeitados são apagados do Storage; sem prazo de retenção automático nem DPA por agora.
   A região do Supabase não está documentada (confirmar no painel).
 
+### Teste do contrato (PDF e Word)
+
+`npm run testar:contrato` (`scripts/testar-contrato.ts`) gera PDF e Word para 11 cenários fictícios
+(partes singulares e coletivas, regimes de bens, hipoteca, financiamento, nomes com acentos, valores
+grandes, etc.) e verifica: sem `undefined`/`null`/`NaN`, sem travessões, PDF e Word com o mesmo texto,
+valores e nomes presentes. Os ficheiros ficam na pasta temporária do sistema. Correr sempre depois de
+mexer em `cpcv-clausulas.ts`, `cpcv-contrato.ts`, `cpcv-template.ts` ou `cpcv-docx.ts`. Precisa de
+`pdftotext` (Poppler) no PATH. Não substitui a comparação com a minuta real da agência.
+Lacunas conhecidas: dados do procurador e valor da comissão não entram no contrato.
+
 ## Cuidados gerais
 
 - Preencher um `<textarea>`/`<select>` controlado pelo React via automação (Playwright/DevTools)

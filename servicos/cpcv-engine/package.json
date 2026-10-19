@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "verificar:clausulas": "tsx --env-file=.env.local scripts/comparar-clausulas-minutas.ts"
+    "verificar:clausulas": "tsx --env-file=.env.local scripts/comparar-clausulas-minutas.ts",
+    "testar:contrato": "tsx scripts/testar-contrato.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
