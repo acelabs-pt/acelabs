@@ -157,7 +157,9 @@ export async function POST(req: NextRequest) {
   const { data: ficheiros } = await supabase
     .from("cpcv_ficheiros")
     .select("storage_path, nome_original, tipo")
-    .eq("processo_id", processo_id);
+    .eq("processo_id", processo_id)
+    // Ficheiros entregues pelo cliente só entram na IA depois de o agente os aceitar.
+    .eq("estado_revisao", "aceite");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const documentBlocks: any[] = [];

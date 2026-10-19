@@ -177,6 +177,34 @@ mesmo padrão já usado para método de pagamento/reserva/etc.
 estas em vez de estilos ad-hoc num botão novo, para manter consistência (hover, foco, disabled,
 micro-interacção ao clicar) em toda a secção.
 
+### Perfis (utilizadores da plataforma)
+
+| Perfil | Pode | Como se cria |
+|---|---|---|
+| `agente` | Criar e preencher os seus processos, entregar para aprovação, gerar links de entrega ao cliente, rever os documentos recebidos | Convite gerado pela gestora ou admin (`GerarConvite.tsx`), registo em `/cpcv/registo` com o código |
+| `gestora` | Tudo o que o agente faz, em todos os processos, mais aprovar, pedir alterações, gerar PDF/Word, fechar, convidar agentes | Convite gerado pelo admin |
+| `admin` | Tudo o da gestora, mais gerir utilizadores (`/cpcv/admin`) e convidar gestoras | Só via `CPCV_INVITE_ADMIN` (variável de ambiente), nunca pela UI |
+
+O comprador e o vendedor **não têm conta**: entregam documentos por link privado (ver abaixo).
+Ainda não há atribuição de um processo a uma gestora específica (qualquer gestora ou admin aprova).
+
+### Entrega de documentos pelo cliente (`migration_fase14.sql`)
+
+- O agente gera, na página do processo, um link por parte (comprador ou vendedor), válido 14 dias
+  (`DocumentosCliente.tsx`, `POST /api/cpcv/[id]/links`). O token só é mostrado uma vez; na base de
+  dados fica o hash SHA-256 (`cpcv_links_cliente.token_hash`). Revogar: `DELETE` na mesma rota.
+- A página pública `/cpcv/entrega/[token]` (sem login) tem a zona de drop. Cada ficheiro vai para
+  `POST /api/cpcv/entrega/[token]` (rota pública no `CPCV_PUBLIC_PATHS` do `middleware.ts`), que valida
+  token, tipo (`lib/cpcv-links-cliente.ts`), extensão, tamanho (4 MB) e limite por link (30).
+- Armazenamento: bucket `cpcv-documentos`, caminho `<dono>/<processo>/portal/<papel>/<uuid>-<nome>`.
+  Entram em `cpcv_ficheiros` com `origem='cliente'` e `estado_revisao='pendente'`.
+- Staging: a IA (`/api/cpcv/extrair`) e a lista de documentos só usam `estado_revisao='aceite'`. O
+  agente aceita ou rejeita em "Documentos do cliente". Aplicar a migração antes de fazer deploy do
+  código, senão as queries por `estado_revisao` falham.
+- RGPD, versão mínima (decisão do Pedro, 2026-10-15): a página de entrega tem uma linha de informação;
+  ficheiros rejeitados são apagados do Storage; sem prazo de retenção automático nem DPA por agora.
+  A região do Supabase não está documentada (confirmar no painel).
+
 ## Cuidados gerais
 
 - Preencher um `<textarea>`/`<select>` controlado pelo React via automação (Playwright/DevTools)

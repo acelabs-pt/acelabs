@@ -13,7 +13,15 @@ import { NextRequest, NextResponse } from "next/server";
 // genérica por cima (bug apanhado ao testar: com as duas sessões activas ao
 // mesmo tempo, a AppLayout genérica aparecia também nas páginas /cpcv).
 
-const CPCV_PUBLIC_PATHS = ["/cpcv/login", "/cpcv/registo", "/api/cpcv/registo"];
+// /cpcv/entrega e /api/cpcv/entrega: entrega de documentos pelo cliente, por link privado com
+// token (validado na própria rota, sem sessão Supabase).
+const CPCV_PUBLIC_PATHS = [
+  "/cpcv/login",
+  "/cpcv/registo",
+  "/api/cpcv/registo",
+  "/cpcv/entrega",
+  "/api/cpcv/entrega",
+];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

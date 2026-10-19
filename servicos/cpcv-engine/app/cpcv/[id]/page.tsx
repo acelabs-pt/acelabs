@@ -4,6 +4,7 @@ import Link from "next/link";
 import ChatForm from "./ChatForm";
 import { GerarButton, PedirAlteracoes, DownloadLinks, RascunhoLinks, ReabrirProcesso } from "./GerarDocumento";
 import AdicionarInformacao from "./AdicionarInformacao";
+import DocumentosCliente from "./DocumentosCliente";
 import CondicoesNegocio from "./CondicoesNegocio";
 import DadosApoio from "./DadosApoio";
 import DadosPartes from "./DadosPartes";
@@ -62,12 +63,15 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
 
   if (!processo) notFound();
 
-  const [{ data: partes }, { data: ficheiros }, { data: mensagens }, { data: hipotecas }] = await Promise.all([
+  const [{ data: partes }, { data: ficheiros }, { data: mensagens }, { data: hipotecas }, { data: links }] = await Promise.all([
     supabase.from("cpcv_partes").select("*").eq("processo_id", id),
     supabase.from("cpcv_ficheiros").select("*").eq("processo_id", id),
     supabase.from("cpcv_mensagens").select("*").eq("processo_id", id).order("criado_em"),
     supabase.from("cpcv_hipotecas").select("*").eq("processo_id", id),
+    supabase.from("cpcv_links_cliente").select("id, papel, expira_em, revogado").eq("processo_id", id),
   ]);
+
+  const ficheirosAceites = (ficheiros ?? []).filter((f) => (f.estado_revisao ?? "aceite") === "aceite");
 
   const temCamposEmFalta = (processo.campos_em_falta ?? []).length > 0;
   const prontoParaAprovacao = processo.estado === "pronto_para_aprovacao";
@@ -132,12 +136,12 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
       )}
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Documentos ({ficheiros?.length ?? 0})</h2>
-        {(ficheiros ?? []).length === 0 && (
+        <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Documentos ({ficheirosAceites.length})</h2>
+        {ficheirosAceites.length === 0 && (
           <EstadoVazio icon={IconesVazio.documento} texto="Nenhum documento carregado ainda." />
         )}
         <ul className="space-y-1">
-          {(ficheiros ?? []).map((f) => (
+          {ficheirosAceites.map((f) => (
             <li key={f.id} className="text-xs">
               {f.nome_original} <span className="text-[#94A3B8]">({f.tipo})</span>
             </li>
@@ -151,6 +155,15 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
           />
         )}
       </div>
+
+      {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
+        <DocumentosCliente
+          processoId={processo.id}
+          links={links ?? []}
+          ficheiros={ficheiros ?? []}
+          mostrarVendedor={processo.tipo_contrato !== "comprador_nosso_angariacao_externa"}
+        />
+      )}
 
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
         <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Imóvel e negócio</h2>
@@ -184,7 +197,7 @@ export default async function ProcessoPage({ params }: { params: Promise<{ id: s
       </div>
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && (
-        <IdentificacaoImovel processo={processo} ficheiros={ficheiros ?? []} hipotecasIniciais={hipotecas ?? []} />
+        <IdentificacaoImovel processo={processo} ficheiros={ficheirosAceites} hipotecasIniciais={hipotecas ?? []} />
       )}
 
       {!ESTADOS_BLOQUEADOS.includes(processo.estado) && <DadosApoio processo={processo} />}
