@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cockpit - demonstração</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f5f5f7;--fg:#1d1d1f;--sec:#6e6e73;--azul:#0071e3;--azul-e:#0059b3;--verde:#1fae5a;--ambar:#ff9f0a;--ambar-f:#fff4e5;--ambar-t:#9a5b00;--verm:#d93025;--bege:#EDEBE5;--linha:rgba(0,0,0,.1)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.35;-webkit-text-size-adjust:100%}
+a{color:var(--azul);text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+h1,h2,h3,h4,p,ul{margin:0}ul{padding:0;list-style:none}
+.serif{font-weight:600}
+#banner{background:var(--ambar-f);color:var(--ambar-t);font-size:13px;padding:8px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+#banner button{text-decoration:underline;font-size:13px;color:var(--ambar-t)}
+#shell{min-height:100vh;padding-bottom:84px}
+#app{max-width:1000px;margin:0 auto;padding:16px}
+nav#nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:#fff;border-top:1px solid var(--linha);padding-bottom:env(safe-area-inset-bottom)}
+nav#nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;font-size:11px;font-weight:500;color:var(--sec)}
+nav#nav a.on{color:var(--azul)}
+nav#nav .logo{display:none}
+nav#nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:768px){
+ #banner{padding-left:240px}
+ #shell{padding-left:224px;padding-bottom:0}
+ #app{padding:32px}
+ nav#nav{top:0;right:auto;width:224px;flex-direction:column;gap:4px;padding:12px;border-top:0;border-right:1px solid var(--linha)}
+ nav#nav .logo{display:block;font-size:20px;padding:8px 12px 16px}
+ nav#nav a{flex:none;flex-direction:row;gap:12px;padding:10px 12px;border-radius:12px;font-size:14px}
+ nav#nav a.on{background:rgba(0,113,227,.1)}
+ nav#nav a:hover{background:rgba(0,0,0,.05)}
+}
+.stack>*+*{margin-top:16px}.stack-s>*+*{margin-top:8px}.stack-xs>*+*{margin-top:4px}
+.row{display:flex;gap:8px;align-items:center}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grow{flex:1;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:620px){.grid3.resp{grid-template-columns:1fr}}
+@media(min-width:768px){.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}}
+.card{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:16px}
+.card.link{display:block;color:inherit}
+.card.sm{border-radius:12px;padding:12px}
+.card.destaque{border:2px solid rgba(0,113,227,.3)}
+h1{font-size:24px;font-weight:600}h2{font-size:20px;font-weight:600}h3{font-size:14px;font-weight:600}
+.sec{color:var(--sec)}.xs{font-size:12px}.sm{font-size:14px}.b{font-weight:600}.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:600;background:var(--azul);color:#fff;text-align:center}
+.btn.full{width:100%}.btn.verde{background:var(--verde)}.btn.cinza{background:rgba(0,0,0,.06);color:var(--fg);font-weight:500}.btn.verm{background:#fdecea;color:#b3261e;border:1px solid #f5c6c2}
+.btn.sm{padding:6px 12px;font-weight:500}.btn:disabled{opacity:.5;cursor:not-allowed}
+.txt{background:none;color:var(--azul);text-decoration:underline;font-size:13px}.txt.verm{color:var(--verm)}.txt.sec{color:var(--sec)}
+input,select,textarea{width:100%;border:1px solid var(--linha);border-radius:12px;background:#fff;padding:10px 12px;font-size:16px}
+input[type=checkbox],input[type=radio]{width:auto}input[type=range]{padding:0;border:0}
+select:disabled{opacity:.5}
+.sm-in input,.sm-in select{font-size:14px;padding:9px 10px}
+label.f{display:block}label.f>span{display:block;font-size:12px;font-weight:500;color:var(--sec);margin-bottom:4px}
+.seg{display:flex;background:rgba(0,0,0,.06);border-radius:12px;padding:4px;font-size:14px;font-weight:500}
+.seg button{flex:1;padding:7px 8px;border-radius:9px;color:var(--sec);text-align:center}
+.seg button.on{background:#fff;color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.pill{display:inline-block;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:500;background:rgba(0,113,227,.1);color:var(--azul);white-space:nowrap}
+.pill.verde{background:rgba(31,174,90,.15);color:#13803f}
+.alerta{border-radius:8px;background:var(--ambar-f);color:var(--ambar-t);font-size:12px;font-weight:500;padding:6px 10px}
+.alerta.neutro{background:rgba(0,0,0,.05);color:var(--sec)}.alerta.verm{background:#fdecea;color:#b3261e}
+.erro{background:#fdecea;color:#b3261e;border-radius:12px;padding:10px 14px;font-size:14px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{flex:none;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:500;background:rgba(0,0,0,.06);color:var(--sec)}
+.chip.on{background:var(--azul);color:#fff}.chip.pass{background:rgba(0,113,227,.15);color:var(--azul)}
+.barra{height:8px;border-radius:99px;background:rgba(0,0,0,.07);overflow:hidden}.barra>i{display:block;height:100%;border-radius:99px}
+.mot{display:inline-flex;align-items:center;gap:4px;flex:none}.mot .t{width:56px;height:6px;border-radius:99px;background:rgba(0,0,0,.1);overflow:hidden}.mot .t i{display:block;height:100%;border-radius:99px}.mot b{font-size:11px}
+.funil{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.col{flex:none;width:256px;background:rgba(0,0,0,.04);border-radius:16px;padding:8px}
+.col h3{display:flex;justify-content:space-between;padding:8px;font-size:12px}.col h3 span{background:#fff;border-radius:99px;padding:1px 8px;color:var(--sec);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.circ{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;color:#fff}
+.circ.on{background:var(--verde);border-color:var(--verde)}
+.tarefa{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:12px}
+.feita{text-decoration:line-through;color:var(--sec)}
+.dia{border-radius:16px;padding:8px;background:rgba(0,0,0,.03)}.dia.hoje{background:rgba(0,113,227,.1)}
+.dia h3{font-size:12px;color:var(--sec);padding:0 4px 8px}.dia.hoje h3{color:var(--azul)}
+.evt{display:block;width:100%;text-align:left;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);padding:8px 10px;font-size:14px;margin-bottom:6px}
+@media(min-width:768px){.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}}
+@media(max-width:767px){.semana>*+*{margin-top:8px}}
+.gscroll{overflow-x:auto;margin:0 -16px;padding:0 16px 8px}
+table.g{border-collapse:separate;border-spacing:2px 4px;font-size:12px}
+table.g th{font-weight:600}
+table.g th.nome{position:sticky;left:0;z-index:2;background:#fff;text-align:left;font-size:11px;line-height:1.2;max-width:128px;padding-right:8px}
+table.g .fase{background:var(--ambar-f);color:var(--ambar-t);border-radius:8px;padding:4px 8px}
+table.g .mes{background:rgba(0,0,0,.05);color:var(--sec);border-radius:8px;padding:4px 8px;font-weight:500}
+table.g .bl{min-width:36px;height:20px;font-size:10px;font-weight:500;color:var(--sec);border-radius:4px}table.g .bl.at{background:var(--azul);color:#fff}
+.cel{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(31,174,90,.1)}
+.cel.feita{background:var(--verde);color:#fff}.cel.atr{background:var(--ambar-f);box-shadow:inset 0 0 0 1px var(--ambar)}.cel.fu{background:#fdecea}
+.cel .o{width:12px;height:12px;border-radius:50%;border:1px solid rgba(31,174,90,.7);background:#fff}
+.cel.vazia{border:1px dashed rgba(0,0,0,.25);background:none;color:var(--sec)}
+.cel svg{width:14px;height:14px}
+.sheetbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:440px;background:#fff;border-radius:24px 24px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:768px){.sheetbg{align-items:center}.sheet{border-radius:24px}}
+.rel li{padding:12px 16px;border-bottom:1px solid var(--linha)}.rel li:last-child{border:0}
+.guia li{padding:6px 0 6px 20px;position:relative;font-size:14px}.guia li:before{content:'';position:absolute;left:4px;top:13px;width:6px;height:6px;border-radius:50%;background:var(--azul)}
+@media print{#banner,nav#nav,.noprint{display:none!important}#shell{padding:0}body{background:#fff}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<div id="banner"><span>Demonstração com dados fictícios. Tudo o que fizeres fica guardado só neste navegador.</span><button data-a="repor">Repor dados de exemplo</button></div>
+<div id="shell">
+<nav id="nav"></nav>
+<main id="app"></main>
+</div>
+<script>
+/* ===== utilitários ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const p2 = (n) => String(n).padStart(2, '0');
+const startOfDay = (d) => { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; };
+const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+const addMs = (d, ms) => new Date(new Date(d).getTime() + ms);
+const startOfWeek = (d) => { const r = startOfDay(d); return addDays(r, -((r.getDay() + 6) % 7)); };
+const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const isoDate = (d) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+const hojeISO = () => isoDate(new Date());
+const parseDate = (s) => new Date(s + 'T00:00:00');
+const fmtDia = (d) => new Date(d).toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
+const fmtDiaCurto = (d) => new Date(d).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
+const fmtHora = (iso) => { const d = new Date(iso); return d.getHours() === 0 && d.getMinutes() === 0 ? '' : d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }); };
+const diasDesde = (iso) => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+const diasAte = (s) => Math.round((startOfDay(parseDate(s)).getTime() - startOfDay(new Date()).getTime()) / 86400000);
+const toLocalInput = (iso) => { const d = new Date(iso); return `${isoDate(d)}T${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const fromLocalInput = (v) => new Date(v).toISOString();
+const semanaISO = (d) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dia = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dia); const ini = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return `${t.getUTCFullYear()}-W${p2(Math.ceil(((t - ini) / 86400000 + 1) / 7))}`; };
+const eur = (n) => n == null ? '' : Number(n).toLocaleString('pt-PT') + ' EUR';
+const H = 3600000, D = 24 * H;
+
+/* ===== constantes do desenho ===== */
+const FUNIL_C = [['lead_qualificada', 'Lead qualificada'], ['imoveis_enviados', 'Imóveis enviados'], ['visitas_realizadas', 'Visitas realizadas'], ['propostas_efetuadas', 'Propostas efetuadas'], ['cpcv', 'CPCV'], ['escritura', 'Escritura'], ['negocio_concluido', 'Negócio concluído']];
+const FUNIL_P = [['fsbo', 'FSBO'], ['reuniao_marcada', 'Marcação de reunião'], ['reuniao_angariacao', 'Reunião de angariação'], ['dossier_enviado', 'Dossier + Instagram'], ['imovel_vendido_enviado', 'Imóvel vendido'], ['follow_up_1', 'Chamada follow up 1'], ['follow_up_2', 'Chamada follow up 2'], ['angariado', 'Angariado']];
+const labelC = (e) => e === 'perdido' ? 'Perdido' : FUNIL_C.find((f) => f[0] === e)[1];
+const labelP = (e) => e === 'perdido' ? 'Perdido' : FUNIL_P.find((f) => f[0] === e)[1];
+const idxC = (e) => FUNIL_C.findIndex((f) => f[0] === e);
+const idxP = (e) => FUNIL_P.findIndex((f) => f[0] === e);
+const OBJ = { env: 10, vis: 5, prop: 3 };
+const TIPOS = ['Apartamento', 'Moradia', 'Terreno', 'Armazém', 'Loja', 'Prédio', 'Outro'];
+const TIPOLOGIAS = ['T0', 'T1', 'T2', 'T3', 'T4', 'T5 ou mais'];
+const CANAIS = ['Idealista', 'Imovirtual', 'Meta', 'Site da imobiliária', 'Placa', 'Referência', 'Outro'];
+const FINANC = ['Capitais próprios', 'Crédito pré-aprovado', 'Vai pedir crédito'];
+const SIMUL = ['Feita', 'Por fazer', 'Não aplicável'];
+const PREFIXOS = ['+351', '+34', '+33', '+44', '+49', '+41', '+55', '+1'];
+const ACOES_PADRAO = [
+  ['Fotografias/Vídeo', [1]], ['Placa de Venda', [1]], ['Inserção Portais/Site', [1, 2, 3]],
+  ['Propostas Múltiplas', [1, 2, 4, 5, 9, 10, 15, 16]], ['Distribuição Flyers', [2, 8, 14]],
+  ['Newsletter Base de Dados', [2, 6, 9, 12, 16]], ['Campanha Social Media', [2, 5, 8, 11, 14, 17]],
+  ['Campanha META', [2, 5, 12, 16]], ['Newsletter Agências', [2, 6, 9, 12, 16]], ['Open House', [2, 9]],
+  ['Refresh do Anúncio', [3, 6, 9, 12, 15, 17]], ['Parceria negócios na zona', [2, 8, 14]],
+];
+const FOLLOW_BLOCOS = [2, 3, 5, 6, 8, 9, 10, 12, 14, 15, 16, 17];
+const NOME_FU = 'Follow up';
+
+/* ===== localizações (distrito > concelho > freguesias) ===== */
+const LOC = {"Aveiro":{"Albergaria-a-Velha":["Albergaria-a-Velha e Valmaior","Alquerubim","Angeja","Branca","Ribeira de Fráguas","São João de Loure e Frossos"],"Anadia":["Avelãs de Caminho","Avelãs de Cima","Moita","Sangalhos","São Lourenço do Bairro","União das freguesias de Amoreira da Gândara, Paredes do Bairro e Ancas","União das freguesias de Arcos e Mogofores","União das freguesias de Tamengos, Aguim e Óis do Bairro","Vila Nova de Monsarros","Vilarinho do Bairro"],"Arouca":["Alvarenga","Chave","Escariz","Fermedo","Mansores","Moldes","Rossas","Santa Eulália","São Miguel do Mato","Tropeço","União das freguesias de Arouca e Burgo","União das freguesias de Cabreiros e Albergaria da Serra","União das freguesias de Canelas e Espiunca","União das freguesias de Covelo de Paivó e Janarde","Urrô","Várzea"],"Aveiro":["Aradas","Cacia","Eixo e Eirol","Esgueira","Oliveirinha","Requeixo, Nossa Senhora de Fátima e Nariz","Santa Joana","São Bernardo","São Jacinto","União das freguesias de Glória e Vera Cruz"],"Castelo de Paiva":["Bairros","Fornos","Paraíso","Pedorido","Raiva","Real","Santa Maria de Sardoura","Sobrado","São Martinho de Sardoura"],"Espinho":["Anta","Espinho","Guetim","Paramos","Silvalde"],"Estarreja":["Avanca","Beduído","Pardilhó","Salreu","União das freguesias de Canelas e Fermelã","Veiros"],"Mealhada":["Antes","Barcouço","Casal Comba","Luso","Mealhada","Pampilhosa","Vacariça","Ventosa do Bairro"],"Murtosa":["Bunheiro","Monte","Murtosa","Torreira"],"Oliveira de Azeméis":["Carregosa","Cesar","Fajões","Loureiro","Macieira de Sarnes","Nogueira do Cravo","Ossela","Pindelo","São Martinho da Gândara","São Roque","União das freguesias de Oliveira de Azeméis, Santiago de Riba-Ul, Ul, Macinhata da Seixa e Madail","União das freguesias de Pinheiro da Bemposta, Travanca e Palmaz","Vila de Cucujães"],"Oliveira do Bairro":["Oiã","Oliveira do Bairro","Palhaça","União das freguesias de Bustos, Troviscal e Mamarrosa"],"Ovar":["Arada","Cortegaça","Esmoriz","Maceda","Ovar","São João","São Vicente de Pereira Jusã","Válega"],"Santa Maria da Feira":["Argoncilhe","Arrifana","Caldas de São Jorge","Canedo","Escapães","Fiães","Fornos","Gião","Guisande","Lobão","Louredo","Lourosa","Milheirós de Poiares","Mosteirô","Mozelos","Nogueira da Regedoura","Paços de Brandão","Pigeiros","Rio Meão","Romariz","Sanguedo","Santa Maria de Lamas","São João de Ver","São Miguel de Souto","São Paio de Oleiros","União das freguesias de Santa Maria da Feira, Travanca, Sanfins e Espargo","Vale","Vila Maior"],"Sever do Vouga":["Cedrim","Couto de Esteves","Dornelas","Paradela","Pessegueiro do Vouga","Rocas do Vouga","Sever do Vouga","Silva Escura","Talhadas"],"São João da Madeira":["São João da Madeira"],"Vagos":["Calvão","Covão do Lobo","Fonte de Angeão","Gafanha da Boa Hora","Ouca","Ponte de Vagos","Santa Catarina","Santo André de Vagos","Santo António","Sosa","Vagos"],"Vale de Cambra":["Arões","Cepelos","Junqueira","Macieira de Cambra","Roge","São Pedro de Castelões","União das freguesias de Vila Chã, Codal e Vila Cova de Perrinho"],"Águeda":["Agadão","Aguada de Baixo","Aguada de Cima","Barrô","Belazaima do Chão","Borralha","Castanheira do Vouga","Fermentelos","Macinhata do Vouga","União das freguesias de Recardães e Espinhel","União das freguesias de Travassô e Óis da Ribeira","União das freguesias de Trofa, Segadães e Lamas do Vouga","União das freguesias do Préstimo e Macieira de Alcoba","Valongo do Vouga","Águeda"],"Ílhavo":["Gafanha da Encarnação","Gafanha da Nazaré","Gafanha do Carmo","Ílhavo (São Salvador)"]},"Beja":{"Aljustrel":["Aljustrel","Ervidel","Messejana","Rio de Moinhos","São João de Negrilhos"],"Almodôvar":["Aldeia dos Fernandes","Almodôvar","Gomes Aires","Rosário","Santa Clara-a-Nova","Santa Cruz","Senhora da Graça dos Padrões","São Barnabé"],"Alvito":["Alvito","Vila Nova da Baronia"],"Barrancos":["Barrancos"],"Beja":["Baleizão","Beringel","Cabeça Gorda","Nossa Senhora das Neves","Santa Clara de Louredo","São Matias","União das freguesias de Albernoa e Trindade","União das freguesias de Beja (Salvador e Santa Maria da Feira)","União das freguesias de Beja (Santiago Maior e São João Baptista)","União das freguesias de Salvada e Quintos","União das freguesias de Santa Vitória e Mombeja","União das freguesias de Trigaches e São Brissos"],"Castro Verde":["Entradas","Santa Bárbara de Padrões","São Marcos da Ataboeira","União das freguesias de Castro Verde e Casével"],"Cuba":["Cuba","Faro do Alentejo","Vila Alva","Vila Ruiva"],"Ferreira do Alentejo":["Alfundão","Canhestros","Ferreira do Alentejo","Figueira dos Cavaleiros","Odivelas","Peroguarda"],"Moura":["Amareleja","Póvoa de São Miguel","Safara","Santo Aleixo da Restauração","Sobral da Adiça","União das freguesias de Moura (Santo Agostinho e São João Baptista) e Santo Amador"],"Mértola":["Alcaria Ruiva","Corte do Pinto","Espírito Santo","Mértola","Santana de Cambas","São João dos Caldeireiros","União das freguesias de São Miguel do Pinheiro, São Pedro de Solis e São Sebastião dos Carros"],"Odemira":["Bicos","Boavista dos Pinheiros","Colos","Longueira/Almograve","Luzianes-Gare","Relíquias","Sabóia","Santa Clara-a-Velha","São Luís","São Martinho das Amoreiras","São Salvador e Santa Maria","São Teotónio","Vale de Santiago","Vila Nova de Milfontes"],"Ourique":["Garvão","Ourique","Santa Luzia","Santana da Serra","União das freguesias de Panoias e Conceição"],"Serpa":["Brinches","Pias","União das freguesias de Serpa (Salvador e Santa Maria)","Vale de Vargo","Vila Nova de São Bento","Vila Verde de Ficalho"],"Vidigueira":["Pedrógão","Selmes","Vidigueira","Vila de Frades"]},"Braga":{"Amares":["Barreiros","Bico","Bouro (Santa Maria)","Bouro (Santa Marta)","Caires","Carrazedo","Dornelas","Fiscal","Goães","Lago","Rendufe","União das freguesias de Amares e Figueiredo","União das freguesias de Caldelas, Sequeiros e Paranhos","União das freguesias de Ferreiros, Prozelo e Besteiros","União das freguesias de Torre e Portela","União das freguesias de Vilela, Seramil e Paredes Secas"],"Barcelos":["Abade de Neiva","Aborim","Adães","Airó","Aldreu","Alvelos","Arcozelo","Areias","Balugães","Barcelinhos","Barcelos","Barqueiros","Cambeses","Carapeços","Carvalhal","Carvalhas","Cossourado","Cristelo","Fornelos","Fragoso","Galegos (Santa Maria)","Galegos (São Martinho)","Gilmonde","Lama","Lijó","Macieira de Rates","Manhente","Martim","Moure","Oliveira","Palme","Panque","Paradela","Pereira","Perelhal","Pousa","Remelhe","Rio Covo (Santa Eugénia)","Rio Covo (Santa Eulália)","Roriz","Silva","Silveiros","Tamel (São Veríssimo)","Ucha","União das freguesias de Alheira e Igreja Nova","União das freguesias de Alvito (São Pedro e São Martinho) e Couto","União das freguesias de Areias de Vilar e Encourados","União das freguesias de Campo e Tamel (São Pedro Fins)","União das freguesias de Carreira e Fonte Coberta","União das freguesias de Chorente, Góios, Courel, Pedra Furada e Gueral","União das freguesias de Creixomil e Mariz","União das freguesias de Durrães e Tregosa","União das freguesias de Gamil e Midões","União das freguesias de Milhazes, Vilar de Figos e Faria","União das freguesias de Negreiros e Chavão","União das freguesias de Quintiães e Aguiar","União das freguesias de Sequeade e Bastuço (São João e Santo Estevão)","União das freguesias de Tamel (Santa Leocádia) e Vilar do Monte","União das freguesias de Viatodos, Grimancelos, Minhotães e Monte de Fralães","União das freguesias de Vila Cova e Feitos","Vila Boa","Vila Frescainha (São Martinho)","Vila Frescainha (São Pedro)","Vila Seca","Várzea"],"Braga":["Adaúfe","Braga (São Vicente)","Braga (São Vítor)","Espinho","Esporões","Figueiredo","Gualtar","Lamas","Mire de Tibães","Padim da Graça","Palmeira","Pedralva","Priscos","Ruilhe","Sequeira","Sobreposta","Tadim","Tebosa","União das freguesias de Arentim e Cunha","União das freguesias de Braga (Maximinos, Sé e Cividade)","União das freguesias de Braga (São José de São Lázaro e São João do Souto)","União das freguesias de Cabreiros e Passos (São Julião)","União das freguesias de Celeirós, Aveleda e Vimieiro","União das freguesias de Crespos e Pousada","União das freguesias de Escudeiros e Penso (Santo Estêvão e São Vicente)","União das freguesias de Este (São Pedro e São Mamede)","União das freguesias de Ferreiros e Gondizalves","União das freguesias de Guisande e Oliveira (São Pedro)","União das freguesias de Lomar e Arcos","União das freguesias de Merelim (São Paio), Panoias e Parada de Tibães","União das freguesias de Merelim (São Pedro) e Frossos","União das freguesias de Morreira e Trandeiras","União das freguesias de Nogueira, Fraião e Lamaçães","União das freguesias de Nogueiró e Tenões","União das freguesias de Real, Dume e Semelhe","União das freguesias de Santa Lucrécia de Algeriz e Navarra","União das freguesias de Vilaça e Fradelos"],"Cabeceiras de Basto":["Abadim","Basto","Bucos","Cabeceiras de Basto","Cavez","Faia","Outeiro","Painzela","Pedraça","Refojos de Basto","Rio Douro","União das freguesias de Alvite e Passos","União das freguesias de Arco de Baúlhe e Vila Nune","União das freguesias de Gondiães e Vilar de Cunhas"],"Celorico de Basto":["Agilde","Arnóia","Basto (São Clemente)","Borba de Montanha","Codeçoso","Fervença","Moreira do Castelo","Rego","Ribas","União das freguesias de Britelo, Gémeos e Ourilhe","União das freguesias de Canedo de Basto e Corgo","União das freguesias de Carvalho e Basto (Santa Tecla)","União das freguesias de Caçarilhe e Infesta","União das freguesias de Veade, Gagos e Molares","Vale de Bouro"],"Esposende":["Antas","Apúlia","Belinho","Curvos","Esposende","Forjães","Fão","Gandra","Gemeses","Mar","Marinhas","Palmeira de Faro","União das freguesias de Fonte Boa e Rio Tinto","Vila Chã"],"Fafe":["Armil","Arões (Santa Cristina)","Arões (São Romão)","Estorãos","Fafe","Fornelos","Golães","Medelo","Paços","Quinchães","Regadas","Revelhe","Ribeiros","Silvares (São Martinho)","São Gens","Travassós","União de freguesias de Aboim, Felgueiras, Gontim e Pedraído","União de freguesias de Agrela e Serafão","União de freguesias de Antime e Silvares (São Clemente)","União de freguesias de Ardegão, Arnozela e Seidões","União de freguesias de Cepães e Fareja","União de freguesias de Freitas e Vila Cova","União de freguesias de Monte e Queimadela","União de freguesias de Moreira do Rei e Várzea Cova","Vinhós"],"Guimarães":["Airão (Santa Maria)","Airão São João","Aldão","Azurém","Barco","Brito","Caldelas","Calvos","Candoso (São Martinho)","Conde","Corvite","Costa","Creixomil","Fermentões","Gandarela","Gondar","Gonça","Guardizela","Infantas","Longos","Lordelo","Mesão Frio","Moreira de Cónegos","Nespereira","Pencelo","Pinheiro","Polvoreira","Ponte","Prazins (Santa Eufémia)","Prazins Santo Tirso","Ronfe","Sande (São Clemente)","Sande (São Martinho)","Sande (Vila Nova)","Selho (São Cristóvão)","Selho (São Jorge)","Serzedelo","Serzedo","Silvares","São Faustino","São Torcato","Tabuadelo","União das freguesias de Abação e Gémeos","União das freguesias de Arosa e Castelões","União das freguesias de Atães e Rendufe","União das freguesias de Briteiros Santo Estêvão e Donim","União das freguesias de Briteiros São Salvador e Briteiros Santa Leocádia","União das freguesias de Candoso São Tiago e Mascotelos","União das freguesias de Leitões, Oleiros e Figueiredo","União das freguesias de Oliveira, São Paio e São Sebastião","União das freguesias de Sande São Lourenço e Balazar","União das freguesias de Selho São Lourenço e Gominhães","União das freguesias de Souto Santa Maria, Souto São Salvador e Gondomar","Urgezes","Vermil"],"Póvoa de Lanhoso":["Covelas","Ferreiros","Galegos","Garfe","Geraz do Minho","Lanhoso","Monsul","Póvoa de Lanhoso (Nossa Senhora do Amparo)","Rendufinho","Santo Emilião","Serzedelo","Sobradelo da Goma","São João de Rei","Taíde","Travassos","União das freguesias de Calvos e Frades","União das freguesias de Campos e Louredo","União das freguesias de Esperança e Brunhais","União das freguesias de Fonte Arcada e Oliveira","União das freguesias de Verim, Friande e Ajude","União das freguesias de Águas Santas e Moure","Vilela"],"Terras de Bouro":["Balança","Campo do Gerês","Carvalheira","Covide","Gondoriz","Moimenta","Ribeira","Rio Caldo","Souto","União das freguesias de Chamoim e Vilar","União das freguesias de Chorense e Monte","União das freguesias de Cibões e Brufe","Valdosende","Vilar da Veiga"],"Vieira do Minho":["Cantelães","Eira Vedra","Guilhofrei","Louredo","Mosteiro","Parada de Bouro","Pinheiro","Rossas","Salamonde","Tabuaças","União das freguesias de Anissó e Soutelo","União das freguesias de Anjos e Vilar do Chão","União das freguesias de Caniçada e Soengas","União das freguesias de Ruivães e Campos","União das freguesias de Ventosa e Cova","Vieira do Minho"],"Vila Nova de Famalicão":["Avidos","Bairro","Brufe","Cabeçudos","Castelões","Cavalões","Cruz","Delães","Esmeriz","Fradelos","Gavião","Gondifelos","Joane","Lagoa","Landim","Louro","Lousado","Mogege","Nine","Novais","Oliveira (Santa Maria)","Oliveira (São Mateus)","Outiz","Pedome","Pousada de Saramagos","Requião","Riba de Ave","Ribeirão","Ruivães","União das freguesias de Antas e Abade de Vermoim","União das freguesias de Arnoso (Santa Maria e Santa Eulália) e Sezures","União das freguesias de Carreira e Bente","União das freguesias de Lemenhe, Mouquim e Jesufrei","União das freguesias de Seide","União das freguesias de Vale (São Cosme), Telhado e Portela","União das freguesias de Vila Nova de Famalicão e Calendário","Vale (São Martinho)","Vermoim","Vilarinho das Cambas"],"Vila Verde":["Aboim da Nóbrega e Gondomar","Atiães","Cabanelas","Cervães","Coucieiro","Dossãos","Freiriz","Gême","Lage","Lanhas","Loureira","Moure","Oleiros","Parada de Gatim","Pico","Ponte","Prado (São Miguel)","Sabariz","Soutelo","Turiz","União das freguesias da Ribeira do Neiva","União das freguesias de Carreiras (São Miguel) e Carreiras (Santiago)","União das freguesias de Escariz (São Mamede) e Escariz (São Martinho)","União das freguesias de Esqueiros, Nevogilde e Travassós","União das freguesias de Marrancos e Arcozelo","União das freguesias de Oriz (Santa Marinha) e Oriz (São Miguel)","União das freguesias de Pico de Regalados, Gondiães e Mós","União das freguesias de Sande, Vilarinho, Barros e Gomide","União das freguesias de Valbom (São Pedro), Passô e Valbom (São Martinho)","União das freguesias do Vade","Valdreu","Vila de Prado","Vila Verde e Barbudo"],"Vizela":["Infias","Santa Eulália","Tagilde","União das freguesias de Caldas de Vizela (São Miguel e São João)","Vizela (Santo Adrião)","Vizela (São Paio)"]},"Bragança":{"Alfândega da Fé":["Alfândega da Fé","Cerejais","Sambade","União das freguesias de Agrobom, Saldonha e Vale Pereiro","União das freguesias de Eucisia, Gouveia e Valverde","União das freguesias de Ferradosa e Sendim da Serra","União das freguesias de Gebelim e Soeima","União das freguesias de Parada e Sendim da Ribeira","União das freguesias de Pombal e Vales","Vilar Chão","Vilarelhos","Vilares de Vilariça"],"Bragança":["Alfaião","Babe","Baçal","Carragosa","Castro de Avelãs","Coelhoso","Donai","Espinhosela","França","Gimonde","Gondesende","Gostei","Grijó de Parada","Macedo do Mato","Mós","Nogueira","Outeiro","Parâmio","Pinela","Quintanilha","Quintela de Lampaças","Rabal","Rebordãos","Salsas","Samil","Santa Comba de Rossas","Sendas","Serapicos","Sortes","São Pedro de Sarracenos","União das freguesias de Aveleda e Rio de Onor","União das freguesias de Castrelos e Carrazedo","União das freguesias de Izeda, Calvelhe e Paradinha Nova","União das freguesias de Parada e Faílde","União das freguesias de Rebordainhos e Pombares","União das freguesias de Rio Frio e Milhão","União das freguesias de São Julião de Palácios e Deilão","União das freguesias de Sé, Santa Maria e Meixedo","Zoio"],"Carrazeda de Ansiães":["Carrazeda de Ansiães","Fonte Longa","Linhares","Marzagão","Parambos","Pereiros","Pinhal do Norte","Pombal","Seixo de Ansiães","União das freguesias de Amedo e Zedes","União das freguesias de Belver e Mogo de Malta","União das freguesias de Castanheiro do Norte e Ribalonga","União das freguesias de Lavandeira, Beira Grande e Selores","Vilarinho da Castanheira"],"Freixo de Espada à Cinta":["Ligares","Poiares","União das freguesias de Freixo de Espada à Cinta e Mazouco","União das freguesias de Lagoaça e Fornos"],"Macedo de Cavaleiros":["Amendoeira","Arcas","Carrapatas","Chacim","Cortiços","Corujas","Ferreira","Grijó","Lagoa","Lamalonga","Lamas","Lombo","Macedo de Cavaleiros","Morais","Olmos","Peredo","Salselas","Sezulfe","Talhas","União das freguesias de Ala e Vilarinho do Monte","União das freguesias de Bornes e Burga","União das freguesias de Castelãos e Vilar do Monte","União das freguesias de Espadanedo, Edroso, Murçós e Soutelo Mourisco","União das freguesias de Podence e Santa Combinha","União das freguesias de Talhinhas e Bagueixe","Vale Benfeito","Vale da Porca","Vale de Prados","Vilarinho de Agrochão","Vinhas"],"Miranda do Douro":["Duas Igrejas","Genísio","Malhadas","Miranda do Douro","Palaçoulo","Picote","Póvoa","São Martinho de Angueira","União das freguesias de Constantim e Cicouro","União das freguesias de Ifanes e Paradela","União das freguesias de Sendim e Atenor","União das freguesias de Silva e Águas Vivas","Vila Chã de Braciosa"],"Mirandela":["Abambres","Abreiro","Aguieiras","Alvites","Bouça","Cabanelas","Caravelas","Carvalhais","Cedães","Cobro","Fradizela","Frechas","Lamas de Orelhão","Mascarenhas","Mirandela","Múrias","Passos","Suçães","São Pedro Velho","São Salvador","Torre de Dona Chama","União das freguesias de Avantos e Romeu","União das freguesias de Avidagos, Navalho e Pereira","União das freguesias de Barcel, Marmelos e Valverde da Gestosa","União das freguesias de Franco e Vila Boa","União das freguesias de Freixeda e Vila Verde","Vale de Asnes","Vale de Gouvinhas","Vale de Salgueiro","Vale de Telhas"],"Mogadouro":["Azinhoso","Bemposta","Brunhoso","Bruçó","Castelo Branco","Castro Vicente","Meirinhos","Paradela","Penas Roias","Peredo da Bemposta","Saldanha","São Martinho do Peso","Travanca","Tó","União das freguesias de Brunhozinho, Castanheira e Sanhoane","União das freguesias de Mogadouro, Valverde, Vale de Porco e Vilar de Rei","União das freguesias de Remondes e Soutelo","União das freguesias de Vilarinho dos Galegos e Ventozelo","Urrós","Vale da Madre","Vila de Ala"],"Torre de Moncorvo":["Açoreira","Cabeça Boa","Carviçais","Castedo","Horta da Vilariça","Larinho","Lousa","Mós","Torre de Moncorvo","União das freguesias de Adeganha e Cardanha","União das freguesias de Felgar e Souto da Velha","União das freguesias de Felgueiras e Maçores","União das freguesias de Urros e Peredo dos Castelhanos"],"Vila Flor":["Benlhevai","Freixiel","Roios","Sampaio","Samões","Santa Comba de Vilariça","Seixo de Manhoses","Trindade","União das freguesias de Assares e Lodões","União das freguesias de Candoso e Carvalho de Egas","União das freguesias de Valtorno e Mourão","União das freguesias de Vila Flor e Nabo","União das freguesias de Vilas Boas e Vilarinho das Azenhas","Vale Frechoso"],"Vimioso":["Argozelo","Carção","Matela","Pinelo","Santulhão","União das freguesias de Algoso, Campo de Víboras e Uva","União das freguesias de Caçarelhos e Angueira","União das freguesias de Vale de Frades e Avelanoso","Vilar Seco","Vimioso"],"Vinhais":["Agrochão","Candedo","Celas","Edral","Edrosa","Ervedosa","Paçó","Penhas Juntas","Rebordelo","Santalha","Tuizelo","União das freguesias de Curopos e Vale de Janeiro","União das freguesias de Moimenta e Montouto","União das freguesias de Nunes e Ousilhão","União das freguesias de Quirás e Pinheiro Novo","União das freguesias de Sobreiro de Baixo e Alvaredos","União das freguesias de Soeira, Fresulfe e Mofreita","União das freguesias de Travanca e Santa Cruz","União das freguesias de Vilar de Lomba e São Jomil","Vale das Fontes","Vila Boa de Ousilhão","Vila Verde","Vilar de Ossos","Vilar de Peregrinos","Vilar Seco de Lomba","Vinhais"]},"Castelo Branco":{"Belmonte":["Belmonte","Caria","Colmeal da Torre","Inguias","Maçainhas"],"Castelo Branco":["Alcains","Almaceda","Benquerenças","Castelo Branco","Escalos de Baixo","Escalos de Cima","Lardosa","Louriçal do Campo","Lousa","Malpica do Tejo","Mata","Monforte da Beira","Ninho do Açor","Salgueiro do Campo","Santo André das Tojeiras","Sarzedas","Sobral do Campo","São Vicente da Beira","Tinalhas","União das freguesias de Cebolais de Cima e Retaxo","União das freguesias de Freixial e Juncal do Campo","União das freguesias de Póvoa de Rio de Moinhos e Cafede"],"Covilhã":["Aldeia de São Francisco de Assis","Barco","Boidobra","Cantar-Galo","Casegas","Cortes do Meio","Coutada","Dominguizo","Erada","Ferro","Orjais","Ourondo","Paul","Peraboa","Peso","Sobral de São Miguel","São Jorge da Beira","Tortosendo","Unhais da Serra","União das freguesias de Covilhã e Canhoso","União das freguesias de Teixoso e Sarzedo","União das freguesias de Vale Formoso e Aldeia do Souto","Vales do Rio","Verdelhos","Vila do Carvalho"],"Fundão":["Alcaide","Alcaria","Alcongosta","Alpedrinha","Barroca","Bogas de Cima","Capinha","Castelejo","Castelo Novo","Enxames","Fatela","Lavacolhos","Orca","Pêro Viseu","Silvares","Soalheira","Souto da Casa","Telhado","Três Povos","União das freguesias de Fundão, Valverde, Donas, Aldeia de Joanes e Aldeia Nova do Cabo","União das freguesias de Janeiro de Cima e Bogas de Baixo","União das freguesias de Póvoa de Atalaia e Atalaia do Campo","União das freguesias de Vale de Prazeres e Mata da Rainha"],"Idanha-a-Nova":["Aldeia de Santa Margarida","Ladoeiro","Medelim","Oledo","Penha Garcia","Proença-a-Velha","Rosmaninhal","São Miguel de Acha","Toulões","União das freguesias de Idanha-a-Nova e Alcafozes","União das freguesias de Monfortinho e Salvaterra do Extremo","União das freguesias de Monsanto e Idanha-a-Velha","União das freguesias de Zebreira e Segura"],"Oleiros":["Cambas","Estreito-Vilar Barroco","Isna","Madeirã","Mosteiro","Oleiros-Amieira","Orvalho","Sarnadas de São Simão","Sobral","Álvaro"],"Penamacor":["Aranhas","Benquerença","Meimoa","Meimão","Penamacor","Salvador","União das freguesias de Aldeia do Bispo, Águas e Aldeia de João Pires","União das freguesias de Pedrógão de São Pedro e Bemposta","Vale da Senhora da Póvoa"],"Proença-a-Nova":["Montes da Senhora","São Pedro do Esteval","União das freguesias de Proença-a-Nova e Peral","União das freguesias de Sobreira Formosa e Alvito da Beira"],"Sertã":["Cabeçudo","Carvalhal","Castelo","Pedrógão Pequeno","Sertã","Troviscal","União das freguesias de Cernache do Bonjardim, Nesperal e Palhais","União das freguesias de Cumeada e Marmeleiro","União das freguesias de Ermida e Figueiredo","Várzea dos Cavaleiros"],"Vila de Rei":["Fundada","São João do Peso","Vila de Rei"],"Vila Velha de Ródão":["Fratel","Perais","Sarnadas de Ródão","Vila Velha de Ródão"]},"Coimbra":{"Arganil":["Arganil","Benfeita","Celavisa","Folques","Piódão","Pomares","Pombeiro da Beira","Sarzedo","Secarias","São Martinho da Cortiça","União das freguesias de Cepos e Teixeira","União das freguesias de Cerdeira e Moura da Serra","União das freguesias de Côja e Barril de Alva","União das freguesias de Vila Cova de Alva e Anseriz"],"Cantanhede":["Ançã","Cadima","Cantanhede","Cordinhã","Febres","Murtede","Ourentã","Pocariça","Sanguinheira","São Caetano","Tocha","União das freguesias de Covões e Camarneira","União das freguesias de Portunhos e Outil","União das freguesias de Sepins e Bolho","União das freguesias de Vilamar e Corticeiro de Cima"],"Coimbra":["Almalaguês","Brasfemes","Ceira","Cernache","Santo António dos Olivais","São João do Campo","São Silvestre","Torres do Mondego","União das freguesias de Antuzede e Vil de Matos","União das freguesias de Assafarge e Antanhol","União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)","União das freguesias de Eiras e São Paulo de Frades","União das freguesias de Santa Clara e Castelo Viegas","União das freguesias de Souselas e Botão","União das freguesias de São Martinho de Árvore e Lamarosa","União das freguesias de São Martinho do Bispo e Ribeira de Frades","União das freguesias de Taveiro, Ameal e Arzila","União das freguesias de Trouxemil e Torre de Vilela"],"Condeixa-a-Nova":["Anobra","Ega","Furadouro","União das freguesias de Condeixa-a-Velha e Condeixa-a-Nova","União das freguesias de Sebal e Belide","União das freguesias de Vila Seca e Bem da Fé","Zambujal"],"Figueira da Foz":["Alhadas","Alqueidão","Bom Sucesso","Brenha","Buarcos","Ferreira-a-Nova","Lavos","Maiorca","Marinha das Ondas","Moinhos da Gândara","Paião","Quiaios","Santana","São Julião da Figueira da Foz","São Pedro","Tavarede","Vila Verde"],"Góis":["Alvares","Góis","União das freguesias de Cadafaz e Colmeal","Vila Nova do Ceira"],"Lousã":["Gândaras","Lousã","Serpins","União das freguesias de Foz de Arouce e Casal de Ermio","Vilarinho"],"Mira":["Carapelhos","Mira","Praia de Mira","Seixo"],"Miranda do Corvo":["Lamas","Miranda do Corvo","União das freguesias de Semide e Rio Vide","Vila Nova"],"Montemor-o-Velho":["Arazede","Carapinheira","Ereira","Liceia","Meãs do Campo","Pereira","Santo Varão","Seixo de Gatões","Tentúgal","União das freguesias de Abrunheira, Verride e Vila Nova da Barca","União das freguesias de Montemor-o-Velho e Gatões"],"Oliveira do Hospital":["Aldeia das Dez","Alvoco das Várzeas","Avô","Bobadela","Ervedal","Lagares","Lourosa","Meruge","Nogueira do Cravo","Seixo da Beira","São Gião","Travanca de Lagos","União das freguesias de Lagos da Beira e Lajeosa","União das freguesias de Oliveira do Hospital e São Paio de Gramaços","União das freguesias de Penalva de Alva e São Sebastião da Feira","União das freguesias de Santa Ovaia e Vila Pouca da Beira","Vila Franca da Beira"],"Pampilhosa da Serra":["Cabril","Dornelas do Zêzere","Fajão-Vidual","Janeiro de Baixo","Pampilhosa da Serra","Pessegueiro","Portela do Fojo-Machio","Unhais-o-Velho"],"Penacova":["Carvalho","Figueira de Lorvão","Lorvão","Penacova","Sazes do Lorvão","União das freguesias de Friúmes e Paradela","União das freguesias de Oliveira do Mondego e Travanca do Mondego","União das freguesias de São Pedro de Alva e São Paio de Mondego"],"Penela":["Cumeeira","Espinhal","Podentes","União das freguesias de São Miguel, Santa Eufémia e Rabaçal"],"Soure":["Alfarelos","Figueiró do Campo","Granja do Ulmeiro","Samuel","Soure","Tapéus","União das freguesias de Degracias e Pombalinho","União das freguesias de Gesteira e Brunhós","Vila Nova de Anços","Vinha da Rainha"],"Tábua":["Candosa","Carapinha","Midões","Mouronho","Póvoa de Midões","São João da Boa Vista","Tábua","União das freguesias de Covas e Vila Nova de Oliveirinha","União das freguesias de Espariz e Sinde","União das freguesias de Pinheiro de Coja e Meda de Mouros","União das freguesias de Ázere e Covelo"],"Vila Nova de Poiares":["Arrifana","Lavegadas","Poiares (Santo André)","São Miguel de Poiares"]},"Faro":{"Albufeira":["Albufeira e Olhos de Água","Ferreiras","Guia","Paderne"],"Alcoutim":["Giões","Martim Longo","União das freguesias de Alcoutim e Pereiro","Vaqueiros"],"Aljezur":["Aljezur","Bordeira","Odeceixe","Rogil"],"Castro Marim":["Altura","Azinhal","Castro Marim","Odeleite"],"Faro":["Conceição","Estoi","Montenegro","Santa Bárbara de Nexe","União das freguesias de Faro (Sé e São Pedro)"],"Lagoa":["Ferragudo","Porches","União das freguesias de Estômbar e Parchal","União das freguesias de Lagoa e Carvoeiro"],"Lagos":["Barão de São João","Bensafrim","Luz","Odiáxere","São Gonçalo de Lagos"],"Loulé":["Almancil","Alte","Ameixial","Benafim","Boliqueime","Loulé (São Clemente)","Loulé (São Sebastião)","Quarteira","Querença","Salir","Tôr"],"Monchique":["Alferce","Marmelete","Monchique"],"Olhão":["Fuseta","Moncarapacho","Olhão","Pechão","Quelfes"],"Portimão":["Alvor","Mexilhoeira Grande","Portimão"],"Silves":["Alcantarilha","Algoz","Armação de Pêra","Pêra","Silves","São Bartolomeu de Messines","São Marcos da Serra","Tunes"],"São Brás de Alportel":["São Brás de Alportel"],"Tavira":["Cabanas de Tavira","Cachopo","Conceição","Luz de Tavira","Santa Catarina da Fonte do Bispo","Santa Luzia","Santo Estêvão","União das freguesias de Tavira (Santa Maria e Santiago)"],"Vila do Bispo":["Barão de São Miguel","Budens","Sagres","Vila do Bispo e Raposeira"],"Vila Real de Santo António":["Monte Gordo","Vila Nova de Cacela","Vila Real de Santo António"]},"Guarda":{"Aguiar da Beira":["Carapito","Cortiçada","Dornelas","Eirado","Forninhos","Pena Verde","Pinheiro","União das freguesias de Aguiar da Beira e Coruche","União das freguesias de Sequeiros e Gradiz","União das freguesias de Souto de Aguiar da Beira e Valverde"],"Almeida":["Almeida","Castelo Bom","Freineda","Freixo","Malhada Sorda","Nave de Haver","São Pedro de Rio Seco","União das freguesias de Amoreira, Parada e Cabreira","União das freguesias de Azinhal, Peva e Valverde","União das freguesias de Castelo Mendo, Ade, Monteperobolso e Mesquitela","União das freguesias de Junça e Naves","União das freguesias de Leomil, Mido, Senouras e Aldeia Nova","União das freguesias de Malpartida e Vale de Coelha","União das freguesias de Miuzela e Porto de Ovelha","Vale da Mula","Vilar Formoso"],"Celorico da Beira":["Baraçal","Carrapichana","Casas do Soeiro","Forno Telheiro","Lajeosa do Mondego","Linhares","Maçal do Chão","Mesquitela","Minhocal","Prados","Ratoeira","União das freguesias de Açores e Velosa","União das freguesias de Celorico (São Pedro e Santa Maria) e Vila Boa do Mondego","União das freguesias de Cortiçô da Serra, Vide entre Vinhas e Salgueirais","União das freguesias de Rapa e Cadafaz","Vale de Azares"],"Figueira de Castelo Rodrigo":["Castelo Rodrigo","Escalhão","Figueira de Castelo Rodrigo","Mata de Lobos","União das freguesias de Algodres, Vale de Afonsinho e Vilar de Amargo","União das freguesias de Almofala e Escarigo","União das freguesias de Cinco Vilas e Reigada","União das freguesias de Freixeda do Torrão, Quintã de Pêro Martins e Penha de Águia","União das freguesias do Colmeal e Vilar Torpim","Vermiosa"],"Fornos de Algodres":["Algodres","Casal Vasco","Figueiró da Granja","Fornos de Algodres","Infias","Maceira","Matança","Muxagata","Queiriz","União das freguesias de Cortiçô e Vila Chã","União das freguesias de Juncais, Vila Ruiva e Vila Soeiro do Chão","União das freguesias de Sobral Pichorro e Fuinhas"],"Gouveia":["Arcozelo","Cativelos","Folgosinho","Gouveia","Nespereira","Paços da Serra","Ribamondego","São Paio","União das freguesias de Aldeias e Mangualde da Serra","União das freguesias de Figueiró da Serra e Freixo da Serra","União das freguesias de Melo e Nabais","União das freguesias de Moimenta da Serra e Vinhó","União das freguesias de Rio Torto e Lagarinhos","Vila Cortês da Serra","Vila Franca da Serra","Vila Nova de Tazem"],"Guarda":["Adão","Aldeia do Bispo","Aldeia Viçosa","Alvendre","Arrifana","Avelãs da Ribeira","Benespera","Casal de Cinza","Castanheira","Cavadoude","Codesseiro","Faia","Famalicão","Fernão Joanes","Gonçalo","Gonçalo Bocas","Guarda","Jarmelo São Miguel","Jarmelo São Pedro","João Antão","Marmeleiro","Maçainhas","Meios","Panoias de Cima","Pega","Porto da Carne","Pêra do Moço","Ramela","Santana da Azinha","Sobral da Serra","União de freguesias de Avelãs de Ambom e Rocamondo","União de freguesias de Corujeira e Trinta","União de freguesias de Mizarela, Pêro Soares e Vila Soeiro","União de freguesias de Pousade e Albardo","União de freguesias de Rochoso e Monte Margarida","Vale de Estrela","Valhelhas","Vela","Videmonte","Vila Cortês do Mondego","Vila Fernando","Vila Franca do Deão","Vila Garcia"],"Manteigas":["Manteigas (Santa Maria)","Manteigas (São Pedro)","Sameiro","Vale de Amoreira"],"Mêda":["Aveloso","Barreira","Coriscada","Longroiva","Marialva","Mêda, Outeiro de Gatos e Fonte Longa","Poço do Canto","Prova e Casteição","Rabaçal","Ranhados","União das freguesias de Vale Flor, Carvalhal e Pai Penela"],"Pinhel":["Agregação das freguesias Sul de Pinhel","Alto do Palurdo","Alverca da Beira/Bouça Cova","Ervedosa","Freixedas","Lamegal","Lameiras","Manigoto","Pala","Pinhel","Pínzio","Souro Pires","Terras de Massueime","União das freguesias de Atalaia e Safurdão","Valbom/Bogalhal","Vale do Côa","Vale do Massueime","Vascoveiro"],"Sabugal":["Aldeia da Ponte","Aldeia do Bispo","Aldeia Velha","Alfaiates","Baraçal","Bendada","Bismula","Casteleiro","Cerdeira","Fóios","Malcata","Nave","Quadrazais","Quintas de São Bartolomeu","Rapoula do Côa","Rebolosa","Rendo","Sortelha","Souto","União das freguesias de Aldeia da Ribeira, Vilar Maior e Badamalos","União das freguesias de Lajeosa e Forcalhos","União das freguesias de Pousafoles do Bispo, Pena Lobo e Lomba","União das freguesias de Ruvina, Ruivós e Vale das Éguas","União das freguesias de Santo Estêvão e Moita","União das freguesias de Seixo do Côa e Vale Longo","União das freguesias do Sabugal e Aldeia de Santo António","Vale de Espinho","Vila Boa","Vila do Touro","Águas Belas"],"Seia":["Alvoco da Serra","Girabolhos","Lapa dos Dinheiros","Loriga","Paranhos","Pinhanços","Sabugueiro","Sandomil","Santa Comba","Santa Marinha","Santiago","Sazes da Beira","Seia","São Martinho","São Romão","Teixeira","Travancinha","União das freguesias de Carragozela e Várzea de Meruge","União das freguesias de Sameice e Santa Eulália","União das freguesias de Torrozelo e Folhadosa","União das freguesias de Tourais e Lajes","União das freguesias de Vide e Cabeça","Valezim","Vila Cova à Coelheira"],"Trancoso":["Aldeia Nova","Castanheira","Cogula","Cótimos","Fiães","Granja","Guilheiro","Moimentinha","Moreira de Rei","Palhais","Póvoa do Concelho","Reboleiro","Rio de Mel","Tamanhos","União das freguesias de Freches e Torres","União das freguesias de Torre do Terrenho, Sebadelhe da Serra e Terrenho","União das freguesias de Trancoso (São Pedro e Santa Maria) e Souto Maior","União das freguesias de Vale do Seixo e Vila Garcia","União das freguesias de Vila Franca das Naves e Feital","União das freguesias de Vilares e Carnicães","Valdujo"],"Vila Nova de Foz Côa":["Almendra","Castelo Melhor","Cedovim","Chãs","Custóias","Freixo de Numão","Horta","Muxagata","Numão","Santa Comba","Sebadelhe","Seixas","Touça","Vila Nova de Foz Côa"]},"Ilha da Graciosa":{"Santa Cruz da Graciosa":["Guadalupe","Luz","Santa Cruz da Graciosa","São Mateus"]},"Ilha da Madeira":{"Calheta":["Arco da Calheta","Calheta","Estreito da Calheta","Fajã da Ovelha","Jardim do Mar","Paul do Mar","Ponta do Pargo","Prazeres"],"Câmara de Lobos":["Curral das Freiras","Câmara de Lobos","Estreito de Câmara de Lobos","Jardim da Serra","Quinta Grande"],"Funchal":["Funchal (Santa Luzia)","Funchal (Santa Maria Maior)","Funchal (São Pedro)","Funchal (Sé)","Imaculado Coração de Maria","Monte","Santo António","São Gonçalo","São Martinho","São Roque"],"Machico":["Caniçal","Machico","Porto da Cruz","Santo António da Serra","Água de Pena"],"Ponta do Sol":["Canhas","Madalena do Mar","Ponta do Sol"],"Porto Moniz":["Achadas da Cruz","Porto Moniz","Ribeira da Janela","Seixal"],"Ribeira Brava":["Campanário","Ribeira Brava","Serra de Água","Tabua"],"Santa Cruz":["Camacha","Caniço","Gaula","Santa Cruz","Santo António da Serra"],"Santana":["Arco de São Jorge","Faial","Ilha","Santana","São Jorge","São Roque do Faial"],"São Vicente":["Boa Ventura","Ponta Delgada","São Vicente"]},"Ilha das Flores":{"Lajes das Flores":["Fajã Grande","Fajãzinha","Fazenda","Lajedo","Lajes das Flores","Lomba","Mosteiro"],"Santa Cruz das Flores":["Caveira","Cedros","Ponta Delgada","Santa Cruz das Flores"]},"Ilha de Porto Santo":{"Porto Santo":["Porto Santo"]},"Ilha de Santa Maria":{"Vila do Porto":["Almagreira","Santa Bárbara","Santo Espírito","São Pedro","Vila do Porto"]},"Ilha de São Jorge":{"Calheta de São Jorge":["Calheta","Norte Pequeno","Ribeira Seca","Santo Antão","Topo (Nossa Senhora do Rosário)"],"Velas":["Manadas (Santa Bárbara)","Norte Grande (Neves)","Rosais","Santo Amaro","Urzelina (São Mateus)","Velas (São Jorge)"]},"Ilha de São Miguel":{"Lagoa":["Cabouco","Lagoa (Nossa Senhora do Rosário)","Lagoa (Santa Cruz)","Ribeira Chã","Água de Pau"],"Nordeste":["Achada","Achadinha","Algarvia","Lomba da Fazenda","Nordeste","Salga","Santana","Santo António de Nordestinho","São Pedro de Nordestinho"],"Ponta Delgada":["Ajuda da Bretanha","Arrifes","Candelária","Capelas","Covoada","Fajã de Baixo","Fajã de Cima","Fenais da Luz","Feteiras","Ginetes","Mosteiros","Pilar da Bretanha","Ponta Delgada (São José)","Ponta Delgada (São Pedro)","Ponta Delgada (São Sebastião)","Relva","Remédios","Rosto do Cão (Livramento)","Rosto do Cão (São Roque)","Santa Bárbara","Santa Clara","Santo António","Sete Cidades","São Vicente Ferreira"],"Povoação":["Faial da Terra","Furnas","Nossa Senhora dos Remédios","Povoação","Ribeira Quente","Água Retorta"],"Ribeira Grande":["Calhetas","Fenais da Ajuda","Lomba da Maia","Lomba de São Pedro","Maia","Pico da Pedra","Porto Formoso","Rabo de Peixe","Ribeira Grande (Conceição)","Ribeira Grande (Matriz)","Ribeira Seca","Ribeirinha","Santa Bárbara","São Brás"],"Vila Franca do Campo":["Ponta Garça","Ribeira das Tainhas","Ribeira Seca","Vila Franca do Campo (São Miguel)","Vila Franca do Campo (São Pedro)","Água de Alto"]},"Ilha do Corvo":{"Corvo":["Corvo"]},"Ilha do Faial":{"Horta":["Capelo","Castelo Branco","Cedros","Feteira","Flamengos","Horta (Angústias)","Horta (Conceição)","Horta (Matriz)","Pedro Miguel","Praia do Almoxarife","Praia do Norte","Ribeirinha","Salão"]},"Ilha do Pico":{"Lajes do Pico":["Calheta de Nesquim","Lajes do Pico","Piedade","Ribeiras","Ribeirinha","São João"],"Madalena":["Bandeiras","Candelária","Criação Velha","Madalena","São Caetano","São Mateus"],"São Roque do Pico":["Prainha","Santa Luzia","Santo Amaro","Santo António","São Roque do Pico"]},"Ilha Terceira":{"Angra do Heroísmo":["Altares","Angra (Nossa Senhora da Conceição)","Angra (Santa Luzia)","Angra (São Pedro)","Angra (Sé)","Cinco Ribeiras","Doze Ribeiras","Feteira","Porto Judeu","Posto Santo","Raminho","Ribeirinha","Santa Bárbara","Serreta","São Bartolomeu de Regatos","São Bento","São Mateus da Calheta","Terra Chã","Vila de São Sebastião"],"Praia da Vitória":["Agualva","Biscoitos","Cabo da Praia","Fonte do Bastardo","Fontinhas","Lajes","Porto Martins","Praia da Vitória (Santa Cruz)","Quatro Ribeiras","São Brás","Vila Nova"]},"Leiria":{"Alcobaça":["Alfeizerão","Aljubarrota","Benedita","Bárrio","Cela","Maiorga","São Martinho do Porto","Turquel","União das freguesias de Alcobaça e Vestiaria","União das freguesias de Coz, Alpedriz e Montes","União das freguesias de Pataias e Martingança","Vimeiro","Évora de Alcobaça"],"Alvaiázere":["Almoster","Alvaiázere","Maçãs de Dona Maria","Pelmá","Pussos São Pedro"],"Ansião":["Alvorge","Ansião","Avelar","Chão de Couce","Pousaflores","Santiago da Guarda"],"Batalha":["Batalha","Golpilheira","Reguengo do Fetal","São Mamede"],"Bombarral":["Carvalhal","Pó","Roliça","União das freguesias do Bombarral e Vale Covo"],"Caldas da Rainha":["A dos Francos","Alvorninha","Carvalhal Benfeito","Foz do Arelho","Landal","Nadadouro","Salir de Matos","Santa Catarina","União das freguesias de Caldas da Rainha - Nossa Senhora do Pópulo, Coto e São Gregório","União das freguesias de Caldas da Rainha - Santo Onofre e Serra do Bouro","União das freguesias de Tornada e Salir do Porto","Vidais"],"Castanheira de Pêra":["União das freguesias de Castanheira de Pêra e Coentral"],"Figueiró dos Vinhos":["Aguda","Arega","Campelo","União das freguesias de Figueiró dos Vinhos e Bairradas"],"Leiria":["Amor","Arrabal","Bajouca","Bidoeira de Cima","Caranguejeira","Carreira","Coimbrão","Maceira","Milagres","Monte Redondo","Ortigosa","Regueira de Pontes","Souto da Carpalhosa","União das freguesias de Colmeias e Memória","União das freguesias de Leiria, Pousos, Barreira e Cortes","União das freguesias de Marrazes e Barosa","União das freguesias de Monte Real e Carvide","União das freguesias de Parceiros e Azoia","União das freguesias de Santa Catarina da Serra e Chainça","União das freguesias de Santa Eufémia e Boa Vista"],"Marinha Grande":["Marinha Grande","Moita","Vieira de Leiria"],"Nazaré":["Famalicão","Nazaré","Valado dos Frades"],"Pedrógão Grande":["Graça","Pedrógão Grande","Vila Facaia"],"Peniche":["Atouguia da Baleia","Ferrel","Peniche","Serra d'El-Rei"],"Pombal":["Abiul","Albergaria dos Doze","Almagreira","Carnide","Carriço","Guia","Ilha","Louriçal","Mata Mourisca","Meirinhas","Pelariga","Pombal","Redinha","Santiago de Litém","São Simão de Litém","Vermoil","Vila Cã"],"Porto de Mós":["Alqueidão da Serra","Calvaria de Cima","Juncal","Mira de Aire","Pedreiras","Porto de Mós - São João Baptista e São Pedro","Serro Ventoso","São Bento","União das freguesias de Alvados e Alcaria","União das freguesias de Arrimal e Mendiga"],"Óbidos":["A dos Negros","Amoreira","Gaeiras","Olho Marinho","Santa Maria, São Pedro e Sobral da Lagoa","Usseira","Vau"]},"Lisboa":{"Alenquer":["Carnota","Meca","Olhalvo","Ota","União das freguesias de Abrigada e Cabanas de Torres","União das freguesias de Aldeia Galega da Merceana e Aldeia Gavinha","União das freguesias de Alenquer (Santo Estêvão e Triana)","União das freguesias de Carregado e Cadafais","União das freguesias de Ribafria e Pereiro de Palhacana","Ventosa","Vila Verde dos Francos"],"Amadora":["Alfragide","Encosta do Sol","Falagueira-Venda Nova","Mina de Água","Venteira","Águas Livres"],"Arruda dos Vinhos":["Arranhó","Arruda dos Vinhos","Cardosas","S. Tiago dos Velhos"],"Azambuja":["Alcoentre","Aveiras de Baixo","Aveiras de Cima","Azambuja","União das freguesias de Manique do Intendente, Vila Nova de São Pedro e Maçussa","Vale do Paraíso","Vila Nova da Rainha"],"Cadaval":["Alguber","Peral","União das freguesias de Lamas e Cercal","União das freguesias de Painho e Figueiros","União das freguesias do Cadaval e Pêro Moniz","Vermelha","Vilar"],"Cascais":["Alcabideche","São Domingos de Rana","União das freguesias de Carcavelos e Parede","União das freguesias de Cascais e Estoril"],"Lisboa":["Ajuda","Alcântara","Alvalade","Areeiro","Arroios","Avenidas Novas","Beato","Belém","Benfica","Campo de Ourique","Campolide","Carnide","Estrela","Lumiar","Marvila","Misericórdia","Olivais","Parque das Nações","Penha de França","Santa Clara","Santa Maria Maior","Santo António","São Domingos de Benfica","São Vicente"],"Loures":["Bucelas","Fanhões","Loures","Lousa","União das freguesias de Camarate, Unhos e Apelação","União das freguesias de Moscavide e Portela","União das freguesias de Sacavém e Prior Velho","União das freguesias de Santa Iria de Azoia, São João da Talha e Bobadela","União das freguesias de Santo Antão e São Julião do Tojal","União das freguesias de Santo António dos Cavaleiros e Frielas"],"Lourinhã":["Atalaia","Lourinhã","Moita dos Ferreiros","Reguengo Grande","Ribamar","Santa Bárbara","União das freguesias de Miragaia e Marteleira","União das freguesias de São Bartolomeu dos Galegos e Moledo","Vimeiro"],"Mafra":["Carvoeira","Encarnação","Ericeira","Mafra","Milharado","Santo Isidoro","União das freguesias de Azueira e Sobral da Abelheira","União das freguesias de Enxara do Bispo, Gradil e Vila Franca do Rosário","União das freguesias de Igreja Nova e Cheleiros","União das freguesias de Malveira e São Miguel de Alcainça","União das freguesias de Venda do Pinheiro e Santo Estêvão das Galés"],"Odivelas":["Odivelas","União das freguesias de Pontinha e Famões","União das freguesias de Póvoa de Santo Adrião e Olival Basto","União das freguesias de Ramada e Caneças"],"Oeiras":["Barcarena","Porto Salvo","União das freguesias de Algés, Linda-a-Velha e Cruz Quebrada-Dafundo","União das freguesias de Carnaxide e Queijas","União das freguesias de Oeiras e São Julião da Barra, Paço de Arcos e Caxias"],"Sintra":["Algueirão-Mem Martins","Almargem do Bispo","Belas","Casal de Cambra","Colares","Montelavar","Pêro Pinheiro","Queluz","Rio de Mouro","São João das Lampas","Terrugem","União das freguesias de Agualva e Mira-Sintra","União das freguesias de Massamá e Monte Abraão","União das freguesias de Sintra (Santa Maria e São Miguel, São Martinho e São Pedro de Penaferrim)","União das freguesias do Cacém e São Marcos"],"Sobral de Monte Agraço":["Santo Quintino","Sapataria","Sobral de Monte Agraço"],"Torres Vedras":["A dos Cunhados","Dois Portos","Freiria","Maceira","Ponte do Rol","Ramalhal","Runa","Santa Maria, São Pedro e Matacães","Silveira","São Pedro da Cadeira","Turcifal","União das freguesias de Campelos e Outeiro da Cabeça","União das freguesias de Carvoeira e Carmões","União das freguesias de Maxial e Monte Redondo","Ventosa"],"Vila Franca de Xira":["União das freguesias de Alhandra, São João dos Montes e Calhandriz","União das freguesias de Alverca do Ribatejo e Sobralinho","União das freguesias de Castanheira do Ribatejo e Cachoeiras","União das freguesias de Póvoa de Santa Iria e Forte da Casa","Vialonga","Vila Franca de Xira"]},"Portalegre":{"Alter do Chão":["Alter do Chão","Chancelaria","Cunheira","Seda"],"Arronches":["Assunção","Esperança","Mosteiros"],"Avis":["Aldeia Velha","Avis","Ervedal","Figueira e Barros","União das freguesias de Alcórrego e Maranhão","União das freguesias de Benavila e Valongo"],"Campo Maior":["Nossa Senhora da Expectação","Nossa Senhora da Graça dos Degolados","São João Baptista"],"Castelo de Vide":["Nossa Senhora da Graça de Póvoa e Meadas","Santa Maria da Devesa","Santiago Maior","São João Baptista"],"Crato":["Aldeia da Mata","Gáfete","Monte da Pedra","União das freguesias de Crato e Mártires, Flor da Rosa e Vale do Peso"],"Elvas":["Assunção, Ajuda, Salvador e Santo Ildefonso","Caia, São Pedro e Alcáçova","Santa Eulália","São Brás e São Lourenço","São Vicente e Ventosa","Terrugem","União das freguesias de Barbacena e Vila Fernando","Vila Boim"],"Fronteira":["Cabeço de Vide","Fronteira","São Saturnino"],"Gavião":["Belver","Comenda","Margem","União das freguesias de Gavião e Atalaia"],"Marvão":["Beirã","Santa Maria de Marvão","Santo António das Areias","São Salvador da Aramenha"],"Monforte":["Assumar","Monforte","Santo Aleixo","Vaiamonte"],"Nisa":["Alpalhão","Montalvão","Santana","São Matias","Tolosa","União das freguesias de Arez e Amieira do Tejo","União das freguesias de Espírito Santo, Nossa Senhora da Graça e São Simão"],"Ponte de Sor":["Foros de Arrão","Galveias","Longomel","Montargil","Ponte de Sor","Tramaga","Vale de Açor"],"Portalegre":["Alagoa","Alegrete","Fortios","União das freguesias da Sé e São Lourenço","União das freguesias de Reguengo e São Julião","União das freguesias de Ribeira de Nisa e Carreiras","Urra"],"Sousel":["Cano","Casa Branca","Santo Amaro","Sousel"]},"Porto":{"Amarante":["Ansiães","Candemil","Fregim","Fridão","Gondar","Gouveia (São Simão)","Jazente","Lomba","Louredo","Lufrei","Mancelos","Padronelo","Rebordelo","Salvador do Monte","Telões","Travanca","União das freguesias de Aboadela, Sanche e Várzea","União das freguesias de Amarante (São Gonçalo), Madalena, Cepelos e Gatão","União das freguesias de Bustelo, Carneiro e Carvalho de Rei","União das freguesias de Figueiró (Santiago e Santa Cristina)","União das freguesias de Freixo de Cima e de Baixo","União das freguesias de Olo e Canadelo","União das freguesias de Vila Garcia, Aboim e Chapa","Vila Caiz","Vila Chã do Marão","Vila Meã"],"Baião":["Frende","Gestaçô","Gove","Grilo","Loivos do Monte","Santa Marinha do Zêzere","União das freguesias de Ancede e Ribadouro","União das freguesias de Baião (Santa Leocádia) e Mesquinhata","União das freguesias de Campelo e Ovil","União das freguesias de Loivos da Ribeira e Tresouras","União das freguesias de Santa Cruz do Douro e São Tomé de Covelas","União das freguesias de Teixeira e Teixeiró","Valadares","Viariz"],"Felgueiras":["Airães","Aião","Friande","Idães","Jugueiros","Penacova","Pinheiro","Pombeiro de Ribavizela","Refontoura","Regilde","Revinhade","Sendim","União das freguesias de Macieira da Lixa e Caramos","União das freguesias de Margaride (Santa Eulália), Várzea, Lagares, Varziela e Moure","União das freguesias de Pedreira, Rande e Sernande","União das freguesias de Torrados e Sousa","União das freguesias de Unhão e Lordelo","União das freguesias de Vila Cova da Lixa e Borba de Godim","União das freguesias de Vila Fria e Vizela (São Jorge)","União das freguesias de Vila Verde e Santão"],"Gondomar":["Baguim do Monte (Rio Tinto)","Lomba","Rio Tinto","União das freguesias de Foz do Sousa e Covelo","União das freguesias de Fânzeres e São Pedro da Cova","União das freguesias de Gondomar (São Cosme), Valbom e Jovim","União das freguesias de Melres e Medas"],"Lousada":["Aveleda","Barrosas (Santo Estêvão)","Caíde de Rei","Lodares","Lustosa","Macieira","Meinedo","Nevogilde","Sousela","Torno","União das freguesias de Cernadelo e Lousada (São Miguel e Santa Margarida)","União das freguesias de Cristelos, Boim e Ordem","União das freguesias de Figueiras e Covas","União das freguesias de Nespereira e Casais","União das freguesias de Silvares, Pias, Nogueira e Alvarenga","Vilar do Torno e Alentém"],"Maia":["Castêlo da Maia","Cidade da Maia","Folgosa","Milheirós","Moreira","Nogueira e Silva Escura","Pedrouços","São Pedro Fins","Vila Nova da Telha","Águas Santas"],"Marco de Canaveses":["Alpendorada, Várzea e Torrão","Avessadas e Rosém","Banho e Carvalhosa","Bem Viver","Constance","Marco","Paredes de Viadores e Manhuncelos","Paços de Gaiolo","Penha Longa","Sande e São Lourenço do Douro","Santo Isidoro e Livração","Soalhães","Sobretâmega","Tabuado","Vila Boa de Quires e Maureles","Vila Boa do Bispo","Várzea, Aliviada e Folhada"],"Matosinhos":["Custóias","Guifões","Lavra","Leça da Palmeira","Leça do Balio","Matosinhos","Perafita","Santa Cruz do Bispo","Senhora da Hora","São Mamede de Infesta"],"Paredes":["Aguiar de Sousa","Astromil","Baltar","Beire","Cete","Cristelo","Duas Igrejas","Gandra","Lordelo","Louredo","Parada de Todeia","Paredes","Rebordosa","Recarei","Sobreira","Sobrosa","Vandoma","Vilela"],"Paços de Ferreira":["Arreigada","Carvalhosa","Codessos","Eiriz","Ferreira","Figueiró","Frazão","Freamunde","Lamoso","Meixomil","Modelos","Paços de Ferreira","Penamaior","Raimonda","Sanfins de Ferreira","Seroa"],"Penafiel":["Abragão","Boelhe","Bustelo","Cabeça Santa","Canelas","Capela","Castelões","Croca","Duas Igrejas","Eja","Fonte Arcada","Galegos","Guilhufe e Urrô","Irivo","Lagares e Figueira","Luzim e Vila Cova","Oldrões","Paço de Sousa","Penafiel","Perozelo","Rans","Recezinhos (São Mamede)","Recezinhos (São Martinho)","Rio de Moinhos","Rio Mau","Sebolido","Termas de São Vicente","Valpedre"],"Porto":["Bonfim","Campanhã","Paranhos","Ramalde","União das freguesias de Aldoar, Foz do Douro e Nevogilde","União das freguesias de Cedofeita, Santo Ildefonso, Sé, Miragaia, São Nicolau e Vitória","União das freguesias de Lordelo do Ouro e Massarelos"],"Póvoa de Varzim":["Aguçadoura","Amorim","Argivai","Aver-o-Mar","Balazar","Beiriz","Estela","Laundos","Navais","Póvoa de Varzim","Rates","Terroso"],"Santo Tirso":["Agrela","Aves","Monte Córdova","Negrelos (São Tomé)","Rebordões","Reguenga","Roriz","União das freguesias de Areias, Sequeiró, Lama e Palmeira","União das freguesias de Carreira e Refojos de Riba de Ave","União das freguesias de Lamelas e Guimarei","União das freguesias de Santo Tirso, Couto (Santa Cristina e São Miguel) e Burgães","Vila Nova do Campo","Vilarinho","Água Longa"],"Trofa":["Alvarelhos","Covelas","Guidões","Muro","União das freguesias de Bougado (São Martinho e Santiago)","União das freguesias de Coronado (São Romão e São Mamede)"],"Valongo":["Alfena","Campo","Ermesinde","Sobrado","Valongo"],"Vila do Conde":["Arcos","Aveleda","Azurara","Canidelo","Fajozes","Fornelo","Gião","Guilhabreu","Junqueira","Labruge","Macieira da Maia","Malta","Mindelo","Modivas","Retorta","Rio Mau","Tougues","União das freguesias de Bagunte, Ferreiró, Outeiro Maior e Parada","União das freguesias de Touguinha e Touguinhó","União das freguesias de Vilar e Mosteiró","Vairão","Vila Chã","Vila do Conde","Vilar de Pinheiro","Árvore"],"Vila Nova de Gaia":["Arcozelo","Avintes","Canelas","Canidelo","Crestuma","Grijó","Gulpilhares","Lever","Madalena","Mafamude","Olival","Oliveira do Douro","Pedroso","Perosinho","Sandim","Santa Marinha","Seixezelo","Sermonde","Serzedo","São Félix da Marinha","São Pedro da Afurada","Valadares","Vilar de Andorinho","Vilar do Paraíso"]},"Santarém":{"Abrantes":["Bemposta","Carvalhal","Fontes","Martinchel","Mouriscas","Pego","Rio de Moinhos","Tramagal","União das freguesias de Abrantes (São Vicente e São João) e Alferrarede","União das freguesias de Aldeia do Mato e Souto","União das freguesias de Alvega e Concavada","União das freguesias de São Facundo e Vale das Mós","União das freguesias de São Miguel do Rio Torto e Rossio ao Sul do Tejo"],"Alcanena":["Bugalhos","Minde","Moitas Venda","Monsanto","Serra de Santo António","União das freguesias de Alcanena e Vila Moreira","União das freguesias de Malhou, Louriceira e Espinheiro"],"Almeirim":["Almeirim","Benfica do Ribatejo","Fazendas de Almeirim","Raposa"],"Alpiarça":["Alpiarça"],"Benavente":["Barrosa","Benavente","Samora Correia","Santo Estêvão"],"Cartaxo":["Pontével","União das freguesias de Ereira e Lapa","União das freguesias do Cartaxo e Vale da Pinta","Valada","Vale da Pedra","Vila Chã de Ourique"],"Chamusca":["Carregueira","Ulme","União das freguesias da Chamusca e Pinheiro Grande","União das freguesias de Parreira e Chouto","Vale de Cavalos"],"Constância":["Constância","Montalvo","Santa Margarida da Coutada"],"Coruche":["Biscainho","Branca","Coruche","Couço","Erra","Fajarda","Santana do Mato","São José da Lamarosa"],"Entroncamento":["Nossa Senhora de Fátima","São João Baptista"],"Ferreira do Zêzere":["Beco","Chãos","Ferreira do Zêzere","Igreja Nova do Sobral","Nossa Senhora do Pranto","União das freguesias de Areias e Pias","Águas Belas"],"Golegã":["Azinhaga","Golegã","Pombalinho"],"Mação":["Amêndoa","Cardigos","Carvoeiro","Envendos","Ortiga","União das freguesias de Mação, Penhascoso e Aboboreira"],"Ourém":["Alburitel","Atouguia","Casal dos Bernardos","Caxarias","Cercal","Espite","Fátima","Gondemaria","Matas","Nossa Senhora da Piedade","Nossa Senhora das Misericórdias","Olival","Rio de Couros","Seiça","União das freguesias de Freixianda, Ribeira do Fárrio e Formigais","Urqueira"],"Rio Maior":["Alcobertas","Arrouquelas","Asseiceira","Fráguas","Rio Maior","São Sebastião","União das freguesias de Azambujeira e Malaqueijo","União das freguesias de Marmeleira e Assentiz","União das freguesias de Outeiro da Cortiçada e Arruda dos Pisões","União das freguesias de São João da Ribeira e Ribeira de São João"],"Salvaterra de Magos":["Foros de Salvaterra","Glória do Ribatejo","Granho","Marinhais","Muge","Salvaterra de Magos"],"Santarém":["Abitureiras","Abrã","Alcanede","Alcanhões","Almoster","Amiais de Baixo","Arneiro das Milhariças","Gançaria","Moçarria","Pernes","Póvoa da Isenta","São Vicente do Paul","União das freguesias de Achete, Azoia de Baixo e Póvoa de Santarém","União das freguesias de Azoia de Cima e Tremês","União das freguesias de Casével e Vaqueiros","União das freguesias de Romeira e Várzea","União de freguesias da cidade de Santarém","Vale de Figueira","Vale de Santarém"],"Sardoal":["Alcaravela","Santiago de Montalegre","Sardoal","Valhascos"],"Tomar":["Asseiceira","Carregueiros","Junceira","Olalhas","Paialvo","Sabacheira","Serra","São Pedro de Tomar","União das freguesias de Além da Ribeira e Pedreira","União das freguesias de Casais e Alviobeira","União das freguesias de Madalena e Beselga","União das freguesias de Tomar (São João Baptista) e Santa Maria dos Olivais"],"Torres Novas":["Assentiz","Chancelaria","Meia Via","Pedrógão","Riachos","União das freguesias de Brogueira, Parceiros de Igreja e Alcorochel","União das freguesias de Olaia e Paço","União das freguesias de Torres Novas (Santa Maria, Salvador e Santiago)","União das freguesias de Torres Novas (São Pedro), Lapas e Ribeira Branca","Zibreira"],"Vila Nova da Barquinha":["Atalaia","Praia do Ribatejo","Tancos","Vila Nova da Barquinha"]},"Setúbal":{"Alcochete":["Alcochete","Samouco","São Francisco"],"Alcácer do Sal":["Alcácer do Sal (Santa Maria do Castelo)","Alcácer do Sal (Santiago)","Comporta","Santa Susana","São Martinho","Torrão"],"Almada":["Costa da Caparica","União das freguesias de Almada, Cova da Piedade, Pragal e Cacilhas","União das freguesias de Caparica e Trafaria","União das freguesias de Charneca de Caparica e Sobreda","União das freguesias de Laranjeiro e Feijó"],"Barreiro":["Santo António da Charneca","União das freguesias de Alto do Seixalinho, Santo André e Verderena","União das freguesias de Barreiro e Lavradio","União das freguesias de Palhais e Coina"],"Grândola":["Azinheira dos Barros e São Mamede do Sádão","Carvalhal","Melides","União das freguesias de Grândola e Santa Margarida da Serra"],"Moita":["Alhos Vedros","Moita","União das freguesias de Baixa da Banheira e Vale da Amoreira","União das freguesias de Gaio-Rosário e Sarilhos Pequenos"],"Montijo":["Canha","Sarilhos Grandes","União das freguesias de Atalaia e Alto Estanqueiro-Jardia","União das freguesias de Montijo e Afonsoeiro","União das freguesias de Pegões"],"Palmela":["Palmela","Pinhal Novo","Quinta do Anjo","União das freguesias de Poceirão e Marateca"],"Santiago do Cacém":["Abela","Alvalade","Cercal","Ermidas-Sado","Santo André","São Domingos","São Francisco da Serra","União das freguesias de Santiago do Cacém, Santa Cruz e São Bartolomeu da Serra","Vale de Água"],"Seixal":["Amora","Arrentela","Corroios","Fernão Ferro","Paio Pires","Seixal"],"Sesimbra":["Quinta do Conde","Sesimbra (Castelo)","Sesimbra (Santiago)"],"Setúbal":["Gâmbia-Pontes-Alto da Guerra","Sado","Setúbal (São Sebastião)","União das freguesias de Azeitão (São Lourenço e São Simão)","União das freguesias de Setúbal (São Julião, Nossa Senhora da Anunciada e Santa Maria da Graça)"],"Sines":["Porto Covo","Sines"]},"Viana do Castelo":{"Arcos de Valdevez":["Aboim das Choças","Aguiã","Cabana Maior","Cabreiro","Cendufe","Couto","Gavieira","Gondoriz","Jolda (São Paio)","Miranda","Monte Redondo","Oliveira","Padroso","Paçô","Prozelo","Rio de Moinhos","Rio Frio","Sabadim","Senharei","Sistelo","Soajo","União das freguesias de Alvora e Loureda","União das freguesias de Arcos de Valdevez (Salvador), Vila Fonche e Parada","União das freguesias de Arcos de Valdevez (São Paio) e Giela","União das freguesias de Eiras e Mei","União das freguesias de Grade e Carralcova","União das freguesias de Guilhadeses e Santar","União das freguesias de Jolda (Madalena) e Rio Cabrão","União das freguesias de Padreiro (Salvador e Santa Cristina)","União das freguesias de Portela e Extremo","União das freguesias de Souto e Tabaçô","União das freguesias de São Jorge e Ermelo","União das freguesias de Távora (Santa Maria e São Vicente)","União das freguesias de Vilela, São Cosme e São Damião e Sá","Vale","Ázere"],"Caminha":["Argela","Dem","Lanhelas","Riba de Âncora","Seixas","União das freguesias de Arga (Baixo, Cima e São João)","União das freguesias de Caminha (Matriz) e Vilarelho","União das freguesias de Gondar e Orbacém","União das freguesias de Moledo e Cristelo","União das freguesias de Venade e Azevedo","Vila Praia de Âncora","Vilar de Mouros","Vile","Âncora"],"Melgaço":["Alvaredo","Cousso","Cristoval","Fiães","Gave","Paderne","Penso","São Paio","União das freguesias de Castro Laboreiro e Lamas de Mouro","União das freguesias de Chaviães e Paços","União das freguesias de Parada do Monte e Cubalhão","União das freguesias de Prado e Remoães","União das freguesias de Vila e Roussas"],"Monção":["Abedim","Barbeita","Barroças e Taias","Bela","Cambeses","Lara","Longos Vales","Merufe","Moreira","Pias","Pinheiros","Podame","Portela","Riba de Mouro","Segude","Tangil","Trute","União das freguesias de Anhões e Luzio","União das freguesias de Ceivães e Badim","União das freguesias de Mazedo e Cortes","União das freguesias de Messegães, Valadares e Sá","União das freguesias de Monção e Troviscoso","União das freguesias de Sago, Lordelo e Parada","União das freguesias de Troporiz e Lapela"],"Paredes de Coura":["Agualonga","Castanheira","Coura","Cunha","Infesta","Mozelos","Padornelo","Parada","Romarigães","Rubiães","União das freguesias de Bico e Cristelo","União das freguesias de Cossourado e Linhares","União das freguesias de Formariz e Ferreira","União das freguesias de Insalde e Porreiras","União das freguesias de Paredes de Coura e Resende","Vascões"],"Ponte da Barca":["Azias","Boivães","Bravães","Britelo","Cuide de Vila Verde","Lavradas","Lindoso","Nogueira","Oleiros","Sampriz","União das freguesias de Crasto, Ruivos e Grovelas","União das freguesias de Entre Ambos-os-Rios, Ermida e Germil","União das freguesias de Ponte da Barca, Vila Nova de Muía e Paço Vedro de Magalhães","União das freguesias de Touvedo (São Lourenço e Salvador)","União das freguesias de Vila Chã (São João Baptista e Santiago)","Vade (São Pedro)","Vade (São Tomé)"],"Ponte de Lima":["Anais","Arca e Ponte de Lima","Arcozelo","Ardegão, Freixo e Mato","Beiral do Lima","Bertiandos","Boalhosa","Brandara","Bárrio e Cepões","Cabaços e Fojo Lobal","Cabração e Moreira do Lima","Calheiros","Calvelo","Correlhã","Estorãos","Facha","Feitosa","Fontão","Fornelos e Queijada","Friastelas","Gaifar","Gandra","Gemieira","Gondufe","Labruja","Labrujó, Rendufe e Vilar do Monte","Navió e Vitorino dos Piães","Poiares","Rebordões (Santa Maria)","Rebordões (Souto)","Refóios do Lima","Ribeira","Sandiães","Santa Comba","Santa Cruz do Lima","Seara","Serdedelo","Sá","São Pedro d'Arcos","Vilar das Almas","Vitorino das Donas"],"Valença":["Boivão","Cerdal","Fontoura","Friestas","Ganfei","São Pedro da Torre","União das freguesias de Gandra e Taião","União das freguesias de Gondomil e Sanfins","União das freguesias de São Julião e Silva","União das freguesias de Valença, Cristelo Covo e Arão","Verdoejo"],"Viana do Castelo":["Afife","Alvarães","Amonde","Anha","Areosa","Barroselas","Cardielos","Carreço","Carvoeiro","Castelo do Neiva","Chafé","Darque","Freixieiro de Soutelo","Lanheses","Mazarefes","Montaria","Mujães","Outeiro","Perre","Santa Marta de Portuzelo","Serreleis","São Romão de Neiva","União das freguesias de Geraz do Lima (Santa Maria, Santa Leocádia e Moreira) e Deão","União das freguesias de Nogueira, Meixedo e Vilar de Murteda","União das freguesias de Subportela, Deocriste e Portela Susã","União das freguesias de Torre e Vila Mou","União das freguesias de Viana do Castelo (Santa Maria Maior e Monserrate) e Meadela","Vila de Punhe","Vila Franca","Vila Fria"],"Vila Nova de Cerveira":["Cornes","Covas","Gondarém","Loivo","Mentrestido","Sapardos","Sopo","União das freguesias de Campos e Vila Meã","União das freguesias de Candemil e Gondar","União das freguesias de Reboreda e Nogueira","União das freguesias de Vila Nova de Cerveira e Lovelhe"]},"Vila Real":{"Alijó":["Alijó","Favaios","Pegarinhos","Pinhão","Sanfins do Douro","Santa Eugénia","São Mamede de Ribatua","União das freguesias de Carlão e Amieiro","União das freguesias de Castedo e Cotas","União das freguesias de Pópulo e Ribalonga","União das freguesias de Vale de Mendiz, Casal de Loivos e Vilarinho de Cotas","Vila Chã","Vila Verde","Vilar de Maçada"],"Boticas":["Alturas do Barroso e Cerdedo","Ardãos e Bobadela","Beça","Boticas e Granja","Codessoso, Curros e Fiães do Tâmega","Covas do Barroso","Dornelas","Pinho","Sapiãos","Vilar e Viveiro"],"Chaves":["Anelhe","Bustelo","Cimo de Vila da Castanheira","Curalha","Ervededo","Faiões","Lama de Arcos","Mairos","Moreiras","Nogueira da Montanha","Oura","Outeiro Seco","Paradela","Planalto de Monforte (União das freguesias de Oucidres e Bobadela)","Redondelo","Sanfins","Santa Leocádia","Santa Maria Maior","Santo António de Monforte","Santo Estêvão","São Pedro de Agostém","São Vicente","Tronco","União das freguesias da Madalena e Samaiões","União das freguesias das Eiras, São Julião de Montenegro e Cela","União das freguesias de Calvão e Soutelinho da Raia","União das freguesias de Loivos e Póvoa de Agrações","União das freguesias de Santa Cruz/Trindade e Sanjurge","União das freguesias de Soutelo e Seara Velha","União das freguesias de Travancas e Roriz","Vale de Anta","Vidago (União das freguesias de Vidago, Arcossó, Selhariz e Vilarinho das Paranheiras)","Vila Verde da Raia","Vilar de Nantes","Vilarelho da Raia","Vilas Boas","Vilela do Tâmega","Vilela Seca","Águas Frias"],"Mesão Frio":["Barqueiros","Cidadelhe","Mesão Frio (Santo André)","Oliveira","Vila Marim"],"Mondim de Basto":["Atei","Bilhó","São Cristóvão de Mondim de Basto","União das freguesias de Campanhó e Paradança","União das freguesias de Ermelo e Pardelhas","Vilar de Ferreiros"],"Montalegre":["Cabril","Cervos","Chã","Covelo do Gerês","Ferral","Gralhas","Morgade","Negrões","Outeiro","Pitões das Junias","Reigoso","Salto","Santo André","Sarraquinhos","Solveira","Tourém","União das freguesias de Cambeses do Rio, Donões e Mourilhe","União das freguesias de Meixedo e Padornelos","União das freguesias de Montalegre e Padroso","União das freguesias de Paradela, Contim e Fiães","União das freguesias de Sezelhe e Covelães","União das freguesias de Venda Nova e Pondras","União das freguesias de Viade de Baixo e Fervidelas","União das freguesias de Vilar de Perdizes e Meixide","Vila da Ponte"],"Murça":["Candedo","Fiolhoso","Jou","Murça","União das freguesias de Carva e Vilares","União das freguesias de Noura e Palheiros","Valongo de Milhais"],"Peso da Régua":["Canelas","Fontelas","Loureiro","Poiares","Sedielos","União das freguesias de Galafura e Covelinhas","União das freguesias de Moura Morta e Vinhós","União das freguesias de Peso da Régua e Godim","Vilarinho dos Freires"],"Ribeira de Pena":["Alvadia","Canedo","Santa Marinha","União das freguesias de Cerva e Limões","União das freguesias de Ribeira de Pena (Salvador) e Santo Aleixo de Além-Tâmega"],"Sabrosa":["Celeirós","Covas do Douro","Gouvinhas","Parada de Pinhão","Paços","Sabrosa","Souto Maior","São Lourenço de Ribapinhão","Torre do Pinhão","União das freguesias de Provesende, Gouvães do Douro e São Cristóvão do Douro","União das freguesias de São Martinho de Antas e Paradela de Guiães","Vilarinho de São Romão"],"Santa Marta de Penaguião":["Alvações do Corgo","Cumieira","Fontes","Lobrigos (São João Baptista)","Lobrigos (São Miguel)","Medrões","Sanhoane","Sever","União das freguesias de Louredo e Fornelos"],"Valpaços":["Algeriz","Bouçoães","Canaveses","Carrazedo de Montenegro e Curros","Ervões","Fornos do Pinhal","Friões","Lebução, Fiães e Nozelos","Padrela e Tazem","Possacos","Rio Torto","Santa Maria de Emeres","Santa Valha","Santiago da Ribeira de Alhariz","Serapicos","Sonim e Barreiros","São João da Corveira","São Pedro de Veiga de Lila","Tinhela e Alvarelhos","Vales","Valpaços e Sanfins","Vassal","Veiga de Lila","Vilarandelo","Água Revés e Crasto"],"Vila Pouca de Aguiar":["Alfarela de Jales","Alvão","Bornes de Aguiar","Bragado","Capeludos","Sabroso de Aguiar","Soutelo de Aguiar","Telões","Tresminas","União das freguesias de Pensalvos e Parada de Monteiros","Valoura","Vila Pouca de Aguiar","Vreia de Bornes","Vreia de Jales"],"Vila Real":["Abaças","Andrães","Arroios","Campeã","Folhadela","Guiães","Lordelo","Mateus","Mondrões","Parada de Cunhos","Torgueda","União das freguesias de Adoufe e Vilarinho de Samardã","União das freguesias de Borbela e Lamas de Olo","União das freguesias de Constantim e Vale de Nogueiras","União das freguesias de Mouçós e Lamares","União das freguesias de Nogueira e Ermida","União das freguesias de Pena, Quintã e Vila Cova","União das freguesias de São Tomé do Castelo e Justes","Vila Marim","Vila Real"]},"Viseu":{"Armamar":["Aldeias","Armamar","Cimbres","Folgosa","Fontelo","Queimada","Queimadela","Santa Cruz","São Cosmado","São Martinho das Chãs","União das freguesias de Aricera e Goujoim","União das freguesias de São Romão e Santiago","União das freguesias de Vila Seca e Santo Adrião","Vacalar"],"Carregal do Sal":["Beijós","Cabanas de Viriato","Carregal do Sal","Oliveira do Conde","Parada"],"Castro Daire":["Almofala","Cabril","Castro Daire","Cujó","Gosende","Moledo","Monteiras","Mões","Pepim","Pinheiro","São Joaninho","União das freguesias de Mamouros, Alva e Ribolhos","União das freguesias de Mezio e Moura Morta","União das freguesias de Parada de Ester e Ester","União das freguesias de Picão e Ermida","União das freguesias de Reriz e Gafanhão"],"Cinfães":["Cinfães","Espadanedo","Ferreiros de Tendais","Fornelos","Moimenta","Nespereira","Oliveira do Douro","Santiago de Piães","Souselo","São Cristóvão de Nogueira","Tarouquela","Tendais","Travanca","União das freguesias de Alhões, Bustelo, Gralheira e Ramires"],"Lamego":["Avões","Britiande","Cambres","Ferreirim","Ferreiros de Avões","Figueira","Lalim","Lamego (Almacave e Sé)","Lazarim","Penajóia","Penude","Samodães","Sande","União das freguesias de Bigorne, Magueija e Pretarouca","União das freguesias de Cepões, Meijinhos e Melcões","União das freguesias de Parada do Bispo e Valdigem","Vila Nova de Souto d'El-Rei","Várzea de Abrunhais"],"Mangualde":["Abrunhosa-a-Velha","Alcafache","Cunha Baixa","Espinho","Fornos de Maceira Dão","Freixiosa","Quintela de Azurara","São João da Fresta","União das freguesias de Mangualde, Mesquitela e Cunha Alta","União das freguesias de Moimenta de Maceira Dão e Lobelhe do Mato","União das freguesias de Santiago de Cassurrães e Póvoa de Cervães","União das freguesias de Tavares (Chãs, Várzea e Travanca)"],"Moimenta da Beira":["Alvite","Arcozelos","Baldos","Cabaços","Caria","Castelo","Leomil","Moimenta da Beira","Passô","Sarzedo","Sever","União das freguesias de Paradinha e Nagosa","União das freguesias de Peva e Segões","União das freguesias de Pêra Velha, Aldeia de Nacomba e Ariz","Vila da Rua","Vilar"],"Mortágua":["Cercosa","Espinho","Marmeleira","Pala","Sobral","Trezói","União das freguesias de Mortágua, Vale de Remígio, Cortegaça e Almaça"],"Nelas":["Canas de Senhorim","Lapa do Lobo","Nelas","Senhorim","União das freguesias de Carvalhal Redondo e Aguieira","União das freguesias de Santar e Moreira","Vilar Seco"],"Oliveira de Frades":["Arcozelo das Maias","Pinheiro","Ribeiradio","São João da Serra","São Vicente de Lafões","União das freguesias de Arca e Varzielas","União das freguesias de Destriz e Reigoso","União das freguesias de Oliveira de Frades, Souto de Lafões e Sejães"],"Penalva do Castelo":["Castelo de Penalva","Esmolfe","Germil","Lusinde","Pindo","Real","Sezures","Trancozelos","União das freguesias de Antas e Matela","União das freguesias de Vila Cova do Covelo/Mareco","Ínsua"],"Penedono":["Beselga","Castainço","Penela da Beira","Póvoa de Penela","Souto","União das freguesias de Antas e Ourozinho","União das freguesias de Penedono e Granja"],"Resende":["Barrô","Cárquere","Paus","Resende","São Cipriano","São João de Fontoura","São Martinho de Mouros","União das freguesias de Anreade e São Romão de Aregos","União das freguesias de Felgueiras e Feirão","União das freguesias de Freigil e Miomães","União das freguesias de Ovadas e Panchorra"],"Santa Comba Dão":["Pinheiro de Ázere","São Joaninho","São João de Areias","União das freguesias de Ovoa e Vimieiro","União das freguesias de Santa Comba Dão e Couto do Mosteiro","União das freguesias de Treixedo e Nagozela"],"Sernancelhe":["Arnas","Carregal","Chosendo","Cunha","Faia","Granjal","Lamosa","Quintela","União das freguesias de Ferreirim e Macieira","União das freguesias de Fonte Arcada e Escurquela","União das freguesias de Penso e Freixinho","União das freguesias de Sernancelhe e Sarzeda","Vila da Ponte"],"Sátão":["Avelal","Ferreira de Aves","Mioma","Rio de Moinhos","Silvã de Cima","Sátão","São Miguel de Vila Boa","União das freguesias de Romãs, Decermilo e Vila Longa","União das freguesias de Águas Boas e Forles"],"São João da Pesqueira":["Castanheiro do Sul","Ervedosa do Douro","Nagozelo do Douro","Paredes da Beira","Riodades","Soutelo do Douro","União das freguesias de São João da Pesqueira e Várzea de Trevões","União das freguesias de Trevões e Espinhosa","União das freguesias de Vilarouco e Pereiros","Vale de Figueira","Valongo dos Azeites"],"São Pedro do Sul":["Bordonhos","Figueiredo de Alva","Manhouce","Pindelo dos Milagres","Pinho","Serrazes","Sul","São Félix","União das freguesias de Carvalhais e Candal","União das freguesias de Santa Cruz da Trapa e São Cristóvão de Lafões","União das freguesias de São Martinho das Moitas e Covas do Rio","União das freguesias de São Pedro do Sul, Várzea e Baiões","Valadares","Vila Maior"],"Tabuaço":["Adorigo","Arcos","Chavães","Desejosa","Granja do Tedo","Longa","Sendim","Tabuaço","União das freguesias de Barcos e Santa Leocádia","União das freguesias de Paradela e Granjinha","União das freguesias de Pinheiros e Vale de Figueira","União das freguesias de Távora e Pereiro","Valença do Douro"],"Tarouca":["Dálvares","Gouviães","Mondim da Beira","Salzedas","São João de Tarouca","Tarouca","Ucanha","União das freguesias de Granja Nova e Vila Chã da Beira","Várzea da Serra"],"Tondela":["Barreiro de Besteiros","Campo de Besteiros","Canas de Santa Maria","Castelões","Dardavaz","Ferreirós do Dão","Guardão","Lajeosa do Dão","Lobão da Beira","Molelos","Mosteiro de Fráguas","Parada de Gonta","Sabugosa","Santiago de Besteiros","São Miguel do Outeiro","Tonda","Tourigo","União das freguesias de Caparrosa e Silvares","União das freguesias de Mouraz e Vila Nova da Rainha","União das freguesias de São João do Monte e Mosteirinho","União das freguesias de Tondela e Nandufe","Vilar de Besteiros"],"Vila Nova de Paiva":["Pendilhe","Queiriga","Touro","União das freguesias de Vila Nova de Paiva, Alhais e Fráguas","Vila Cova à Coelheira"],"Viseu":["Abraveses","Bodiosa","Calde","Campo","Cavernães","Cota","Coutos de Viseu","Fragosela","Freguesia de Fail e Vila Chã de Sá","Lordosa","Mundão","Orgens","Povolide","Ranhados","Repeses e São Salvador","Ribafeita","Rio de Loba","Santos Evos","Silgueiros","São Cipriano e Vil de Souto","São João de Lourosa","São Pedro de France","União das freguesias de Barreiros e Cepões","União das freguesias de Boa Aldeia, Farminhão e Torredeita","Viseu"],"Vouzela":["Alcofra","Campia","Fornelo do Monte","Queirã","São Miguel do Mato","União das freguesias de Cambra e Carvalhal de Vermilhas","União das freguesias de Fataunços e Figueiredo das Donas","União das freguesias de Vouzela e Paços de Vilharigues","Ventosa"]},"Évora":{"Alandroal":["Capelins (Santo António)","Santiago Maior","Terena (São Pedro)","União das freguesias de Alandroal (Nossa Senhora da Conceição), São Brás dos Matos (Mina do Bugalho) e Juromenha (Nossa Senhora do Loreto)"],"Arraiolos":["Arraiolos","Gafanhoeira (São Pedro)","Igrejinha","Sabugueiro","União das freguesias de São Gregório e Santa Justa","Vimieiro"],"Borba":["Borba (Matriz)","Borba (São Bartolomeu)","Orada","Rio de Moinhos"],"Estremoz":["Arcos","Glória","São Domingos de Ana Loura","União das freguesias de Estremoz (Santa Maria e Santo André)","União das freguesias de São Bento do Cortiço e Santo Estêvão","União das freguesias de São Lourenço de Mamporcão e São Bento de Ana Loura","União das freguesias do Ameixial (Santa Vitória e São Bento)","Veiros","Évora Monte (Santa Maria)"],"Montemor-o-Novo":["Cabrela","Ciborro","Cortiçadas de Lavre","Foros de Vale de Figueira","Lavre","Nossa Senhora da Vila","Nossa Senhora do Bispo","Santiago do Escoural","Silveiras","São Cristóvão"],"Mora":["Brotas","Cabeção","Mora","Pavia"],"Mourão":["Granja","Luz","Mourão"],"Portel":["Alqueva","Amieira","Monte do Trigo","Oriola","Portel","Santana","São Bartolomeu do Outeiro","Vera Cruz"],"Redondo":["Montoito","Redondo"],"Reguengos de Monsaraz":["Corval","Monsaraz","Reguengos de Monsaraz","União das freguesias de Campo e Campinho"],"Vendas Novas":["Landeira","Vendas Novas"],"Viana do Alentejo":["Aguiar","Alcáçovas","Viana do Alentejo"],"Vila Viçosa":["Bencatel","Ciladas","Nossa Senhora da Conceição e São Bartolomeu","Pardais"],"Évora":["Canaviais","Nossa Senhora da Graça do Divor","Nossa Senhora de Machede","São Bento do Mato","São Miguel de Machede","Torre de Coelheiros","União das freguesias de Bacelo e Senhora da Saúde","União das freguesias de Malagueira e Horta das Figueiras","União das freguesias de Nossa Senhora da Tourega e Nossa Senhora de Guadalupe","União das freguesias de São Manços e São Vicente do Pigeiro","União das freguesias de São Sebastião da Giesteira e Nossa Senhora da Boa Fé","União das freguesias de Évora (São Mamede, Sé, São Pedro e Santo Antão)"]}};
+const DISTRITOS = Object.keys(LOC);
+const concelhosDe = (d) => (d && LOC[d] ? Object.keys(LOC[d]) : []);
+const freguesiasDe = (d, c) => (LOC[d] && LOC[d][c]) || [];
+const comAtual = (ops, atual) => atual && !ops.includes(atual) ? [atual, ...ops] : ops;
+
+/* ===== estado ===== */
+const KEY = 'cockpit-demo-v1';
+let S;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {}
+  return seed();
+}
+const byId = (arr, id) => arr.find((x) => x.id === id);
+
+/* ===== tarefas (calendário) ===== */
+function addTarefa(t) {
+  if (t.chave && S.tarefas.some((x) => x.chave === t.chave)) return null;
+  const nt = { id: uid(), tipo: 'tarefa', inicio: null, feita: false, feitaEm: null, noCal: true, origem: 'manual', ...t };
+  S.tarefas.push(nt);
+  return nt;
+}
+
+/* ===== compradores: automações ===== */
+const contar = (c) => ({ env: c.imoveis.filter((i) => i.env).length, vis: c.imoveis.filter((i) => i.vis).length, prop: c.imoveis.filter((i) => i.prop).length });
+function alertaLaranja(c) { return c.estado === 'lead_qualificada' && diasDesde(c.estadoDesde) >= 10 ? `${diasDesde(c.estadoDesde)} dias sem enviar imóveis` : null; }
+const corProg = (n, o) => n >= o ? 'var(--verde)' : n >= o / 2 ? 'var(--ambar)' : '#ef4444';
+function tarefasSemanais() {
+  const sem = semanaISO(new Date());
+  const h9 = new Date(); h9.setHours(9, 0, 0, 0);
+  for (const c of S.compradores) {
+    const n = contar(c);
+    if (c.estado === 'lead_qualificada' || (c.estado === 'imoveis_enviados' && n.env < OBJ.env))
+      addTarefa({ titulo: `Enviar opções de imóveis a ${c.nome}`, inicio: h9.toISOString(), origem: 'comprador', compId: c.id, chave: `c:${c.id}:enviar:${sem}` });
+    else if (c.estado === 'visitas_realizadas' && n.vis < OBJ.vis)
+      addTarefa({ titulo: `Propor visita a ${c.nome}`, inicio: h9.toISOString(), origem: 'comprador', compId: c.id, chave: `c:${c.id}:visita:${sem}` });
+  }
+}
+function avancarC(c, estado) { if (c.estado !== 'perdido' && idxC(estado) > idxC(c.estado)) { c.estado = estado; c.estadoDesde = new Date().toISOString(); } }
+function concluirC(c) {
+  c.estado = 'negocio_concluido'; c.estadoDesde = new Date().toISOString();
+  const q = new Date(); q.setMonth(q.getMonth() + 6); q.setHours(9, 0, 0, 0);
+  addTarefa({ titulo: `Ligar a ${c.nome} (6 meses após a escritura)`, inicio: q.toISOString(), origem: 'comprador', compId: c.id, chave: `c:${c.id}:pos-escritura` });
+}
+
+/* ===== proprietários: automações ===== */
+function planoP(nome, r) {
+  const em = (ms) => addMs(r, ms);
+  return [
+    ['reuniao', 'evento', r, `Reunião de angariação: ${nome}`],
+    ['aviso', 'tarefa', em(-2 * H), `Daqui a 2 horas: reunião de angariação com ${nome}`],
+    ['agradecimento', 'tarefa', em(2 * H), `Mensagem de agradecimento a ${nome}`],
+    ['dossier', 'tarefa', em(2 * D), `Enviar Dossier Digital + página de Instagram a ${nome}`],
+    ['vendido', 'tarefa', em(7 * D), `Partilhar um imóvel vendido com ${nome} (exemplo, de forma natural)`],
+    ['fu1', 'tarefa', em(14 * D), `Chamada a ${nome}: ponto de situação da venda por conta própria`],
+    ['fu2', 'tarefa', em(22 * D), `Chamada a ${nome}: ponto de situação da venda por conta própria`],
+    ['angariar', 'tarefa', em(30 * D), `Chamada de angariação a ${nome}: fechar angariação`],
+  ];
+}
+function agendarFU(p, r) {
+  for (const [k, tipo, q, titulo] of planoP(p.nome, r)) {
+    const ex = S.tarefas.find((t) => t.chave === `p:${p.id}:${k}`);
+    if (!ex) addTarefa({ titulo, tipo, inicio: q.toISOString(), origem: 'proprietario', propId: p.id, chave: `p:${p.id}:${k}` });
+    else if (!ex.feita) { ex.inicio = q.toISOString(); ex.titulo = titulo; }
+  }
+}
+const TAREFAS_FASE = { reuniao_angariacao: ['aviso', 'reuniao'], dossier_enviado: ['dossier'], imovel_vendido_enviado: ['vendido'], follow_up_1: ['fu1'], follow_up_2: ['fu2'], angariado: ['angariar'] };
+function concluirFase(p, estado) {
+  for (const k of TAREFAS_FASE[estado] || []) { const t = S.tarefas.find((x) => x.chave === `p:${p.id}:${k}`); if (t && !t.feita) { t.feita = true; t.feitaEm = new Date().toISOString(); } }
+}
+const ESTADO_TAREFA = { reuniao: 'reuniao_angariacao', dossier: 'dossier_enviado', vendido: 'imovel_vendido_enviado', fu1: 'follow_up_1', fu2: 'follow_up_2', angariar: 'angariado' };
+const tipoTarefaP = (chave) => { const x = (chave || '').split(':'); return x[0] === 'p' ? x[2] : null; };
+
+/* ===== angariações: plano ===== */
+const nBlocos = (dur) => dur / 10;
+const blocoDeDia = (dia) => Math.floor(dia / 10) + 1;
+const diaIni = (b) => (b - 1) * 10;
+const dataDoDia = (ini, dia) => addDays(parseDate(ini), dia);
+const diaHoje = (ini) => Math.round((startOfDay(new Date()) - parseDate(ini)) / 86400000) + 1;
+const blocoAtual = (ini, dur) => { const d = diaHoje(ini); return d < 1 || d > dur ? null : Math.ceil(d / 10); };
+function tarefaDeAcao(a, ang) {
+  const q = dataDoDia(ang.inicio, a.dia); q.setHours(9, 0, 0, 0);
+  return { titulo: a.followUp ? `Follow up com o proprietário: ${ang.titulo}` : `${a.nome}: ${ang.titulo}`, inicio: q.toISOString(), origem: 'angariacao', acaoId: a.id, chave: `a:${a.id}`, feita: a.feita, feitaEm: a.feitaEm };
+}
+function novaAcao(ang, nome, dia, followUp) { const a = { id: uid(), nome, dia, followUp: !!followUp, feita: false, feitaEm: null, feedback: '' }; ang.acoes.push(a); addTarefa(tarefaDeAcao(a, ang)); return a; }
+function criarPlano(ang, nomes, fu, dur, extras) {
+  ang.duracao = dur; const max = nBlocos(dur);
+  for (const [nome, blocos] of ACOES_PADRAO) if (nomes.includes(nome)) for (const b of blocos) if (b <= max) novaAcao(ang, nome, diaIni(b), false);
+  if (fu) for (const b of FOLLOW_BLOCOS) if (b <= max) novaAcao(ang, NOME_FU, diaIni(b) + 5, true);
+  for (const e of extras) if (e.bloco <= max) novaAcao(ang, e.nome, diaIni(e.bloco), false);
+}
+function marcarAcao(ang, a, feita) {
+  a.feita = feita; a.feitaEm = feita ? new Date().toISOString() : null;
+  const t = S.tarefas.find((x) => x.acaoId === a.id); if (t) { t.feita = feita; t.feitaEm = a.feitaEm; }
+}
+function marcarVendido(ang, data) {
+  ang.vendidoEm = data;
+  for (const a of ang.acoes) { const t = S.tarefas.find((x) => x.acaoId === a.id); if (t && !t.feita) t.noCal = data === null; }
+}
+
+/* ===== dados de exemplo (todos fictícios, datas relativas a hoje) ===== */
+function seed() {
+  S = { compradores: [], proprietarios: [], angariacoes: [], tarefas: [], chamadas: [] };
+  const hoje = new Date();
+  const ago = (dias) => addDays(hoje, -dias).toISOString();
+  const em = (dias) => isoDate(addDays(hoje, dias));
+  const fr = (d, c, i) => { const f = freguesiasDe(d, c); return f[i % f.length] || ''; };
+  const tel = (n) => '+351912000' + String(n).padStart(3, '0');
+  const imv = (desc, env, vis, prop) => ({ id: uid(), desc, env: env ? em(-env) : null, vis: vis ? em(-vis) : null, prop: prop ? em(-prop) : null });
+
+  const comp = (o) => S.compradores.push({ id: uid(), email: '', canal: 'Idealista', obs: '', ref: '', financ: '', simul: '', precisaVender: '', cpcv: false, cpcvData: null, escAgendada: false, escData: null, escPrazo: null, docs: [], imoveis: [], ...o });
+  const L = [['Braga', 'Guimarães'], ['Porto', 'Porto'], ['Lisboa', 'Lisboa'], ['Braga', 'Braga'], ['Faro', 'Loulé'], ['Setúbal', 'Almada'], ['Porto', 'Matosinhos']];
+  const lc = (i) => ({ distrito: L[i % L.length][0], concelho: L[i % L.length][1], freguesia: fr(L[i % L.length][0], L[i % L.length][1], i * 3) });
+
+  comp({ nome: 'Ana Ribeiro', tel: tel(1), motivacao: 8, tipo: 'Apartamento', tipologia: 'T2', valor: 220000, financ: FINANC[1], simul: 'Feita', precisaVender: 'nao', estado: 'lead_qualificada', estadoDesde: ago(12), ...lc(0) });
+  comp({ nome: 'Bruno Teixeira', tel: tel(2), motivacao: 4, tipo: 'Moradia', tipologia: 'T3', valor: 340000, financ: FINANC[2], estado: 'lead_qualificada', estadoDesde: ago(3), canal: 'Meta', ...lc(1) });
+  comp({ nome: 'Carla Mendes', tel: tel(3), motivacao: 9, tipo: 'Apartamento', tipologia: 'T1', valor: 180000, financ: FINANC[0], estado: 'lead_qualificada', estadoDesde: ago(15), canal: 'Referência', ...lc(2) });
+  comp({ nome: 'Diogo Fernandes', tel: tel(4), motivacao: 6, tipo: 'Apartamento', tipologia: 'T2', valor: 250000, estado: 'imoveis_enviados', estadoDesde: ago(6), imoveis: [imv('T2 Rua das Flores', 8), imv('T2 Av. da Liberdade', 6), imv('T3 Centro histórico', 4)], ...lc(3) });
+  comp({ nome: 'Eva Carvalho', tel: tel(5), motivacao: 7, tipo: 'Moradia', tipologia: 'T4', valor: 450000, financ: FINANC[1], estado: 'imoveis_enviados', estadoDesde: ago(9), imoveis: [1, 2, 3, 4, 5, 6, 7].map((i) => imv('Moradia ' + i, 12 - i)), ...lc(4) });
+  comp({ nome: 'Filipe Sousa', tel: tel(6), motivacao: 3, tipo: 'Terreno', tipologia: '', valor: 90000, estado: 'imoveis_enviados', estadoDesde: ago(20), canal: 'Site da imobiliária', imoveis: [imv('Terreno urbano 800 m2', 18)], ...lc(5) });
+  comp({ nome: 'Gabriela Lopes', tel: tel(7), motivacao: 8, tipo: 'Apartamento', tipologia: 'T3', valor: 310000, financ: FINANC[1], estado: 'visitas_realizadas', estadoDesde: ago(5), imoveis: [1, 2, 3, 4, 5, 6].map((i) => imv('T3 opção ' + i, 20 - i, i <= 3 ? 8 - i : 0)), ...lc(0) });
+  comp({ nome: 'Hugo Martins', tel: tel(8), motivacao: 5, tipo: 'Apartamento', tipologia: 'T2', valor: 205000, estado: 'visitas_realizadas', estadoDesde: ago(11), imoveis: [1, 2, 3, 4, 5, 6, 7].map((i) => imv('T2 opção ' + i, 25 - i, i <= 5 ? 15 - i : 0)), ...lc(1) });
+  comp({ nome: 'Inês Barbosa', tel: tel(9), motivacao: 10, tipo: 'Moradia', tipologia: 'T3', valor: 380000, financ: FINANC[0], estado: 'propostas_efetuadas', estadoDesde: ago(2), imoveis: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => imv('Moradia V' + i, 30 - i, i <= 4 ? 14 - i : 0, i <= 2 ? 3 : 0)), ...lc(3) });
+  comp({ nome: 'João Pimenta', tel: tel(10), motivacao: 7, tipo: 'Apartamento', tipologia: 'T2', valor: 260000, estado: 'propostas_efetuadas', estadoDesde: ago(4), imoveis: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => imv('T2 Bairro ' + i, 28 - i, i <= 5 ? 12 - i : 0, i === 1 ? 2 : 0)), ...lc(2) });
+  comp({ nome: 'Laura Neves', tel: tel(11), motivacao: 9, tipo: 'Apartamento', tipologia: 'T2', valor: 275000, financ: FINANC[1], estado: 'cpcv', estadoDesde: ago(7), cpcv: true, cpcvData: em(-7), escPrazo: em(18), imoveis: [imv('T2 Parque das Nações', 40, 30, 20)], ...lc(2) });
+  comp({ nome: 'Miguel Araújo', tel: tel(12), motivacao: 10, tipo: 'Moradia', tipologia: 'T3', valor: 410000, financ: FINANC[0], estado: 'escritura', estadoDesde: ago(10), cpcv: true, cpcvData: em(-40), escAgendada: true, escData: em(6), escPrazo: em(6), docs: [{ id: uid(), nome: 'Certidão permanente', ok: true }, { id: uid(), nome: 'Caderneta predial', ok: true }, { id: uid(), nome: 'Licença de utilização', ok: false }, { id: uid(), nome: 'Certificado energético', ok: false }], imoveis: [imv('Moradia Foz', 70, 60, 50)], ...lc(6) });
+  comp({ nome: 'Nuno Cardoso', tel: tel(13), motivacao: 9, tipo: 'Apartamento', tipologia: 'T1', valor: 190000, estado: 'negocio_concluido', estadoDesde: ago(30), cpcv: true, cpcvData: em(-80), escAgendada: true, escData: em(-30), escPrazo: em(-30), imoveis: [imv('T1 Vila Nova', 100, 90, 85)], ...lc(5) });
+
+  const prop = (o) => S.proprietarios.push({ id: uid(), email: '', canal: 'Idealista', obs: '', link: '', reuniaoEm: null, chamadasIds: [], ...o });
+  const P = (nome, i, extra) => ({ nome, tel: tel(100 + i), ...extra });
+  prop(P('Olga Silveira', 1, { tipo: 'Apartamento', tipologia: 'T2', valor: 235000, estado: 'fsbo', estadoDesde: ago(4), link: 'https://www.idealista.pt/imovel/exemplo-1/', ...lc(0) }));
+  prop(P('Paulo Gomes', 2, { tipo: 'Moradia', tipologia: 'T4', valor: 520000, estado: 'fsbo', estadoDesde: ago(9), canal: 'Placa', ...lc(4) }));
+  const marcada = P('Rita Almeida', 3, { tipo: 'Apartamento', tipologia: 'T3', valor: 295000, estado: 'reuniao_marcada', estadoDesde: ago(1), canal: 'Imovirtual', ...lc(3) });
+  const r3 = new Date(); r3.setDate(r3.getDate() + 2); r3.setHours(15, 0, 0, 0); marcada.reuniaoEm = r3.toISOString();
+  prop(marcada);
+  const reun = P('Sérgio Valente', 4, { tipo: 'Moradia', tipologia: 'T3', valor: 365000, estado: 'reuniao_angariacao', estadoDesde: ago(1), ...lc(6) });
+  const r4 = addDays(hoje, -1); r4.setHours(10, 30, 0, 0); reun.reuniaoEm = r4.toISOString();
+  prop(reun);
+  const doss = P('Teresa Fonseca', 5, { tipo: 'Apartamento', tipologia: 'T1', valor: 165000, estado: 'dossier_enviado', estadoDesde: ago(1), canal: 'Referência', ...lc(2) });
+  const r5 = addDays(hoje, -3); r5.setHours(11, 0, 0, 0); doss.reuniaoEm = r5.toISOString();
+  prop(doss);
+  const ang = P('Rui Matos', 6, { tipo: 'Apartamento', tipologia: 'T3', valor: 330000, estado: 'angariado', estadoDesde: ago(46), ...lc(3) });
+  const r6 = addDays(hoje, -46); r6.setHours(14, 0, 0, 0); ang.reuniaoEm = r6.toISOString();
+  prop(ang);
+  for (const p of S.proprietarios) if (p.reuniaoEm) { agendarFU(p, new Date(p.reuniaoEm)); }
+  const pg = (n) => S.proprietarios.find((p) => p.nome === n);
+  for (const [n, est] of [['Sérgio Valente', 'reuniao_angariacao'], ['Teresa Fonseca', 'dossier_enviado']]) { concluirFase(pg(n), est); }
+  concluirFase(pg('Teresa Fonseca'), 'reuniao_angariacao');
+  for (const k of ['aviso', 'reuniao', 'agradecimento', 'dossier', 'vendido', 'fu1', 'fu2', 'angariar']) { const t = S.tarefas.find((x) => x.chave === `p:${pg('Rui Matos').id}:${k}`); if (t) { t.feita = true; t.feitaEm = t.inicio; } }
+  S.chamadas.push({ id: uid(), propId: pg('Olga Silveira').id, quando: ago(3), obs: 'Disse que quer vender sozinha mais 2 meses. Voltar a ligar.' });
+  S.chamadas.push({ id: uid(), propId: pg('Paulo Gomes').id, quando: ago(8), obs: 'Atendeu a esposa. Ligar ao fim do dia.' });
+
+  // angariação com plano a meio (dia 47 de 180)
+  const a = { id: uid(), propId: pg('Rui Matos').id, titulo: 'T3 Rua do Souto, Braga', duracao: 180, regime: 'exclusivo', inicio: isoDate(addDays(hoje, -46)), vendidoEm: null, acoes: [] };
+  S.angariacoes.push(a);
+  criarPlano(a, ACOES_PADRAO.map((x) => x[0]), true, 180, [{ nome: 'Vídeo drone', bloco: 2 }]);
+  const FB = { 'Fotografias/Vídeo': 'Sessão feita, 32 fotos e vídeo de 1 minuto.', 'Placa de Venda': 'Placa colocada na fachada.', 'Open House': 'Dia 12: 9 visitas, 2 pedidos de segunda visita.' };
+  for (const x of a.acoes) { if (blocoDeDia(x.dia) <= 4) { marcarAcao(a, x, true); x.feitaEm = dataDoDia(a.inicio, x.dia + 1).toISOString(); const t = S.tarefas.find((y) => y.acaoId === x.id); if (t) t.feitaEm = x.feitaEm; if (FB[x.nome]) x.feedback = FB[x.nome]; } }
+  const naoFeita = a.acoes.find((x) => x.nome === 'Newsletter Base de Dados' && blocoDeDia(x.dia) === 2); if (naoFeita) marcarAcao(a, naoFeita, false);
+
+  addTarefa({ titulo: 'Renovar certificado energético (T2 Almada)', inicio: addDays(hoje, 1).toISOString(), feita: false });
+  addTarefa({ titulo: 'Preparar apresentação para reunião de equipa', inicio: addDays(hoje, 3).toISOString() });
+  addTarefa({ titulo: 'Comprar placas de venda novas' });
+  tarefasSemanais();
+  return S;
+}
+
+/* ===== estado de interface (não guardado) ===== */
+const ui = {
+  cf: { tipologia: '', mot: '', vmin: '', vmax: '', d: '', c: '', f: '', tipo: '', soAl: false, mais: false }, cVista: 'lista',
+  pf: { estado: 'seguimento', tipo: '', tipologia: '', vmin: '', vmax: '', d: '', c: '', f: '', soAtr: false }, pVista: 'lista',
+  calVista: 'tarefas', semana: startOfWeek(new Date()), editarPlano: false, sheet: null, fechar: null,
+  plano: { dur: 180, escolhidas: ACOES_PADRAO.map((a) => a[0]), fu: true, extras: [] }, nova: false, mostrarVendidas: false, erro: '',
+};
+const resetUi = () => { ui.erro = ''; ui.editarPlano = false; ui.sheet = null; ui.fechar = null; ui.nova = false; };
+
+/* ===== peças de interface ===== */
+const mot = (v) => {
+  if (v === '' || v == null) return '<span class="xs sec" title="Motivação por definir">-</span>';
+  const cor = `hsl(${(v / 10) * 120} 70% 42%)`;
+  return `<span class="mot" title="Motivação ${v}/10"><span class="t"><i style="width:${Math.max(v, 0.5) * 10}%;background:${cor}"></i></span><b style="color:${cor}">${v}</b></span>`;
+};
+const opts = (lista, sel, vazio) => (vazio !== undefined ? `<option value="">${esc(vazio)}</option>` : '') + lista.map((o) => `<option${o === sel ? ' selected' : ''}>${esc(o)}</option>`).join('');
+function locSel(ctx, v, rot) {
+  const cs = comAtual(concelhosDe(v.d), v.c), fs = comAtual(freguesiasDe(v.d, v.c), v.f), ds = comAtual(DISTRITOS, v.d);
+  const mk = (nome, name, lista, val, dis) => {
+    const s = `<select name="${name}" data-loc="${ctx}" ${dis ? 'disabled' : ''}>${opts(lista, val, nome)}</select>`;
+    return rot ? `<label class="f"><span>${nome}</span>${s}</label>` : s;
+  };
+  return mk('Distrito', 'distrito', ds, v.d, false) + mk('Concelho', 'concelho', cs, v.c, !v.d) + mk('Freguesia', 'freguesia', fs, v.f, !v.c);
+}
+const progresso = (rot, n, o) => `<div><div class="row between xs sec"><span>${rot}</span><span>${n}/${o}</span></div><div class="barra" style="margin-top:4px"><i style="width:${Math.min(100, (n / o) * 100)}%;background:${corProg(n, o)}"></i></div></div>`;
+const seg = (acao, atual, itens) => `<div class="seg">${itens.map(([v, r]) => `<button data-a="${acao}" data-v="${v}" class="${atual === v ? 'on' : ''}">${r}</button>`).join('')}</div>`;
+const voltar = (href, txt) => `<a href="${href}" class="sm">&larr; ${txt}</a>`;
+const erroBox = () => ui.erro ? `<p class="erro">${esc(ui.erro)}</p>` : '';
+const linhaLocal = (o) => [o.tipo, o.tipologia, o.concelho || o.distrito].filter(Boolean).join(' · ');
+const telBtns = (t) => t ? `<div class="row"><a class="btn grow" href="tel:${esc(t)}">Ligar</a><a class="btn verde grow" target="_blank" rel="noreferrer" href="https://wa.me/${t.replace(/\D/g, '')}">WhatsApp</a></div>` : '';
+
+/* ===== Dashboard ===== */
+function viewDashboard() {
+  const agora = new Date(), h0 = startOfDay(agora), h1 = addDays(h0, 1);
+  const abertas = S.tarefas.filter((t) => !t.feita && t.noCal);
+  const atrasadas = abertas.filter((t) => t.inicio && new Date(t.inicio) < h0).length;
+  const hoje = abertas.filter((t) => t.inicio && new Date(t.inicio) >= h0 && new Date(t.inicio) < h1).length;
+  const stat = (n, r, href) => `<a class="card sm" href="${href}" style="color:inherit"><p style="font-size:28px;font-weight:600">${n}</p><p class="xs sec">${r}</p></a>`;
+  return `<div class="stack">
+  <h1 class="serif" style="font-size:28px">Cockpit</h1>
+  <div class="grid2 grid4">
+    ${stat(hoje, 'tarefas para hoje', '#/calendario')}
+    ${stat(atrasadas, 'tarefas em atraso', '#/calendario')}
+    ${stat(S.compradores.filter((c) => !['perdido', 'negocio_concluido'].includes(c.estado)).length, 'compradores em curso', '#/crm/compradores')}
+    ${stat(S.proprietarios.filter((p) => !['perdido', 'angariado'].includes(p.estado)).length, 'proprietários em seguimento', '#/crm/proprietarios')}
+  </div>
+  <div class="card stack-s">
+    <h3>O que podes experimentar</h3>
+    <ul class="guia">
+      <li><b>CRM, Compradores:</b> filtra a lista (tipologia, localização, motivação, preço), muda para a vista Funil, abre uma ficha, junta imóveis e marca-os como enviados, visitados ou com proposta.</li>
+      <li><b>CRM, Proprietários:</b> marca uma reunião de angariação e vê o calendário encher-se de follow ups. Marca tarefas em "Próximos passos" e vê o funil avançar sozinho.</li>
+      <li><b>Fechar uma angariação:</b> numa ficha de proprietário, escolhe "Angariado" ou marca a "Chamada de angariação". Escolhe o regime e confirma.</li>
+      <li><b>Angariações:</b> monta o plano de 180 dias, toca nos quadrados, escreve feedback, edita o plano, marca como vendido e abre o relatório.</li>
+      <li><b>Calendário:</b> vê tudo o que as automações criaram, por lista ou por semana. Tudo é sincronizado com as fichas.</li>
+    </ul>
+  </div>
+  <div class="card stack-s">
+    <h3>O que ainda não existe</h3>
+    <p class="sm sec">O Dashboard com as metas e a calculadora de conversão, e a sincronização com o Google Calendar. Esta demonstração é só o que já está construído.</p>
+  </div>
+  <p class="xs sec">Distritos, concelhos e freguesias: CAOP 2025, via Aldeias Portuguesas (CC BY-SA 4.0). Todos os nomes e dados desta demonstração são fictícios.</p>
+  </div>`;
+}
+
+/* ===== CRM: separadores ===== */
+const crmTabs = (on) => `<div class="stack"><h1>CRM</h1><div class="seg"><a href="#/crm/compradores" style="flex:1;text-align:center;padding:7px 8px;border-radius:9px;color:${on === 'c' ? 'var(--fg)' : 'var(--sec)'};background:${on === 'c' ? '#fff' : 'none'}">Compradores</a><a href="#/crm/proprietarios" style="flex:1;text-align:center;padding:7px 8px;border-radius:9px;color:${on === 'p' ? 'var(--fg)' : 'var(--sec)'};background:${on === 'p' ? '#fff' : 'none'}">Proprietários</a></div>`;
+
+/* ===== Compradores: lista e funil ===== */
+function filtrarC(todos) {
+  const f = ui.cf;
+  return S.compradores.filter((c) => {
+    if (f.tipo && c.tipo !== f.tipo) return false;
+    if (f.tipologia && c.tipologia !== f.tipologia) return false;
+    if (f.d && c.distrito !== f.d) return false;
+    if (f.c && c.concelho !== f.c) return false;
+    if (f.f && c.freguesia !== f.f) return false;
+    if (f.vmin && (c.valor ?? -1) < Number(f.vmin)) return false;
+    if (f.vmax && (c.valor ?? Infinity) > Number(f.vmax)) return false;
+    if (f.mot && (c.motivacao ?? -1) < Number(f.mot)) return false;
+    if (f.soAl && !alertaLaranja(c)) return false;
+    return todos ? c.estado !== 'perdido' : !['perdido', 'negocio_concluido'].includes(c.estado);
+  });
+}
+function cardC(c, compacto) {
+  const n = contar(c), al = alertaLaranja(c);
+  return `<a class="card link ${compacto ? 'sm' : ''}" href="#/crm/compradores/${c.id}">
+    <div class="row between" style="align-items:flex-start"><div class="grow"><div class="row"><p class="b trunc">${esc(c.nome)}</p>${mot(c.motivacao)}</div>
+    <p class="xs sec trunc">${esc(linhaLocal(c)) || 'Sem qualificação'}</p></div>${compacto ? '' : `<span class="pill">${labelC(c.estado)}</span>`}</div>
+    <p class="xs sec" style="margin-top:6px">${compacto ? `${n.env} env. · ${n.vis} vis. · ${n.prop} prop.` : `${n.env}/${OBJ.env} enviados · ${n.vis}/${OBJ.vis} visitas · ${n.prop}/${OBJ.prop} propostas`}</p>
+    ${al ? `<p class="alerta" style="margin-top:6px">${al}</p>` : ''}</a>`;
+}
+function viewCompList() {
+  tarefasSemanais(); save();
+  const f = ui.cf, lista = filtrarC(false), funil = filtrarC(true);
+  const n = ui.cVista === 'lista' ? lista.length : funil.length;
+  const temF = f.tipologia || f.mot || f.vmin || f.vmax || f.d || f.tipo || f.soAl;
+  const body = ui.cVista === 'funil'
+    ? `<div class="funil">${FUNIL_C.map(([id, rot]) => { const x = funil.filter((c) => c.estado === id); return `<section class="col"><h3><span style="background:none;box-shadow:none;padding:0;color:var(--fg)">${rot}</span><span>${x.length}</span></h3><ul class="stack-s">${x.length ? x.map((c) => `<li>${cardC(c, true)}</li>`).join('') : '<li class="xs sec" style="padding:12px 8px;opacity:.6">Vazio</li>'}</ul></section>`; }).join('')}</div>`
+    : lista.length ? `<ul class="stack-s">${lista.map((c) => `<li>${cardC(c)}</li>`).join('')}</ul>` : `<p class="sec sm" style="text-align:center;padding:32px 0">Nenhum comprador com estes filtros.</p>`;
+  return `${crmTabs('c')}
+  <div class="row"><div class="seg grow">${[['lista', 'Lista'], ['funil', 'Funil']].map(([v, r]) => `<button data-a="c-vista" data-v="${v}" class="${ui.cVista === v ? 'on' : ''}">${r}</button>`).join('')}</div><a class="btn grow" href="#/crm/compradores/novo">Novo comprador</a></div>
+  <div class="card sm stack-s sm-in">
+    <div class="grid3 resp">
+      <select data-c="cf" data-k="tipologia">${opts(TIPOLOGIAS, f.tipologia, 'Tipologia')}</select>
+      <select data-c="cf" data-k="mot"><option value="">Motivação</option>${[5, 6, 7, 8, 9, 10].map((v) => `<option value="${v}"${String(v) === String(f.mot) ? ' selected' : ''}>${v === 10 ? '10' : v + ' ou mais'}</option>`).join('')}</select>
+      <div class="row"><input type="number" inputmode="numeric" placeholder="Preço de" data-c="cf" data-k="vmin" value="${esc(f.vmin)}"><input type="number" inputmode="numeric" placeholder="até" data-c="cf" data-k="vmax" value="${esc(f.vmax)}"></div>
+    </div>
+    <div class="grid3 resp" data-ctx="cf">${locSel('cf', { d: f.d, c: f.c, f: f.f })}</div>
+    ${f.mais ? `<div class="grid2"><select data-c="cf" data-k="tipo">${opts(TIPOS, f.tipo, 'Tipo de imóvel')}</select><label class="row sm"><input type="checkbox" data-c="cf" data-k="soAl" ${f.soAl ? 'checked' : ''}> Só com alerta de follow up</label></div>` : ''}
+    <div class="row between xs sec"><span>${n} ${n === 1 ? 'comprador' : 'compradores'}</span><span class="row" style="gap:12px"><button class="txt sec" data-a="cf-mais">${f.mais ? 'Menos filtros' : 'Mais filtros'}</button>${temF ? '<button class="txt" data-a="cf-limpar" style="text-decoration:none;font-weight:600">Limpar</button>' : ''}</span></div>
+  </div>
+  ${body}</div>`;
+}
+
+/* ===== formulário de pessoa (comprador / proprietário) ===== */
+function formPessoa(kind, o, id) {
+  const c = kind === 'c', v = o || {};
+  const prefixo = PREFIXOS.find((p) => (v.tel || '').startsWith(p)) || '+351', numero = (v.tel || '').startsWith(prefixo) ? v.tel.slice(prefixo.length) : (v.tel || '');
+  const lab = (r, h) => `<label class="f"><span>${r}</span>${h}</label>`;
+  const sel = (name, lista, val) => `<select name="${name}">${opts(lista, val || '', '-')}</select>`;
+  return `<div class="stack"><form data-s="${c ? 'c-form' : 'p-form'}" data-id="${id || ''}" class="stack">
+  <section class="card stack-s"><h3>${c ? 'Comprador' : 'Proprietário'}</h3>
+    ${lab('Nome', `<input name="nome" required value="${esc(v.nome)}">`)}
+    ${lab('Telemóvel', `<div class="row"><select name="prefixo" style="width:auto">${opts(PREFIXOS, prefixo)}</select><input name="numero" type="tel" inputmode="tel" value="${esc(numero)}"></div>`)}
+    ${lab('Email', `<input name="email" type="email" value="${esc(v.email)}">`)}</section>
+  <section class="card stack-s"><h3>Qualificação</h3>
+    ${lab('Canal de origem', sel('canal', CANAIS, v.canal))}
+    ${c ? lab('Motivação (0 a 10)', `<input name="motivacao" type="range" min="0" max="10" value="${v.motivacao ?? 0}" data-c="range"><span class="sm sec" id="motv">${v.motivacao ?? 'Por definir'}</span><input type="hidden" name="motdef" value="${v.motivacao == null ? '' : '1'}">`) : ''}
+    ${lab(c ? 'Referência do imóvel' : 'Link ou referência do imóvel', `<input name="${c ? 'ref' : 'link'}" value="${esc(c ? v.ref : v.link)}">`)}
+    ${lab('Tipo de imóvel', sel('tipo', TIPOS, v.tipo))}
+    ${lab(c ? 'Tipologia mínima' : 'Tipologia', sel('tipologia', TIPOLOGIAS, v.tipologia))}
+    <div class="grid3 resp" data-ctx="form">${locSel('form', { d: v.distrito || '', c: v.concelho || '', f: v.freguesia || '' }, true)}</div>
+    ${lab(c ? 'Expectativa de valor (EUR)' : 'Valor pedido (EUR)', `<input name="valor" type="number" value="${v.valor ?? ''}">`)}
+    ${c ? lab('Financiamento', sel('financ', FINANC, v.financ)) + lab('Simulação de crédito', sel('simul', SIMUL, v.simul)) + lab('Precisa de vender?', `<select name="precisaVender"><option value="">-</option><option value="sim"${v.precisaVender === 'sim' ? ' selected' : ''}>Sim</option><option value="nao"${v.precisaVender === 'nao' ? ' selected' : ''}>Não</option></select>`) : ''}
+    ${lab('Observações adicionais', `<textarea name="obs" rows="3">${esc(v.obs)}</textarea>`)}</section>
+  <button class="btn full" type="submit">${id ? 'Guardar alterações' : c ? 'Criar comprador' : 'Criar proprietário'}</button></form></div>`;
+}
+
+/* ===== Comprador: ficha ===== */
+const campoData = (label, val, tipo, k, id) => `<label class="f xs sec"><span style="font-weight:400">${label}</span><input type="date" value="${val || ''}" data-c="${tipo}" data-k="${k}" data-id="${id}"></label>`;
+function viewCompFicha(id) {
+  const c = byId(S.compradores, id);
+  if (!c) return `<p class="erro">Comprador não encontrado.</p>`;
+  const n = contar(c), al = alertaLaranja(c), dEsc = c.escPrazo ? diasAte(c.escPrazo) : null;
+  const chips = FUNIL_C.map(([e, r], i) => `<button class="chip ${c.estado === e ? 'on' : c.estado !== 'perdido' && i < idxC(c.estado) ? 'pass' : ''}" data-a="c-estado" data-id="${c.id}" data-v="${e}">${r}</button>`).join('');
+  return `<div class="stack">${voltar('#/crm/compradores', 'Compradores')}${erroBox()}
+  <section class="card stack-s"><div class="row between" style="align-items:flex-start"><div class="grow"><h2 class="trunc">${esc(c.nome)}</h2><p class="sm sec">${esc(linhaLocal(c))}</p>${mot(c.motivacao)}</div><a class="btn cinza sm" href="#/crm/compradores/${c.id}/editar">Editar</a></div>${telBtns(c.tel)}${al ? `<p class="alerta">${al}</p>` : ''}</section>
+  <section class="card stack-s"><h3>Funil</h3><div class="chips">${chips}</div><p class="xs sec">Estado atual: ${labelC(c.estado)}. ${c.estado !== 'perdido' ? `<button class="txt sec" data-a="c-estado" data-id="${c.id}" data-v="perdido">Marcar como perdido</button>` : `<button class="txt sec" data-a="c-estado" data-id="${c.id}" data-v="lead_qualificada">Reativar</button>`}</p></section>
+  <section class="card stack-s"><h3>Imóveis</h3>${progresso('Enviados', n.env, OBJ.env)}${progresso('Visitas', n.vis, OBJ.vis)}${progresso('Propostas', n.prop, OBJ.prop)}
+    <ul class="stack-s">${c.imoveis.map((i) => `<li class="card sm" style="box-shadow:none;border:1px solid var(--linha)"><div class="row between"><p class="sm trunc">${/^https?:/.test(i.desc) ? `<a href="${esc(i.desc)}" target="_blank" rel="noreferrer">${esc(i.desc)}</a>` : esc(i.desc)}</p><button class="txt sec" style="text-decoration:none;font-size:20px" data-a="c-img-del" data-id="${c.id}" data-img="${i.id}" aria-label="Remover">&times;</button></div>
+      <div class="row" style="margin-top:8px">${[['env', 'Enviado'], ['vis', 'Visitado'], ['prop', 'Proposta']].map(([k, r]) => `<button class="btn sm grow ${i[k] ? 'verde' : 'cinza'}" style="font-size:12px;${i[k] ? '' : 'color:var(--sec)'}" data-a="c-img-mark" data-id="${c.id}" data-img="${i.id}" data-k="${k}">${r}</button>`).join('')}</div></li>`).join('')}</ul>
+    <form data-s="c-img-add" data-id="${c.id}" class="row"><input name="desc" placeholder="Link ou descrição do imóvel enviado" style="font-size:14px"><button class="btn" type="submit">Juntar</button></form></section>
+  <section class="card stack-s"><h3>CPCV</h3><label class="row sm"><input type="checkbox" data-c="c-cpcv" data-id="${c.id}" ${c.cpcv ? 'checked' : ''}> CPCV fechado</label>${c.cpcv ? campoData('Data do CPCV', c.cpcvData, 'c-data', 'cpcvData', c.id) : ''}</section>
+  ${c.cpcv ? `<section class="card stack-s"><h3>Escritura</h3><label class="row sm"><input type="checkbox" data-c="c-escag" data-id="${c.id}" ${c.escAgendada ? 'checked' : ''}> Escritura agendada</label>
+    <div class="grid2">${c.escAgendada ? campoData('Data da escritura', c.escData, 'c-data', 'escData', c.id) : ''}${campoData('Prazo da escritura', c.escPrazo, 'c-data', 'escPrazo', c.id)}</div>
+    ${dEsc !== null ? `<p class="alerta ${dEsc < 0 ? 'verm' : dEsc <= 15 ? '' : 'neutro'}" style="font-size:14px;padding:8px 12px">${dEsc < 0 ? `Prazo ultrapassado há ${-dEsc} dias` : dEsc === 0 ? 'O prazo termina hoje' : `Faltam ${dEsc} dias para terminar o prazo`}</p>` : ''}
+    <h4 class="xs sec">Documentos em falta (${c.docs.filter((d) => !d.ok).length})</h4>
+    <ul class="stack-xs">${c.docs.map((d) => `<li><label class="row sm"><input type="checkbox" data-c="c-doc" data-id="${c.id}" data-doc="${d.id}" ${d.ok ? 'checked' : ''}><span class="${d.ok ? 'feita' : ''}">${esc(d.nome)}</span></label></li>`).join('')}</ul>
+    <form data-s="c-doc-add" data-id="${c.id}" class="row"><input name="nome" placeholder="Adicionar documento" style="font-size:14px"><button class="btn" type="submit">Juntar</button></form>
+    ${c.estado === 'escritura' ? `<button class="btn verde full" data-a="c-concluir" data-id="${c.id}">Escritura feita: concluir negócio</button>` : ''}</section>` : ''}
+  <button class="txt verm" style="text-decoration:none;width:100%;padding:8px" data-a="c-apagar" data-id="${c.id}">Apagar comprador</button></div>`;
+}
+
+/* ===== Proprietários: lista e funil ===== */
+const proxAcao = (pid) => S.tarefas.filter((t) => t.propId === pid && !t.feita && t.inicio && t.noCal).sort((a, b) => a.inicio.localeCompare(b.inicio))[0];
+const atrasadoP = (pid) => { const t = proxAcao(pid); return !!(t && new Date(t.inicio) < new Date()); };
+function filtrarP() {
+  const f = ui.pf;
+  return S.proprietarios.filter((p) => {
+    if (f.tipo && p.tipo !== f.tipo) return false;
+    if (f.tipologia && p.tipologia !== f.tipologia) return false;
+    if (f.d && p.distrito !== f.d) return false;
+    if (f.c && p.concelho !== f.c) return false;
+    if (f.f && p.freguesia !== f.f) return false;
+    if (f.vmin && (p.valor ?? -1) < Number(f.vmin)) return false;
+    if (f.vmax && (p.valor ?? Infinity) > Number(f.vmax)) return false;
+    if (f.soAtr && !atrasadoP(p.id)) return false;
+    return true;
+  });
+}
+function cardP(p, compacto) {
+  const t = proxAcao(p.id), atr = atrasadoP(p.id);
+  return `<a class="card link ${compacto ? 'sm' : ''}" href="#/crm/proprietarios/${p.id}"><div class="row between" style="align-items:flex-start"><div class="grow"><p class="b trunc">${esc(p.nome)}</p><p class="xs sec trunc">${esc(linhaLocal(p)) || 'Sem qualificação'}</p></div>${compacto ? '' : `<span class="pill">${labelP(p.estado)}</span>`}</div>
+  ${p.valor != null ? `<p class="xs sec" style="margin-top:4px">${eur(p.valor)}</p>` : ''}
+  ${t ? `<p class="alerta ${atr ? '' : 'neutro'} trunc" style="margin-top:8px">${atr ? 'Em atraso: ' : ''}${esc(t.titulo)} · ${fmtDia(t.inicio)} ${fmtHora(t.inicio)}</p>` : ''}</a>`;
+}
+function viewPropList() {
+  const f = ui.pf, base = filtrarP();
+  const lista = base.filter((p) => f.estado === 'todos' ? true : f.estado === 'angariado' ? p.estado === 'angariado' : f.estado === 'perdido' ? p.estado === 'perdido' : !['angariado', 'perdido'].includes(p.estado));
+  const funil = base.filter((p) => p.estado !== 'perdido');
+  const n = ui.pVista === 'lista' ? lista.length : funil.length;
+  const temF = f.tipo || f.tipologia || f.vmin || f.vmax || f.d || f.soAtr;
+  const body = ui.pVista === 'funil'
+    ? `<div class="funil">${FUNIL_P.map(([id, rot]) => { const x = funil.filter((p) => p.estado === id); return `<section class="col"><h3><span style="background:none;box-shadow:none;padding:0;color:var(--fg)">${rot}</span><span>${x.length}</span></h3><ul class="stack-s">${x.length ? x.map((p) => `<li>${cardP(p, true)}</li>`).join('') : '<li class="xs sec" style="padding:12px 8px;opacity:.6">Vazio</li>'}</ul></section>`; }).join('')}</div>`
+    : lista.length ? `<ul class="stack-s">${lista.map((p) => `<li>${cardP(p)}</li>`).join('')}</ul>` : `<p class="sec sm" style="text-align:center;padding:32px 0">Nenhum proprietário com estes filtros.</p>`;
+  return `${crmTabs('p')}
+  <div class="row"><div class="seg grow">${[['lista', 'Lista'], ['funil', 'Funil']].map(([v, r]) => `<button data-a="p-vista" data-v="${v}" class="${ui.pVista === v ? 'on' : ''}">${r}</button>`).join('')}</div><a class="btn grow" href="#/crm/proprietarios/novo">Novo proprietário</a></div>
+  <div class="card sm stack-s sm-in">
+    <div class="grid2 grid4">
+      ${ui.pVista === 'lista' ? `<select data-c="pf" data-k="estado">${[['seguimento', 'Em seguimento'], ['angariado', 'Angariados'], ['perdido', 'Perdidos'], ['todos', 'Todos']].map(([v, r]) => `<option value="${v}"${f.estado === v ? ' selected' : ''}>${r}</option>`).join('')}</select>` : '<div class="sec" style="padding:9px 10px;border:1px solid var(--linha);border-radius:12px;font-size:14px">Todas as fases</div>'}
+      <select data-c="pf" data-k="tipo">${opts(TIPOS, f.tipo, 'Tipo de imóvel')}</select>
+      <select data-c="pf" data-k="tipologia">${opts(TIPOLOGIAS, f.tipologia, 'Tipologia')}</select>
+      <div class="row"><input type="number" inputmode="numeric" placeholder="Valor de" data-c="pf" data-k="vmin" value="${esc(f.vmin)}"><input type="number" inputmode="numeric" placeholder="até" data-c="pf" data-k="vmax" value="${esc(f.vmax)}"></div>
+    </div>
+    <div class="grid3 resp" data-ctx="pf">${locSel('pf', { d: f.d, c: f.c, f: f.f })}</div>
+    <label class="row sm"><input type="checkbox" data-c="pf" data-k="soAtr" ${f.soAtr ? 'checked' : ''}> Só com follow up em atraso</label>
+    <div class="row between xs sec"><span>${n} ${n === 1 ? 'proprietário' : 'proprietários'}</span>${temF ? '<button class="txt" data-a="pf-limpar" style="text-decoration:none;font-weight:600">Limpar</button>' : ''}</div>
+  </div>${body}</div>`;
+}
+
+/* ===== Proprietário: ficha ===== */
+function viewPropFicha(id) {
+  const p = byId(S.proprietarios, id);
+  if (!p) return `<p class="erro">Proprietário não encontrado.</p>`;
+  const ang = S.angariacoes.find((a) => a.propId === p.id);
+  const tarefas = S.tarefas.filter((t) => t.propId === p.id).sort((a, b) => (a.inicio || '').localeCompare(b.inicio || ''));
+  const chamadas = S.chamadas.filter((c) => c.propId === p.id).sort((a, b) => b.quando.localeCompare(a.quando));
+  const chips = FUNIL_P.map(([e, r], i) => `<button class="chip ${p.estado === e ? 'on' : p.estado !== 'perdido' && i < idxP(p.estado) ? 'pass' : ''}" data-a="p-estado" data-id="${p.id}" data-v="${e}">${r}</button>`).join('');
+  const f = ui.fechar;
+  const campo = 'font-size:16px';
+  return `<div class="stack">${voltar('#/crm/proprietarios', 'Proprietários')}${erroBox()}
+  <section class="card stack-s"><div class="row between" style="align-items:flex-start"><div class="grow"><h2 class="trunc">${esc(p.nome)}</h2><p class="sm sec">${esc(linhaLocal(p))}</p>${p.valor != null ? `<p class="sm sec">${eur(p.valor)}</p>` : ''}
+    ${/^https?:/.test(p.link || '') ? `<a class="sm trunc" style="display:block" href="${esc(p.link)}" target="_blank" rel="noreferrer">${esc(p.link)}</a>` : ''}
+    ${p.estado === 'angariado' && ang && ang.regime ? `<span class="pill verde" style="margin-top:4px">${ang.regime === 'exclusivo' ? 'Em exclusivo' : 'Não exclusivo'}</span>` : ''}</div><a class="btn cinza sm" href="#/crm/proprietarios/${p.id}/editar">Editar</a></div>${telBtns(p.tel)}</section>
+  <section class="card stack-s"><h3>Funil</h3><div class="chips">${chips}</div><p class="xs sec">Estado atual: ${labelP(p.estado)}. ${p.estado !== 'perdido' ? `<button class="txt sec" data-a="p-estado" data-id="${p.id}" data-v="perdido">Marcar como perdido</button>` : `<button class="txt sec" data-a="p-estado" data-id="${p.id}" data-v="fsbo">Reativar</button>`}</p></section>
+  ${f ? `<form data-s="p-fechar" data-id="${p.id}" class="card destaque stack-s"><h3>Fechar angariação</h3><p class="xs sec">Estes dados passam para o Gestor de Angariações.</p>
+    <label class="f"><span>Imóvel (morada ou referência)</span><input name="titulo" required value="${esc(f.titulo)}"></label>
+    <div class="grid2"><label class="f"><span>Duração do contrato</span><select name="dur"><option value="180">180 dias</option><option value="120">120 dias</option></select></label><label class="f"><span>Início do contrato</span><input type="date" name="inicio" required value="${hojeISO()}"></label></div>
+    <div><p class="xs sec" style="margin-bottom:4px">Regime do contrato</p><div class="seg">${[['exclusivo', 'Em exclusivo'], ['nao_exclusivo', 'Não exclusivo']].map(([v, r]) => `<button type="button" data-a="p-regime" data-v="${v}" class="${f.regime === v ? 'on' : ''}">${r}</button>`).join('')}</div></div>
+    <div class="row"><button type="button" class="btn verm grow" data-a="p-naoang" data-id="${p.id}">Não angariado</button><button type="submit" class="btn verde grow" ${f.regime ? '' : 'disabled'}>Angariado</button></div>
+    <button type="button" class="txt sec" style="width:100%" data-a="p-fechar-cancel">Cancelar (decidir mais tarde)</button></form>` : ''}
+  <section class="card stack-s"><h3>Reunião de angariação</h3>${p.reuniaoEm ? `<p class="sm">${fmtDia(p.reuniaoEm)} às ${fmtHora(p.reuniaoEm) || '00:00'}</p>` : ''}
+    <form data-s="p-reuniao" data-id="${p.id}" class="row wrap"><input type="datetime-local" name="quando" required value="${p.reuniaoEm ? toLocalInput(p.reuniaoEm) : ''}" style="flex:1;min-width:180px"><button class="btn" type="submit">${p.reuniaoEm ? 'Reagendar' : 'Marcar reunião'}</button></form>
+    <p class="xs sec">Ao marcar, o calendário recebe a reunião, o aviso 2 horas antes e os follow ups (2h, 2, 7, 14, 22 e 30 dias depois).</p></section>
+  <section class="card stack-s"><h3>Próximos passos</h3>${tarefas.length ? `<ul class="stack-xs">${tarefas.map((t) => `<li><label class="row sm" style="align-items:flex-start"><input type="checkbox" data-c="p-tarefa" data-tid="${t.id}" ${t.feita ? 'checked' : ''} style="margin-top:4px"><span class="${t.feita ? 'feita' : ''}">${esc(t.titulo)}${t.inicio ? `<span class="xs" style="display:block;color:${!t.feita && new Date(t.inicio) < new Date() ? 'var(--ambar-t)' : 'var(--sec)'}">${fmtDia(t.inicio)} ${fmtHora(t.inicio)}</span>` : ''}</span></label></li>`).join('')}</ul>` : '<p class="sm sec">Sem tarefas. Marca a reunião para gerar o plano de follow up.</p>'}</section>
+  <section class="card stack-s"><h3>Chamadas</h3><form data-s="p-chamada" data-id="${p.id}" class="stack-s"><input type="datetime-local" name="quando" required value="${toLocalInput(new Date().toISOString())}"><textarea name="obs" rows="2" placeholder="Observações da chamada"></textarea><button class="btn full" type="submit">Registar chamada realizada</button></form>
+    <ul class="stack-s">${chamadas.map((c) => `<li class="card sm" style="box-shadow:none;border:1px solid var(--linha)"><p class="xs sec">${fmtDia(c.quando)} ${fmtHora(c.quando)}</p>${c.obs ? `<p class="sm">${esc(c.obs)}</p>` : ''}</li>`).join('')}</ul></section>
+  <button class="txt verm" style="text-decoration:none;width:100%;padding:8px" data-a="p-apagar" data-id="${p.id}">Apagar proprietário</button></div>`;
+}
+
+/* ===== Angariações: lista ===== */
+const REGIME = { exclusivo: 'Em exclusivo', nao_exclusivo: 'Não exclusivo' };
+const propNome = (a) => { const p = a.propId && byId(S.proprietarios, a.propId); return p ? p.nome : 'Sem proprietário ligado'; };
+function viewAngList() {
+  const nV = S.angariacoes.filter((a) => a.vendidoEm).length;
+  const vis = S.angariacoes.filter((a) => ui.mostrarVendidas || !a.vendidoEm);
+  const campo = 'font-size:16px';
+  return `<div class="stack"><div class="row between"><h1>Angariações</h1><button class="btn" data-a="ang-nova">Nova angariação</button></div>${erroBox()}
+  ${ui.nova ? `<form data-s="ang-criar" class="card stack-s"><label class="f"><span>Imóvel (morada ou referência)</span><input name="titulo" required></label>
+    <div class="grid2"><label class="f"><span>Duração</span><select name="dur"><option value="180">180 dias</option><option value="120">120 dias</option></select></label><label class="f"><span>Início do contrato</span><input type="date" name="inicio" required value="${hojeISO()}"></label></div>
+    <label class="f"><span>Regime</span><select name="regime"><option value="">-</option><option value="exclusivo">Em exclusivo</option><option value="nao_exclusivo">Não exclusivo</option></select></label><button class="btn full" type="submit">Criar angariação</button></form>` : ''}
+  ${nV ? `<label class="row sm sec"><input type="checkbox" data-c="vendidas" ${ui.mostrarVendidas ? 'checked' : ''}> Mostrar vendidas (${nV})</label>` : ''}
+  ${vis.length ? `<ul class="stack-s">${vis.map((a) => {
+    const feitas = a.acoes.filter((x) => x.feita).length, dia = diaHoje(a.inicio), b = blocoAtual(a.inicio, a.duracao), prox = a.acoes.filter((x) => !x.feita).sort((x, y) => x.dia - y.dia)[0];
+    return `<li><a class="card link" href="#/angariacoes/${a.id}"><div class="row between" style="align-items:flex-start"><div class="grow"><p class="b trunc">${esc(a.titulo)}</p><p class="xs sec trunc">${esc(propNome(a))}${a.regime ? ' · ' + REGIME[a.regime] : ''}</p></div>
+    ${a.vendidoEm ? '<span class="pill verde">Vendido</span>' : `<span class="pill">${dia < 1 ? 'Ainda não começou' : dia > a.duracao ? 'Contrato terminado' : `Dia ${dia} de ${a.duracao}`}</span>`}</div>
+    ${a.acoes.length ? `<div class="barra" style="margin-top:12px"><i style="width:${(feitas / a.acoes.length) * 100}%;background:var(--verde)"></i></div><p class="xs sec" style="margin-top:6px">${feitas}/${a.acoes.length} ações feitas${b ? ` · bloco ${b} de ${a.duracao / 10}` : ''}${prox && !a.vendidoEm ? ` · a seguir: ${prox.followUp ? 'Follow up' : esc(prox.nome)}` : ''}</p>` : '<p class="alerta" style="margin-top:8px">Plano por montar</p>'}</a></li>`;
+  }).join('')}</ul>` : '<p class="sec sm" style="text-align:center;padding:32px 0">Ainda não há angariações. Fecha uma no CRM de proprietários ou cria uma aqui.</p>'}</div>`;
+}
+
+/* ===== Angariações: plano e grelha ===== */
+const bandeira = (f) => `<svg viewBox="0 0 24 24" fill="${f ? '#fff' : '#d93025'}"><path d="M5 3v18h2v-7h11l-2-4 2-4H7V3z"/></svg>`;
+function grelha(a) {
+  const nb = nBlocos(a.duracao), at = blocoAtual(a.inicio, a.duracao), hoje = new Date();
+  const presentes = [...new Set(a.acoes.map((x) => x.nome))];
+  const padrao = ACOES_PADRAO.map((x) => x[0]).filter((x) => presentes.includes(x));
+  const linhas = [...(presentes.includes(NOME_FU) ? [NOME_FU] : []), ...padrao, ...presentes.filter((x) => x !== NOME_FU && !padrao.includes(x))];
+  const bs = Array.from({ length: nb }, (_, i) => i + 1);
+  const bv = a.vendidoEm ? Math.min(nb, Math.max(1, Math.ceil(((parseDate(a.vendidoEm) - parseDate(a.inicio)) / 86400000 + 1) / 10))) : null;
+  const FASES = ['1ª fase', '2ª fase', '3ª fase'];
+  return `<div class="gscroll"><table class="g"><thead>
+  <tr><th class="nome"></th>${Array.from({ length: nb / 6 }, (_, i) => `<th colspan="6" class="fase">${FASES[i]}</th>`).join('')}</tr>
+  <tr><th class="nome"></th>${Array.from({ length: nb / 3 }, (_, i) => `<th colspan="3" class="mes">${(i + 1) * 30} dias</th>`).join('')}</tr>
+  <tr><th class="nome"></th>${bs.map((b) => `<th class="bl ${b === at ? 'at' : ''}">${b === bv ? 'Vendido' : b * 10}</th>`).join('')}</tr></thead><tbody>
+  ${linhas.map((nome) => `<tr><th class="nome">${esc(nome)}</th>${bs.map((b) => {
+    const x = a.acoes.find((y) => y.nome === nome && blocoDeDia(y.dia) === b);
+    if (!x) return `<td style="padding:0">${ui.editarPlano ? `<button class="cel vazia" data-a="gr-vazia" data-nome="${esc(nome)}" data-b="${b}" aria-label="Adicionar">+</button>` : '<div class="cel" style="background:none"></div>'}</td>`;
+    const atr = !x.feita && dataDoDia(a.inicio, b * 10) < hoje;
+    return `<td style="padding:0"><button class="cel ${x.feita ? 'feita' : atr ? 'atr' : x.followUp ? 'fu' : ''}" data-a="gr-abrir" data-ac="${x.id}">${x.followUp ? bandeira(x.feita) : x.feita ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-10"/></svg>' : '<span class="o"></span>'}</button></td>`;
+  }).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function sheetAcao(a) {
+  const x = a.acoes.find((y) => y.id === ui.sheet);
+  if (!x) return '';
+  const b = blocoDeDia(x.dia), de = dataDoDia(a.inicio, (b - 1) * 10), ate = dataDoDia(a.inicio, b * 10 - 1);
+  return `<div class="sheetbg" data-a="sheet-fechar"><div class="sheet stack-s" data-stop="1">
+  <div class="row between" style="align-items:flex-start"><div><h2>${x.followUp ? 'Follow up com o proprietário' : esc(x.nome)}</h2><p class="sm sec">Dias ${(b - 1) * 10 + 1} a ${b * 10} (${fmtDia(de)} a ${fmtDia(ate)})</p></div><button class="txt sec" style="text-decoration:none;font-size:26px;line-height:1" data-a="sheet-fechar">&times;</button></div>
+  <button class="btn full ${x.feita ? 'cinza' : 'verde'}" style="padding:12px" data-a="ac-toggle" data-ac="${x.id}">${x.feita ? 'Desmarcar (voltar a por fazer)' : 'Marcar como feita'}</button>
+  <label class="f"><span>Feedback</span><textarea rows="3" data-c="ac-fb" data-ac="${x.id}" placeholder="O que aconteceu? Fica no relatório.">${esc(x.feedback)}</textarea></label>
+  <button class="txt verm" style="text-decoration:none;width:100%" data-a="ac-retirar" data-ac="${x.id}">Retirar do plano</button></div></div>`;
+}
+function viewAngPlano(id) {
+  const a = byId(S.angariacoes, id);
+  if (!a) return `<p class="erro">Angariação não encontrada.</p>`;
+  const dia = diaHoje(a.inicio), feitas = a.acoes.filter((x) => x.feita).length, pl = ui.plano, nb = nBlocos(pl.dur);
+  const estado = a.vendidoEm ? 'vendido' : dia < 1 ? 'ainda não começou' : dia > a.duracao ? 'contrato terminado' : `dia ${dia} de ${a.duracao}`;
+  const cab = `<section class="card"><div class="row between" style="align-items:flex-start"><div class="grow"><h1 style="font-size:20px">${esc(a.titulo)}</h1><p class="sm sec">${esc(propNome(a))}${a.regime ? ' · ' + REGIME[a.regime] : ''}</p><p class="sm sec">Início ${fmtDia(a.inicio)} · fim ${fmtDia(dataDoDia(a.inicio, a.duracao - 1))} · ${estado}</p></div>${a.acoes.length ? `<a class="btn cinza sm" href="#/angariacoes/${a.id}/relatorio">Relatório</a>` : ''}</div></section>`;
+  const montar = `<section class="card stack-s"><h3>Montar o plano</h3><p class="xs sec">Escolhe as ações que queres neste plano. Cada uma entra nos blocos de 10 dias do desenho e vai para o calendário. Depois podes juntar ou retirar ações.</p>
+    ${seg('pl-dur', String(pl.dur), [['180', '180 dias'], ['120', '120 dias']])}
+    ${pl.dur === 120 ? '<p class="alerta">O desenho só mostra a grelha de 180 dias. Nos 120 dias uso os primeiros 12 blocos e as ações dos blocos seguintes ficam de fora.</p>' : ''}
+    <ul class="stack-xs">${ACOES_PADRAO.map(([n, bl]) => `<li><label class="row sm"><input type="checkbox" data-c="pl-acao" data-nome="${esc(n)}" ${pl.escolhidas.includes(n) ? 'checked' : ''}><span>${esc(n)}</span><span class="xs sec">(${bl.filter((b) => b <= nb).length}x)</span></label></li>`).join('')}
+    <li><label class="row sm"><input type="checkbox" data-c="pl-fu" ${pl.fu ? 'checked' : ''}><span>Follow ups ao proprietário (bandeiras)</span></label></li></ul>
+    <div class="card sm stack-s" style="box-shadow:none;border:1px solid var(--linha)"><h3 class="xs sec">Juntar outras ações</h3>
+      ${pl.extras.length ? `<ul class="stack-xs">${pl.extras.map((e, i) => `<li class="row between sm"><span class="${e.bloco > nb ? 'feita' : ''}">${esc(e.nome)} <span class="xs sec">(dias ${(e.bloco - 1) * 10 + 1} a ${e.bloco * 10}${e.bloco > nb ? `, fora dos ${pl.dur} dias` : ''})</span></span><button class="txt sec" style="text-decoration:none;font-size:20px" data-a="pl-extra-del" data-i="${i}">&times;</button></li>`).join('')}</ul>` : ''}
+      <form data-s="pl-extra" class="row wrap"><input name="nome" required placeholder="Nome da ação (ex: Vídeo drone)" style="flex:1 1 160px;font-size:14px"><select name="bloco" style="width:auto;font-size:14px">${Array.from({ length: nb }, (_, i) => i + 1).map((b) => `<option value="${b}">Dias ${(b - 1) * 10 + 1} a ${b * 10}</option>`).join('')}</select><button class="btn cinza" type="submit">Juntar</button></form></div>
+    <button class="btn full" style="padding:12px" data-a="pl-criar" data-id="${a.id}">Criar plano</button></section>`;
+  const plano = `<section class="card stack-s"><div class="row between"><h3>Plano <span class="sec" style="font-weight:400">(${feitas}/${a.acoes.length} feitas)</span></h3><button class="btn sm ${ui.editarPlano ? '' : 'cinza'}" data-a="pl-editar">${ui.editarPlano ? 'Concluir edição' : 'Editar plano'}</button></div>
+    ${ui.editarPlano ? '<p class="xs sec">Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de bloco (retira e junta noutro).</p>' : ''}${grelha(a)}
+    <p class="xs sec">Cada quadrado são 10 dias. Verde = feita, laranja = bloco já passou sem estar feita, bandeira = follow up.</p></section>
+  ${ui.editarPlano ? `<form data-s="ac-juntar" data-id="${a.id}" class="card stack-s"><h3>Juntar ação</h3><input name="nome" list="acoes-padrao" required placeholder="Escolhe uma ação ou escreve uma nova"><datalist id="acoes-padrao">${ACOES_PADRAO.map((x) => `<option value="${esc(x[0])}">`).join('')}</datalist><select name="bloco">${Array.from({ length: nBlocos(a.duracao) }, (_, i) => i + 1).map((b) => `<option value="${b}">Dias ${(b - 1) * 10 + 1} a ${b * 10}</option>`).join('')}</select><button class="btn full" type="submit">Juntar ao plano</button></form>` : ''}
+  <section class="card stack-s"><h3>Vendido</h3>${a.vendidoEm ? `<p class="sm">Vendido a ${fmtDia(a.vendidoEm)}. As ações por fazer saíram do calendário.</p><button class="txt" data-a="ang-reabrir" data-id="${a.id}">Reabrir angariação</button>` : `<button class="btn verde full" style="padding:12px" data-a="ang-vendido" data-id="${a.id}">Marcar como vendido</button>`}</section>`;
+  return `<div class="stack">${voltar('#/angariacoes', 'Angariações')}${erroBox()}${cab}${a.acoes.length ? plano : montar}
+  <button class="txt verm" style="text-decoration:none;width:100%;padding:8px" data-a="ang-apagar" data-id="${a.id}">Apagar angariação</button></div>${sheetAcao(a)}`;
+}
+function viewAngRel(id) {
+  const a = byId(S.angariacoes, id);
+  if (!a) return `<p class="erro">Angariação não encontrada.</p>`;
+  const feitas = a.acoes.filter((x) => x.feita).sort((x, y) => (x.feitaEm || '').localeCompare(y.feitaEm || '')), pend = a.acoes.filter((x) => !x.feita).sort((x, y) => x.dia - y.dia), dia = diaHoje(a.inicio);
+  const nome = (x) => x.followUp ? 'Follow up com o proprietário' : esc(x.nome);
+  const jan = (x) => `dias ${(blocoDeDia(x.dia) - 1) * 10 + 1} a ${blocoDeDia(x.dia) * 10}`;
+  return `<div class="stack"><div class="row between noprint"><a href="#/angariacoes/${a.id}" class="sm">&larr; Plano</a><button class="btn" data-a="imprimir">Imprimir / guardar em PDF</button></div>
+  <header><p class="xs sec">Relatório de angariação · ${fmtDia(new Date())}</p><h1 style="font-size:26px">${esc(a.titulo)}</h1><p class="sm sec">${esc(propNome(a))}${a.regime ? ' · ' + REGIME[a.regime] : ''} · contrato de ${a.duracao} dias, de ${fmtDia(a.inicio)} a ${fmtDia(dataDoDia(a.inicio, a.duracao - 1))}</p>
+  <p class="sm" style="margin-top:4px">${a.vendidoEm ? `Vendido a ${fmtDia(a.vendidoEm)}. ` : dia >= 1 && dia <= a.duracao ? `Estamos no dia ${dia}. ` : ''}${feitas.length} de ${a.acoes.length} ações realizadas.</p></header>
+  <section><h3 style="margin-bottom:8px">Ações realizadas</h3>${feitas.length ? `<ul class="card rel" style="padding:0">${feitas.map((x) => `<li><p class="sm b">${nome(x)}</p><p class="xs sec">Feita a ${x.feitaEm ? fmtDia(x.feitaEm) : '-'} · ${jan(x)}</p>${x.feedback ? `<p class="sm" style="margin-top:4px">${esc(x.feedback)}</p>` : ''}</li>`).join('')}</ul>` : '<p class="sm sec">Ainda não há ações realizadas.</p>'}</section>
+  ${pend.length ? `<section><h3 style="margin-bottom:8px">Ainda por fazer</h3><ul class="card rel" style="padding:0">${pend.map((x) => `<li class="row between sm"><span>${nome(x)}</span><span class="xs sec">${jan(x)}</span></li>`).join('')}</ul></section>` : ''}</div>`;
+}
+
+/* ===== Calendário ===== */
+function linhaTarefa(t, apagar) {
+  const atr = !t.feita && t.inicio && new Date(t.inicio) < startOfDay(new Date());
+  return `<li class="tarefa"><button class="circ ${t.feita ? 'on' : ''}" data-a="t-toggle" data-tid="${t.id}" aria-label="Marcar">${t.feita ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-10"/></svg>' : ''}</button>
+  <div class="grow"><p class="trunc ${t.feita ? 'feita' : ''}">${t.tipo === 'evento' ? '<span style="color:var(--azul)">&#9679;</span> ' : ''}${esc(t.titulo)}</p><p class="xs" style="color:${atr ? 'var(--ambar-t)' : 'var(--sec)'}">${[t.inicio ? fmtDia(t.inicio) : 'Sem data', t.inicio ? fmtHora(t.inicio) : '', { meta: 'Meta', comprador: 'Comprador', proprietario: 'Proprietário', angariacao: 'Angariação' }[t.origem] || ''].filter(Boolean).join(' · ')}</p></div>
+  ${apagar ? `<button class="txt sec" style="text-decoration:none;padding:8px" data-a="t-apagar" data-tid="${t.id}" aria-label="Apagar">&times;</button>` : ''}</li>`;
+}
+function viewCal() {
+  const ts = S.tarefas.filter((t) => t.noCal);
+  const h0 = startOfDay(new Date()), h1 = addDays(h0, 1);
+  const form = `<form data-s="t-nova" class="card sm stack-s"><input name="titulo" placeholder="Nova tarefa ou marcação" required><div class="row wrap"><input type="datetime-local" name="quando" style="flex:1;min-width:170px;font-size:14px"><select name="tipo" style="width:auto;font-size:14px"><option value="tarefa">Tarefa</option><option value="evento">Marcação</option></select><button class="btn" type="submit">Adicionar</button></div></form>`;
+  let corpo;
+  if (ui.calVista === 'tarefas') {
+    const g = { 'Em atraso': [], Hoje: [], 'Próximas': [], 'Sem data': [], 'Feitas (últimas 10)': [] };
+    for (const t of ts) { if (t.feita) g['Feitas (últimas 10)'].push(t); else if (!t.inicio) g['Sem data'].push(t); else { const d = new Date(t.inicio); (d < h0 ? g['Em atraso'] : d < h1 ? g.Hoje : g['Próximas']).push(t); } }
+    g['Feitas (últimas 10)'] = g['Feitas (últimas 10)'].slice(-10).reverse();
+    corpo = ts.length ? Object.entries(g).filter(([, l]) => l.length).map(([r, l]) => `<section><h3 style="margin-bottom:8px;color:${r === 'Em atraso' ? 'var(--ambar-t)' : 'var(--sec)'}">${r} (${l.length})</h3><ul class="stack-s">${l.map((t) => linhaTarefa(t, true)).join('')}</ul></section>`).join('') : '<p class="sec sm" style="text-align:center;padding:32px 0">Ainda não há tarefas.</p>';
+  } else {
+    const dias = Array.from({ length: 7 }, (_, i) => addDays(ui.semana, i)), fim = addDays(ui.semana, 6);
+    corpo = `<div class="row between sm"><button class="btn cinza sm" data-a="sem" data-v="-7">Anterior</button><b>${fmtDiaCurto(ui.semana)} - ${fmtDiaCurto(fim)}</b><button class="btn cinza sm" data-a="sem" data-v="7">Seguinte</button></div>
+    <div class="semana">${dias.map((d) => { const x = ts.filter((t) => t.inicio && sameDay(new Date(t.inicio), d)); return `<section class="dia ${sameDay(d, new Date()) ? 'hoje' : ''}"><h3>${fmtDia(d)}</h3>${x.length ? x.map((t) => `<button class="evt ${t.feita ? 'feita' : ''}" data-a="t-toggle" data-tid="${t.id}"><span class="xs sec" style="display:block">${fmtHora(t.inicio)}</span>${esc(t.titulo)}</button>`).join('') : '<p class="xs sec" style="opacity:.6;padding:0 4px">-</p>'}</section>`; }).join('')}</div>`;
+  }
+  return `<div class="stack"><div class="row between"><h1>Calendário</h1><div class="seg" style="min-width:180px">${[['tarefas', 'Tarefas'], ['semana', 'Semana']].map(([v, r]) => `<button data-a="cal-vista" data-v="${v}" class="${ui.calVista === v ? 'on' : ''}">${r}</button>`).join('')}</div></div>${erroBox()}${form}${corpo}</div>`;
+}
+
+/* ===== navegação e rotas ===== */
+const NAV = [
+  ['#/dashboard', 'Dashboard', '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>'],
+  ['#/crm', 'CRM', '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'],
+  ['#/angariacoes', 'Angariações', '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2"/>'],
+  ['#/calendario', 'Calendário', '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'],
+];
+let rotaAnterior = '';
+function render() {
+  const h = location.hash || '#/dashboard';
+  if (h !== rotaAnterior) { resetUi(); rotaAnterior = h; window.scrollTo(0, 0); }
+  const parts = h.replace(/^#\//, '').split('/');
+  const [a, b, c, d] = parts;
+  let html;
+  if (a === 'dashboard') html = viewDashboard();
+  else if (a === 'crm' && b === 'compradores') html = !c ? viewCompList() : c === 'novo' ? `<div class="stack">${voltar('#/crm/compradores', 'Compradores')}<h2>Novo comprador</h2>${formPessoa('c')}</div>` : d === 'editar' ? `<div class="stack">${voltar('#/crm/compradores/' + c, 'Cancelar')}${formPessoa('c', byId(S.compradores, c), c)}</div>` : viewCompFicha(c);
+  else if (a === 'crm' && b === 'proprietarios') html = !c ? viewPropList() : c === 'novo' ? `<div class="stack">${voltar('#/crm/proprietarios', 'Proprietários')}<h2>Novo proprietário</h2>${formPessoa('p')}</div>` : d === 'editar' ? `<div class="stack">${voltar('#/crm/proprietarios/' + c, 'Cancelar')}${formPessoa('p', byId(S.proprietarios, c), c)}</div>` : viewPropFicha(c);
+  else if (a === 'crm') { location.hash = '#/crm/compradores'; return; }
+  else if (a === 'angariacoes') html = !b ? viewAngList() : c === 'relatorio' ? viewAngRel(b) : viewAngPlano(b);
+  else if (a === 'calendario') html = viewCal();
+  else html = viewDashboard();
+  $('#app').innerHTML = html;
+  $('#nav').innerHTML = '<span class="logo serif">Cockpit<span style="color:var(--azul)">&middot;</span></span>' + NAV.map(([href, r, ic]) => `<a href="${href}" class="${h.startsWith(href) ? 'on' : ''}"><svg viewBox="0 0 24 24">${ic}</svg><span>${r}</span></a>`).join('');
+}
+const go = (hash) => { location.hash = hash; };
+const commit = () => { save(); render(); };
+const angAtual = () => byId(S.angariacoes, (location.hash.split('/')[2]) || '');
+const rid = (s) => Object.fromEntries(s.map((x) => [x.id, x]));
+
+/* ===== tarefas: marcar ===== */
+function toggleTarefa(t) {
+  t.feita = !t.feita; t.feitaEm = t.feita ? new Date().toISOString() : null;
+  if (t.acaoId) for (const a of S.angariacoes) { const x = a.acoes.find((y) => y.id === t.acaoId); if (x) { x.feita = t.feita; x.feitaEm = t.feitaEm; } }
+}
+// Na ficha do proprietário, marcar uma tarefa leva o funil para a fase correspondente (só avança).
+function tarefaDoProprietario(tid) {
+  const t = byId(S.tarefas, tid), p = t && byId(S.proprietarios, t.propId);
+  if (!t || !p) return;
+  const alvo = ESTADO_TAREFA[tipoTarefaP(t.chave)];
+  if (!t.feita && alvo === 'angariado' && p.estado !== 'perdido') { abrirFechar(p); return; }
+  toggleTarefa(t);
+  if (t.feita && alvo && p.estado !== 'perdido' && idxP(alvo) > idxP(p.estado)) { p.estado = alvo; p.estadoDesde = new Date().toISOString(); }
+  commit();
+}
+function abrirFechar(p) { ui.fechar = { titulo: [p.tipo, p.tipologia, p.freguesia || p.concelho].filter(Boolean).join(' ') || p.nome, regime: '' }; render(); }
+
+/* ===== formulários de pessoa ===== */
+function pessoaDeForm(fd, kind) {
+  const g = (k) => (fd.get(k) || '').toString().trim();
+  const numero = g('numero').replace(/\s+/g, '');
+  const o = { nome: g('nome'), tel: numero ? g('prefixo') + numero : '', email: g('email'), canal: g('canal'), obs: g('obs'), tipo: g('tipo'), tipologia: g('tipologia'), distrito: g('distrito'), concelho: g('concelho'), freguesia: g('freguesia'), valor: g('valor') === '' ? null : Number(g('valor')) };
+  if (kind === 'c') Object.assign(o, { motivacao: g('motdef') ? Number(g('motivacao')) : null, ref: g('ref'), financ: g('financ'), simul: g('simul'), precisaVender: g('precisaVender') });
+  else o.link = g('link');
+  return o;
+}
+
+/* ===== cliques ===== */
+const ACOES = {
+  repor() { if (confirm('Repor os dados de exemplo? Perdes tudo o que fizeste nesta demonstração.')) { localStorage.removeItem(KEY); S = seed(); rotaAnterior = ''; save(); go('#/dashboard'); render(); } },
+  imprimir() { window.print(); },
+  'c-vista'(el) { ui.cVista = el.dataset.v; render(); }, 'p-vista'(el) { ui.pVista = el.dataset.v; render(); }, 'cal-vista'(el) { ui.calVista = el.dataset.v; render(); },
+  'cf-mais'() { ui.cf.mais = !ui.cf.mais; render(); },
+  'cf-limpar'() { const m = ui.cf.mais; ui.cf = { tipologia: '', mot: '', vmin: '', vmax: '', d: '', c: '', f: '', tipo: '', soAl: false, mais: m }; render(); },
+  'pf-limpar'() { ui.pf = { estado: ui.pf.estado, tipo: '', tipologia: '', vmin: '', vmax: '', d: '', c: '', f: '', soAtr: false }; render(); },
+  sem(el) { ui.semana = addDays(ui.semana, Number(el.dataset.v)); render(); },
+  'c-estado'(el) { const c = byId(S.compradores, el.dataset.id), v = el.dataset.v; if (v === c.estado) return; if (v === 'negocio_concluido') concluirC(c); else { c.estado = v; c.estadoDesde = new Date().toISOString(); } commit(); },
+  'c-img-mark'(el) { const c = byId(S.compradores, el.dataset.id), i = c.imoveis.find((x) => x.id === el.dataset.img), k = el.dataset.k; i[k] = i[k] ? null : hojeISO(); if (i[k] && k === 'vis') avancarC(c, 'visitas_realizadas'); if (i[k] && k === 'prop') avancarC(c, 'propostas_efetuadas'); commit(); },
+  'c-img-del'(el) { if (!confirm('Remover este imóvel do comprador?')) return; const c = byId(S.compradores, el.dataset.id); c.imoveis = c.imoveis.filter((x) => x.id !== el.dataset.img); commit(); },
+  'c-concluir'(el) { concluirC(byId(S.compradores, el.dataset.id)); commit(); },
+  'c-apagar'(el) { const c = byId(S.compradores, el.dataset.id); if (!confirm(`Apagar ${c.nome} e todo o histórico? Não dá para desfazer.`)) return; S.compradores = S.compradores.filter((x) => x !== c); S.tarefas = S.tarefas.filter((t) => t.compId !== c.id); save(); go('#/crm/compradores'); },
+  'p-estado'(el) {
+    const p = byId(S.proprietarios, el.dataset.id), v = el.dataset.v; if (v === p.estado) return;
+    if (v === 'angariado') return abrirFechar(p);
+    const antes = p.estado; p.estado = v; p.estadoDesde = new Date().toISOString();
+    if (v !== 'perdido' && idxP(v) > idxP(antes)) concluirFase(p, v);
+    commit();
+  },
+  'p-regime'(el) { const f = $('form[data-s="p-fechar"]'); if (f) ui.fechar.titulo = f.elements.titulo.value; ui.fechar.regime = el.dataset.v; ui.fechar.dur = f && f.elements.dur.value; ui.fechar.inicio = f && f.elements.inicio.value; render(); },
+  'p-fechar-cancel'() { ui.fechar = null; render(); },
+  'p-naoang'(el) { const p = byId(S.proprietarios, el.dataset.id); p.estado = 'perdido'; p.estadoDesde = new Date().toISOString(); concluirFase(p, 'angariado'); ui.fechar = null; commit(); },
+  'p-apagar'(el) { const p = byId(S.proprietarios, el.dataset.id); if (!confirm(`Apagar ${p.nome} e todo o histórico? Não dá para desfazer.`)) return; S.proprietarios = S.proprietarios.filter((x) => x !== p); S.tarefas = S.tarefas.filter((t) => t.propId !== p.id); S.chamadas = S.chamadas.filter((c) => c.propId !== p.id); save(); go('#/crm/proprietarios'); },
+  't-toggle'(el) { toggleTarefa(byId(S.tarefas, el.dataset.tid)); commit(); },
+  't-apagar'(el) { const t = byId(S.tarefas, el.dataset.tid); if (!confirm(`Apagar "${t.titulo}"?`)) return; S.tarefas = S.tarefas.filter((x) => x !== t); commit(); },
+  'ang-nova'() { ui.nova = !ui.nova; render(); },
+  'ang-vendido'(el) { if (!confirm('Marcar como vendido? As ações por fazer saem do calendário (podes reabrir).')) return; marcarVendido(byId(S.angariacoes, el.dataset.id), hojeISO()); commit(); },
+  'ang-reabrir'(el) { marcarVendido(byId(S.angariacoes, el.dataset.id), null); commit(); },
+  'ang-apagar'(el) { const a = byId(S.angariacoes, el.dataset.id); if (!confirm('Apagar esta angariação e todo o plano? Não dá para desfazer.')) return; const ids = a.acoes.map((x) => x.id); S.tarefas = S.tarefas.filter((t) => !ids.includes(t.acaoId)); S.angariacoes = S.angariacoes.filter((x) => x !== a); save(); go('#/angariacoes'); },
+  'pl-dur'(el) { ui.plano.dur = Number(el.dataset.v); render(); },
+  'pl-editar'() { ui.editarPlano = !ui.editarPlano; render(); },
+  'pl-extra-del'(el) { ui.plano.extras.splice(Number(el.dataset.i), 1); render(); },
+  'pl-criar'(el) {
+    const a = byId(S.angariacoes, el.dataset.id), pl = ui.plano, max = nBlocos(pl.dur);
+    if (!pl.escolhidas.length && !pl.fu && !pl.extras.some((e) => e.bloco <= max)) { ui.erro = 'Escolhe pelo menos uma ação.'; return render(); }
+    ui.erro = ''; criarPlano(a, pl.escolhidas, pl.fu, pl.dur, pl.extras); ui.plano = { dur: 180, escolhidas: ACOES_PADRAO.map((x) => x[0]), fu: true, extras: [] }; commit();
+  },
+  'gr-abrir'(el) { ui.sheet = el.dataset.ac; render(); },
+  'gr-vazia'(el) { const a = angAtual(); const nome = el.dataset.nome; novaAcao(a, nome, diaIni(Number(el.dataset.b)) + (nome === NOME_FU ? 5 : 0), nome === NOME_FU); commit(); },
+  'sheet-fechar'(el, e) { if (el.classList.contains('sheetbg') && e.target.closest('[data-stop]')) return; ui.sheet = null; render(); },
+  'ac-toggle'(el) { const a = angAtual(), x = a.acoes.find((y) => y.id === el.dataset.ac); marcarAcao(a, x, !x.feita); commit(); },
+  'ac-retirar'(el) { if (!confirm('Retirar esta ação do plano?')) return; const a = angAtual(); a.acoes = a.acoes.filter((x) => x.id !== el.dataset.ac); S.tarefas = S.tarefas.filter((t) => t.acaoId !== el.dataset.ac); ui.sheet = null; commit(); },
+};
+document.addEventListener('click', (e) => { const el = e.target.closest('[data-a]'); if (!el) return; const f = ACOES[el.dataset.a]; if (f) f(el, e); });
+
+/* ===== alterações em campos ===== */
+function filtroLoc(el, ctx) {
+  const f = ctx === 'cf' ? ui.cf : ui.pf, n = el.name;
+  if (n === 'distrito') { f.d = el.value; f.c = ''; f.f = ''; } else if (n === 'concelho') { f.c = el.value; f.f = ''; } else f.f = el.value;
+  render();
+}
+function locForm(el) {
+  const box = el.closest('[data-ctx]'), sel = (n) => box.querySelector(`[name=${n}]`).value;
+  let v = { d: sel('distrito'), c: sel('concelho'), f: sel('freguesia') };
+  if (el.name === 'distrito') v = { d: v.d, c: '', f: '' }; else if (el.name === 'concelho') v.f = '';
+  box.innerHTML = locSel('form', v, true);
+}
+const CAMBIOS = {
+  cf(el) { ui.cf[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value; render(); },
+  pf(el) { ui.pf[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value; render(); },
+  vendidas(el) { ui.mostrarVendidas = el.checked; render(); },
+  'pl-acao'(el) { const n = el.dataset.nome, e = ui.plano.escolhidas; ui.plano.escolhidas = el.checked ? [...e, n] : e.filter((x) => x !== n); },
+  'pl-fu'(el) { ui.plano.fu = el.checked; },
+  'c-cpcv'(el) { const c = byId(S.compradores, el.dataset.id); c.cpcv = el.checked; c.cpcvData = el.checked ? c.cpcvData || hojeISO() : null; if (el.checked) avancarC(c, 'cpcv'); commit(); },
+  'c-escag'(el) { const c = byId(S.compradores, el.dataset.id); c.escAgendada = el.checked; if (el.checked) avancarC(c, 'escritura'); commit(); },
+  'c-data'(el) { const c = byId(S.compradores, el.dataset.id); c[el.dataset.k] = el.value || null; commit(); },
+  'c-doc'(el) { const c = byId(S.compradores, el.dataset.id), d = c.docs.find((x) => x.id === el.dataset.doc); d.ok = el.checked; commit(); },
+  'p-tarefa'(el) { tarefaDoProprietario(el.dataset.tid); },
+  'ac-fb'(el) { const x = angAtual().acoes.find((y) => y.id === el.dataset.ac); x.feedback = el.value.trim(); save(); },
+};
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.dataset.loc) return el.dataset.loc === 'form' ? locForm(el) : filtroLoc(el, el.dataset.loc);
+  const f = CAMBIOS[el.dataset.c]; if (f) f(el);
+});
+document.addEventListener('input', (e) => { const el = e.target; if (el.dataset.c === 'range') { const m = $('#motv'), h = $('[name=motdef]'); if (m) m.textContent = el.value; if (h) h.value = '1'; } });
+
+/* ===== submissão de formulários ===== */
+const SUBMIT = {
+  'c-form'(f) { const id = f.dataset.id, o = pessoaDeForm(new FormData(f), 'c'); if (id) Object.assign(byId(S.compradores, id), o); else { const c = { id: uid(), estado: 'lead_qualificada', estadoDesde: new Date().toISOString(), cpcv: false, cpcvData: null, escAgendada: false, escData: null, escPrazo: null, docs: [], imoveis: [], ...o }; S.compradores.unshift(c); save(); return go('#/crm/compradores/' + c.id); } save(); go('#/crm/compradores/' + id); },
+  'p-form'(f) { const id = f.dataset.id, o = pessoaDeForm(new FormData(f), 'p'); if (id) Object.assign(byId(S.proprietarios, id), o); else { const p = { id: uid(), estado: 'fsbo', estadoDesde: new Date().toISOString(), reuniaoEm: null, ...o }; S.proprietarios.unshift(p); save(); return go('#/crm/proprietarios/' + p.id); } save(); go('#/crm/proprietarios/' + id); },
+  'c-img-add'(f) { const c = byId(S.compradores, f.dataset.id), d = f.elements.desc.value.trim(); if (!d) return; c.imoveis.push({ id: uid(), desc: d, env: hojeISO(), vis: null, prop: null }); avancarC(c, 'imoveis_enviados'); commit(); },
+  'c-doc-add'(f) { const c = byId(S.compradores, f.dataset.id), n = f.elements.nome.value.trim(); if (!n) return; c.docs.push({ id: uid(), nome: n, ok: false }); commit(); },
+  'p-reuniao'(f) { const p = byId(S.proprietarios, f.dataset.id), q = new Date(f.elements.quando.value); p.reuniaoEm = q.toISOString(); if (p.estado === 'fsbo') { p.estado = 'reuniao_marcada'; p.estadoDesde = new Date().toISOString(); } agendarFU(p, q); commit(); },
+  'p-chamada'(f) { const p = byId(S.proprietarios, f.dataset.id); S.chamadas.push({ id: uid(), propId: p.id, quando: new Date(f.elements.quando.value).toISOString(), obs: f.elements.obs.value.trim() }); commit(); },
+  'p-fechar'(f) {
+    const p = byId(S.proprietarios, f.dataset.id); if (!ui.fechar || !ui.fechar.regime) return;
+    if (!S.angariacoes.some((a) => a.propId === p.id)) S.angariacoes.push({ id: uid(), propId: p.id, titulo: f.elements.titulo.value.trim(), duracao: Number(f.elements.dur.value), regime: ui.fechar.regime, inicio: f.elements.inicio.value, vendidoEm: null, acoes: [] });
+    p.estado = 'angariado'; p.estadoDesde = new Date().toISOString(); concluirFase(p, 'angariado'); ui.fechar = null; commit();
+  },
+  'ang-criar'(f) { const e = f.elements; const a = { id: uid(), propId: null, titulo: e.titulo.value.trim(), duracao: Number(e.dur.value), regime: e.regime.value || null, inicio: e.inicio.value, vendidoEm: null, acoes: [] }; S.angariacoes.unshift(a); ui.nova = false; save(); go('#/angariacoes/' + a.id); },
+  'pl-extra'(f) { ui.plano.extras.push({ nome: f.elements.nome.value.trim(), bloco: Number(f.elements.bloco.value) }); render(); },
+  'ac-juntar'(f) { const a = byId(S.angariacoes, f.dataset.id), nome = f.elements.nome.value.trim(), b = Number(f.elements.bloco.value); if (!nome) return; const fu = nome === NOME_FU; novaAcao(a, nome, diaIni(b) + (fu ? 5 : 0), fu); commit(); },
+  't-nova'(f) { const e = f.elements; addTarefa({ titulo: e.titulo.value.trim(), tipo: e.tipo.value, inicio: e.quando.value ? fromLocalInput(e.quando.value) : null }); commit(); },
+};
+document.addEventListener('submit', (e) => { const f = e.target; const fn = SUBMIT[f.dataset.s]; if (fn) { e.preventDefault(); fn(f); } });
+
+/* ===== arranque ===== */
+S = load();
+save();
+window.addEventListener('hashchange', render);
+render();
+
+</script>
+</body>
+</html>
