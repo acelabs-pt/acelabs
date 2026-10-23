@@ -203,3 +203,32 @@ export async function contarNovasPorComprador(): Promise<Record<string, number>>
   for (const c of r.data) por[c.comprador_id] = (por[c.comprador_id] ?? 0) + 1;
   return por;
 }
+
+/**
+ * Procura todos os pares comprador e imóvel de uma vez (depois de importar listas grandes).
+ * Só acrescenta alertas novos; os que já existem, respondidos ou não, ficam como estão.
+ * Devolve quantos alertas novos criou.
+ */
+export async function atualizarTodas(): Promise<number> {
+  const sb = sbBrowser();
+  const [{ compradores, zonas }, ang, prop, ex] = await Promise.all([
+    compradoresAProcurar(),
+    todas<AngariacaoRow>((de, ate) => sb.from("angariacoes").select(`id, vendido_em, ${COLUNAS_IMOVEL}`).is("vendido_em", null).order("id").range(de, ate)),
+    todas<ProprietarioRow>((de, ate) =>
+      sb.from("proprietarios").select(`id, estado, ${COLUNAS_IMOVEL}`).not("estado", "in", "(angariado,perdido)").order("id").range(de, ate)
+    ),
+    todas<{ comprador_id: string; angariacao_id: string | null; proprietario_id: string | null }>((de, ate) =>
+      sb.from("correspondencias").select("comprador_id, angariacao_id, proprietario_id").order("id").range(de, ate)
+    ),
+  ]);
+  const existentes = new Set(ex.data.map((e) => `${e.comprador_id}:${e.angariacao_id ?? e.proprietario_id}`));
+  const novos: Novo[] = [];
+  for (const c of compradores) {
+    const z = zonas[c.id] ?? [];
+    if (z.length === 0) continue;
+    for (const a of ang.data) if (corresponde(c, z, a) && !existentes.has(`${c.id}:${a.id}`)) novos.push({ comprador_id: c.id, angariacao_id: a.id });
+    for (const p of prop.data) if (corresponde(c, z, p) && !existentes.has(`${c.id}:${p.id}`)) novos.push({ comprador_id: c.id, proprietario_id: p.id });
+  }
+  await inserirNovos(novos, new Set(), () => "");
+  return novos.length;
+}

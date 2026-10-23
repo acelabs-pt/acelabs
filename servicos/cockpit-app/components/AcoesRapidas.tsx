@@ -10,6 +10,7 @@ const ACOES = [
   { href: "/crm/proprietarios/novo", rotulo: "Novo proprietário", sub: "Um imóvel por angariar" },
   { href: "/calendario?novo=tarefa", rotulo: "Nova tarefa", sub: "Algo para não esquecer" },
   { href: "/angariacoes?novo=1", rotulo: "Nova angariação", sub: "Um contrato assinado" },
+  { href: "/importar", rotulo: "Importar lista", sub: "Do Excel ou do Google Sheets" },
 ];
 
 // Botão "+" fixo, sempre à mão: as quatro coisas que mais se criam no terreno.
@@ -18,7 +19,7 @@ export default function AcoesRapidas() {
   const [aberto, setAberto] = useState(false);
   const arrasto = useArrastarParaFechar(() => setAberto(false));
   // Nos formulários o botão atrapalha (tapa o botão de guardar).
-  if (pathname.endsWith("/novo")) return null;
+  if (pathname.endsWith("/novo") || pathname.startsWith("/importar")) return null;
 
   return (
     <>

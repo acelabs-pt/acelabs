@@ -108,7 +108,7 @@ export function linhasDoPlano(
   return linhas;
 }
 
-function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">) {
+export function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">) {
   const quando = dataDoDia(ang.inicio, a.dia);
   quando.setHours(9, 0, 0, 0);
   return {
