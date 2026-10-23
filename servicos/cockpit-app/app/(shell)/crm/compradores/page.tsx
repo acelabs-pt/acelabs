@@ -5,6 +5,8 @@ import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import BarraPesquisaFiltros from "@/components/BarraPesquisaFiltros";
+import { combina } from "@/lib/pesquisa";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import { contarNovasPorComprador } from "@/lib/oportunidades";
@@ -63,6 +65,8 @@ export default function ListaCompradores() {
   const [valorMax, setValorMax] = useState("");
   const [motivacaoMin, setMotivacaoMin] = useState("");
   const [soAlertas, setSoAlertas] = useState(false);
+  const [pesquisa, setPesquisa] = useState("");
+  const [painel, setPainel] = useState(false);
   // Fase vinda de um toque no Dashboard (?fase=cpcv): mostra só essa fase, concluídos incluídos.
   const [fase, setFase] = useState("");
   useEffect(() => {
@@ -109,9 +113,10 @@ export default function ListaCompradores() {
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
       if (soAlertas && !alertaLaranja(c)) return false;
       if (fase && c.estado !== fase) return false;
+      if (!combina(pesquisa, [c.contactos.nome, c.contactos.telemovel, c.contactos.email, c.concelho, c.freguesia, c.distrito, c.referencia_imovel])) return false;
       return true;
     });
-  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase]);
+  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase, pesquisa]);
 
   // Lista: só em curso. Funil: todas as fases, incluindo concluídos (os perdidos ficam de fora).
   const filtrados = useMemo(
@@ -127,7 +132,7 @@ export default function ListaCompradores() {
 
   const sel = "rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm";
   const nVisiveis = vista === "lista" ? filtrados.length : filtradosBase.filter((c) => c.estado !== "perdido").length;
-  const temFiltros = Boolean(tipo || tipologia || local.distrito || valorMin || valorMax || motivacaoMin || soAlertas);
+  const temFiltros = Boolean(pesquisa || tipo || tipologia || local.distrito || valorMin || valorMax || motivacaoMin || soAlertas);
   function limpar() {
     setTipo("");
     setTipologia("");
@@ -136,6 +141,7 @@ export default function ListaCompradores() {
     setValorMax("");
     setMotivacaoMin("");
     setSoAlertas(false);
+    setPesquisa("");
   }
 
   return (
@@ -158,6 +164,15 @@ export default function ListaCompradores() {
       </div>
 
       <div className="space-y-2 rounded-2xl bg-white p-3 shadow-sm">
+        <BarraPesquisaFiltros
+          pesquisa={pesquisa}
+          onPesquisa={setPesquisa}
+          aberto={painel}
+          onAlternar={() => setPainel((x) => !x)}
+          nAtivos={[tipo, tipologia, local.distrito, valorMin, valorMax, motivacaoMin].filter(Boolean).length + (soAlertas ? 1 : 0)}
+        />
+        {painel && (
+        <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
           <select value={tipologia} onChange={(e) => setTipologia(e.target.value)} className={sel}>
             <option value="">Tipologia</option>
@@ -189,14 +204,19 @@ export default function ListaCompradores() {
           </div>
         )}
 
+        </div>
+        )}
+
         <div className="flex items-center justify-between text-xs text-secundario">
           <span>
             {nVisiveis} {nVisiveis === 1 ? "comprador" : "compradores"}
           </span>
           <div className="flex gap-3">
-            <button onClick={() => setFiltrosAbertos((x) => !x)} className="underline">
-              {filtrosAbertos ? "Menos filtros" : "Mais filtros"}
-            </button>
+            {painel && (
+              <button onClick={() => setFiltrosAbertos((x) => !x)} className="underline">
+                {filtrosAbertos ? "Menos filtros" : "Mais filtros"}
+              </button>
+            )}
             {temFiltros && (
               <button onClick={limpar} className="font-medium text-azul">Limpar</button>
             )}
@@ -220,7 +240,7 @@ export default function ListaCompradores() {
         <Funil compradores={filtradosBase} contagens={contagens} novas={novas} />
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
-          {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : "Nenhum comprador com estes filtros."}
+          {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum comprador com estes filtros."}
         </p>
       ) : (
         <>

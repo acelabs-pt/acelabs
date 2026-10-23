@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import BarraPesquisaFiltros from "@/components/BarraPesquisaFiltros";
+import { combina } from "@/lib/pesquisa";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
@@ -30,6 +32,8 @@ export default function ListaProprietarios() {
   const [valorMin, setValorMin] = useState("");
   const [valorMax, setValorMax] = useState("");
   const [soAtrasados, setSoAtrasados] = useState(false);
+  const [pesquisa, setPesquisa] = useState("");
+  const [painel, setPainel] = useState(false);
   // Fase vinda de um toque no Dashboard (?fase=fsbo)
   const [fase, setFase] = useState("");
   useEffect(() => {
@@ -85,10 +89,11 @@ export default function ListaProprietarios() {
         if (valorMin && (p.valor ?? -1) < Number(valorMin)) return false;
         if (valorMax && (p.valor ?? Infinity) > Number(valorMax)) return false;
         if (soAtrasados && !atrasado(p.id)) return false;
+        if (!combina(pesquisa, [p.contactos.nome, p.contactos.telemovel, p.contactos.email, p.concelho, p.freguesia, p.distrito])) return false;
         return true;
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props, proximas, tipo, tipologia, local, valorMin, valorMax, soAtrasados]
+    [props, proximas, tipo, tipologia, local, valorMin, valorMax, soAtrasados, pesquisa]
   );
 
   const lista = useMemo(
@@ -110,7 +115,7 @@ export default function ListaProprietarios() {
   }, [base]);
 
   const nVisiveis = vista === "lista" ? lista.length : base.filter((p) => p.estado !== "perdido").length;
-  const temFiltros = Boolean(tipo || tipologia || local.distrito || valorMin || valorMax || soAtrasados);
+  const temFiltros = Boolean(pesquisa || tipo || tipologia || local.distrito || valorMin || valorMax || soAtrasados);
   function limpar() {
     setTipo("");
     setTipologia("");
@@ -118,6 +123,7 @@ export default function ListaProprietarios() {
     setValorMin("");
     setValorMax("");
     setSoAtrasados(false);
+    setPesquisa("");
   }
   const sel = "rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm";
 
@@ -141,6 +147,15 @@ export default function ListaProprietarios() {
       </div>
 
       <div className="space-y-2 rounded-2xl bg-white p-3 shadow-sm">
+        <BarraPesquisaFiltros
+          pesquisa={pesquisa}
+          onPesquisa={setPesquisa}
+          aberto={painel}
+          onAlternar={() => setPainel((x) => !x)}
+          nAtivos={[tipo, tipologia, local.distrito, valorMin, valorMax].filter(Boolean).length + (soAtrasados ? 1 : 0) + (estado !== "seguimento" ? 1 : 0)}
+        />
+        {painel && (
+        <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {vista === "lista" ? (
             <select value={estado} onChange={(e) => setEstado(e.target.value as FiltroEstado)} className={sel}>
@@ -172,6 +187,9 @@ export default function ListaProprietarios() {
           <input type="checkbox" checked={soAtrasados} onChange={(e) => setSoAtrasados(e.target.checked)} />
           Só com follow up em atraso
         </label>
+        </div>
+        )}
+
         <div className="flex items-center justify-between text-xs text-secundario">
           <span>{nVisiveis} {nVisiveis === 1 ? "proprietário" : "proprietários"}</span>
           {temFiltros && <button onClick={limpar} className="font-medium text-azul">Limpar</button>}
@@ -194,7 +212,7 @@ export default function ListaProprietarios() {
         <Funil props={base} proximas={proximas} atrasado={atrasado} />
       ) : lista.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
-          {props.length === 0 ? "Ainda não há proprietários. Cria o primeiro." : "Nenhum proprietário com estes filtros."}
+          {props.length === 0 ? "Ainda não há proprietários. Cria o primeiro." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum proprietário com estes filtros."}
         </p>
       ) : (
         <>
