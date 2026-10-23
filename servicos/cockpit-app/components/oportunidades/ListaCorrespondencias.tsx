@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
 import type { Correspondencia } from "@/lib/oportunidades";
 
 // Lista de alertas de correspondência. "imovel" mostra o imóvel (ficha do comprador),
@@ -22,7 +23,12 @@ export default function ListaCorrespondencias({
         const compradorNome = c.compradores?.contactos.nome ?? "Comprador";
         const compradorHref = `/crm/compradores/${c.comprador_id}`;
         return (
-          <li key={c.id} className="space-y-2 rounded-2xl bg-azul-suave p-3">
+          <li key={c.id}>
+            <SwipeLinha
+              direita={c.estado === "faz_sentido" ? undefined : { rotulo: "Faz sentido", classe: "bg-verde text-white", onAcao: () => onResponder(c, "faz_sentido") }}
+              esquerda={{ rotulo: "Descartar", classe: "bg-secundario text-white", onAcao: () => onResponder(c, "descartada") }}
+            >
+            <div className="space-y-2 rounded-2xl bg-azul-suave p-3">
             <p className="text-sm text-tinta">
               {mostrar !== "imovel" && (
                 <Link href={compradorHref} className="font-semibold">
@@ -60,6 +66,8 @@ export default function ListaCorrespondencias({
                 </button>
               </div>
             )}
+            </div>
+            </SwipeLinha>
           </li>
         );
       })}

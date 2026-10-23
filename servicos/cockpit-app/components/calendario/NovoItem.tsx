@@ -1,5 +1,6 @@
 "use client";
 
+import { useArrastarParaFechar } from "@/components/gestos/useGestos";
 import { useState } from "react";
 import { isoDataLocal } from "@/lib/datas";
 
@@ -10,14 +11,17 @@ export default function NovoItem({
   inicial,
   onFechar,
   onCriar,
+  tipoInicial = "evento",
 }: {
   inicial: Date;
+  tipoInicial?: "tarefa" | "evento";
   onFechar: () => void;
   onCriar: (v: NovoValores) => Promise<void>;
 }) {
+  const arrasto = useArrastarParaFechar(onFechar);
   const temHora = inicial.getHours() !== 0 || inicial.getMinutes() !== 0;
   const [titulo, setTitulo] = useState("");
-  const [tipo, setTipo] = useState<"tarefa" | "evento">("evento");
+  const [tipo, setTipo] = useState<"tarefa" | "evento">(tipoInicial);
   const [data, setData] = useState(isoDataLocal(inicial));
   const [diaInteiro, setDiaInteiro] = useState(false);
   const hh = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -45,8 +49,12 @@ export default function NovoItem({
       <form
         onSubmit={guardar}
         onClick={(e) => e.stopPropagation()}
+        {...arrasto.painel}
         className="w-full max-w-md space-y-3 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] md:rounded-3xl"
       >
+        <div {...arrasto.pega} className="-mt-2 flex justify-center py-2 md:hidden" aria-hidden="true">
+          <span className="h-1.5 w-10 rounded-full bg-black/15" />
+        </div>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-tinta">Novo</h3>
           <button type="button" onClick={onFechar} aria-label="Fechar" className="p-1 text-2xl leading-none text-secundario">

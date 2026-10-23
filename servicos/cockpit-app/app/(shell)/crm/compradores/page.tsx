@@ -5,6 +5,8 @@ import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import { swipeContacto } from "@/components/gestos/contacto";
 import { contarNovasPorComprador } from "@/lib/oportunidades";
 import {
   FUNIL,
@@ -206,7 +208,8 @@ export default function ListaCompradores() {
             const alerta = alertaLaranja(c);
             return (
               <li key={c.id}>
-                <Link href={`/crm/compradores/${c.id}`} className="block rounded-2xl bg-white p-4 shadow-sm">
+                <SwipeLinha {...swipeContacto(c.contactos.telemovel)}>
+                <Link href={`/crm/compradores/${c.id}`} className="block rounded-2xl border border-linha bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -229,6 +232,7 @@ export default function ListaCompradores() {
                     <p className="mt-2 rounded-lg bg-ambar-fundo px-2.5 py-1.5 text-xs font-medium text-ambar-texto">{alerta}</p>
                   )}
                 </Link>
+                </SwipeLinha>
               </li>
             );
           })}
@@ -249,7 +253,7 @@ function Funil({
   novas: Record<string, number>;
 }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+    <div data-no-swipe className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
       <div className="flex gap-3">
         {FUNIL.map((fase) => {
           const daFase = compradores.filter((c) => c.estado === fase.id);

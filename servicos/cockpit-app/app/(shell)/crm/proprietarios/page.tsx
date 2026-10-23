@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import { swipeContacto } from "@/components/gestos/contacto";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
 import { FUNIL_PROP, labelEstadoProp, type Proprietario } from "@/lib/proprietario";
@@ -178,7 +180,9 @@ export default function ListaProprietarios() {
         <ul className="space-y-2">
           {lista.map((p) => (
             <li key={p.id}>
-              <Cartao p={p} proxima={proximas[p.id]} atrasado={atrasado(p.id)} />
+              <SwipeLinha {...swipeContacto(p.contactos.telemovel)}>
+                <Cartao p={p} proxima={proximas[p.id]} atrasado={atrasado(p.id)} />
+              </SwipeLinha>
             </li>
           ))}
         </ul>
@@ -189,7 +193,7 @@ export default function ListaProprietarios() {
 
 function Cartao({ p, proxima, atrasado, compacto }: { p: Proprietario; proxima?: ProximaAcao; atrasado: boolean; compacto?: boolean }) {
   return (
-    <Link href={`/crm/proprietarios/${p.id}`} className={`block rounded-2xl bg-white shadow-sm ${compacto ? "rounded-xl p-3" : "p-4"}`}>
+    <Link href={`/crm/proprietarios/${p.id}`} className={`block rounded-2xl border border-linha bg-white ${compacto ? "rounded-xl p-3" : "p-4"}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className={`truncate font-semibold text-tinta ${compacto ? "text-sm" : "text-base"}`}>{p.contactos.nome}</p>
@@ -226,7 +230,7 @@ function Funil({
   atrasado: (id: string) => boolean;
 }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+    <div data-no-swipe className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
       <div className="flex gap-3">
         {FUNIL_PROP.map((fase) => {
           const daFase = props.filter((p) => p.estado === fase.id);

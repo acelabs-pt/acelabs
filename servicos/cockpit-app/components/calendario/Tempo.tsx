@@ -39,7 +39,7 @@ export default function Tempo({
   const haDiaInteiro = diasInteiros.some((x) => x.length > 0);
 
   return (
-    <div ref={cont} className="max-h-[68vh] overflow-auto rounded-2xl bg-white shadow-sm">
+    <div ref={cont} data-no-swipe={n > 1 ? "" : undefined} className="max-h-[68vh] overflow-auto rounded-2xl bg-white shadow-sm">
       <div style={{ minWidth: n > 1 ? 620 : 0 }}>
         <div className="sticky top-0 z-20 border-b border-black/10 bg-white">
           <div className="grid" style={{ gridTemplateColumns: cols }}>

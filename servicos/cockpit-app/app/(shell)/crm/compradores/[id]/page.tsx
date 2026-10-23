@@ -6,6 +6,7 @@ import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import FormComprador, { guardarZonas, nomeZona, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
 import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
@@ -296,7 +297,19 @@ export default function FichaComprador() {
 
         <ul className="space-y-2 pt-1">
           {imoveis.map((i) => (
-            <li key={i.id} className="rounded-xl border border-black/10 p-3">
+            <li key={i.id}>
+              <SwipeLinha
+                className="rounded-xl"
+                direita={
+                  !i.visitado_em
+                    ? { rotulo: "Visitado", classe: "bg-verde text-white", onAcao: () => alternarMarco(i, "visitado_em") }
+                    : !i.proposta_em
+                    ? { rotulo: "Proposta", classe: "bg-verde text-white", onAcao: () => alternarMarco(i, "proposta_em") }
+                    : undefined
+                }
+                esquerda={{ rotulo: "Remover", classe: "bg-red-600 text-white", onAcao: () => apagarImovel(i) }}
+              >
+              <div className="rounded-xl border border-black/10 bg-white p-3">
               <div className="flex items-start justify-between gap-2">
                 {i.link ? (
                   <a href={i.link} target="_blank" rel="noreferrer" className="min-w-0 truncate text-sm text-azul">{i.link}</a>
@@ -320,6 +333,8 @@ export default function FichaComprador() {
                   </button>
                 ))}
               </div>
+              </div>
+              </SwipeLinha>
             </li>
           ))}
         </ul>
@@ -397,10 +412,15 @@ export default function FichaComprador() {
           <ul className="space-y-1.5">
             {docs.map((d) => (
               <li key={d.id}>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
-                  <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
-                </label>
+                <SwipeLinha
+                  className="rounded-lg"
+                  direita={{ rotulo: d.entregue ? "Por entregar" : "Entregue", classe: d.entregue ? "bg-secundario text-white" : "bg-verde text-white", onAcao: () => alternarDoc(d) }}
+                >
+                  <label className="flex items-center gap-2 bg-white py-1 text-sm">
+                    <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
+                    <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
+                  </label>
+                </SwipeLinha>
               </li>
             ))}
           </ul>

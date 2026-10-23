@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDoDia, somarDias } from "@/lib/datas";
 
 // Tarefas em atraso e de hoje. Marcar aqui é o mesmo que marcar no Calendário.
-export default function Hoje({ tarefas, onAlternar }: { tarefas: Tarefa[]; onAlternar: (t: Tarefa) => void }) {
+export default function Hoje({ tarefas, onAlternar, onAdiar }: { tarefas: Tarefa[]; onAlternar: (t: Tarefa) => void; onAdiar: (t: Tarefa) => void }) {
   const hoje = inicioDoDia(new Date());
   const amanha = somarDias(hoje, 1);
   const lista = tarefas
@@ -38,18 +39,29 @@ export default function Hoje({ tarefas, onAlternar }: { tarefas: Tarefa[]; onAlt
           {mostradas.map((t) => {
             const atrasada = new Date(t.inicio!) < hoje;
             return (
-              <li key={t.id} className="flex items-center gap-3">
-                <button
-                  onClick={() => onAlternar(t)}
-                  aria-label="Marcar como feita"
-                  className="h-6 w-6 shrink-0 rounded-full border-2 border-black/20"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-tinta">{t.titulo}</p>
-                  <p className={`text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                    {atrasada ? `${formatarDia(new Date(t.inicio!))} · em atraso` : formatarHora(t.inicio!) || "Hoje"}
-                  </p>
-                </div>
+              <li key={t.id}>
+                <SwipeLinha
+                  className="rounded-xl"
+                  direita={{ rotulo: "Feita", classe: "bg-verde text-white", onAcao: () => onAlternar(t) }}
+                  esquerda={{ rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) }}
+                >
+                  <div className="flex items-center gap-3 bg-white py-1.5">
+                    <button
+                      onClick={() => onAlternar(t)}
+                      aria-label="Marcar como feita"
+                      className="h-6 w-6 shrink-0 rounded-full border-2 border-black/20"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-tinta">{t.titulo}</p>
+                      <p className={`text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
+                        {atrasada ? `${formatarDia(new Date(t.inicio!))} · em atraso` : formatarHora(t.inicio!) || "Hoje"}
+                      </p>
+                    </div>
+                    <button onClick={() => onAdiar(t)} className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-secundario">
+                      Adiar
+                    </button>
+                  </div>
+                </SwipeLinha>
               </li>
             );
           })}

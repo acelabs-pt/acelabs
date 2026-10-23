@@ -6,7 +6,10 @@ import { todas } from "@/lib/todas";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
-import { marcarTarefa } from "@/lib/tarefas";
+import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import AdiarFolha from "@/components/gestos/AdiarFolha";
+import { useSwipeNav } from "@/components/gestos/useGestos";
 import Mes from "@/components/calendario/Mes";
 import Tempo from "@/components/calendario/Tempo";
 import DetalheItem from "@/components/calendario/DetalheItem";
@@ -41,6 +44,18 @@ export default function CalendarioApp() {
   const [erro, setErro] = useState<string | null>(null);
   const [aberta, setAberta] = useState<string | null>(null);
   const [novo, setNovo] = useState<Date | null>(null);
+  const [adiar, setAdiar] = useState<Tarefa | null>(null);
+  const [tipoNovo, setTipoNovo] = useState<"tarefa" | "evento">("evento");
+
+  // "Nova tarefa" do botão + vem com ?novo=tarefa
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("novo") === "tarefa") {
+      setVista("tarefas");
+      setTipoNovo("tarefa");
+      setNovo(inicioDoDia(new Date()));
+      window.history.replaceState(null, "", "/calendario");
+    }
+  }, []);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -85,6 +100,7 @@ export default function CalendarioApp() {
     const { error } = await sbBrowser().from("tarefas").insert(v);
     if (error) return setErro("Não foi possível criar.");
     setNovo(null);
+    setTipoNovo("evento");
     if (v.inicio) setRef(inicioDoDia(new Date(v.inicio)));
     await carregar();
   }
@@ -93,12 +109,22 @@ export default function CalendarioApp() {
     setRef((r) => (vista === "mes" ? somarMeses(r, sentido) : somarDias(r, (vista === "semana" ? 7 : 1) * sentido)));
   }
 
+  async function adiarPara(dia: Date) {
+    const t = adiar;
+    setAdiar(null);
+    if (!t) return;
+    const e = await adiarTarefa(t, dia);
+    if (e) setErro(e);
+    await carregar();
+  }
+
+  const nav = useSwipeNav(mover);
   const itemAberto = tarefas.find((t) => t.id === aberta) ?? null;
   const diaEscolhido = doDia(ocs, ref).sort((a, b) => a.ini.getTime() - b.ini.getTime());
   const botao = "rounded-lg bg-white px-3 py-1.5 text-sm font-medium shadow-sm";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" {...(vista !== "tarefas" ? nav : {})}>
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold text-tinta">Calendário</h1>
         <button
@@ -144,7 +170,7 @@ export default function CalendarioApp() {
       {aCarregar ? (
         <p className="text-sm text-secundario">A carregar...</p>
       ) : vista === "tarefas" ? (
-        <ListaTarefas tarefas={tarefas} onAlternar={alternarFeita} onApagar={apagar} />
+        <ListaTarefas tarefas={tarefas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} />
       ) : vista === "mes" ? (
         <>
           <Mes ref_={ref} ocs={ocs} onEscolher={setRef} />
@@ -160,7 +186,7 @@ export default function CalendarioApp() {
             ) : (
               <ul className="space-y-2">
                 {diaEscolhido.map((o) => (
-                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAbrir={() => setAberta(o.t.id)} />
+                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAdiar={setAdiar} onAbrir={() => setAberta(o.t.id)} />
                 ))}
               </ul>
             )}
@@ -184,7 +210,8 @@ export default function CalendarioApp() {
           onApagar={() => apagar(itemAberto)}
         />
       )}
-      {novo && <NovoItem key={novo.getTime()} inicial={novo} onFechar={() => setNovo(null)} onCriar={criar} />}
+      {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}
+      {novo && <NovoItem key={novo.getTime()} inicial={novo} tipoInicial={tipoNovo} onFechar={() => { setNovo(null); setTipoNovo("evento"); }} onCriar={criar} />}
     </div>
   );
 }
@@ -193,18 +220,25 @@ function LinhaTarefa({
   t,
   onAlternar,
   onApagar,
+  onAdiar,
   onAbrir,
   atrasada,
 }: {
   t: Tarefa;
   onAlternar: (t: Tarefa) => void;
   onApagar?: (t: Tarefa) => void;
+  onAdiar?: (t: Tarefa) => void;
   onAbrir?: () => void;
   atrasada?: boolean;
 }) {
   const hora = t.inicio ? formatarHora(t.inicio) : "";
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm">
+    <li>
+      <SwipeLinha
+        direita={{ rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-white" : "bg-verde text-white", onAcao: () => onAlternar(t) }}
+        esquerda={onAdiar && !t.feita ? { rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) } : undefined}
+      >
+    <div className="flex items-center gap-3 rounded-2xl border border-linha bg-white px-3 py-3">
       <button
         onClick={() => onAlternar(t)}
         aria-label={t.feita ? "Marcar como por fazer" : "Marcar como feita"}
@@ -227,6 +261,11 @@ function LinhaTarefa({
           {[t.inicio ? formatarDia(new Date(t.inicio)) : "Sem data", hora, ORIGEM_LABEL[t.origem]].filter(Boolean).join(" · ")}
         </p>
       </button>
+      {onAdiar && !t.feita && (
+        <button onClick={() => onAdiar(t)} className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-secundario">
+          Adiar
+        </button>
+      )}
       {onApagar && (
         <button onClick={() => onApagar(t)} aria-label="Apagar" className="p-2 text-secundario">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
@@ -234,6 +273,8 @@ function LinhaTarefa({
           </svg>
         </button>
       )}
+    </div>
+      </SwipeLinha>
     </li>
   );
 }
@@ -242,10 +283,12 @@ function ListaTarefas({
   tarefas,
   onAlternar,
   onApagar,
+  onAdiar,
 }: {
   tarefas: Tarefa[];
   onAlternar: (t: Tarefa) => void;
   onApagar: (t: Tarefa) => void;
+  onAdiar: (t: Tarefa) => void;
 }) {
   const grupos = useMemo(() => {
     const hoje = inicioDoDia(new Date());
@@ -288,7 +331,7 @@ function ListaTarefas({
               </h2>
               <ul className="space-y-2">
                 {lista.map((t) => (
-                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} atrasada={atrasada} />
+                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} onAdiar={onAdiar} atrasada={atrasada} />
                 ))}
               </ul>
             </section>
