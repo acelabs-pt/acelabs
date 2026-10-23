@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
@@ -10,6 +11,7 @@ import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import AdiarFolha from "@/components/gestos/AdiarFolha";
 import { useSwipeNav } from "@/components/gestos/useGestos";
+import { useToast } from "@/components/Toast";
 import Mes from "@/components/calendario/Mes";
 import Tempo from "@/components/calendario/Tempo";
 import DetalheItem from "@/components/calendario/DetalheItem";
@@ -46,6 +48,7 @@ export default function CalendarioApp() {
   const [novo, setNovo] = useState<Date | null>(null);
   const [adiar, setAdiar] = useState<Tarefa | null>(null);
   const [tipoNovo, setTipoNovo] = useState<"tarefa" | "evento">("evento");
+  const { avisar } = useToast();
   // Na lista de tarefas só vêm as mais recentes em atraso; este é o total real.
   const [totalAtrasadas, setTotalAtrasadas] = useState(0);
 
@@ -118,6 +121,8 @@ export default function CalendarioApp() {
     if (e) {
       setErro(e);
       carregar(true);
+    } else if (feita) {
+      avisar("Tarefa feita.", { rotulo: "Desfazer", onAcao: () => alternarFeita({ ...t, feita: true }) });
     }
   }
 
@@ -158,6 +163,16 @@ export default function CalendarioApp() {
     if (!t) return;
     const e = await adiarTarefa(t, dia);
     if (e) setErro(e);
+    else if (t.inicio) {
+      const antes = inicioDoDia(new Date(t.inicio));
+      avisar(`Adiada para ${formatarDia(dia)}.`, {
+        rotulo: "Desfazer",
+        onAcao: async () => {
+          await adiarTarefa(t, antes);
+          await carregar(true);
+        },
+      });
+    }
     await carregar(true);
   }
 
@@ -211,7 +226,7 @@ export default function CalendarioApp() {
       )}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : vista === "tarefas" ? (
         <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} />
       ) : vista === "mes" ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -85,7 +86,7 @@ export default function PlanoAngariacao() {
   }
 
   if (erro && !ang) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!ang) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!ang) return <EsqueletoLista n={3} />;
 
   const dia = diaDeHoje(ang.inicio);
   const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";

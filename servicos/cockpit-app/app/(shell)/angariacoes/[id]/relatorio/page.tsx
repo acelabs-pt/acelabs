@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -27,7 +28,7 @@ export default function Relatorio() {
     })();
   }, [id]);
 
-  if (!ang) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!ang) return <EsqueletoLista n={3} />;
 
   const feitas = acoes.filter((a) => a.feita).sort((a, b) => (a.feita_em ?? "").localeCompare(b.feita_em ?? ""));
   // O relatório vai para o proprietário: só mostra o que foi feito e o que ainda vem.

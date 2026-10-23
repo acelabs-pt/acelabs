@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
@@ -235,7 +236,7 @@ export default function ListaCompradores() {
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : vista === "funil" ? (
         <Funil compradores={filtradosBase} contagens={contagens} novas={novas} />
       ) : filtrados.length === 0 ? (

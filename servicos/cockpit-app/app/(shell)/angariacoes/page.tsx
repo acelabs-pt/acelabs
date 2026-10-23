@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -76,7 +77,7 @@ export default function Angariacoes() {
       )}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : visiveis.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
           Ainda não há angariações. Fecha uma no CRM de proprietários ou cria uma aqui.

@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
@@ -207,7 +208,7 @@ export default function ListaProprietarios() {
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : vista === "funil" ? (
         <Funil props={base} proximas={proximas} atrasado={atrasado} />
       ) : lista.length === 0 ? (

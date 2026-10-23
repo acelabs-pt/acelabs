@@ -107,3 +107,15 @@ input[type="search"]::-webkit-search-decoration {
   display: none;
   -webkit-appearance: none;
 }
+
+/* Aviso com "Desfazer" */
+@keyframes toast-entrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.anim-toast {
+  animation: toast-entrada 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-toast { animation: none !important; }
+}

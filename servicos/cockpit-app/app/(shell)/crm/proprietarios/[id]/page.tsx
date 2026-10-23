@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -183,7 +184,7 @@ export default function FichaProprietario() {
   }
 
   if (erro && !p) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!p) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!p) return <EsqueletoLista n={3} />;
 
   const tel = p.contactos.telemovel;
   const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";

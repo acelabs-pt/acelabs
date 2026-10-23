@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -176,7 +177,7 @@ export default function FichaComprador() {
   }
 
   if (erro && !c) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!c) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!c) return <EsqueletoLista n={3} />;
 
   const n = contar(imoveis);
   const alerta = alertaLaranja(c);

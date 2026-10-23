@@ -77,6 +77,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
 
   return (
     <Cartao
+      id="metas"
       titulo="Metas"
       acao={
         !editar && (

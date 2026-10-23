@@ -85,6 +85,14 @@ export default function Conta() {
       </form>
 
       <section className={cartao}>
+        <h2 className="text-sm font-semibold text-tinta">Instalar no telemóvel</h2>
+        <p className="text-sm text-secundario">Fica no ecrã inicial como uma app, sem passar pelas lojas.</p>
+        <Link href="/instalar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
+          Ver como
+        </Link>
+      </section>
+
+      <section className={cartao}>
         <h2 className="text-sm font-semibold text-tinta">Importar contactos</h2>
         <p className="text-sm text-secundario">Traz as tuas listas do Excel ou do Google Sheets.</p>
         <Link href="/importar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
