@@ -8,6 +8,9 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
 import BarraPesquisaFiltros from "@/components/BarraPesquisaFiltros";
 import { combina } from "@/lib/pesquisa";
+import SeletorOrdem from "@/components/SeletorOrdem";
+import { useToast } from "@/components/Toast";
+import { apagarChamada, haQuanto, registarChamadaAgora, ultimosContactos } from "@/lib/contactos";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import { contarNovasPorComprador } from "@/lib/oportunidades";
@@ -68,6 +71,9 @@ export default function ListaCompradores() {
   const [soAlertas, setSoAlertas] = useState(false);
   const [pesquisa, setPesquisa] = useState("");
   const [painel, setPainel] = useState(false);
+  const [ultimos, setUltimos] = useState<Record<string, string>>({});
+  const [ordem, setOrdem] = useState<"recentes" | "motivacao" | "parados" | "nome">("recentes");
+  const { avisar } = useToast();
   // Fase vinda de um toque no Dashboard (?fase=cpcv): mostra só essa fase, concluídos incluídos.
   const [fase, setFase] = useState("");
   useEffect(() => {
@@ -94,6 +100,7 @@ export default function ListaCompradores() {
       const cont: Record<string, Contagens> = {};
       for (const c of lista) cont[c.id] = contar(porComprador[c.id] ?? []);
       setNovas(await contarNovasPorComprador());
+      setUltimos(await ultimosContactos());
       setCompradores(lista);
       setContagens(cont);
       setACarregar(false);
@@ -124,6 +131,14 @@ export default function ListaCompradores() {
     () => filtradosBase.filter((c) => fase || (c.estado !== "perdido" && c.estado !== "negocio_concluido")),
     [filtradosBase, fase]
   );
+  // "recentes" = pela ordem em que chegaram. "Sem contacto há mais tempo" põe primeiro quem nunca foi contactado.
+  const ordenados = useMemo(() => {
+    const l = [...filtrados];
+    if (ordem === "motivacao") l.sort((a, b) => (b.motivacao ?? -1) - (a.motivacao ?? -1));
+    else if (ordem === "nome") l.sort((a, b) => a.contactos.nome.localeCompare(b.contactos.nome, "pt"));
+    else if (ordem === "parados") l.sort((a, b) => (ultimos[a.contacto_id] ?? "").localeCompare(ultimos[b.contacto_id] ?? ""));
+    return l;
+  }, [filtrados, ordem, ultimos]);
 
   // Só se desenham 60 de cada vez: com mil compradores, desenhar todos demorava vários segundos no telemóvel.
   const [limite, setLimite] = useState(60);
@@ -208,10 +223,22 @@ export default function ListaCompradores() {
         </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-secundario">
+        <div className="flex items-center justify-between gap-2 text-xs text-secundario">
           <span>
             {nVisiveis} {nVisiveis === 1 ? "comprador" : "compradores"}
           </span>
+          {vista === "lista" && (
+            <SeletorOrdem
+              valor={ordem}
+              onChange={setOrdem}
+              opcoes={[
+                ["recentes", "Mais recentes"],
+                ["parados", "Sem contacto há mais tempo"],
+                ["motivacao", "Mais motivados"],
+                ["nome", "Nome"],
+              ]}
+            />
+          )}
           <div className="flex gap-3">
             {painel && (
               <button onClick={() => setFiltrosAbertos((x) => !x)} className="underline">
@@ -246,12 +273,19 @@ export default function ListaCompradores() {
       ) : (
         <>
         <ul className="space-y-2">
-          {filtrados.slice(0, limite).map((c) => {
+          {ordenados.slice(0, limite).map((c) => {
             const n = contagens[c.id] ?? { enviados: 0, visitas: 0, propostas: 0 };
             const alerta = alertaLaranja(c);
             return (
               <li key={c.id}>
-                <SwipeLinha {...swipeContacto(c.contactos.telemovel)}>
+                <SwipeLinha
+                  {...swipeContacto(c.contactos.telemovel, async () => {
+                    const id = await registarChamadaAgora(c.contacto_id);
+                    if (!id) return;
+                    setUltimos((u) => ({ ...u, [c.contacto_id]: new Date().toISOString() }));
+                    avisar("Chamada registada.", { rotulo: "Desfazer", onAcao: () => apagarChamada(id).then(() => ultimosContactos().then(setUltimos)) });
+                  })}
+                >
                 <Link href={`/crm/compradores/${c.id}`} className="block rounded-2xl border border-linha bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -270,6 +304,9 @@ export default function ListaCompradores() {
                   </div>
                   <p className="mt-2 text-xs text-secundario">
                     {n.enviados}/{OBJETIVOS.enviados} enviados · {n.visitas}/{OBJETIVOS.visitas} visitas · {n.propostas}/{OBJETIVOS.propostas} propostas
+                  </p>
+                  <p className={`mt-1.5 text-xs ${ultimos[c.contacto_id] && Date.now() - new Date(ultimos[c.contacto_id]).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
+                    {ultimos[c.contacto_id] ? `Último contacto ${haQuanto(ultimos[c.contacto_id])}` : "Ainda sem chamadas registadas"}
                   </p>
                   {alerta && (
                     <p className="mt-2 rounded-lg bg-ambar-fundo px-2.5 py-1.5 text-xs font-medium text-ambar-texto">{alerta}</p>

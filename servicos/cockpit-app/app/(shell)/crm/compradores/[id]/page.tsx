@@ -9,6 +9,7 @@ import FormComprador, { guardarZonas, nomeZona, paraComprador, paraContacto, val
 import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import ContactosRegistados from "@/components/crm/ContactosRegistados";
 import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
   DOCUMENTOS_ESCRITURA,
@@ -242,6 +243,8 @@ export default function FichaComprador() {
         )}
         {alerta && <p className="rounded-lg bg-ambar-fundo px-3 py-2 text-sm font-medium text-ambar-texto">{alerta}</p>}
       </section>
+
+      <ContactosRegistados contactoId={c.contacto_id} />
 
       {corresp.length > 0 && (
         <section className={cartao}>

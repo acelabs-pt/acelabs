@@ -4,7 +4,7 @@
 export default function CampoPesquisa({
   valor,
   onChange,
-  placeholder = "Procurar por nome, telefone ou email",
+  placeholder = "Nome ou telefone",
 }: {
   valor: string;
   onChange: (v: string) => void;

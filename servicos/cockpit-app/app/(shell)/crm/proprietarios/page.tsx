@@ -7,6 +7,9 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
 import BarraPesquisaFiltros from "@/components/BarraPesquisaFiltros";
 import { combina } from "@/lib/pesquisa";
+import SeletorOrdem from "@/components/SeletorOrdem";
+import { useToast } from "@/components/Toast";
+import { apagarChamada, haQuanto, registarChamadaAgora, ultimosContactos } from "@/lib/contactos";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
@@ -35,6 +38,12 @@ export default function ListaProprietarios() {
   const [soAtrasados, setSoAtrasados] = useState(false);
   const [pesquisa, setPesquisa] = useState("");
   const [painel, setPainel] = useState(false);
+  const [ultimos, setUltimos] = useState<Record<string, string>>({});
+  const [ordem, setOrdem] = useState<"recentes" | "parados" | "valor" | "nome">("recentes");
+  const { avisar } = useToast();
+  useEffect(() => {
+    ultimosContactos().then(setUltimos);
+  }, []);
   // Fase vinda de um toque no Dashboard (?fase=fsbo)
   const [fase, setFase] = useState("");
   useEffect(() => {
@@ -115,6 +124,15 @@ export default function ListaProprietarios() {
     setLimite(60);
   }, [base]);
 
+  // "recentes" = pela ordem em que chegaram. "Sem contacto há mais tempo" põe primeiro quem nunca foi contactado.
+  const ordenada = useMemo(() => {
+    const l = [...lista];
+    if (ordem === "valor") l.sort((a, b) => (b.valor ?? -1) - (a.valor ?? -1));
+    else if (ordem === "nome") l.sort((a, b) => a.contactos.nome.localeCompare(b.contactos.nome, "pt"));
+    else if (ordem === "parados") l.sort((a, b) => (ultimos[a.contacto_id] ?? "").localeCompare(ultimos[b.contacto_id] ?? ""));
+    return l;
+  }, [lista, ordem, ultimos]);
+
   const nVisiveis = vista === "lista" ? lista.length : base.filter((p) => p.estado !== "perdido").length;
   const temFiltros = Boolean(pesquisa || tipo || tipologia || local.distrito || valorMin || valorMax || soAtrasados);
   function limpar() {
@@ -193,6 +211,18 @@ export default function ListaProprietarios() {
 
         <div className="flex items-center justify-between text-xs text-secundario">
           <span>{nVisiveis} {nVisiveis === 1 ? "proprietário" : "proprietários"}</span>
+          {vista === "lista" && (
+            <SeletorOrdem
+              valor={ordem}
+              onChange={setOrdem}
+              opcoes={[
+                ["recentes", "Mais recentes"],
+                ["parados", "Sem contacto há mais tempo"],
+                ["valor", "Maior valor"],
+                ["nome", "Nome"],
+              ]}
+            />
+          )}
           {temFiltros && <button onClick={limpar} className="font-medium text-azul">Limpar</button>}
         </div>
       </div>
@@ -218,10 +248,17 @@ export default function ListaProprietarios() {
       ) : (
         <>
         <ul className="space-y-2">
-          {lista.slice(0, limite).map((p) => (
+          {ordenada.slice(0, limite).map((p) => (
             <li key={p.id}>
-              <SwipeLinha {...swipeContacto(p.contactos.telemovel)}>
-                <Cartao p={p} proxima={proximas[p.id]} atrasado={atrasado(p.id)} />
+              <SwipeLinha
+                {...swipeContacto(p.contactos.telemovel, async () => {
+                  const id = await registarChamadaAgora(p.contacto_id);
+                  if (!id) return;
+                  setUltimos((u) => ({ ...u, [p.contacto_id]: new Date().toISOString() }));
+                  avisar("Chamada registada.", { rotulo: "Desfazer", onAcao: () => apagarChamada(id).then(() => ultimosContactos().then(setUltimos)) });
+                })}
+              >
+                <Cartao p={p} proxima={proximas[p.id]} atrasado={atrasado(p.id)} ultimo={ultimos[p.contacto_id]} />
               </SwipeLinha>
             </li>
           ))}
@@ -240,7 +277,7 @@ export default function ListaProprietarios() {
   );
 }
 
-function Cartao({ p, proxima, atrasado, compacto }: { p: Proprietario; proxima?: ProximaAcao; atrasado: boolean; compacto?: boolean }) {
+function Cartao({ p, proxima, atrasado, compacto, ultimo }: { p: Proprietario; proxima?: ProximaAcao; atrasado: boolean; compacto?: boolean; ultimo?: string }) {
   return (
     <Link href={`/crm/proprietarios/${p.id}`} className={`block rounded-2xl border border-linha bg-white ${compacto ? "rounded-xl p-3" : "p-4"}`}>
       <div className="flex items-start justify-between gap-2">
@@ -258,6 +295,11 @@ function Cartao({ p, proxima, atrasado, compacto }: { p: Proprietario; proxima?:
       </div>
       {p.valor != null && (
         <p className="mt-1 text-xs text-secundario">{p.valor.toLocaleString("pt-PT")} EUR</p>
+      )}
+      {!compacto && (
+        <p className={`mt-1 text-xs ${ultimo && Date.now() - new Date(ultimo).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
+          {ultimo ? `Último contacto ${haQuanto(ultimo)}` : "Ainda sem chamadas registadas"}
+        </p>
       )}
       {proxima && (
         <p className={`mt-2 truncate rounded-lg px-2.5 py-1.5 text-xs font-medium ${atrasado ? "bg-ambar-fundo text-ambar-texto" : "bg-black/5 text-secundario"}`}>

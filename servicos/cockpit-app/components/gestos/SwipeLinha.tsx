@@ -106,6 +106,8 @@ export default function SwipeLinha({
           if (v >= LIMITE && direita) direita.onAcao();
           else if (v <= -LIMITE && esquerda) esquerda.onAcao();
         }}
+        // Com o rato, arrastar uma ligação (<a>) inicia o arrastar-e-largar do browser e cancela o gesto.
+        onDragStart={(e) => e.preventDefault()}
         onPointerCancel={() => {
           ini.current = null;
           setArrastar(false);
