@@ -10,6 +10,7 @@ import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
+  DOCUMENTOS_ESCRITURA,
   FUNIL,
   OBJETIVOS,
   alertaLaranja,
@@ -149,6 +150,16 @@ export default function FichaComprador() {
     if (!novoDoc.trim()) return;
     await sbBrowser().from("comprador_documentos").insert({ comprador_id: id, nome: novoDoc.trim() });
     setNovoDoc("");
+    await carregar();
+  }
+
+  // Junta a lista habitual, sem repetir os que já existem (ignora maiúsculas)
+  async function usarListaPadrao() {
+    const existentes = new Set(docs.map((d) => d.nome.trim().toLowerCase()));
+    const novos = DOCUMENTOS_ESCRITURA.filter((n) => !existentes.has(n.toLowerCase()));
+    if (novos.length === 0) return;
+    const { error } = await sbBrowser().from("comprador_documentos").insert(novos.map((nome) => ({ comprador_id: id, nome })));
+    if (error) return setErro("Não foi possível juntar a lista de documentos.");
     await carregar();
   }
 
@@ -424,6 +435,11 @@ export default function FichaComprador() {
               </li>
             ))}
           </ul>
+          {DOCUMENTOS_ESCRITURA.some((n) => !docs.some((d) => d.nome.trim().toLowerCase() === n.toLowerCase())) && (
+            <button type="button" onClick={usarListaPadrao} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+              {docs.length === 0 ? "Usar a lista habitual" : "Juntar os que faltam da lista habitual"}
+            </button>
+          )}
           <form onSubmit={adicionarDoc} className="flex gap-2">
             <input
               value={novoDoc}
