@@ -7,7 +7,8 @@ import Metas from "@/components/dashboard/Metas";
 import Atencao from "@/components/dashboard/Atencao";
 import Pipeline from "@/components/dashboard/Pipeline";
 import Carteira from "@/components/dashboard/Carteira";
-import FunilResumo from "@/components/dashboard/FunilResumo";
+import FunisConversao from "@/components/dashboard/FunisConversao";
+import Origens from "@/components/dashboard/Origens";
 import { avisos, carregarDados, type Dados } from "@/lib/painel";
 import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
 import AdiarFolha from "@/components/gestos/AdiarFolha";
@@ -92,7 +93,8 @@ export default function DashboardApp() {
               <Carteira dados={dados} />
             </div>
           </div>
-          <FunilResumo dados={dados} />
+          <FunisConversao dados={dados} />
+          <Origens dados={dados} />
         </div>
       )}
       {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}

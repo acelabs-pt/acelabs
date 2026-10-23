@@ -19,6 +19,7 @@ import {
   labelEstado,
   type Comprador,
   type Contagens,
+  type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
 
@@ -62,6 +63,11 @@ export default function ListaCompradores() {
   const [valorMax, setValorMax] = useState("");
   const [motivacaoMin, setMotivacaoMin] = useState("");
   const [soAlertas, setSoAlertas] = useState(false);
+  // Fase vinda de um toque no Dashboard (?fase=cpcv): mostra só essa fase, concluídos incluídos.
+  const [fase, setFase] = useState("");
+  useEffect(() => {
+    setFase(new URLSearchParams(window.location.search).get("fase") ?? "");
+  }, []);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [vista, setVista] = useState<"lista" | "funil">("lista");
 
@@ -102,14 +108,15 @@ export default function ListaCompradores() {
       if (valorMax && (c.expectativa_valor ?? Infinity) > Number(valorMax)) return false;
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
       if (soAlertas && !alertaLaranja(c)) return false;
+      if (fase && c.estado !== fase) return false;
       return true;
     });
-  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas]);
+  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase]);
 
   // Lista: só em curso. Funil: todas as fases, incluindo concluídos (os perdidos ficam de fora).
   const filtrados = useMemo(
-    () => filtradosBase.filter((c) => c.estado !== "perdido" && c.estado !== "negocio_concluido"),
-    [filtradosBase]
+    () => filtradosBase.filter((c) => fase || (c.estado !== "perdido" && c.estado !== "negocio_concluido")),
+    [filtradosBase, fase]
   );
 
   const sel = "rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm";
@@ -191,6 +198,14 @@ export default function ListaCompradores() {
         </div>
       </div>
 
+      {fase && (fase === "perdido" || FUNIL.some((f) => f.id === fase)) && (
+        <p className="flex w-fit items-center gap-1 rounded-full bg-azul-suave py-1 pl-3 pr-1 text-sm text-azul-escuro">
+          Fase: {labelEstado(fase as EstadoComprador)}
+          <button onClick={() => setFase("")} aria-label="Tirar o filtro de fase" className="flex h-6 w-6 items-center justify-center rounded-full text-base leading-none hover:bg-white/60">
+            &times;
+          </button>
+        </p>
+      )}
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {aCarregar ? (

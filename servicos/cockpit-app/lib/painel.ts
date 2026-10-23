@@ -4,7 +4,7 @@ import type { Proprietario } from "@/lib/proprietario";
 import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
-import { diasAte, semanaISO } from "@/lib/datas";
+import { diasAte, diasDesde, semanaISO } from "@/lib/datas";
 import { todas } from "@/lib/todas";
 
 export type Dados = {
@@ -195,4 +195,65 @@ export function comissaoPrevista(d: Dados): { faixas: FaixaComissao[]; total: nu
     faixas[f].n++;
   }
   return { faixas, total: faixas.reduce((s, f) => s + f.valor, 0), semValor, semData };
+}
+
+export type EtapaFunil = {
+  id: string;
+  label: string;
+  /** Quantos estão nesta fase agora. */
+  aqui: number;
+  /** Quantos chegaram pelo menos a esta fase (os perdidos não entram: não se sabe onde caíram). */
+  chegaram: number;
+  /** Percentagem dos que chegaram à fase anterior e passaram a esta. Null na primeira. */
+  passagem: number | null;
+  /** Média de dias parados na fase, de quem está nela agora. Null se ninguém. */
+  diasParados: number | null;
+};
+
+/** Funil com taxa de passagem entre fases e tempo parado. `ordem` é a ordem das fases, da primeira à última. */
+export function funilComConversao(
+  ordem: { id: string; label: string }[],
+  itens: { estado: string; estado_desde: string }[]
+): { etapas: EtapaFunil[]; perdidos: number } {
+  const indice = (e: string) => ordem.findIndex((o) => o.id === e);
+  const ativos = itens.filter((x) => x.estado !== "perdido" && indice(x.estado) >= 0);
+  const etapas: EtapaFunil[] = ordem.map((o, i) => {
+    const aqui = ativos.filter((x) => x.estado === o.id);
+    const chegaram = ativos.filter((x) => indice(x.estado) >= i).length;
+    return {
+      id: o.id,
+      label: o.label,
+      aqui: aqui.length,
+      chegaram,
+      passagem: null,
+      diasParados: aqui.length ? Math.round(aqui.reduce((s, x) => s + diasDesde(x.estado_desde), 0) / aqui.length) : null,
+    };
+  });
+  for (let i = 1; i < etapas.length; i++) {
+    etapas[i].passagem = etapas[i - 1].chegaram > 0 ? Math.round((etapas[i].chegaram / etapas[i - 1].chegaram) * 100) : null;
+  }
+  return { etapas, perdidos: itens.filter((x) => x.estado === "perdido").length };
+}
+
+export type Origem = { canal: string; contactos: number; fechados: number };
+
+/** Contactos por canal de origem e quantos chegaram a negócio (CPCV ou escritura do comprador, imóvel angariado do proprietário). */
+export function origens(d: Dados): Origem[] {
+  const por = new Map<string, Origem>();
+  const ponto = (canal: string | null) => {
+    const k = canal?.trim() || "Sem canal";
+    if (!por.has(k)) por.set(k, { canal: k, contactos: 0, fechados: 0 });
+    return por.get(k)!;
+  };
+  for (const c of d.compradores) {
+    const o = ponto(c.contactos.canal_origem);
+    o.contactos++;
+    if (c.cpcv_fechado || c.estado === "cpcv" || c.estado === "escritura" || c.estado === "negocio_concluido") o.fechados++;
+  }
+  for (const p of d.proprietarios) {
+    const o = ponto(p.contactos.canal_origem);
+    o.contactos++;
+    if (p.estado === "angariado") o.fechados++;
+  }
+  return [...por.values()].sort((a, b) => b.contactos - a.contactos);
 }

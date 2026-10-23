@@ -8,7 +8,7 @@ import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
-import { FUNIL_PROP, labelEstadoProp, type Proprietario } from "@/lib/proprietario";
+import { FUNIL_PROP, labelEstadoProp, type EstadoProprietario, type Proprietario } from "@/lib/proprietario";
 import { formatarDia, formatarHora } from "@/lib/datas";
 
 type ProximaAcao = { titulo: string; inicio: string };
@@ -30,6 +30,11 @@ export default function ListaProprietarios() {
   const [valorMin, setValorMin] = useState("");
   const [valorMax, setValorMax] = useState("");
   const [soAtrasados, setSoAtrasados] = useState(false);
+  // Fase vinda de um toque no Dashboard (?fase=fsbo)
+  const [fase, setFase] = useState("");
+  useEffect(() => {
+    setFase(new URLSearchParams(window.location.search).get("fase") ?? "");
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -89,12 +94,13 @@ export default function ListaProprietarios() {
   const lista = useMemo(
     () =>
       base.filter((p) => {
+        if (fase) return p.estado === fase;
         if (estado === "todos") return true;
         if (estado === "angariado") return p.estado === "angariado";
         if (estado === "perdido") return p.estado === "perdido";
         return p.estado !== "angariado" && p.estado !== "perdido";
       }),
-    [base, estado]
+    [base, estado, fase]
   );
 
   const nVisiveis = vista === "lista" ? lista.length : base.filter((p) => p.estado !== "perdido").length;
@@ -166,6 +172,14 @@ export default function ListaProprietarios() {
         </div>
       </div>
 
+      {fase && (fase === "perdido" || FUNIL_PROP.some((f) => f.id === fase)) && (
+        <p className="flex w-fit items-center gap-1 rounded-full bg-azul-suave py-1 pl-3 pr-1 text-sm text-azul-escuro">
+          Fase: {labelEstadoProp(fase as EstadoProprietario)}
+          <button onClick={() => setFase("")} aria-label="Tirar o filtro de fase" className="flex h-6 w-6 items-center justify-center rounded-full text-base leading-none hover:bg-white/60">
+            &times;
+          </button>
+        </p>
+      )}
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {aCarregar ? (
