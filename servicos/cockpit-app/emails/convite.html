@@ -1,0 +1,14 @@
+<!-- Texto do email "Invite user" do Supabase (Authentication, Emails, Templates).
+     Assunto: Convite para o teu Cockpit
+     Colar este HTML no corpo. {{ .ConfirmationURL }} é preenchido pelo Supabase. -->
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1d1d1f;line-height:1.5">
+  <h2 style="font-size:26px;line-height:1.15;letter-spacing:-0.02em;margin:0 0 16px">Bem-vindo ao Cockpit.</h2>
+  <p style="margin:0 0 12px">Foste convidado para o teu Cockpit, a app que junta os teus contactos, angariações e tarefas num só sítio.</p>
+  <p style="margin:0 0 20px">Carrega no botão para escolher a tua password e entrar:</p>
+  <p style="margin:0 0 24px">
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#1d1d1f;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px">Escolher a password</a>
+  </p>
+  <p style="margin:0 0 8px;color:#6e6e73;font-size:14px">O link só funciona uma vez e dura pouco tempo. Abre-o no telemóvel ou no computador onde vais usar o Cockpit.</p>
+  <p style="margin:0 0 24px;color:#6e6e73;font-size:14px">Se não estavas à espera deste convite, ignora este email.</p>
+  <p style="margin:0;color:#6e6e73;font-size:14px">Ace Labs</p>
+</div>

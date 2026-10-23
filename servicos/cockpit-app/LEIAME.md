@@ -23,6 +23,13 @@ Em **Authentication, URL Configuration**:
 - **Site URL**: o endereço da app deste cliente.
 - **Redirect URLs**: o endereço da app e `<endereço>/nova-password`. Para testar em local, acrescentar `http://localhost:3001/**` e tirar depois.
 
+Em **Authentication, Emails, Templates**, trocar os textos em inglês pelos de `emails/`:
+
+| Modelo do Supabase | Assunto | Corpo |
+| --- | --- | --- |
+| Invite user | Convite para o teu Cockpit | `emails/convite.html` |
+| Reset password | Recuperar a password do Cockpit | `emails/recuperar.html` |
+
 ## 3. Publicar (Vercel)
 
 1. Projeto novo na Vercel, a partir da pasta `servicos/cockpit-app`.
