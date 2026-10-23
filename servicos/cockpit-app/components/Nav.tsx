@@ -49,6 +49,17 @@ const ITENS = [
       </>
     ),
   },
+  {
+    href: "/conta",
+    label: "Conta",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="10" r="3" />
+        <path d="M6.5 18.5c1.2-2.2 3.2-3.2 5.5-3.2s4.3 1 5.5 3.2" />
+      </>
+    ),
+  },
 ] as const;
 
 export default function Nav() {

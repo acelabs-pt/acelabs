@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
@@ -76,6 +77,9 @@ export default function LoginPage() {
           >
             {aEnviar ? "A entrar..." : "Entrar"}
           </button>
+          <Link href="/recuperar" className="block pt-1 text-center text-sm text-azul">
+            Esqueci a password
+          </Link>
         </div>
       </form>
     </main>

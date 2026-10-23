@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-const ROTAS_PUBLICAS = ["/login"];
+// Sem sessão só se pode entrar, pedir um link de recuperação ou usar o link recebido por email (convite ou recuperação).
+const ROTAS_PUBLICAS = ["/login", "/recuperar", "/nova-password"];
 
 export async function middleware(req: NextRequest) {
   const isPublica = ROTAS_PUBLICAS.some((p) => req.nextUrl.pathname.startsWith(p));
