@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
 import type { Tarefa } from "@/lib/types";
@@ -46,6 +46,8 @@ export default function CalendarioApp() {
   const [novo, setNovo] = useState<Date | null>(null);
   const [adiar, setAdiar] = useState<Tarefa | null>(null);
   const [tipoNovo, setTipoNovo] = useState<"tarefa" | "evento">("evento");
+  // Na lista de tarefas só vêm as mais recentes em atraso; este é o total real.
+  const [totalAtrasadas, setTotalAtrasadas] = useState(0);
 
   // "Nova tarefa" do botão + vem com ?novo=tarefa
   useEffect(() => {
@@ -57,19 +59,54 @@ export default function CalendarioApp() {
     }
   }, []);
 
-  const carregar = useCallback(async () => {
-    const sb = sbBrowser();
-    const { data, error } = await todas((de, ate) =>
-      sb.from("tarefas").select("*").order("inicio", { ascending: true, nullsFirst: false }).order("id").range(de, ate)
-    );
-    if (error) setErro("Não foi possível carregar as tarefas.");
-    else setTarefas((data as Tarefa[]).filter((t) => t.no_calendario));
-    setACarregar(false);
-  }, []);
+  // Só se carrega o que se está a ver: o período (dia, semana ou mês) ou, na lista, as tarefas mais relevantes.
+  // Com centenas de angariações em plano há dezenas de milhares de tarefas e carregá-las todas bloqueava a app.
+  const chaveJanela = vista === "tarefas" ? "tarefas" : `${vista}:${ref.getTime()}`;
+  const carregar = useCallback(
+    async (silencioso = false) => {
+      if (!silencioso) setACarregar(true);
+      const sb = sbBrowser();
+      const base = () => sb.from("tarefas").select("*", { count: "exact" }).eq("no_calendario", true);
+      if (vista === "tarefas") {
+        const hoje = inicioDoDia(new Date()).toISOString();
+        const [atrasadas, proximas, semData, feitas] = await Promise.all([
+          base().eq("feita", false).lt("inicio", hoje).order("inicio", { ascending: false }).limit(200),
+          base().eq("feita", false).gte("inicio", hoje).order("inicio").limit(300),
+          base().eq("feita", false).is("inicio", null).limit(100),
+          base().eq("feita", true).order("feita_em", { ascending: false }).limit(10),
+        ]);
+        if (atrasadas.error || proximas.error || semData.error || feitas.error) setErro("Não foi possível carregar as tarefas.");
+        else {
+          setTotalAtrasadas(atrasadas.count ?? 0);
+          // ordem que a lista espera: mais antigas primeiro
+          setTarefas([...(atrasadas.data as Tarefa[]).reverse(), ...(proximas.data as Tarefa[]), ...(semData.data as Tarefa[]), ...(feitas.data as Tarefa[]).reverse()]);
+        }
+      } else {
+        const d0 = inicioDoDia(ref);
+        const ini = vista === "dia" ? d0 : vista === "semana" ? inicioDaSemana(d0) : inicioDaSemana(new Date(d0.getFullYear(), d0.getMonth(), 1));
+        const fim = somarDias(ini, vista === "dia" ? 1 : vista === "semana" ? 7 : 42);
+        const { data, error } = await todas<Tarefa>((de, ate) =>
+          base().gte("inicio", ini.toISOString()).lt("inicio", fim.toISOString()).order("inicio").order("id").range(de, ate)
+        );
+        if (error) setErro("Não foi possível carregar as tarefas.");
+        else setTarefas(data);
+      }
+      setACarregar(false);
+    },
+    // a janela muda com a vista e com o dia escolhido
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chaveJanela]
+  );
 
+  // O spinner só aparece à primeira vez e ao trocar de vista; ao mudar de dia ou de mês recarrega sem piscar.
+  const jaCarregou = useRef(false);
+  const vistaAnterior = useRef(vista);
   useEffect(() => {
-    carregar();
-  }, [carregar]);
+    const mudouVista = vistaAnterior.current !== vista;
+    vistaAnterior.current = vista;
+    carregar(jaCarregou.current && !mudouVista);
+    jaCarregou.current = true;
+  }, [carregar, vista]);
 
   const ocs = useMemo(() => tarefas.map(ocorrencia).filter((o): o is Ocorrencia => o !== null), [tarefas]);
 
@@ -80,7 +117,7 @@ export default function CalendarioApp() {
     const e = await marcarTarefa(t, feita);
     if (e) {
       setErro(e);
-      carregar();
+      carregar(true);
     }
   }
 
@@ -91,7 +128,7 @@ export default function CalendarioApp() {
     const { error } = await sbBrowser().from("tarefas").delete().eq("id", t.id);
     if (error) {
       setErro("Não foi possível apagar.");
-      carregar();
+      carregar(true);
     }
   }
 
@@ -101,8 +138,14 @@ export default function CalendarioApp() {
     if (error) return setErro("Não foi possível criar.");
     setNovo(null);
     setTipoNovo("evento");
-    if (v.inicio) setRef(inicioDoDia(new Date(v.inicio)));
-    await carregar();
+    if (vista !== "tarefas" && v.inicio) {
+      const r = inicioDoDia(new Date(v.inicio));
+      if (r.getTime() !== ref.getTime()) {
+        setRef(r); // muda a janela e o efeito recarrega
+        return;
+      }
+    }
+    await carregar(true);
   }
 
   function mover(sentido: -1 | 1) {
@@ -115,7 +158,7 @@ export default function CalendarioApp() {
     if (!t) return;
     const e = await adiarTarefa(t, dia);
     if (e) setErro(e);
-    await carregar();
+    await carregar(true);
   }
 
   const nav = useSwipeNav(mover);
@@ -170,7 +213,7 @@ export default function CalendarioApp() {
       {aCarregar ? (
         <p className="text-sm text-secundario">A carregar...</p>
       ) : vista === "tarefas" ? (
-        <ListaTarefas tarefas={tarefas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} />
+        <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} />
       ) : vista === "mes" ? (
         <>
           <Mes ref_={ref} ocs={ocs} onEscolher={setRef} />
@@ -284,11 +327,13 @@ function ListaTarefas({
   onAlternar,
   onApagar,
   onAdiar,
+  totalAtrasadas,
 }: {
   tarefas: Tarefa[];
   onAlternar: (t: Tarefa) => void;
   onApagar: (t: Tarefa) => void;
   onAdiar: (t: Tarefa) => void;
+  totalAtrasadas: number;
 }) {
   const grupos = useMemo(() => {
     const hoje = inicioDoDia(new Date());
@@ -327,7 +372,8 @@ function ListaTarefas({
           lista.length > 0 && (
             <section key={titulo}>
               <h2 className={`mb-2 text-sm font-semibold ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                {titulo} ({lista.length})
+                {titulo} ({lista.length}
+                {titulo === "Em atraso" && totalAtrasadas > lista.length ? ` de ${totalAtrasadas.toLocaleString("pt-PT")}, as mais recentes` : ""})
               </h2>
               <ul className="space-y-2">
                 {lista.map((t) => (

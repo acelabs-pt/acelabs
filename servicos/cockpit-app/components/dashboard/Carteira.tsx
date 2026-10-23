@@ -1,20 +1,17 @@
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
-import { blocoDeDia, dataDoDia, diaDeHoje } from "@/lib/angariacao";
+import { diaDeHoje } from "@/lib/angariacao";
 import type { Dados } from "@/lib/painel";
 
 // Uma linha por angariação ativa: onde vai o contrato (barra azul), quantas ações do plano estão feitas
 // (barra verde por baixo) e se há ações em atraso. Primeiro as que terminam mais cedo.
 export default function Carteira({ dados }: { dados: Dados }) {
-  const agora = new Date();
   const linhas = dados.angariacoes
     .filter((a) => !a.vendido_em)
     .map((a) => {
       const dia = diaDeHoje(a.inicio);
-      const acoes = dados.acoes.filter((x) => x.angariacao_id === a.id);
-      const feitas = acoes.filter((x) => x.feita).length;
-      const emAtraso = acoes.filter((x) => !x.feita && dataDoDia(a.inicio, blocoDeDia(x.dia) * 10) < agora).length;
-      return { a, dia, restam: a.duracao_dias - dia + 1, total: acoes.length, feitas, emAtraso };
+      const r = dados.resumo[a.id];
+      return { a, dia, restam: a.duracao_dias - dia + 1, total: r?.total ?? 0, feitas: r?.feitas ?? 0, emAtraso: r?.emAtraso ?? 0 };
     })
     .filter((l) => l.restam >= 0)
     .sort((x, y) => x.restam - y.restam);

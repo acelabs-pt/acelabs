@@ -7,7 +7,7 @@ import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDoDia, somarDias } from "@/lib/datas";
 
 // Tarefas em atraso e de hoje. Marcar aqui é o mesmo que marcar no Calendário.
-export default function Hoje({ tarefas, onAlternar, onAdiar }: { tarefas: Tarefa[]; onAlternar: (t: Tarefa) => void; onAdiar: (t: Tarefa) => void }) {
+export default function Hoje({ tarefas, total, onAlternar, onAdiar }: { tarefas: Tarefa[]; total: number; onAlternar: (t: Tarefa) => void; onAdiar: (t: Tarefa) => void }) {
   const hoje = inicioDoDia(new Date());
   const amanha = somarDias(hoje, 1);
   const lista = tarefas
@@ -67,9 +67,9 @@ export default function Hoje({ tarefas, onAlternar, onAdiar }: { tarefas: Tarefa
           })}
         </ul>
       )}
-      {lista.length > mostradas.length && (
+      {total > mostradas.length && (
         <Link href="/calendario" className="block text-sm text-secundario underline">
-          + {lista.length - mostradas.length} mais
+          + {total - mostradas.length} mais
         </Link>
       )}
     </Cartao>

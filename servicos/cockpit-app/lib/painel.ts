@@ -1,19 +1,24 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { alertaLaranja, type Comprador, type ImovelComprador } from "@/lib/comprador";
 import type { Proprietario } from "@/lib/proprietario";
-import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
+import { dataLocal, diaDeHoje, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
 import { diasAte, diasDesde, semanaISO } from "@/lib/datas";
 import { todas } from "@/lib/todas";
+import { carregarResumo, type ResumoAng } from "@/lib/resumoAngariacoes";
 
 export type Dados = {
   compradores: Comprador[];
   imoveis: ImovelComprador[];
   proprietarios: Proprietario[];
   angariacoes: Angariacao[];
-  acoes: Acao[];
+  /** Totais do plano de cada angariação (id da angariação -> totais). */
+  resumo: Record<string, ResumoAng>;
+  /** Só as tarefas que o dashboard mostra: as primeiras de hoje e em atraso, o próximo evento e os follow ups de proprietários. */
   tarefas: Tarefa[];
+  /** Quantas tarefas há para hoje ou em atraso (a lista só mostra as primeiras). */
+  nHoje: number;
   metas: Metas;
   decisaoSemana: "colocada" | "ignorada" | null;
 };
@@ -31,18 +36,26 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   const sb = sbBrowser();
   const ano = agora.getFullYear();
   const semana = semanaISO(agora);
-  const [c, i, p, a, ac, t, m, cfg, sem] = await Promise.all([
+  const amanha = new Date(agora);
+  amanha.setHours(24, 0, 0, 0);
+  const amanhaIso = amanha.toISOString();
+  const agoraIso = agora.toISOString();
+  const calendario = () => sb.from("tarefas").select("*").eq("no_calendario", true).eq("feita", false);
+  const [c, i, p, a, resumo, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem] = await Promise.all([
     todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("id").range(de, ate)),
     todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
     todas((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("id").range(de, ate)),
     todas((de, ate) => sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("id").range(de, ate)),
-    todas((de, ate) => sb.from("angariacao_acoes").select("*").order("id").range(de, ate)),
-    todas((de, ate) => sb.from("tarefas").select("*").order("id").range(de, ate)),
+    carregarResumo(),
+    calendario().lt("inicio", amanhaIso).order("inicio").limit(6),
+    sb.from("tarefas").select("id", { count: "exact", head: true }).eq("no_calendario", true).eq("feita", false).lt("inicio", amanhaIso),
+    calendario().eq("tipo", "evento").gte("inicio", agoraIso).order("inicio").limit(1),
+    todas<Tarefa>((de, ate) => calendario().not("proprietario_id", "is", null).lt("inicio", agoraIso).order("id").range(de, ate)),
     sb.from("metas").select("*").eq("ano", ano),
     sb.from("metas_config").select("*").eq("ano", ano),
     sb.from("metas_semanas").select("*").eq("semana", semana),
   ]);
-  const falhou = [c, i, p, a, ac, t, m, cfg, sem].find((r) => r.error);
+  const falhou = [c, i, p, a, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem].find((r) => r.error);
   if (falhou) return "Não foi possível carregar o Dashboard.";
 
   const metas = SEM_METAS(ano);
@@ -61,8 +74,9 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
     imoveis: (i.data ?? []) as ImovelComprador[],
     proprietarios: (p.data ?? []) as unknown as Proprietario[],
     angariacoes: (a.data ?? []) as unknown as Angariacao[],
-    acoes: (ac.data ?? []) as Acao[],
-    tarefas: ((t.data ?? []) as Tarefa[]).filter((x) => x.no_calendario),
+    resumo,
+    tarefas: [...new Map([...(hoje6.data ?? []), ...(proxEvento.data ?? []), ...tProp.data].map((x) => [(x as Tarefa).id, x as Tarefa])).values()],
+    nHoje: nHojeQ.count ?? 0,
     metas,
     decisaoSemana: (sem.data?.[0]?.decisao as "colocada" | "ignorada") ?? null,
   };
@@ -143,10 +157,9 @@ export function avisos(d: Dados, agora: Date = new Date()): Aviso[] {
     if (a.vendido_em) continue;
     const dia = diaDeHoje(a.inicio);
     if (dia < 1) continue;
-    const acoes = d.acoes.filter((x) => x.angariacao_id === a.id);
     const restam = a.duracao_dias - dia + 1;
     if (restam >= 0 && restam <= 30) out.push({ id: `a-${a.id}`, texto: `${a.titulo}: contrato termina em ${restam} dias`, href: `/angariacoes/${a.id}`, grave: restam <= 10 });
-    const emAtraso = acoes.filter((x) => !x.feita && dataDoDia(a.inicio, blocoDeDia(x.dia) * 10) < agora).length;
+    const emAtraso = d.resumo[a.id]?.emAtraso ?? 0;
     if (emAtraso) out.push({ id: `aa-${a.id}`, texto: `${a.titulo}: ${emAtraso} ${emAtraso === 1 ? "ação do plano em atraso" : "ações do plano em atraso"}`, href: `/angariacoes/${a.id}`, grave: false });
   }
   return out.sort((x, y) => Number(y.grave) - Number(x.grave));

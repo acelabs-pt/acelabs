@@ -37,10 +37,9 @@ export default function DashboardApp() {
     // atualização otimista
     setDados((d) => (d ? { ...d, tarefas: d.tarefas.map((x) => (x.id === t.id ? { ...x, feita: !t.feita } : x)) } : d));
     const e = await marcarTarefa(t, !t.feita);
-    if (e) {
-      setErro(e);
-      carregar();
-    }
+    if (e) setErro(e);
+    // a lista só tem as primeiras tarefas: recarregar para entrar a seguinte e acertar o "+N mais"
+    await carregar();
   }
 
   const puxar = usePuxarParaAtualizar(carregar);
@@ -78,7 +77,7 @@ export default function DashboardApp() {
           {/* Colunas que se enchem sem buracos; em telemóvel fica uma coluna, pela ordem de urgência. */}
           <div className="md:columns-2 md:gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
             <div>
-              <Hoje tarefas={dados.tarefas} onAlternar={alternar} onAdiar={setAdiar} />
+              <Hoje tarefas={dados.tarefas} total={dados.nHoje} onAlternar={alternar} onAdiar={setAdiar} />
             </div>
             <div>
               <Atencao avisos={avisos(dados)} />

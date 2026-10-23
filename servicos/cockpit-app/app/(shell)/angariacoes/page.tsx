@@ -8,7 +8,8 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
 import DadosImovel, { IMOVEL_VAZIO, imovelParaBd, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
 import { atualizarPorAngariacao } from "@/lib/oportunidades";
-import { blocoAtual, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
+import { blocoAtual, diaDeHoje, type Angariacao } from "@/lib/angariacao";
+import { carregarResumo, type ResumoAng } from "@/lib/resumoAngariacoes";
 import { hojeISO } from "@/lib/datas";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
@@ -16,7 +17,7 @@ const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as
 export default function Angariacoes() {
   const router = useRouter();
   const [lista, setLista] = useState<Angariacao[]>([]);
-  const [acoes, setAcoes] = useState<Record<string, Acao[]>>({});
+  const [resumo, setResumo] = useState<Record<string, ResumoAng>>({});
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarVendidas, setMostrarVendidas] = useState(false);
@@ -36,17 +37,15 @@ export default function Angariacoes() {
       todas((de, ate) =>
         sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("created_at", { ascending: false }).order("id").range(de, ate)
       ),
-      todas((de, ate) => sb.from("angariacao_acoes").select("*").order("id").range(de, ate)),
+      carregarResumo(),
     ]);
-    if (r1.error || r2.error) {
+    if (r1.error) {
       setErro("Não foi possível carregar as angariações.");
       setACarregar(false);
       return;
     }
-    const por: Record<string, Acao[]> = {};
-    for (const a of (r2.data ?? []) as Acao[]) (por[a.angariacao_id] ??= []).push(a);
     setLista(r1.data as unknown as Angariacao[]);
-    setAcoes(por);
+    setResumo(r2);
     setACarregar(false);
   }
 
@@ -85,17 +84,16 @@ export default function Angariacoes() {
       ) : (
         <ul className="space-y-2">
           {visiveis.map((a) => {
-            const as = acoes[a.id] ?? [];
-            const feitas = as.filter((x) => x.feita).length;
+            const r = resumo[a.id];
+            const total = r?.total ?? 0;
+            const feitas = r?.feitas ?? 0;
             const dia = diaDeHoje(a.inicio);
             const bloco = blocoAtual(a.inicio, a.duracao_dias);
-            const proxima = as
-              .filter((x) => !x.feita)
-              .sort((x, y) => x.dia - y.dia)[0];
+            const proxima = r?.proximaNome ? { nome: r.proximaNome, follow_up: r.proximaFollowUp } : null;
             return (
               <li key={a.id}>
                 <SwipeLinha
-                  esquerda={as.length > 0 ? { rotulo: "Relatório", classe: "bg-azul text-white", onAcao: () => router.push(`/angariacoes/${a.id}/relatorio`) } : undefined}
+                  esquerda={total > 0 ? { rotulo: "Relatório", classe: "bg-azul text-white", onAcao: () => router.push(`/angariacoes/${a.id}/relatorio`) } : undefined}
                 >
                 <Link href={`/angariacoes/${a.id}`} className="block rounded-2xl border border-linha bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -114,13 +112,13 @@ export default function Angariacoes() {
                       </span>
                     )}
                   </div>
-                  {as.length > 0 ? (
+                  {total > 0 ? (
                     <>
                       <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/5">
-                        <div className="h-full rounded-full bg-verde" style={{ width: `${(feitas / as.length) * 100}%` }} />
+                        <div className="h-full rounded-full bg-verde" style={{ width: `${(feitas / total) * 100}%` }} />
                       </div>
                       <p className="mt-1.5 text-xs text-secundario">
-                        {feitas}/{as.length} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
+                        {feitas}/{total} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
                         {proxima && !a.vendido_em ? ` · a seguir: ${proxima.follow_up ? "Follow up" : proxima.nome}` : ""}
                       </p>
                     </>
