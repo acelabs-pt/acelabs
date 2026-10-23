@@ -14,6 +14,7 @@
 | Email da equipa | Google Workspace (MX `smtp.google.com`) | Ambos | Caixas `miguel@` e `pedro@acelabs.pt` |
 | DNS | Registo do domínio `acelabs.pt` | Pedro | Ver "DNS" abaixo |
 | CPCV com IA | Vercel `cpcv-engine` (equipa `acelabs1`) + Supabase | Pedro | Chave Anthropic na Vercel |
+| Cockpit (ensaio) | Vercel `cockpit` (equipa `acelabs1`), `https://cockpit-gamma-one.vercel.app`; Supabase de teste "Cockpit" | Pedro | Publicado por CLI (`vercel deploy --prod` em `servicos/cockpit-app`), com o Git **desligado** de propósito: um push não atualiza nenhum cliente. Um projeto Vercel e um Supabase por cliente. Passos em `servicos/cockpit-app/LEIAME.md` |
 
 ## Fluxo do formulário de contacto
 
@@ -31,6 +32,7 @@ Se parar de funcionar: ver "Incidentes".
 | `RESEND_API_KEY` | Vercel `acelabs-api` (Production). Opcional também em `ace-labs`. | Enviar o email do formulário |
 | `ANTHROPIC_API_KEY` | Vercel `cpcv-engine` e `servicos/cpcv-engine/.env.local` | Extração de dados do CPCV |
 | Supabase (URL e chaves) | Vercel `cpcv-engine` e `.env.local` | Base de dados do CPCV |
+| `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel `cockpit` (Production, tipo "config") e `servicos/cockpit-app/.env.local` | Ligação do Cockpit ao Supabase. A chave anon é pública por desenho. A `service_role` nunca vai para a Vercel |
 
 Um projeto Supabase por cliente. Nunca reutilizar chaves entre projetos.
 
