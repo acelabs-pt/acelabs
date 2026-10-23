@@ -10,6 +10,7 @@ import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import ContactosRegistados from "@/components/crm/ContactosRegistados";
+import BotaoExportar from "@/components/crm/BotaoExportar";
 import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
   DOCUMENTOS_ESCRITURA,
@@ -463,6 +464,8 @@ export default function FichaComprador() {
           )}
         </section>
       )}
+
+      <BotaoExportar contactoId={c.contacto_id} nome={c.contactos.nome} />
 
       <button onClick={apagarComprador} className="w-full py-2 text-sm text-red-600">
         Apagar comprador

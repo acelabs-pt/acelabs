@@ -70,5 +70,5 @@ Não passa pelas lojas.
 ## O que ainda não existe
 
 - **Vários utilizadores no mesmo cliente** (agência com agentes e gestor): hoje quem entra vê tudo. Está desenhado, não construído.
-- **Exportar os dados de um contacto** (pedido do RGPD): a app apaga contactos, não exporta.
+- **Pedidos de acesso e de apagamento de dados de uma pessoa**: na ficha de cada comprador e proprietário há "Exportar os dados deste contacto" (descarrega um ficheiro JSON com tudo o que a app guarda sobre a pessoa) e "Apagar". Falta o contrato de tratamento de dados com o cliente, que é o que os enquadra.
 - Contrato de tratamento de dados e política de privacidade publicada: ver `docs/privacidade-rascunho.md`.

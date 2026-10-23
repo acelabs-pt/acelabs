@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { atualizarPorProprietario } from "@/lib/oportunidades";
+import BotaoExportar from "@/components/crm/BotaoExportar";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import {
   FUNIL_PROP,
@@ -391,6 +392,8 @@ export default function FichaProprietario() {
           ))}
         </ul>
       </section>
+
+      <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
 
       <button onClick={apagar} className="w-full py-2 text-sm text-red-600">Apagar proprietário</button>
     </div>
