@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import FormComprador, { paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import FormComprador, { guardarZonas, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { atualizarPorComprador } from "@/lib/oportunidades";
 
 export default function NovoComprador() {
   const router = useRouter();
@@ -44,6 +45,8 @@ export default function NovoComprador() {
             setAGuardar(false);
             return;
           }
+          await guardarZonas(comprador.id, v);
+          await atualizarPorComprador(comprador.id);
           router.push(`/crm/compradores/${comprador.id}`);
         }}
       />

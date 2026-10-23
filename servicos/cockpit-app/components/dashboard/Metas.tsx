@@ -14,6 +14,7 @@ const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
 const PERIODOS: [Periodo, string][] = [
   ["semana", "Semana"],
   ["mes", "Mês"],
+  ["trimestre", "Trimestre"],
   ["ano", "Ano"],
 ];
 

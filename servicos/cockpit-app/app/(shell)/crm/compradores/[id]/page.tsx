@@ -4,7 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
-import FormComprador, { paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import FormComprador, { guardarZonas, nomeZona, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
   FUNIL,
   OBJETIVOS,
@@ -29,6 +32,8 @@ export default function FichaComprador() {
   const [c, setC] = useState<Comprador | null>(null);
   const [imoveis, setImoveis] = useState<ImovelComprador[]>([]);
   const [docs, setDocs] = useState<Documento[]>([]);
+  const [zonas, setZonas] = useState<Localizacao[]>([]);
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
@@ -37,10 +42,12 @@ export default function FichaComprador() {
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4, cs] = await Promise.all([
       sb.from("compradores").select("*, contactos(*)").eq("id", id).single(),
       sb.from("comprador_imoveis").select("*").eq("comprador_id", id).order("created_at"),
       sb.from("comprador_documentos").select("*").eq("comprador_id", id).order("created_at"),
+      sb.from("comprador_zonas").select("distrito, concelho, freguesia").eq("comprador_id", id).order("created_at"),
+      carregarDoComprador(id),
     ]);
     if (r1.error || !r1.data) {
       setErro("Comprador não encontrado.");
@@ -49,6 +56,8 @@ export default function FichaComprador() {
     setC(r1.data as unknown as Comprador);
     setImoveis((r2.data ?? []) as ImovelComprador[]);
     setDocs((r3.data ?? []) as Documento[]);
+    setZonas(((r4.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
+    setCorresp(cs);
   }, [id]);
 
   useEffect(() => {
@@ -168,7 +177,7 @@ export default function FichaComprador() {
       <div className="space-y-4">
         <button onClick={() => setEditar(false)} className="text-sm text-azul">&larr; Cancelar</button>
         <FormComprador
-          inicial={valoresIniciais(c)}
+          inicial={valoresIniciais(c, zonas)}
           textoBotao="Guardar alterações"
           aGuardar={aGuardar}
           onSubmit={async (v) => {
@@ -176,8 +185,10 @@ export default function FichaComprador() {
             const sb = sbBrowser();
             const r1 = await sb.from("contactos").update(paraContacto(v)).eq("id", c.contacto_id);
             const r2 = await sb.from("compradores").update(paraComprador(v)).eq("id", c.id);
+            const eZonas = await guardarZonas(c.id, v);
+            if (!r1.error && !r2.error && !eZonas) await atualizarPorComprador(c.id);
             setAGuardar(false);
-            if (r1.error || r2.error) return setErro("Não foi possível guardar.");
+            if (r1.error || r2.error || eZonas) return setErro(eZonas ?? "Não foi possível guardar.");
             setEditar(false);
             await carregar();
           }}
@@ -196,7 +207,7 @@ export default function FichaComprador() {
           <div className="min-w-0">
             <h2 className="truncate text-xl font-semibold text-tinta">{c.contactos.nome}</h2>
             <p className="text-sm text-secundario">
-              {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ")}
+              {[c.tipo_imovel, c.tipologia_minima, zonas.length > 0 ? zonas.map(nomeZona).join(" / ") : c.concelho || c.distrito].filter(Boolean).join(" · ")}
             </p>
           </div>
           <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
@@ -218,6 +229,20 @@ export default function FichaComprador() {
         )}
         {alerta && <p className="rounded-lg bg-ambar-fundo px-3 py-2 text-sm font-medium text-ambar-texto">{alerta}</p>}
       </section>
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">Imóveis que podem servir ({corresp.filter((x) => x.estado === "nova").length} por rever)</h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="imovel"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>

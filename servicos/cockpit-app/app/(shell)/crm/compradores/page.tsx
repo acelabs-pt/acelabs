@@ -5,6 +5,7 @@ import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import { contarNovasPorComprador } from "@/lib/oportunidades";
 import {
   FUNIL,
   OBJETIVOS,
@@ -18,6 +19,16 @@ import {
   type Contagens,
   type ImovelComprador,
 } from "@/lib/comprador";
+
+// Alertas de imóveis que podem servir ao comprador, ao lado da barra de motivação.
+function AlertaImoveis({ n }: { n: number }) {
+  if (!n) return null;
+  return (
+    <span className="shrink-0 rounded-full bg-azul px-2 py-0.5 text-[11px] font-semibold text-white" title="Imóveis que podem servir, por rever">
+      {n} {n === 1 ? "imóvel" : "imóveis"}
+    </span>
+  );
+}
 
 // Escala contínua do vermelho (0) ao verde (10) através do âmbar.
 function BarraMotivacao({ valor }: { valor: number | null }) {
@@ -38,6 +49,7 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
 export default function ListaCompradores() {
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [contagens, setContagens] = useState<Record<string, Contagens>>({});
+  const [novas, setNovas] = useState<Record<string, number>>({});
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -68,6 +80,7 @@ export default function ListaCompradores() {
       for (const i of (imoveis ?? []) as ImovelComprador[]) (porComprador[i.comprador_id] ??= []).push(i);
       const cont: Record<string, Contagens> = {};
       for (const c of lista) cont[c.id] = contar(porComprador[c.id] ?? []);
+      setNovas(await contarNovasPorComprador());
       setCompradores(lista);
       setContagens(cont);
       setACarregar(false);
@@ -181,7 +194,7 @@ export default function ListaCompradores() {
       {aCarregar ? (
         <p className="text-sm text-secundario">A carregar...</p>
       ) : vista === "funil" ? (
-        <Funil compradores={filtradosBase} contagens={contagens} />
+        <Funil compradores={filtradosBase} contagens={contagens} novas={novas} />
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
           {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : "Nenhum comprador com estes filtros."}
@@ -199,6 +212,7 @@ export default function ListaCompradores() {
                       <div className="flex items-center gap-2">
                         <p className="truncate text-base font-semibold text-tinta">{c.contactos.nome}</p>
                         <BarraMotivacao valor={c.motivacao} />
+                        <AlertaImoveis n={novas[c.id] ?? 0} />
                       </div>
                       <p className="truncate text-xs text-secundario">
                         {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
@@ -228,9 +242,11 @@ export default function ListaCompradores() {
 function Funil({
   compradores,
   contagens,
+  novas,
 }: {
   compradores: Comprador[];
   contagens: Record<string, Contagens>;
+  novas: Record<string, number>;
 }) {
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
@@ -254,6 +270,7 @@ function Funil({
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate text-sm font-semibold text-tinta">{c.contactos.nome}</p>
                           <BarraMotivacao valor={c.motivacao} />
+                        <AlertaImoveis n={novas[c.id] ?? 0} />
                         </div>
                         <p className="mt-0.5 truncate text-xs text-secundario">
                           {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}

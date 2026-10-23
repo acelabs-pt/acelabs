@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
-import Grelha from "@/components/angariacoes/Grelha";
+import Grelha, { type VistaGrelha } from "@/components/angariacoes/Grelha";
 import FolhaAcao from "@/components/angariacoes/FolhaAcao";
 import {
   ACOES_PADRAO,
@@ -14,6 +14,7 @@ import {
   diaDeHoje,
   marcarAcao,
   marcarVendido,
+  moverAcao,
   nBlocos,
   NOME_FOLLOW_UP,
   type Acao,
@@ -22,6 +23,9 @@ import {
 } from "@/lib/angariacao";
 import { formatarDia, hojeISO } from "@/lib/datas";
 import Comissao from "@/components/crm/Comissao";
+import DadosImovel, { imovelDe, imovelParaBd, resumoImovel, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import { atualizarPorAngariacao, carregarDaAngariacao, responder, type Correspondencia } from "@/lib/oportunidades";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 
@@ -41,16 +45,22 @@ export default function PlanoAngariacao() {
   const [escolhidas, setEscolhidas] = useState<string[]>(ACOES_PADRAO.map((a) => a.nome));
   const [followUps, setFollowUps] = useState(true);
   const [aCriar, setACriar] = useState(false);
+  const [vista, setVista] = useState<VistaGrelha>("tudo");
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
+  const [editarImovel, setEditarImovel] = useState(false);
+  const [imovelForm, setImovelForm] = useState<DadosImovelForm | null>(null);
   const [extras, setExtras] = useState<AcaoExtra[]>([]);
   const [extraNome, setExtraNome] = useState("");
   const [extraBloco, setExtraBloco] = useState(1);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, cs] = await Promise.all([
       sb.from("angariacoes").select("*, proprietarios(contactos(nome))").eq("id", id).single(),
       sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
+      carregarDaAngariacao(id),
     ]);
+    setCorresp(cs);
     if (r1.error || !r1.data) {
       setErro("Angariação não encontrada.");
       return;
@@ -106,6 +116,60 @@ export default function PlanoAngariacao() {
           )}
         </div>
       </section>
+
+      <section className={cartao}>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-sm font-semibold text-tinta">Imóvel</h2>
+          {!editarImovel && (
+            <button
+              onClick={() => {
+                setImovelForm(imovelDe(ang));
+                setEditarImovel(true);
+              }}
+              className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium"
+            >
+              Editar
+            </button>
+          )}
+        </div>
+        {editarImovel && imovelForm ? (
+          <>
+            <DadosImovel valor={imovelForm} onChange={setImovelForm} />
+            <button
+              onClick={async () => {
+                const { error } = await sbBrowser().from("angariacoes").update(imovelParaBd(imovelForm)).eq("id", ang.id);
+                if (error) return setErro("Não foi possível guardar o imóvel.");
+                await atualizarPorAngariacao(ang.id);
+                setEditarImovel(false);
+                await carregar();
+              }}
+              className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white"
+            >
+              Guardar imóvel
+            </button>
+          </>
+        ) : (
+          <p className="text-sm text-secundario">
+            {resumoImovel(ang) || "Sem dados do imóvel. Preenche para encontrarmos compradores com interesse."}
+          </p>
+        )}
+      </section>
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h2 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h2>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       {acoes.length === 0 ? (
         <section className={cartao}>
@@ -236,13 +300,32 @@ export default function PlanoAngariacao() {
             </div>
             {editar && (
               <p className="text-xs text-secundario">
-                Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de bloco (retira e junta noutro).
+                Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de dia.
               </p>
             )}
+            <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium" role="group" aria-label="Período da grelha">
+              {(
+                [
+                  ["tudo", "Contrato todo"],
+                  ["mes", "Este mês"],
+                  ["trimestre", "Este trimestre"],
+                ] as const
+              ).map(([v, rot]) => (
+                <button
+                  key={v}
+                  onClick={() => setVista(v)}
+                  aria-pressed={vista === v}
+                  className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta" : "text-secundario"}`}
+                >
+                  {rot}
+                </button>
+              ))}
+            </div>
             <Grelha
               ang={ang}
               acoes={acoes}
               editar={editar}
+              vista={vista}
               onAbrir={setAberta}
               onVazia={(nome, bloco) => correr(adicionarAcao(ang, nome, bloco, nome === NOME_FOLLOW_UP))}
             />
@@ -333,6 +416,7 @@ export default function PlanoAngariacao() {
             await sbBrowser().from("angariacao_acoes").update({ feedback: texto.trim() || null }).eq("id", aberta.id);
             await carregar();
           }}
+          onMover={(novoDia) => correr(moverAcao(ang, aberta, acoes, novoDia))}
           onRetirar={async () => {
             if (!window.confirm("Retirar esta ação do plano?")) return;
             await sbBrowser().from("angariacao_acoes").delete().eq("id", aberta.id);

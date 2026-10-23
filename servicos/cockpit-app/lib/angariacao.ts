@@ -13,6 +13,12 @@ export type Angariacao = {
   comissao_valor: number | null;
   comissao_recebida: boolean;
   comissao_recebida_em: string | null;
+  tipo_imovel: string | null;
+  tipologia: string | null;
+  distrito: string | null;
+  concelho: string | null;
+  freguesia: string | null;
+  valor: number | null;
   proprietarios: { contactos: { nome: string } } | null;
 };
 
@@ -181,5 +187,24 @@ export async function marcarVendido(ang: Angariacao, acoes: Acao[], vendidoEm: s
       .in("angariacao_acao_id", ids)
       .eq("feita", false);
   }
+  return null;
+}
+
+/**
+ * Muda uma ação para outro dia do contrato (a tarefa do calendário acompanha).
+ * A grelha mostra uma ação por linha e bloco, por isso não deixa pôr duas no mesmo bloco.
+ */
+export async function moverAcao(ang: Angariacao, a: Acao, outras: Acao[], novoDia: number): Promise<string | null> {
+  if (novoDia < 0 || novoDia >= ang.duracao_dias) return `Escolhe um dia dentro do contrato (${ang.duracao_dias} dias).`;
+  const bloco = blocoDeDia(novoDia);
+  if (outras.some((x) => x.id !== a.id && x.nome === a.nome && blocoDeDia(x.dia) === bloco)) {
+    return `Já existe "${a.nome}" nesse bloco de 10 dias.`;
+  }
+  const sb = sbBrowser();
+  const { error } = await sb.from("angariacao_acoes").update({ dia: novoDia }).eq("id", a.id);
+  if (error) return "Não foi possível mover a ação.";
+  const quando = dataDoDia(ang.inicio, novoDia);
+  quando.setHours(9, 0, 0, 0);
+  await sb.from("tarefas").update({ inicio: quando.toISOString() }).eq("angariacao_acao_id", a.id);
   return null;
 }

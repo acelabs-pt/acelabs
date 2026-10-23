@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import DadosImovel, { IMOVEL_VAZIO, imovelParaBd, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
+import { atualizarPorAngariacao } from "@/lib/oportunidades";
 import { blocoAtual, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import { hojeISO } from "@/lib/datas";
 
@@ -128,6 +130,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
   const [duracao, setDuracao] = useState<120 | 180>(180);
   const [regime, setRegime] = useState<"" | "exclusivo" | "nao_exclusivo">("");
   const [inicio, setInicio] = useState(hojeISO());
+  const [imovel, setImovel] = useState<DadosImovelForm>(IMOVEL_VAZIO);
   const [aGuardar, setAGuardar] = useState(false);
   const campo = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-base";
 
@@ -137,11 +140,17 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
         e.preventDefault();
         setAGuardar(true);
         onErro(null);
-        const { error } = await sbBrowser()
+        const { data, error } = await sbBrowser()
           .from("angariacoes")
-          .insert({ titulo: titulo.trim(), duracao_dias: duracao, regime: regime || null, inicio });
+          .insert({ titulo: titulo.trim(), duracao_dias: duracao, regime: regime || null, inicio, ...imovelParaBd(imovel) })
+          .select("id")
+          .single();
+        if (error || !data) {
+          setAGuardar(false);
+          return onErro("Não foi possível criar a angariação.");
+        }
+        await atualizarPorAngariacao(data.id);
         setAGuardar(false);
-        if (error) return onErro("Não foi possível criar a angariação.");
         onCriada();
       }}
       className="space-y-3 rounded-2xl bg-white p-4 shadow-sm"
@@ -163,6 +172,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
           <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} required className={`${campo} mt-1 text-tinta`} />
         </label>
       </div>
+      <DadosImovel valor={imovel} onChange={setImovel} />
       <label className="block text-xs text-secundario">
         Regime
         <select value={regime} onChange={(e) => setRegime(e.target.value as typeof regime)} className={`${campo} mt-1 text-tinta`}>

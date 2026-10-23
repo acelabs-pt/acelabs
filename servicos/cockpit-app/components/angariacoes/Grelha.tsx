@@ -10,6 +10,9 @@ import {
   type Acao,
   type Angariacao,
 } from "@/lib/angariacao";
+import { dentro, limites } from "@/lib/metricas";
+
+export type VistaGrelha = "tudo" | "mes" | "trimestre";
 
 const FASES = ["1ª fase", "2ª fase", "3ª fase"];
 
@@ -33,12 +36,14 @@ export default function Grelha({
   ang,
   acoes,
   editar,
+  vista = "tudo",
   onAbrir,
   onVazia,
 }: {
   ang: Angariacao;
   acoes: Acao[];
   editar: boolean;
+  vista?: VistaGrelha;
   onAbrir: (a: Acao) => void;
   onVazia: (nome: string, bloco: number) => void;
 }) {
@@ -46,7 +51,12 @@ export default function Grelha({
   const atual = blocoAtual(ang.inicio, ang.duracao_dias);
   const hoje = new Date();
   const linhas = nomesDasLinhas(acoes);
-  const blocos = Array.from({ length: n }, (_, i) => i + 1);
+  // Mês/trimestre: só os blocos de 10 dias que tocam o período atual (para caber no telemóvel).
+  const periodo = vista === "tudo" ? null : limites(vista, hoje);
+  const todosBlocos = Array.from({ length: n }, (_, i) => i + 1);
+  const blocos = periodo
+    ? todosBlocos.filter((b) => dentro(dataDoDia(ang.inicio, (b - 1) * 10), periodo) || dentro(dataDoDia(ang.inicio, b * 10 - 1), periodo))
+    : todosBlocos;
   const blocoVendido = ang.vendido_em
     ? Math.min(n, Math.max(1, Math.ceil(((new Date(ang.vendido_em + "T00:00:00").getTime() - new Date(ang.inicio + "T00:00:00").getTime()) / 86400000 + 1) / 10)))
     : null;
@@ -55,22 +65,26 @@ export default function Grelha({
     <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
       <table className="border-separate border-spacing-x-0.5 border-spacing-y-1 text-xs">
         <thead>
-          <tr>
-            <th className="sticky left-0 z-10 bg-background" />
-            {Array.from({ length: n / 6 }, (_, i) => (
-              <th key={i} colSpan={6} className="rounded-lg bg-ambar-fundo px-2 py-1 text-center font-semibold text-ambar-texto">
-                {FASES[i]}
-              </th>
-            ))}
-          </tr>
-          <tr>
-            <th className="sticky left-0 z-10 bg-background" />
-            {Array.from({ length: n / 3 }, (_, i) => (
-              <th key={i} colSpan={3} className="rounded-lg bg-black/5 px-2 py-1 text-center font-medium text-secundario">
-                {(i + 1) * 30} dias
-              </th>
-            ))}
-          </tr>
+          {!periodo && (
+            <>
+              <tr>
+                <th className="sticky left-0 z-10 bg-background" />
+                {Array.from({ length: n / 6 }, (_, i) => (
+                  <th key={i} colSpan={6} className="rounded-lg bg-ambar-fundo px-2 py-1 text-center font-semibold text-ambar-texto">
+                    {FASES[i]}
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-10 bg-background" />
+                {Array.from({ length: n / 3 }, (_, i) => (
+                  <th key={i} colSpan={3} className="rounded-lg bg-black/5 px-2 py-1 text-center font-medium text-secundario">
+                    {(i + 1) * 30} dias
+                  </th>
+                ))}
+              </tr>
+            </>
+          )}
           <tr>
             <th className="sticky left-0 z-10 bg-background" />
             {blocos.map((b) => (

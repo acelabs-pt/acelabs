@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Hoje from "@/components/dashboard/Hoje";
+import Oportunidades from "@/components/dashboard/Oportunidades";
 import Metas from "@/components/dashboard/Metas";
 import Atencao from "@/components/dashboard/Atencao";
 import Pipeline from "@/components/dashboard/Pipeline";
@@ -50,6 +51,9 @@ export default function DashboardApp() {
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
         <div className="grid items-start gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Oportunidades />
+          </div>
           <Hoje tarefas={dados.tarefas} onAlternar={alternar} />
           <Metas dados={dados} onAlterado={carregar} />
           <Atencao avisos={avisos(dados)} />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { atualizarPorProprietario } from "@/lib/oportunidades";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import { sbBrowser } from "@/lib/supabase-browser";
 
@@ -43,6 +44,7 @@ export default function NovoProprietario() {
             setAGuardar(false);
             return;
           }
+          await atualizarPorProprietario(prop.id);
           router.push(`/crm/proprietarios/${prop.id}`);
         }}
       />

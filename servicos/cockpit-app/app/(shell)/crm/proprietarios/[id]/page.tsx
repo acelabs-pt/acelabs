@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { atualizarPorProprietario } from "@/lib/oportunidades";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import {
   FUNIL_PROP,
@@ -201,6 +202,7 @@ export default function FichaProprietario() {
             const sb = sbBrowser();
             const r1 = await sb.from("contactos").update(paraContactoProp(v)).eq("id", p.contacto_id);
             const r2 = await sb.from("proprietarios").update(paraProprietario(v)).eq("id", p.id);
+            if (!r1.error && !r2.error) await atualizarPorProprietario(p.id);
             setAGuardar(false);
             if (r1.error || r2.error) return setErro("Não foi possível guardar.");
             setEditar(false);

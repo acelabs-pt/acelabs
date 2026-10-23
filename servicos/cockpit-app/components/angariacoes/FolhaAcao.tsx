@@ -11,6 +11,7 @@ export default function FolhaAcao({
   onFechar,
   onAlternar,
   onFeedback,
+  onMover,
   onRetirar,
 }: {
   ang: Angariacao;
@@ -18,12 +19,15 @@ export default function FolhaAcao({
   onFechar: () => void;
   onAlternar: () => void;
   onFeedback: (texto: string) => void;
+  onMover: (novoDia: number) => void;
   onRetirar: () => void;
 }) {
   const [texto, setTexto] = useState(acao.feedback ?? "");
   const bloco = blocoDeDia(acao.dia);
   const de = dataDoDia(ang.inicio, (bloco - 1) * DIAS_POR_BLOCO);
   const ate = dataDoDia(ang.inicio, bloco * DIAS_POR_BLOCO - 1);
+  const dataIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const diaDaData = (iso: string) => Math.round((new Date(iso + "T00:00:00").getTime() - dataDoDia(ang.inicio, 0).getTime()) / 86400000);
 
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
@@ -59,6 +63,29 @@ export default function FolhaAcao({
             className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2.5 text-base text-tinta"
           />
         </label>
+
+        {!acao.feita && (
+          <div className="space-y-2 rounded-xl bg-black/[0.04] p-3">
+            <p className="text-xs font-medium text-secundario">Não deu para fazer a tempo? Muda para outro dia.</p>
+            <div className="flex gap-2">
+              <button onClick={() => onMover(acao.dia + 1)} className="flex-1 rounded-xl bg-white py-2 text-sm font-medium text-tinta">
+                +1 dia
+              </button>
+              <button onClick={() => onMover(acao.dia + 7)} className="flex-1 rounded-xl bg-white py-2 text-sm font-medium text-tinta">
+                +1 semana
+              </button>
+            </div>
+            <input
+              type="date"
+              aria-label="Escolher o dia"
+              min={dataIso(dataDoDia(ang.inicio, 0))}
+              max={dataIso(dataDoDia(ang.inicio, ang.duracao_dias - 1))}
+              defaultValue={dataIso(dataDoDia(ang.inicio, acao.dia))}
+              onChange={(e) => e.target.value && onMover(diaDaData(e.target.value))}
+              className="w-full rounded-xl border border-linha bg-white px-3 py-2 text-base text-tinta"
+            />
+          </div>
+        )}
 
         <button onClick={onRetirar} className="w-full py-1 text-sm text-red-600">
           Retirar do plano
