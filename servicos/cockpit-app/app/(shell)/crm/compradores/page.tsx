@@ -119,6 +119,12 @@ export default function ListaCompradores() {
     [filtradosBase, fase]
   );
 
+  // Só se desenham 60 de cada vez: com mil compradores, desenhar todos demorava vários segundos no telemóvel.
+  const [limite, setLimite] = useState(60);
+  useEffect(() => {
+    setLimite(60);
+  }, [filtradosBase]);
+
   const sel = "rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm";
   const nVisiveis = vista === "lista" ? filtrados.length : filtradosBase.filter((c) => c.estado !== "perdido").length;
   const temFiltros = Boolean(tipo || tipologia || local.distrito || valorMin || valorMax || motivacaoMin || soAlertas);
@@ -217,8 +223,9 @@ export default function ListaCompradores() {
           {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : "Nenhum comprador com estes filtros."}
         </p>
       ) : (
+        <>
         <ul className="space-y-2">
-          {filtrados.map((c) => {
+          {filtrados.slice(0, limite).map((c) => {
             const n = contagens[c.id] ?? { enviados: 0, visitas: 0, propostas: 0 };
             const alerta = alertaLaranja(c);
             return (
@@ -252,6 +259,15 @@ export default function ListaCompradores() {
             );
           })}
         </ul>
+        {filtrados.length > limite && (
+          <button
+            onClick={() => setLimite((l) => l + 60)}
+            className="mt-3 w-full rounded-full bg-black/5 py-3 text-sm font-medium text-tinta"
+          >
+            Mostrar mais ({filtrados.length - limite} por mostrar)
+          </button>
+        )}
+        </>
       )}
     </div>
   );

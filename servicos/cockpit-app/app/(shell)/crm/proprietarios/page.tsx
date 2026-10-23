@@ -103,6 +103,12 @@ export default function ListaProprietarios() {
     [base, estado, fase]
   );
 
+  // Só se desenham 60 de cada vez, por causa do telemóvel
+  const [limite, setLimite] = useState(60);
+  useEffect(() => {
+    setLimite(60);
+  }, [base]);
+
   const nVisiveis = vista === "lista" ? lista.length : base.filter((p) => p.estado !== "perdido").length;
   const temFiltros = Boolean(tipo || tipologia || local.distrito || valorMin || valorMax || soAtrasados);
   function limpar() {
@@ -191,8 +197,9 @@ export default function ListaProprietarios() {
           {props.length === 0 ? "Ainda não há proprietários. Cria o primeiro." : "Nenhum proprietário com estes filtros."}
         </p>
       ) : (
+        <>
         <ul className="space-y-2">
-          {lista.map((p) => (
+          {lista.slice(0, limite).map((p) => (
             <li key={p.id}>
               <SwipeLinha {...swipeContacto(p.contactos.telemovel)}>
                 <Cartao p={p} proxima={proximas[p.id]} atrasado={atrasado(p.id)} />
@@ -200,6 +207,15 @@ export default function ListaProprietarios() {
             </li>
           ))}
         </ul>
+        {lista.length > limite && (
+          <button
+            onClick={() => setLimite((l) => l + 60)}
+            className="mt-3 w-full rounded-full bg-black/5 py-3 text-sm font-medium text-tinta"
+          >
+            Mostrar mais ({lista.length - limite} por mostrar)
+          </button>
+        )}
+        </>
       )}
     </div>
   );
