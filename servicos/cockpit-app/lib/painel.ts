@@ -5,6 +5,7 @@ import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
 import { diasAte, semanaISO } from "@/lib/datas";
+import { todas } from "@/lib/todas";
 
 export type Dados = {
   compradores: Comprador[];
@@ -31,12 +32,12 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   const ano = agora.getFullYear();
   const semana = semanaISO(agora);
   const [c, i, p, a, ac, t, m, cfg, sem] = await Promise.all([
-    sb.from("compradores").select("*, contactos(*)"),
-    sb.from("comprador_imoveis").select("*"),
-    sb.from("proprietarios").select("*, contactos(*)"),
-    sb.from("angariacoes").select("*, proprietarios(contactos(nome))"),
-    sb.from("angariacao_acoes").select("*"),
-    sb.from("tarefas").select("*"),
+    todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("angariacao_acoes").select("*").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("tarefas").select("*").order("id").range(de, ate)),
     sb.from("metas").select("*").eq("ano", ano),
     sb.from("metas_config").select("*").eq("ano", ano),
     sb.from("metas_semanas").select("*").eq("semana", semana),

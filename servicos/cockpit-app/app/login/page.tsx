@@ -30,37 +30,53 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <form onSubmit={entrar} className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-semibold text-tinta">Cockpit</h1>
-        <p className="text-sm text-secundario">Entrar na tua conta</p>
+    <main className="flex min-h-[100dvh] items-center justify-center px-4">
+      <form onSubmit={entrar} className="w-full max-w-sm">
+        <p className="flex items-center gap-2 text-sm font-medium text-secundario">
+          <i className="h-2 w-2 rounded-full bg-verde shadow-[0_0_0_4px_rgba(31,174,90,0.16)]" />
+          Ace Labs
+        </p>
+        <h1 className="mt-3 text-5xl font-extrabold leading-[1.02] tracking-tight text-tinta">
+          Entra no teu Cockpit.
+        </h1>
+        <p className="mt-4 text-base text-secundario">O teu dia a dia no terreno, num só lugar.</p>
 
-        <input
-          type="email"
-          required
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-2xl border border-black/10 px-4 py-3.5 text-base"
-        />
-        <input
-          type="password"
-          required
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-2xl border border-black/10 px-4 py-3.5 text-base"
-        />
+        <div className="mt-8 space-y-3 rounded-3xl border border-linha bg-white p-5">
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="Email"
+            aria-label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
+          />
+          <input
+            type="password"
+            required
+            autoComplete="current-password"
+            placeholder="Password"
+            aria-label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
+          />
 
-        {erro && <p className="text-sm text-red-600">{erro}</p>}
+          {erro && (
+            <p role="alert" className="text-sm text-red-600">
+              {erro}
+            </p>
+          )}
 
-        <button
-          type="submit"
-          disabled={aEnviar}
-          className="w-full rounded-2xl bg-azul py-3.5 text-base font-semibold text-white disabled:opacity-60"
-        >
-          {aEnviar ? "A entrar..." : "Entrar"}
-        </button>
+          <button
+            type="submit"
+            disabled={aEnviar}
+            className="w-full rounded-full bg-tinta py-3.5 text-base font-semibold text-white hover:bg-black disabled:opacity-60"
+          >
+            {aEnviar ? "A entrar..." : "Entrar"}
+          </button>
+        </div>
       </form>
     </main>
   );

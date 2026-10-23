@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
 import { FUNIL_PROP, labelEstadoProp, type Proprietario } from "@/lib/proprietario";
@@ -32,14 +33,18 @@ export default function ListaProprietarios() {
     (async () => {
       const sb = sbBrowser();
       const [r1, r2] = await Promise.all([
-        sb.from("proprietarios").select("*, contactos(*)").order("created_at", { ascending: false }),
-        sb
-          .from("tarefas")
-          .select("titulo, inicio, proprietario_id")
-          .not("proprietario_id", "is", null)
-          .eq("feita", false)
-          .not("inicio", "is", null)
-          .order("inicio", { ascending: true }),
+        todas((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("created_at", { ascending: false }).order("id").range(de, ate)),
+        todas<{ titulo: string; inicio: string; proprietario_id: string }>((de, ate) =>
+          sb
+            .from("tarefas")
+            .select("titulo, inicio, proprietario_id")
+            .not("proprietario_id", "is", null)
+            .eq("feita", false)
+            .not("inicio", "is", null)
+            .order("inicio", { ascending: true })
+            .order("id")
+            .range(de, ate)
+        ),
       ]);
       if (r1.error || r2.error) {
         setErro("Não foi possível carregar os proprietários.");

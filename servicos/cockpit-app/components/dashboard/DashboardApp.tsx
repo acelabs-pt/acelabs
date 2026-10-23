@@ -40,7 +40,7 @@ export default function DashboardApp() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-tinta">Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-tinta md:text-5xl">Dashboard</h1>
         <p className="text-sm capitalize text-secundario">
           {new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
         </p>

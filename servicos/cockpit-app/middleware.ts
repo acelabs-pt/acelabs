@@ -43,5 +43,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Fora do login: assets estáticos e ficheiros da PWA (manifest, service worker, ícones,
+  // ecrã offline), que o browser pede sem sessão.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|offline.html|icons/).*)"],
 };

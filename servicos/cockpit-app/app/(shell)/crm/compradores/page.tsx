@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
 import {
   FUNIL,
   OBJETIVOS,
@@ -54,8 +55,8 @@ export default function ListaCompradores() {
     (async () => {
       const sb = sbBrowser();
       const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }] = await Promise.all([
-        sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }),
-        sb.from("comprador_imoveis").select("*"),
+        todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }).order("id").range(de, ate)),
+        todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
       ]);
       if (e1 || e2) {
         setErro("Não foi possível carregar os compradores.");

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-10-22T20:30:39.283Z",
+        "reason": "Brand rule in project CLAUDE.md: Inter is the sanctioned fallback for SF Pro on non-Apple systems (Identidade visual); not a per-session user confirmation"
+      }
+    ]
+  }
+}

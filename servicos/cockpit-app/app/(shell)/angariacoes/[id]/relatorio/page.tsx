@@ -30,7 +30,12 @@ export default function Relatorio() {
   if (!ang) return <p className="text-sm text-secundario">A carregar...</p>;
 
   const feitas = acoes.filter((a) => a.feita).sort((a, b) => (a.feita_em ?? "").localeCompare(b.feita_em ?? ""));
-  const pendentes = acoes.filter((a) => !a.feita);
+  // O relatório vai para o proprietário: só mostra o que foi feito e o que ainda vem.
+  // Ações em atraso ficam de fora, para não dar a ideia de trabalho por fazer.
+  const agora = new Date();
+  const proximas = acoes
+    .filter((a) => !a.feita && dataDoDia(ang.inicio, blocoDeDia(a.dia) * 10) >= agora)
+    .sort((a, b) => a.dia - b.dia);
   const dia = diaDeHoje(ang.inicio);
   const nome = (a: Acao) => (a.follow_up ? "Follow up com o proprietário" : a.nome);
 
@@ -53,7 +58,7 @@ export default function Relatorio() {
         </p>
         <p className="mt-1 text-sm text-tinta">
           {ang.vendido_em ? `Vendido a ${formatarDia(new Date(ang.vendido_em + "T00:00:00"))}. ` : dia >= 1 && dia <= ang.duracao_dias ? `Estamos no dia ${dia}. ` : ""}
-          {feitas.length} de {acoes.length} ações realizadas.
+          {feitas.length} {feitas.length === 1 ? "ação realizada" : "ações realizadas"} desde {formatarDia(dataDoDia(ang.inicio, 0))}.
         </p>
       </header>
 
@@ -76,11 +81,11 @@ export default function Relatorio() {
         )}
       </section>
 
-      {pendentes.length > 0 && (
+      {proximas.length > 0 && (
         <section>
-          <h2 className="mb-2 text-sm font-semibold text-tinta">Ainda por fazer</h2>
+          <h2 className="mb-2 text-sm font-semibold text-tinta">Próximas ações</h2>
           <ul className="divide-y divide-black/10 rounded-2xl bg-white shadow-sm print:shadow-none">
-            {pendentes.map((a) => (
+            {proximas.map((a) => (
               <li key={a.id} className="flex justify-between gap-2 px-4 py-2 text-sm">
                 <span className="text-tinta">{nome(a)}</span>
                 <span className="shrink-0 text-xs text-secundario">dias {(blocoDeDia(a.dia) - 1) * 10 + 1} a {blocoDeDia(a.dia) * 10}</span>

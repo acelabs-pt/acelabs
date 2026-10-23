@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
@@ -42,10 +43,10 @@ export default function CalendarioApp() {
   const [novo, setNovo] = useState<Date | null>(null);
 
   const carregar = useCallback(async () => {
-    const { data, error } = await sbBrowser()
-      .from("tarefas")
-      .select("*")
-      .order("inicio", { ascending: true, nullsFirst: false });
+    const sb = sbBrowser();
+    const { data, error } = await todas((de, ate) =>
+      sb.from("tarefas").select("*").order("inicio", { ascending: true, nullsFirst: false }).order("id").range(de, ate)
+    );
     if (error) setErro("Não foi possível carregar as tarefas.");
     else setTarefas((data as Tarefa[]).filter((t) => t.no_calendario));
     setACarregar(false);

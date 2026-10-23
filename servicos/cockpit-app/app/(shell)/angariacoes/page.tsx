@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
 import { blocoAtual, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import { hojeISO } from "@/lib/datas";
 
@@ -19,8 +20,10 @@ export default function Angariacoes() {
   async function carregar() {
     const sb = sbBrowser();
     const [r1, r2] = await Promise.all([
-      sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("created_at", { ascending: false }),
-      sb.from("angariacao_acoes").select("*"),
+      todas((de, ate) =>
+        sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("created_at", { ascending: false }).order("id").range(de, ate)
+      ),
+      todas((de, ate) => sb.from("angariacao_acoes").select("*").order("id").range(de, ate)),
     ]);
     if (r1.error || r2.error) {
       setErro("Não foi possível carregar as angariações.");

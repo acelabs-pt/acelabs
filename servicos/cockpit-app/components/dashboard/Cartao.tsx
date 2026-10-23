@@ -8,7 +8,7 @@ export default function Cartao({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
+    <section className="space-y-3 rounded-3xl border border-linha bg-white p-5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-tinta">{titulo}</h2>
         {acao}
