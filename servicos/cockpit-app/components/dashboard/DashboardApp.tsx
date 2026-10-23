@@ -91,9 +91,13 @@ export default function DashboardApp() {
             <div>
               <Carteira dados={dados} />
             </div>
+            <div>
+              <FunisConversao dados={dados} />
+            </div>
+            <div>
+              <Origens dados={dados} />
+            </div>
           </div>
-          <FunisConversao dados={dados} />
-          <Origens dados={dados} />
         </div>
       )}
       {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}

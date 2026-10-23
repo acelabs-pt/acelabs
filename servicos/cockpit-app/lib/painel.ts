@@ -189,7 +189,7 @@ export function comissaoPrevista(d: Dados): { faixas: FaixaComissao[]; total: nu
     { rot: "Até 30 dias", valor: 0, n: 0 },
     { rot: "31 a 60 dias", valor: 0, n: 0 },
     { rot: "61 a 90 dias", valor: 0, n: 0 },
-    { rot: "Mais tarde ou sem data", valor: 0, n: 0 },
+    { rot: "Mais tarde", valor: 0, n: 0 },
   ];
   let semValor = 0;
   let semData = 0;

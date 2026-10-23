@@ -7,10 +7,12 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { corProgresso } from "@/lib/comprador";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Periodo } from "@/lib/metricas";
 import { faturacaoAcumulada, feitos, type Dados } from "@/lib/painel";
-import Anel from "@/components/dashboard/graficos/Anel";
-import LinhaFaturacao from "@/components/dashboard/graficos/LinhaFaturacao";
+import AneisAtividade from "@/components/dashboard/graficos/AneisAtividade";
+import AreaFaturacao from "@/components/dashboard/graficos/AreaFaturacao";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
 
+// Azul, verde, âmbar e tinta: as cores da marca, sempre pela mesma ordem (visitas, reuniões, angariações, transações)
+const CORES_ANEL = ["#0071e3", "#1fae5a", "#ff9f0a", "#1d1d1f"];
 const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
 
 const PERIODOS: [Periodo, string][] = [
@@ -118,45 +120,37 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
             </div>
           )}
 
-          {m.faturacaoAnual != null && (
-            <div className="rounded-xl bg-black/[0.04] px-3 py-2.5">
-              <p className="text-xs text-secundario">Objetivo de faturação {m.ano}</p>
-              <p className="text-lg font-semibold text-tinta">{eur(m.faturacaoAnual)}</p>
-              <p className="text-[11px] text-secundario">Comissões recebidas {m.ano}: {eur(fAno.faturado)}</p>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-                <div className={`h-full rounded-full ${corProgresso(fAno.faturado, m.faturacaoAnual)}`} style={{ width: `${Math.min(100, (fAno.faturado / m.faturacaoAnual) * 100)}%` }} />
-              </div>
-              {m.anual.transacoes != null && m.anual.transacoes > 0 && (
-                <p className="text-[11px] text-secundario">
-                  Equivale a {eur(m.faturacaoAnual / m.anual.transacoes)} por transação, com {plural(m.anual.transacoes, "transação", "transações")} no ano
-                </p>
-              )}
-              <div className="mt-3">
-                <LinhaFaturacao meses={fat.meses} mesAtual={fat.mesAtual} objetivo={m.faturacaoAnual} />
-              </div>
-            </div>
-          )}
-
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-4">
-            {METRICAS.map((x) => {
-              const feito = f[x.id];
-              const anual = m.anual[x.id];
-              const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
-              return (
-                <li key={x.id} className="flex items-center gap-3">
-                  <Anel feito={feito} meta={meta} rotulo={x.label} />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-tight text-tinta">{x.label}</p>
-                    <p className="text-xs text-secundario">{meta != null ? `de ${fmtNum(meta)}` : "sem meta"}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <AneisAtividade
+            metricas={METRICAS.map((x, i) => ({
+              rotulo: x.label,
+              feito: f[x.id],
+              meta: m.anual[x.id] == null ? null : metaDoPeriodo(m.anual[x.id]!, periodo, m.semanasUteis),
+              cor: CORES_ANEL[i],
+            }))}
+          />
           {f.transacoes > 0 && (
             <p className="text-[11px] text-secundario">
               Transações: {f.transCompradores} do lado do comprador (CPCV) + {f.transAngariacoes} do lado da angariação vendida. Um negócio completo conta nas duas.
             </p>
+          )}
+
+          {m.faturacaoAnual != null && (
+            <div className="space-y-3 border-t border-linha pt-5">
+              <div>
+                <p className="text-sm font-medium text-secundario">Faturação de {m.ano}</p>
+                <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <p className="text-4xl font-bold tracking-tight text-tinta">{eur(fAno.faturado)}</p>
+                  <span className="rounded-full bg-azul-suave px-2.5 py-1 text-xs font-semibold text-azul-escuro">
+                    {fAno.faturado > 0 && fAno.faturado / m.faturacaoAnual < 0.01 ? "menos de 1" : Math.round((fAno.faturado / m.faturacaoAnual) * 100)}% do objetivo
+                  </span>
+                </div>
+                <p className="text-xs text-secundario">
+                  de {eur(m.faturacaoAnual)} (objetivo do ano)
+                  {m.anual.transacoes != null && m.anual.transacoes > 0 ? `, ${eur(m.faturacaoAnual / m.anual.transacoes)} por transação em ${plural(m.anual.transacoes, "transação", "transações")}` : ""}
+                </p>
+              </div>
+              <AreaFaturacao meses={fat.meses} mesAtual={fat.mesAtual} objetivo={m.faturacaoAnual} />
+            </div>
           )}
           {!definidas && <p className="text-xs text-secundario">Ainda não definiste metas. Mostra só o que já fizeste.</p>}
         </>

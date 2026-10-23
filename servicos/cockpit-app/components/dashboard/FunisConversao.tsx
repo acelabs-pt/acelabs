@@ -7,6 +7,9 @@ import { FUNIL } from "@/lib/comprador";
 import { FUNIL_PROP } from "@/lib/proprietario";
 import { funilComConversao, type Dados } from "@/lib/painel";
 
+// Um só azul: do claro (topo, muita gente) ao escuro (fundo, poucos). A cor segue a profundidade, não a categoria.
+const RAMPA = ["#a9d0f6", "#82bbf1", "#5aa5ec", "#3591e8", "#0071e3", "#0066cc", "#0059b3", "#004a96", "#003d7d"];
+
 // Quantos chegaram a cada fase, que parte passa à seguinte e há quanto tempo estão parados.
 // Mostra onde o negócio encrava. Tocar numa fase abre a lista já filtrada por ela.
 export default function FunisConversao({ dados }: { dados: Dados }) {
@@ -40,38 +43,53 @@ export default function FunisConversao({ dados }: { dados: Dados }) {
         ))}
       </div>
 
-      <ul className="space-y-3">
-        {e.etapas.map((x) => (
-          <li key={x.id}>
-            <Link href={`${href}?fase=${x.id}`} className="block space-y-1 rounded-xl py-0.5 hover:bg-black/[0.03]">
-              <div className="flex items-baseline justify-between gap-2 text-sm">
-                <span className="text-tinta">{x.label}</span>
-                <span className="shrink-0 text-xs text-secundario">
-                  <b className="text-sm text-tinta">{x.aqui}</b> aqui · {x.chegaram} chegaram
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-black/5">
-                <div className="h-full rounded-full bg-azul" style={{ width: `${(x.chegaram / max) * 100}%` }} />
-              </div>
-              {(x.passagem != null || x.diasParados != null) && (
-                <p className="flex flex-wrap gap-x-3 text-[11px] text-secundario">
-                  {x.passagem != null && (
-                    <span className={pior?.id === x.id ? "font-medium text-ambar-texto" : ""}>{x.passagem}% passaram da fase anterior</span>
-                  )}
-                  {x.diasParados != null && (
-                    <span className={x.diasParados >= 14 ? "font-medium text-ambar-texto" : ""}>parados há {x.diasParados} {x.diasParados === 1 ? "dia" : "dias"} em média</span>
-                  )}
-                </p>
+      <ol className="flex flex-col items-stretch">
+        {e.etapas.map((x, i) => {
+          const ePior = pior?.id === x.id;
+          return (
+            <li key={x.id}>
+              {x.passagem != null && (
+                <div className="flex items-center justify-center py-1.5" aria-label={`${x.passagem}% passam da fase anterior`}>
+                  <span
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                      ePior ? "bg-ambar-fundo text-ambar-texto" : "bg-black/[0.05] text-secundario"
+                    }`}
+                  >
+                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2 3.5l3 3 3-3" />
+                    </svg>
+                    {x.passagem}%
+                  </span>
+                </div>
               )}
-            </Link>
-          </li>
-        ))}
-      </ul>
+              <Link href={`${href}?fase=${x.id}`} className="group block rounded-2xl px-1 py-1.5 hover:bg-black/[0.03]">
+                <div className="mb-1.5 flex items-baseline justify-between gap-2 px-1 text-sm">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-medium text-tinta">
+                    {x.label}
+                    {x.diasParados != null && x.diasParados >= 14 && (
+                      <span className="rounded-full bg-ambar-fundo px-2 py-0.5 text-[11px] font-semibold text-ambar-texto">parados há {x.diasParados} dias</span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-secundario">
+                    <b className="text-base font-bold tracking-tight text-tinta">{x.aqui}</b> aqui · {x.chegaram} chegaram
+                  </span>
+                </div>
+                <div className="flex justify-center">
+                  <div
+                    className="anim-barra h-7 rounded-xl"
+                    style={{ width: `${Math.max(8, (x.chegaram / max) * 100)}%`, backgroundColor: RAMPA[Math.min(i, RAMPA.length - 1)], animationDelay: `${i * 70}ms` }}
+                  />
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
 
       <p className="text-xs text-secundario">
         {pior && (
           <>
-            Onde mais se perde: <b className="text-tinta">{pior.label}</b> ({pior.passagem}% passam).{" "}
+            Onde mais se perde: <b className="text-tinta">{pior.label}</b> ({pior.passagem}% passam). O tempo parado é a média de quem está em cada fase.{" "}
           </>
         )}
         {e.perdidos > 0 && (

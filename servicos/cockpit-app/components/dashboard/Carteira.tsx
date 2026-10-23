@@ -3,8 +3,8 @@ import Cartao from "@/components/dashboard/Cartao";
 import { diaDeHoje } from "@/lib/angariacao";
 import type { Dados } from "@/lib/painel";
 
-// Uma linha por angariação ativa: onde vai o contrato (barra azul), quantas ações do plano estão feitas
-// (barra verde por baixo) e se há ações em atraso. Primeiro as que terminam mais cedo.
+// Uma linha por angariação ativa: onde vai o contrato (azul, com um ponto no "hoje"), quanto do plano de ações
+// está feito (verde) e se há ações em atraso. Primeiro as que terminam mais cedo.
 export default function Carteira({ dados }: { dados: Dados }) {
   const linhas = dados.angariacoes
     .filter((a) => !a.vendido_em)
@@ -21,41 +21,48 @@ export default function Carteira({ dados }: { dados: Dados }) {
       {linhas.length === 0 ? (
         <p className="text-sm text-secundario">Sem angariações ativas.</p>
       ) : (
-        <ul className="space-y-3">
-          {linhas.slice(0, 6).map(({ a, dia, restam, total, feitas, emAtraso }) => {
+        <ul className="space-y-5">
+          {linhas.slice(0, 6).map(({ a, dia, restam, total, feitas, emAtraso }, i) => {
             const fracContrato = Math.max(0, Math.min(1, dia / a.duracao_dias));
             const fracFeitas = total > 0 ? feitas / total : 0;
+            const curto = restam <= 30;
             return (
               <li key={a.id}>
-                <Link href={`/angariacoes/${a.id}`} className="block space-y-1.5">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-tinta">{a.titulo}</span>
-                    <span className={`shrink-0 text-xs ${restam <= 30 ? "font-medium text-ambar-texto" : "text-secundario"}`}>
-                      {dia < 1 ? "ainda não começou" : `${restam} dias para o fim`}
+                <Link href={`/angariacoes/${a.id}`} className="block space-y-2 rounded-2xl hover:bg-black/[0.02]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-semibold text-tinta">{a.titulo}</span>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        curto ? "bg-ambar-fundo text-ambar-texto" : "bg-black/[0.05] text-secundario"
+                      }`}
+                    >
+                      {dia < 1 ? "ainda não começou" : `${restam} dias`}
                     </span>
                   </div>
-                  <div
-                    className="space-y-0.5"
-                    role="img"
-                    aria-label={`Dia ${Math.max(dia, 0)} de ${a.duracao_dias}. ${feitas} de ${total} ações feitas.`}
-                  >
-                    <div className="h-1.5 overflow-hidden rounded-full bg-black/5">
-                      <div className="h-full rounded-full bg-azul" style={{ width: `${fracContrato * 100}%` }} />
+
+                  <div role="img" aria-label={`Dia ${Math.max(dia, 0)} de ${a.duracao_dias}. ${feitas} de ${total} ações feitas.`} className="space-y-1.5">
+                    <div className="relative h-2.5 rounded-full bg-black/[0.05]">
+                      <div className="anim-barra h-full rounded-full bg-azul" style={{ width: `${fracContrato * 100}%`, animationDelay: `${i * 70}ms` }} />
+                      {dia >= 1 && (
+                        <span
+                          className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-azul shadow-sm"
+                          style={{ left: `${fracContrato * 100}%` }}
+                        />
+                      )}
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-black/5">
-                      <div className="h-full rounded-full bg-verde" style={{ width: `${fracFeitas * 100}%` }} />
+                    <div className="h-1.5 rounded-full bg-black/[0.05]">
+                      <div className="anim-barra h-full rounded-full bg-verde" style={{ width: `${fracFeitas * 100}%`, animationDelay: `${i * 70 + 100}ms` }} />
                     </div>
                   </div>
-                  <p className="flex flex-wrap gap-x-3 text-[11px] text-secundario">
+
+                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-secundario">
                     <span>
-                      <i className="mr-1 inline-block h-2 w-2 rounded-sm bg-azul" />
-                      Dia {Math.max(dia, 0)} de {a.duracao_dias}
+                      Dia <b className="text-tinta">{Math.max(dia, 0)}</b> de {a.duracao_dias}
                     </span>
                     <span>
-                      <i className="mr-1 inline-block h-2 w-2 rounded-sm bg-verde" />
-                      {feitas} de {total} ações
+                      <b className="text-tinta">{total > 0 ? Math.round(fracFeitas * 100) : 0}%</b> do plano ({feitas} de {total})
                     </span>
-                    {emAtraso > 0 && <span className="font-medium text-ambar-texto">{emAtraso} em atraso</span>}
+                    {emAtraso > 0 && <span className="rounded-full bg-ambar-fundo px-2 py-0.5 font-semibold text-ambar-texto">{emAtraso} em atraso</span>}
                   </p>
                 </Link>
               </li>
@@ -64,7 +71,7 @@ export default function Carteira({ dados }: { dados: Dados }) {
         </ul>
       )}
       {linhas.length > 6 && (
-        <Link href="/angariacoes" className="block text-sm text-secundario underline">
+        <Link href="/angariacoes" className="block text-sm font-medium text-azul">
           Ver todas
         </Link>
       )}
