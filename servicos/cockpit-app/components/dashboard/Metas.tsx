@@ -6,7 +6,9 @@ import MetasForm from "@/components/dashboard/MetasForm";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { corProgresso } from "@/lib/comprador";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Periodo } from "@/lib/metricas";
-import { feitos, type Dados } from "@/lib/painel";
+import { faturacaoAcumulada, feitos, type Dados } from "@/lib/painel";
+import Anel from "@/components/dashboard/graficos/Anel";
+import LinhaFaturacao from "@/components/dashboard/graficos/LinhaFaturacao";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
 
 const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
@@ -26,6 +28,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   const definidas = Object.values(m.anual).some((v) => v != null) || m.faturacaoAnual != null;
   const f = feitos(dados, periodo);
   const fAno = feitos(dados, "ano");
+  const fat = faturacaoAcumulada(dados, m.ano);
 
   const metaSemanal = (k: "visitas" | "reunioes_angariacao") => (m.anual[k] == null ? 0 : metaDoPeriodo(m.anual[k]!, "semana", m.semanasUteis));
 
@@ -128,37 +131,33 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
                   Equivale a {eur(m.faturacaoAnual / m.anual.transacoes)} por transação, com {plural(m.anual.transacoes, "transação", "transações")} no ano
                 </p>
               )}
+              <div className="mt-3">
+                <LinhaFaturacao meses={fat.meses} mesAtual={fat.mesAtual} objetivo={m.faturacaoAnual} />
+              </div>
             </div>
           )}
 
-          <ul className="space-y-3">
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-4">
             {METRICAS.map((x) => {
               const feito = f[x.id];
               const anual = m.anual[x.id];
               const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
               return (
-                <li key={x.id}>
-                  <div className="flex items-baseline justify-between text-sm">
-                    <span className="text-tinta">{x.label}</span>
-                    <span className="text-secundario">
-                      <b className="text-base text-tinta">{feito}</b>
-                      {meta != null ? ` / ${fmtNum(meta)}` : ""}
-                    </span>
+                <li key={x.id} className="flex items-center gap-3">
+                  <Anel feito={feito} meta={meta} rotulo={x.label} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-tight text-tinta">{x.label}</p>
+                    <p className="text-xs text-secundario">{meta != null ? `de ${fmtNum(meta)}` : "sem meta"}</p>
                   </div>
-                  {meta != null && meta > 0 && (
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-                      <div className={`h-full rounded-full ${corProgresso(feito, meta)}`} style={{ width: `${Math.min(100, (feito / meta) * 100)}%` }} />
-                    </div>
-                  )}
-                  {x.id === "transacoes" && feito > 0 && (
-                    <p className="mt-1 text-[11px] text-secundario">
-                      Com CPCV: {f.transCompradores} do lado do comprador + {f.transAngariacoes} do lado da angariação (vendida) (um pleno conta nas duas)
-                    </p>
-                  )}
                 </li>
               );
             })}
           </ul>
+          {f.transacoes > 0 && (
+            <p className="text-[11px] text-secundario">
+              Transações: {f.transCompradores} do lado do comprador (CPCV) + {f.transAngariacoes} do lado da angariação vendida. Um negócio completo conta nas duas.
+            </p>
+          )}
           {!definidas && <p className="text-xs text-secundario">Ainda não definiste metas. Mostra só o que já fizeste.</p>}
         </>
       )}

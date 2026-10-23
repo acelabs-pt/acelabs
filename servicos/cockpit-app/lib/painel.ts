@@ -151,3 +151,48 @@ export function avisos(d: Dados, agora: Date = new Date()): Aviso[] {
   }
   return out.sort((x, y) => Number(y.grave) - Number(x.grave));
 }
+
+/** Comissões recebidas, acumuladas no fim de cada mês do ano. Meses futuros ficam a null. */
+export function faturacaoAcumulada(d: Dados, ano: number, agora: Date = new Date()): { meses: (number | null)[]; mesAtual: number } {
+  const mesAtual = agora.getFullYear() === ano ? agora.getMonth() : agora.getFullYear() > ano ? 11 : -1;
+  const porMes = Array<number>(12).fill(0);
+  for (const x of [...d.compradores, ...d.angariacoes]) {
+    if (!x.comissao_recebida || !x.comissao_recebida_em) continue;
+    const dt = dataLocal(x.comissao_recebida_em);
+    if (dt.getFullYear() === ano) porMes[dt.getMonth()] += Number(x.comissao_valor ?? 0);
+  }
+  let acc = 0;
+  return { meses: porMes.map((v, i) => ((acc += v), i <= mesAtual ? acc : null)), mesAtual };
+}
+
+export type FaixaComissao = { rot: string; valor: number; n: number };
+
+/**
+ * Comissões ainda por receber de compradores com CPCV ou escritura, por horizonte (dias até à escritura).
+ * Usa a data da escritura, ou o prazo se não houver data. Negócios sem valor de comissão contam à parte.
+ */
+export function comissaoPrevista(d: Dados): { faixas: FaixaComissao[]; total: number; semValor: number; semData: number } {
+  const faixas: FaixaComissao[] = [
+    { rot: "Até 30 dias", valor: 0, n: 0 },
+    { rot: "31 a 60 dias", valor: 0, n: 0 },
+    { rot: "61 a 90 dias", valor: 0, n: 0 },
+    { rot: "Mais tarde ou sem data", valor: 0, n: 0 },
+  ];
+  let semValor = 0;
+  let semData = 0;
+  for (const c of d.compradores) {
+    if (!(c.estado === "cpcv" || c.estado === "escritura") || c.comissao_recebida) continue;
+    const valor = Number(c.comissao_valor ?? 0);
+    if (!(valor > 0)) {
+      semValor++;
+      continue;
+    }
+    const data = c.escritura_data ?? c.escritura_prazo;
+    if (!data) semData++;
+    const dias = data ? diasAte(data) : Infinity;
+    const f = dias <= 30 ? 0 : dias <= 60 ? 1 : dias <= 90 ? 2 : 3;
+    faixas[f].valor += valor;
+    faixas[f].n++;
+  }
+  return { faixas, total: faixas.reduce((s, f) => s + f.valor, 0), semValor, semData };
+}

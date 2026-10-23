@@ -6,6 +6,7 @@ import Oportunidades from "@/components/dashboard/Oportunidades";
 import Metas from "@/components/dashboard/Metas";
 import Atencao from "@/components/dashboard/Atencao";
 import Pipeline from "@/components/dashboard/Pipeline";
+import Carteira from "@/components/dashboard/Carteira";
 import FunilResumo from "@/components/dashboard/FunilResumo";
 import { avisos, carregarDados, type Dados } from "@/lib/painel";
 import { marcarTarefa } from "@/lib/tarefas";
@@ -42,7 +43,7 @@ export default function DashboardApp() {
     <div className="space-y-4">
       <div>
         <h1 className="text-4xl font-bold tracking-tight text-tinta md:text-5xl">Dashboard</h1>
-        <p className="text-sm capitalize text-secundario">
+        <p className="text-sm text-secundario first-letter:uppercase">
           {new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -50,17 +51,27 @@ export default function DashboardApp() {
       {!dados ? (
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
-        <div className="grid items-start gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <Oportunidades />
+        <div className="space-y-4">
+          <Oportunidades />
+          {/* Colunas que se enchem sem buracos; em telemóvel fica uma coluna, pela ordem de urgência. */}
+          <div className="md:columns-2 md:gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            <div>
+              <Hoje tarefas={dados.tarefas} onAlternar={alternar} />
+            </div>
+            <div>
+              <Atencao avisos={avisos(dados)} />
+            </div>
+            <div>
+              <Metas dados={dados} onAlterado={carregar} />
+            </div>
+            <div>
+              <Pipeline dados={dados} />
+            </div>
+            <div>
+              <Carteira dados={dados} />
+            </div>
           </div>
-          <Hoje tarefas={dados.tarefas} onAlternar={alternar} />
-          <Metas dados={dados} onAlterado={carregar} />
-          <Atencao avisos={avisos(dados)} />
-          <Pipeline dados={dados} />
-          <div className="md:col-span-2">
-            <FunilResumo dados={dados} />
-          </div>
+          <FunilResumo dados={dados} />
         </div>
       )}
     </div>
