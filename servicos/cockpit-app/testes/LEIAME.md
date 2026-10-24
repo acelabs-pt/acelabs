@@ -32,6 +32,7 @@ na base de dados. Correm contra o servidor local e o Supabase **de teste**. Cria
 | `gestos-crm.js` | Deslizar entre Compradores e Proprietários |
 | `pesquisa.js` | Pesquisa por nome, zona e telefone; filtros atrás do botão |
 | `chamadas.js` | Registo de chamadas, último contacto, ordenar, ligar por swipe regista |
+| `proximos-comprador.js` | Ficha do comprador: marcar visita a um imóvel enviado e tarefa, feita com desfazer, aparece no calendário |
 | `funis.js` | Taxas de passagem e origens batem com a base; tocar numa fase filtra a lista |
 | `calendario.js` | Vistas de mês, semana e lista de tarefas |
 | `calendario-telemovel.js` | "Pôr no calendário do telemóvel": .ics com alarme e telefone, sem nomes no endereço, fechado sem sessão |

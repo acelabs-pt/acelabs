@@ -10,6 +10,7 @@ import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import ContactosRegistados from "@/components/crm/ContactosRegistados";
+import AgendaDoComprador from "@/components/crm/AgendaDoComprador";
 import BotaoExportar from "@/components/crm/BotaoExportar";
 import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
@@ -279,6 +280,8 @@ export default function FichaComprador() {
           </div>
         )}
       </section>
+
+      <AgendaDoComprador compradorId={c.id} contactoId={c.contacto_id} nome={c.contactos.nome} imoveis={imoveis} />
 
       <ContactosRegistados contactoId={c.contacto_id} />
 
