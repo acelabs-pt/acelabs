@@ -375,6 +375,9 @@ function ListaTarefas({
     return g;
   }, [tarefas]);
 
+  const [mostrar, setMostrar] = useState<Record<string, number>>({});
+  const limite = (secao: string) => mostrar[secao] ?? (secao === "Hoje" ? 50 : 15);
+
   const secoes: [string, Tarefa[], boolean][] = [
     ["Em atraso", grupos.atrasadas, true],
     ["Hoje", grupos.hoje, false],
@@ -383,6 +386,7 @@ function ListaTarefas({
     ["Feitas (últimas 10)", grupos.feitas, false],
   ];
 
+  // Com planos de angariação há centenas de tarefas: cada secção mostra as primeiras e cresce a pedido.
   if (tarefas.length === 0) {
     return <p className="py-8 text-center text-sm text-secundario">Ainda não há tarefas. Toca no + para adicionar a primeira.</p>;
   }
@@ -398,10 +402,18 @@ function ListaTarefas({
                 {titulo === "Em atraso" && totalAtrasadas > lista.length ? ` de ${totalAtrasadas.toLocaleString("pt-PT")}, as mais recentes` : ""})
               </h2>
               <ul className="space-y-2">
-                {lista.map((t) => (
+                {lista.slice(0, limite(titulo)).map((t) => (
                   <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} onAdiar={onAdiar} onAbrir={() => onAbrir(t)} atrasada={atrasada} />
                 ))}
               </ul>
+              {lista.length > limite(titulo) && (
+                <button
+                  onClick={() => setMostrar((m) => ({ ...m, [titulo]: limite(titulo) + 30 }))}
+                  className="mt-2 w-full rounded-full bg-black/5 py-2.5 text-sm font-medium text-tinta"
+                >
+                  Mostrar mais ({lista.length - limite(titulo)})
+                </button>
+              )}
             </section>
           )
       )}

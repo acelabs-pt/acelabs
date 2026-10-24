@@ -39,6 +39,11 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     ok('semana: carrega sem erro', !(await page.locator('text=Não foi possível').count()));
     await page.locator('button', { hasText: /^Tarefas$/ }).click();
     await page.waitForSelector('text=Em atraso', { timeout: 15000 });
+    // cada secção mostra as primeiras 15 (Hoje 50); o resto aparece com "Mostrar mais"
+    const linhasAntes = await page.locator('section li').count();
+    const mais = page.getByRole('button', { name: /^Mostrar mais/ });
+    ok('lista: secções grandes começam curtas, com "Mostrar mais"', (await mais.count()) === 0 || linhasAntes <= 15 * 4 + 50, `${linhasAntes} linhas, ${await mais.count()} botões`);
+    for (let i = 0; i < 40 && (await mais.count()); i++) { await mais.first().click(); await page.waitForTimeout(100); }
     const txt = await page.locator('body').innerText();
     ok('lista: mostra em atraso, hoje e próximas', txt.includes('ZZ Cal atraso') && txt.includes('ZZ Cal hoje') && txt.includes('ZZ Cal longe'), 'atraso=' + txt.includes('ZZ Cal atraso') + ' hoje=' + txt.includes('ZZ Cal hoje') + ' longe=' + txt.includes('ZZ Cal longe') + ' | ' + txt.split(String.fromCharCode(10)).filter((l) => /^(Em atraso|Hoje|Próximas|Sem data|Feitas)/.test(l)).join(' ; '));
     ok('sem erros de página', erros.length === 0, JSON.stringify(erros));
