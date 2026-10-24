@@ -7,6 +7,7 @@ import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { atualizarPorProprietario } from "@/lib/oportunidades";
 import BotaoExportar from "@/components/crm/BotaoExportar";
+import ContactosRegistados from "@/components/crm/ContactosRegistados";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import {
   FUNIL_PROP,
@@ -16,7 +17,6 @@ import {
   indiceFunilProp,
   labelEstadoProp,
   tipoDaTarefa,
-  type Chamada,
   type EstadoProprietario,
   type Proprietario,
 } from "@/lib/proprietario";
@@ -27,7 +27,6 @@ export default function FichaProprietario() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [p, setP] = useState<Proprietario | null>(null);
-  const [chamadas, setChamadas] = useState<Chamada[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
   const [temAngariacao, setTemAngariacao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -35,8 +34,6 @@ export default function FichaProprietario() {
   const [aGuardar, setAGuardar] = useState(false);
 
   const [reuniao, setReuniao] = useState("");
-  const [chamadaQuando, setChamadaQuando] = useState(() => isoParaLocal(new Date().toISOString()));
-  const [chamadaObs, setChamadaObs] = useState("");
   const [fechar, setFechar] = useState(false);
   const [angTitulo, setAngTitulo] = useState("");
   const [angDuracao, setAngDuracao] = useState<120 | 180>(180);
@@ -52,13 +49,11 @@ export default function FichaProprietario() {
       return;
     }
     const prop = r1.data as unknown as Proprietario;
-    const [r2, r3, r4] = await Promise.all([
-      sb.from("chamadas").select("id, ocorreu_em, observacoes").eq("contacto_id", prop.contacto_id).order("ocorreu_em", { ascending: false }),
+    const [r3, r4] = await Promise.all([
       sb.from("tarefas").select("*").eq("proprietario_id", id).order("inicio", { ascending: true }),
       sb.from("angariacoes").select("id, regime").eq("proprietario_id", id),
     ]);
     setP(prop);
-    setChamadas((r2.data ?? []) as Chamada[]);
     setTarefas((r3.data ?? []) as Tarefa[]);
     setTemAngariacao((r4.data ?? []).length > 0);
     setRegimeGuardado(r4.data?.[0]?.regime ?? null);
@@ -102,20 +97,6 @@ export default function FichaProprietario() {
     }
     await atualizar(campos);
     await agendarFollowUps({ id: p.id, contacto_id: p.contacto_id, nome: p.contactos.nome }, quando);
-    await carregar();
-  }
-
-  async function registarChamada(e: React.FormEvent) {
-    e.preventDefault();
-    if (!p || !chamadaQuando) return;
-    const { error } = await sbBrowser().from("chamadas").insert({
-      contacto_id: p.contacto_id,
-      ocorreu_em: localParaISO(chamadaQuando),
-      observacoes: chamadaObs.trim() || null,
-    });
-    if (error) return setErro("Não foi possível registar a chamada.");
-    setChamadaObs("");
-    setChamadaQuando(isoParaLocal(new Date().toISOString()));
     await carregar();
   }
 
@@ -188,7 +169,7 @@ export default function FichaProprietario() {
   if (!p) return <EsqueletoLista n={3} />;
 
   const tel = p.contactos.telemovel;
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
   const campo = "w-full rounded-xl border border-black/10 px-3 py-2.5 text-base";
 
   if (editar) {
@@ -374,24 +355,7 @@ export default function FichaProprietario() {
         )}
       </section>
 
-      <section className={cartao}>
-        <h3 className="text-sm font-semibold text-tinta">Chamadas</h3>
-        <form onSubmit={registarChamada} className="space-y-2">
-          <input type="datetime-local" value={chamadaQuando} onChange={(e) => setChamadaQuando(e.target.value)} className={campo} />
-          <textarea value={chamadaObs} onChange={(e) => setChamadaObs(e.target.value)} rows={2} placeholder="Observações da chamada" className={campo} />
-          <button type="submit" disabled={!chamadaQuando} className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-            Registar chamada realizada
-          </button>
-        </form>
-        <ul className="space-y-2">
-          {chamadas.map((c) => (
-            <li key={c.id} className="rounded-xl border border-black/10 p-3 text-sm">
-              <p className="text-xs text-secundario">{formatarDia(new Date(c.ocorreu_em))} {formatarHora(c.ocorreu_em)}</p>
-              {c.observacoes && <p className="text-tinta">{c.observacoes}</p>}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ContactosRegistados contactoId={p.contacto_id} />
 
       <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
 

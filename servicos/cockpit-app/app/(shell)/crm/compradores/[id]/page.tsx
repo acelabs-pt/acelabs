@@ -28,6 +28,7 @@ import {
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
+import { eur } from "@/lib/graficos";
 
 type Documento = { id: string; nome: string; entregue: boolean };
 
@@ -44,6 +45,7 @@ export default function FichaComprador() {
   const [aGuardar, setAGuardar] = useState(false);
   const [novoImovel, setNovoImovel] = useState("");
   const [novoDoc, setNovoDoc] = useState("");
+  const [verTodosImoveis, setVerTodosImoveis] = useState(false);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -185,7 +187,7 @@ export default function FichaComprador() {
   const alerta = alertaLaranja(c);
   const tel = c.contactos.telemovel;
   const diasEscritura = c.escritura_prazo ? diasAte(c.escritura_prazo) : null;
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
   if (editar) {
     return (
@@ -217,32 +219,64 @@ export default function FichaComprador() {
       <Link href="/crm/compradores" className="text-sm text-azul">&larr; Compradores</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
+      <section className="space-y-4 rounded-3xl border border-linha bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold text-tinta">{c.contactos.nome}</h2>
-            <p className="text-sm text-secundario">
-              {[c.tipo_imovel, c.tipologia_minima, zonas.length > 0 ? zonas.map(nomeZona).join(" / ") : c.concelho || c.distrito].filter(Boolean).join(" · ")}
-            </p>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-tinta">{c.contactos.nome}</h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${c.estado === "perdido" ? "bg-black/5 text-secundario" : "bg-azul-suave text-azul-escuro"}`}>
+                {labelEstado(c.estado)}
+              </span>
+              {c.motivacao != null && (
+                <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${(c.motivacao / 10) * 120} 70% 42% / 0.12)`, color: `hsl(${(c.motivacao / 10) * 120} 70% 30%)` }}>
+                  Motivação {c.motivacao}/10
+                </span>
+              )}
+              {alerta && <span className="rounded-full bg-ambar-fundo px-2.5 py-1 text-xs font-semibold text-ambar-texto">{alerta}</span>}
+            </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
+          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
             Editar
           </button>
         </div>
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          {(
+            [
+              ["Procura", [c.tipo_imovel, c.tipologia_minima && `${c.tipologia_minima} ou mais`].filter(Boolean).join(", ")],
+              ["Orçamento", c.expectativa_valor != null ? eur(Number(c.expectativa_valor)) : ""],
+              ["Zonas", zonas.length > 0 ? zonas.map(nomeZona).join(" / ") : [c.freguesia, c.concelho, c.distrito].filter(Boolean).join(", ")],
+              ["Financiamento", [c.financiamento, c.simulacao_credito && `simulação ${c.simulacao_credito.toLowerCase()}`].filter(Boolean).join(", ")],
+              ["Precisa de vender", c.precisa_vender == null ? "" : c.precisa_vender ? "Sim" : "Não"],
+              ["Origem", c.contactos.canal_origem ?? ""],
+              ["Telemóvel", c.contactos.telemovel ?? ""],
+              ["Email", c.contactos.email ?? ""],
+            ] as [string, string][]
+          )
+            .filter(([, v]) => v)
+            .map(([k, v]) => (
+              <div key={k} className={k === "Zonas" || k === "Email" ? "col-span-2" : ""}>
+                <dt className="text-xs text-secundario">{k}</dt>
+                <dd className="break-words font-medium text-tinta">{v}</dd>
+              </div>
+            ))}
+        </dl>
+
         {tel && (
           <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
+            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
+              Ligar
+            </a>
             <a
-              href={`https://wa.me/${tel.replace(/\D/g, "")}`}
+              href={`https://wa.me/${tel.replace(/D/g, "")}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-white"
+              className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-white"
             >
               WhatsApp
             </a>
           </div>
         )}
-        {alerta && <p className="rounded-lg bg-ambar-fundo px-3 py-2 text-sm font-medium text-ambar-texto">{alerta}</p>}
       </section>
 
       <ContactosRegistados contactoId={c.contacto_id} />
@@ -312,7 +346,7 @@ export default function FichaComprador() {
         ))}
 
         <ul className="space-y-2 pt-1">
-          {imoveis.map((i) => (
+          {(verTodosImoveis ? imoveis : imoveis.slice(-3)).map((i) => (
             <li key={i.id}>
               <SwipeLinha
                 className="rounded-xl"
@@ -354,6 +388,11 @@ export default function FichaComprador() {
             </li>
           ))}
         </ul>
+        {imoveis.length > 3 && (
+          <button onClick={() => setVerTodosImoveis((v) => !v)} className="text-sm font-medium text-azul">
+            {verTodosImoveis ? "Mostrar só os 3 mais recentes" : `Ver os ${imoveis.length} imóveis`}
+          </button>
+        )}
         <form onSubmit={adicionarImovel} className="flex gap-2">
           <input
             value={novoImovel}

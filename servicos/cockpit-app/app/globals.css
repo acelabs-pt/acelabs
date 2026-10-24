@@ -119,3 +119,13 @@ input[type="search"]::-webkit-search-decoration {
 @media (prefers-reduced-motion: reduce) {
   .anim-toast { animation: none !important; }
 }
+
+/* Impressão (relatórios em PDF): fundo branco, sem o brilho azul do ecrã */
+@media print {
+  body {
+    background: #ffffff;
+  }
+  body::before {
+    display: none;
+  }
+}

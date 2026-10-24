@@ -19,7 +19,8 @@ export default function AcoesRapidas() {
   const [aberto, setAberto] = useState(false);
   const arrasto = useArrastarParaFechar(() => setAberto(false));
   // Nos formulários o botão atrapalha (tapa o botão de guardar).
-  if (pathname.endsWith("/novo") || pathname.startsWith("/importar")) return null;
+  // No calendário já há um "+" próprio, que cria no dia escolhido: dois botões "+" confundiam.
+  if (pathname.endsWith("/novo") || pathname.startsWith("/importar") || pathname.startsWith("/calendario")) return null;
 
   return (
     <>

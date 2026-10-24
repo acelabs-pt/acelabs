@@ -89,7 +89,7 @@ export default function PlanoAngariacao() {
   if (!ang) return <EsqueletoLista n={3} />;
 
   const dia = diaDeHoje(ang.inicio);
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
   const feitas = acoes.filter((a) => a.feita).length;
 
   return (

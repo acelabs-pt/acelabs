@@ -210,7 +210,7 @@ export default function CalendarioApp() {
 
       {vista !== "tarefas" && (
         <div className="flex items-center justify-between gap-2">
-          <h2 className="min-w-0 truncate text-lg font-semibold capitalize text-tinta">{titulo(vista, ref)}</h2>
+          <h2 className="min-w-0 truncate text-lg font-semibold text-tinta first-letter:uppercase">{titulo(vista, ref)}</h2>
           <div className="flex shrink-0 gap-1.5">
             <button onClick={() => mover(-1)} aria-label="Anterior" className={botao}>
               &lsaquo;
