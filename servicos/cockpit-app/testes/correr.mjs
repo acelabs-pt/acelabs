@@ -40,7 +40,7 @@ if (!env.TESTES_PERMITIDOS_EM || !env.NEXT_PUBLIC_SUPABASE_URL.includes(`//${env
 
 const TODOS = [
   "unidade-importacao.ts", "unidade-correspondencias.ts", "conta.js", "dashboard.js", "gestos.js", "gestos-crm.js",
-  "pesquisa.js", "chamadas.js", "funis.js", "calendario.js", "exportar.js", "whatsapp.js", "importar.js",
+  "pesquisa.js", "chamadas.js", "funis.js", "calendario.js", "exportar.js", "exportar-tudo.js", "whatsapp.js", "importar.js",
   "documentos.js", "acessibilidade.js",
 ];
 const pedidos = process.argv.slice(2);

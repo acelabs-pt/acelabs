@@ -1,4 +1,5 @@
-import { lerNumero, lerTelemovel, lerData, lerTipologia, resolverZona, mapearAutomatico, daLista } from "../lib/importar/validar";
+import { lerNumero, lerTelemovel, lerData, lerTipologia, resolverZona, mapearAutomatico, daLista, validar } from "../lib/importar/validar";
+import { paraCsv } from "../lib/exportarTudo";
 import { lerCsv } from "../lib/importar/ficheiro";
 
 let mal = 0;
@@ -42,4 +43,16 @@ eq("mapear telemovel/email/valor/concelho", [m.telemovel, m.email, m.expectativa
 eq("csv ponto e virgula e aspas", lerCsv('Nome;Notas\r\n"Ana; Silva";"disse ""sim"""\r\nRui;ok\r\n'), [["Nome", "Notas"], ["Ana; Silva", 'disse "sim"'], ["Rui", "ok"]]);
 eq("csv virgula (Google Sheets)", lerCsv("a,b,c\n1,2,3\n"), [["a", "b", "c"], ["1", "2", "3"]]);
 eq("csv com BOM e linhas vazias", lerCsv("\uFEFFa;b\n\n1;2\n"), [["a", "b"], ["1", "2"]]);
+// exportar e voltar a importar: o CSV da Conta entra no importador sem erros e sem perder valores
+const nenhum = { telemoveis: new Set<string>(), emails: new Set<string>(), titulos: new Set<string>() };
+const ida = paraCsv("compradores", [
+  { nome: "Ana; Ferreira", telemovel: "+351912345678", email: "ana@exemplo", canal_origem: "Idealista", observacoes: "disse \"talvez\"\nligar à tarde", motivacao: "7", tipo_imovel: "Apartamento", distrito: "Braga", concelho: "Guimarães", freguesia: "Creixomil", outras_zonas: "Porto/Maia | Braga", tipologia_minima: "T2", expectativa_valor: "250000.5", financiamento: "Crédito pré-aprovado", precisa_vender: "Não", referencia_imovel: "REF-1", estado: "Visitas realizadas" },
+]);
+const [cab, ...corpo] = lerCsv(ida);
+const volta = validar("compradores", corpo, mapearAutomatico("compradores", cab), nenhum)[0];
+eq("ida e volta: sem erros", volta.erros, []);
+eq("ida e volta: email incompleto fica com aviso", volta.avisos.some((a) => a.includes("ana@exemplo")) && volta.contacto?.email === "ana@exemplo", true);
+eq("ida e volta: nome com ; e notas com aspas e mudança de linha", [volta.contacto?.nome, volta.contacto?.observacoes], ["Ana; Ferreira", "disse \"talvez\"\nligar à tarde"]);
+eq("ida e volta: valores", [volta.dados.expectativa_valor, volta.dados.estado, volta.dados.precisa_vender, volta.dados.financiamento, volta.zonas.length], [250000.5, "visitas_realizadas", false, "Crédito pré-aprovado", 3]);
+
 console.log(mal ? `${mal} FALHAS` : "todos ok");

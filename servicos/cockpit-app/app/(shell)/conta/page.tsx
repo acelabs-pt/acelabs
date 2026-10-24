@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { useToast } from "@/components/Toast";
+import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
+import type { Entidade } from "@/lib/importar/esquemas";
 
 const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
@@ -14,6 +17,8 @@ export default function Conta() {
   const [repetir, setRepetir] = useState("");
   const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
   const [aGuardar, setAGuardar] = useState(false);
+  const [aExportar, setAExportar] = useState<string | null>(null);
+  const { avisar } = useToast();
 
   useEffect(() => {
     sbBrowser()
@@ -35,6 +40,25 @@ export default function Conta() {
     setMsg({ tipo: "ok", texto: "Password mudada." });
   }
 
+  async function exportar(qual: Entidade | "tudo") {
+    if (aExportar) return;
+    setAExportar(qual);
+    try {
+      if (qual === "tudo") {
+        const n = await exportarCopiaCompleta();
+        const total = Object.values(n).reduce((a, b) => a + b, 0);
+        avisar(`Cópia descarregada (${total.toLocaleString("pt-PT")} registos)`);
+      } else {
+        const n = await exportarLista(qual);
+        avisar(`${n.toLocaleString("pt-PT")} ${n === 1 ? "linha descarregada" : "linhas descarregadas"}`);
+      }
+    } catch {
+      avisar("Não foi possível descarregar. Verifica a rede e tenta outra vez.");
+    } finally {
+      setAExportar(null);
+    }
+  }
+
   async function sair() {
     await sbBrowser().auth.signOut();
     router.push("/login");
@@ -47,6 +71,55 @@ export default function Conta() {
         <h1 className="text-4xl font-bold tracking-tight text-tinta md:text-5xl">Conta</h1>
         <p className="text-sm text-secundario">{email ?? "A carregar..."}</p>
       </div>
+
+      <section className={cartao}>
+        <h2 className="text-sm font-semibold text-tinta">Instalar no telemóvel</h2>
+        <p className="text-sm text-secundario">Fica no ecrã inicial como uma app, sem passar pelas lojas.</p>
+        <Link href="/instalar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
+          Ver como
+        </Link>
+      </section>
+
+      <section className={cartao}>
+        <h2 className="text-sm font-semibold text-tinta">Importar contactos</h2>
+        <p className="text-sm text-secundario">Traz as tuas listas do Excel ou do Google Sheets.</p>
+        <Link href="/importar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
+          Importar lista
+        </Link>
+      </section>
+
+      <section className={cartao} aria-busy={!!aExportar}>
+        <h2 className="text-sm font-semibold text-tinta">Descarregar os teus dados</h2>
+        <p className="text-sm text-secundario">
+          Em Excel (CSV), com as mesmas colunas dos modelos de importação. Serve de cópia e pode voltar a ser importado.
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {(
+            [
+              ["compradores", "Compradores"],
+              ["proprietarios", "Proprietários"],
+              ["angariacoes", "Angariações"],
+            ] as [Entidade, string][]
+          ).map(([e, rotulo]) => (
+            <button
+              key={e}
+              onClick={() => exportar(e)}
+              disabled={!!aExportar}
+              className="rounded-full bg-black/5 px-2 py-3 text-sm font-medium text-tinta disabled:opacity-60"
+            >
+              {aExportar === e ? "A preparar..." : rotulo}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => exportar("tudo")}
+          disabled={!!aExportar}
+          className="w-full rounded-full border border-linha bg-white py-3 text-sm font-medium text-tinta disabled:opacity-60"
+        >
+          {aExportar === "tudo" ? "A preparar a cópia..." : "Cópia completa"}
+        </button>
+        <p className="text-xs text-secundario">A cópia completa junta tudo, incluindo tarefas, chamadas, planos e metas, num só ficheiro.</p>
+      </section>
 
       <form onSubmit={mudar} className={cartao}>
         <h2 className="text-sm font-semibold text-tinta">Mudar a password</h2>
@@ -83,22 +156,6 @@ export default function Conta() {
           {aGuardar ? "A guardar..." : "Mudar password"}
         </button>
       </form>
-
-      <section className={cartao}>
-        <h2 className="text-sm font-semibold text-tinta">Instalar no telemóvel</h2>
-        <p className="text-sm text-secundario">Fica no ecrã inicial como uma app, sem passar pelas lojas.</p>
-        <Link href="/instalar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
-          Ver como
-        </Link>
-      </section>
-
-      <section className={cartao}>
-        <h2 className="text-sm font-semibold text-tinta">Importar contactos</h2>
-        <p className="text-sm text-secundario">Traz as tuas listas do Excel ou do Google Sheets.</p>
-        <Link href="/importar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
-          Importar lista
-        </Link>
-      </section>
 
       <button onClick={sair} className="w-full rounded-full border border-linha bg-white py-3.5 text-base font-semibold text-red-600">
         Sair

@@ -167,7 +167,8 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       const tel = lerTelemovel(telRaw);
       if (tel === undefined) erros.push(`Telemóvel "${telRaw}" inválido`);
       const email = get("email");
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) erros.push(`Email "${email}" inválido`);
+      // um email mal escrito não deve deixar a pessoa de fora: fica como está, com aviso
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) avisos.push(`Email "${email}" parece incompleto, guardado como está`);
       const canalRaw = get("canal_origem");
       out.contacto = {
         nome,
