@@ -39,3 +39,6 @@ next-env.d.ts
 # cada developer gera o seu, não vai para o repositório partilhado
 /ios
 /android
+
+# screenshots e ficheiros dos testes
+/testes/resultados/
