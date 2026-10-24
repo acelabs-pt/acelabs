@@ -6,6 +6,12 @@ import SwipeLinha from "@/components/gestos/SwipeLinha";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDoDia, somarDias } from "@/lib/datas";
 
+function fichaDaTarefa(t: Tarefa): string | null {
+  if (t.comprador_id) return `/crm/compradores/${t.comprador_id}`;
+  if (t.proprietario_id) return `/crm/proprietarios/${t.proprietario_id}`;
+  return null;
+}
+
 // Tarefas em atraso e de hoje. Marcar aqui é o mesmo que marcar no Calendário.
 export default function Hoje({
   tarefas,
@@ -65,7 +71,14 @@ export default function Hoje({
                       className="h-6 w-6 shrink-0 rounded-full border-2 border-black/20"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-tinta">{t.titulo}</p>
+                      {fichaDaTarefa(t) ? (
+                        // tocar no título abre a ficha da pessoa
+                        <Link href={fichaDaTarefa(t)!} className="block truncate text-sm text-tinta hover:text-azul-escuro">
+                          {t.titulo}
+                        </Link>
+                      ) : (
+                        <p className="truncate text-sm text-tinta">{t.titulo}</p>
+                      )}
                       <p className={`text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
                         {atrasada ? `${formatarDia(new Date(t.inicio!))} · em atraso` : formatarHora(t.inicio!) || "Hoje"}
                       </p>

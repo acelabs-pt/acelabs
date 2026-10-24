@@ -34,6 +34,11 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     ok('o Dashboard guarda a lista do dia no telemóvel', !!t && t.atrasada === true && t.tel === '+351900111222', JSON.stringify(t));
     ok('guarda só o que o cartão Hoje mostra (até 20, sem feitas)', guardado.tarefas.length <= 20 && Object.keys(t).join() === 'titulo,inicio,atrasada,tel', Object.keys(t || {}).join());
 
+    // tocar no título da tarefa abre a ficha do comprador
+    await page.getByRole('link', { name: 'ZZ Sem Rede ligar ao comprador' }).click();
+    await page.waitForURL(`**/crm/compradores/${cp.id}`, { timeout: 15000 }).catch(() => {});
+    ok('no Dashboard, tocar na tarefa abre a ficha da pessoa', page.url().endsWith(`/crm/compradores/${cp.id}`), page.url());
+
     await page.goto('http://localhost:3001/offline.html');
     await page.waitForSelector('#dia:not([hidden])', { timeout: 5000 }).catch(() => {});
     ok('a página sem rede mostra a lista de hoje', await page.locator('#lista li', { hasText: 'ZZ Sem Rede ligar ao comprador' }).isVisible());
