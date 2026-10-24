@@ -1,5 +1,6 @@
 // Ficheiro de calendário: horas em UTC, dia inteiro em Lisboa, alarmes e linhas dobradas.
 import { eDiaInteiro, gerarIcs, nomeFicheiroIcs } from "../lib/ics";
+import { linkWhatsapp } from "../lib/whatsapp";
 
 let mal = 0;
 const eq = (nome: string, obtido: unknown, esperado: unknown) => {
@@ -38,5 +39,11 @@ const enc = new TextEncoder();
 eq("nenhuma linha física passa de 75 bytes", longo.split("\r\n").every((l) => enc.encode(l).length <= 75), true);
 eq("o título volta inteiro depois de desdobrar", campo(longo, "SUMMARY"), "SUMMARY:Reunião de angariação com o proprietário do apartamento T3 em São João da Madeira\\, Aveiro");
 eq("nome do ficheiro sem acentos", nomeFicheiroIcs("Visita à Conceição, T2"), "visita-a-conceicao-t2.ics");
+
+// endereço do WhatsApp (mesmo ficheiro de testes pequenos de ligações para fora da app)
+eq("whatsapp: só dígitos, sem +", linkWhatsapp("+351 912 345 678"), "https://wa.me/351912345678");
+eq("whatsapp: número português sem indicativo leva 351", linkWhatsapp("912345678"), "https://wa.me/351912345678");
+eq("whatsapp: 00 no início", linkWhatsapp("0044 7700 900123"), "https://wa.me/447700900123");
+eq("whatsapp: mensagem codificada", linkWhatsapp("+351912345678", "Olá, T2 & garagem?"), "https://wa.me/351912345678?text=Ol%C3%A1%2C%20T2%20%26%20garagem%3F");
 
 console.log(mal ? `${mal} FALHAS` : "todos ok");

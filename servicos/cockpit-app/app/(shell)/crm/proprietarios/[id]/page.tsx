@@ -22,6 +22,7 @@ import {
 } from "@/lib/proprietario";
 import { formatarDia, formatarHora, hojeISO, isoParaLocal, localParaISO } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 export default function FichaProprietario() {
   const { id } = useParams<{ id: string }>();
@@ -225,7 +226,7 @@ export default function FichaProprietario() {
         {tel && (
           <div className="flex gap-2">
             <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
-            <a href={`https://wa.me/${tel.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-tinta">WhatsApp</a>
+            <a href={linkWhatsapp(tel)} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-tinta">WhatsApp</a>
           </div>
         )}
       </section>

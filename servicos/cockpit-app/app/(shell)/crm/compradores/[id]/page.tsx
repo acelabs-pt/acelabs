@@ -29,6 +29,7 @@ import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
 import { eur } from "@/lib/graficos";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 type Documento = { id: string; nome: string; entregue: boolean };
 
@@ -268,7 +269,7 @@ export default function FichaComprador() {
               Ligar
             </a>
             <a
-              href={`https://wa.me/${tel.replace(/D/g, "")}`}
+              href={linkWhatsapp(tel)}
               target="_blank"
               rel="noreferrer"
               className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta"

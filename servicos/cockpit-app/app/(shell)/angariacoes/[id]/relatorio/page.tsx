@@ -7,6 +7,7 @@ import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { blocoDeDia, dataDoDia, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import { formatarDia, somarDias } from "@/lib/datas";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 const SEMANAS_A_FRENTE = 4;
@@ -104,7 +105,7 @@ export default function Relatorio() {
           </button>
           {tel && (
             <a
-              href={`https://wa.me/${tel.replace(/\D/g, "")}?text=${encodeURIComponent(resumo)}`}
+              href={linkWhatsapp(tel, resumo)}
               target="_blank"
               rel="noreferrer"
               className="rounded-full bg-verde px-4 py-2 text-sm font-semibold text-tinta"

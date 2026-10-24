@@ -29,10 +29,12 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.screenshot({ path: `${SP}/ux4-oportunidade.png` });
     ok('o alerta mostra "Enviar por WhatsApp"', await linha.locator('button', { hasText: 'Enviar por WhatsApp' }).isVisible());
     const [popup] = await Promise.all([ctx.waitForEvent('page', { timeout: 10000 }), linha.locator('button', { hasText: 'Enviar por WhatsApp' }).click()]);
-    // o wa.me pode redirecionar para api.whatsapp.com (phone=...&text=... com + nos espaços)
-    const url = decodeURIComponent(popup.url().replace(/\+/g, ' '));
+    // o wa.me pode redirecionar para api.whatsapp.com (phone=...&text=... com + nos espaços).
+    // O número tem de ir só com dígitos (com "+" o WhatsApp não abre a conversa certa em todos os telemóveis).
+    const bruto = popup.url();
+    const url = decodeURIComponent(bruto.replace(/\+/g, ' '));
     const digitos = comp.contactos.telemovel.replace(/\D/g, '');
-    const paraOComprador = url.includes('wa.me/' + digitos) || url.replace(/\D/g, '').includes(digitos);
+    const paraOComprador = new RegExp(`(wa\\.me/|phone=)${digitos}(\\?|&|$)`).test(bruto);
     ok('abre o WhatsApp do comprador com a mensagem escrita', /wa\.me|whatsapp\.com/.test(url) && paraOComprador && url.includes('ZZ Envio Apartamento T2 Creixomil') && url.includes('Olá ' + comp.contactos.nome.split(' ')[0]), url.slice(0, 120));
     await popup.close();
     await page.waitForTimeout(2000);

@@ -1,6 +1,7 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { TIPOLOGIAS } from "@/lib/comprador";
 import { todas } from "@/lib/todas";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 // Correspondência entre um comprador e um imóvel (angariação ou proprietário ainda sem angariação).
 // Regra: a zona do imóvel tem de estar numa das zonas do comprador; tipo, tipologia e preço só
@@ -194,7 +195,7 @@ export function whatsappParaComprador(c: Correspondencia): string | null {
   if (!tel || !c.angariacao_id) return null;
   const primeiro = (c.compradores?.contactos.nome ?? "").split(" ")[0];
   const texto = `Olá ${primeiro}, tenho um imóvel que pode ser do seu interesse: ${c.angariacoes?.titulo ?? "um imóvel"}. Quer que lhe envie mais informação ou marcamos uma visita?`;
-  return `https://wa.me/${tel.replace(/D/g, "")}?text=${encodeURIComponent(texto)}`;
+  return linkWhatsapp(tel, texto);
 }
 
 /**
