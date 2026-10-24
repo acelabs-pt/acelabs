@@ -40,3 +40,15 @@ if (!r.ok) {
   process.exit(1);
 }
 console.log(`Convite enviado para ${email}. O link abre ${app.replace(/\/$/, "")}/nova-password.`);
+
+// Juntar à lista de membros (migracao_seguranca.sql): sem isto, com essa migração corrida, o convidado entra mas não vê dados.
+if (corpo.id) {
+  const m = await fetch(`${url}/rest/v1/membros`, {
+    method: "POST",
+    headers: { apikey: chave, Authorization: `Bearer ${chave}`, "Content-Type": "application/json", Prefer: "resolution=ignore-duplicates" },
+    body: JSON.stringify({ user_id: corpo.id }),
+  });
+  if (m.ok) console.log("Juntado à lista de membros.");
+  else if (m.status === 404) console.log("Aviso: a tabela membros não existe. Corre migracao_seguranca.sql neste projeto.");
+  else console.error(`Aviso: não foi possível juntar à lista de membros (${m.status}). Junta-o à mão: insert into membros (user_id) values ('${corpo.id}');`);
+}

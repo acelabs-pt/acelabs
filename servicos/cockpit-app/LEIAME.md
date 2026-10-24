@@ -10,7 +10,12 @@ Cada cliente tem o seu endereço, a sua base de dados e os seus utilizadores. Fa
    1. `create_tables.sql`
    2. `migracao_zonas_correspondencias.sql`
    3. `migracao_escala.sql`
-3. Copiar o **Project URL** e a chave **anon** (Settings, API). Estas duas vão para a Vercel. A chave `service_role` **nunca** vai para a Vercel nem para o repositório.
+   4. `migracao_seguranca.sql` (só membros convidados veem dados; ler o topo do ficheiro antes)
+3. **Segurança, antes de ligar o SMTP:** em Authentication (Sign In / Providers), **desligar "Allow new users to sign up"**.
+   Vem ligado por defeito e, com o SMTP a funcionar, qualquer pessoa com a chave pública (que está no browser) podia criar
+   conta. Os convites continuam a funcionar com o registo desligado. Confirmar: `GET <Project URL>/auth/v1/settings`
+   com a chave anon tem de dizer `"disable_signup": true`.
+4. Copiar o **Project URL** e a chave **anon** (Settings, API). Estas duas vão para a Vercel. A chave `service_role` **nunca** vai para a Vercel nem para o repositório.
 
 ## 2. Emails de convite e de recuperação de password
 
