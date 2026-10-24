@@ -76,12 +76,15 @@ async function arrastar(page, loc, dx) {
     await page.waitForSelector('text=Compradores');
     // na barra dos separadores (sobre uma linha, o gesto é da linha)
     const barra = async () => { const b = await page.locator('a[href="/crm/compradores"]').first().boundingBox(); return b.y + b.height / 2; };
+    await page.locator('li a[href^="/crm/compradores/"]').first().waitFor(); // lista carregada: a página já responde a gestos
     let yb = await barra();
     await touchSwipe(page, cdp, 320, yb, 40, yb + 2);
+    await page.waitForURL('**/crm/proprietarios', { timeout: 15000 }).catch(() => {}); // em desenvolvimento a página compila na primeira vez
     ok('CRM: deslizar esquerda vai para Proprietários', page.url().endsWith('/crm/proprietarios'), page.url());
     await page.waitForSelector('text=Proprietários');
     yb = await barra();
     await touchSwipe(page, cdp, 60, yb, 340, yb + 2);
+    await page.waitForURL('**/crm/compradores', { timeout: 15000 }).catch(() => {});
     ok('CRM: deslizar direita volta a Compradores', page.url().endsWith('/crm/compradores'), page.url());
 
     // 3. Linha de comprador: arrastar curto não abre a ficha

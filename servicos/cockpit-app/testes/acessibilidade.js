@@ -1,4 +1,5 @@
 // Auditoria de acessibilidade (axe-core, regras WCAG 2 A e AA) em todas as páginas. Só lê.
+// Aproveita a volta para ver se a política de segurança (CSP) bloqueia alguma coisa.
 const { chromium } = require('playwright');
 const AXE = require.resolve('axe-core/axe.min.js');
 const U = process.env.NEXT_PUBLIC_SUPABASE_URL, K = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -15,6 +16,8 @@ const get = async (p) => (await fetch(`${U}/rest/v1/${p}`, { headers: H })).json
   try {
     const b = await chromium.launch();
     const page = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+    const bloqueios = [];
+    page.on('console', (m) => { if (/Content Security Policy/i.test(m.text())) bloqueios.push(m.text().slice(0, 160)); });
     const correr = async (nome) => {
       await page.addScriptTag({ path: AXE });
       const r = await page.evaluate(async () => {
@@ -44,6 +47,7 @@ const get = async (p) => (await fetch(`${U}/rest/v1/${p}`, { headers: H })).json
       await page.waitForTimeout(3000);
       await correr(nome);
     }
+    console.log(bloqueios.length ? `FALHA a CSP bloqueou ${bloqueios.length}x: ${[...new Set(bloqueios)].slice(0, 3).join(' | ')}` : 'OK    A CSP não bloqueou nada nas 14 páginas');
     await b.close();
   } finally {
     await fetch(`${U}/auth/v1/admin/users/${u.id}`, { method: 'DELETE', headers: H });
