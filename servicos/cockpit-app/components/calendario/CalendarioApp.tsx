@@ -228,7 +228,7 @@ export default function CalendarioApp() {
       {aCarregar ? (
         <EsqueletoLista />
       ) : vista === "tarefas" ? (
-        <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} />
+        <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} onAbrir={(t) => setAberta(t.id)} />
       ) : vista === "mes" ? (
         <>
           <Mes ref_={ref} ocs={ocs} onEscolher={setRef} />
@@ -342,12 +342,14 @@ function ListaTarefas({
   onAlternar,
   onApagar,
   onAdiar,
+  onAbrir,
   totalAtrasadas,
 }: {
   tarefas: Tarefa[];
   onAlternar: (t: Tarefa) => void;
   onApagar: (t: Tarefa) => void;
   onAdiar: (t: Tarefa) => void;
+  onAbrir: (t: Tarefa) => void;
   totalAtrasadas: number;
 }) {
   const grupos = useMemo(() => {
@@ -392,7 +394,7 @@ function ListaTarefas({
               </h2>
               <ul className="space-y-2">
                 {lista.map((t) => (
-                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} onAdiar={onAdiar} atrasada={atrasada} />
+                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} onAdiar={onAdiar} onAbrir={() => onAbrir(t)} atrasada={atrasada} />
                 ))}
               </ul>
             </section>

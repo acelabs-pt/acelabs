@@ -25,6 +25,7 @@ na base de dados. Correm contra o servidor local e o Supabase **de teste**. Cria
 | --- | --- |
 | `unidade-importacao.ts` | Números em formato português, telemóveis, datas, tipologias, zonas, CSV |
 | `unidade-correspondencias.ts` | A regra que decide se um imóvel serve a um comprador |
+| `unidade-ics.ts` | Ficheiro de calendário: horas, dia inteiro em Lisboa, mudança de hora, alarmes, linhas longas |
 | `conta.js` | Login, link de recuperação, escolher password, sair, mudar password |
 | `dashboard.js` | Esqueleto ao carregar, frase-resumo, primeiros passos, desfazer ao marcar e ao adiar |
 | `gestos.js` | Deslizar tarefas (feita, adiar), mudar de dia, botão +, fechar folhas |
@@ -33,6 +34,7 @@ na base de dados. Correm contra o servidor local e o Supabase **de teste**. Cria
 | `chamadas.js` | Registo de chamadas, último contacto, ordenar, ligar por swipe regista |
 | `funis.js` | Taxas de passagem e origens batem com a base; tocar numa fase filtra a lista |
 | `calendario.js` | Vistas de mês, semana e lista de tarefas |
+| `calendario-telemovel.js` | "Pôr no calendário do telemóvel": .ics com alarme e telefone, sem nomes no endereço, fechado sem sessão |
 | `exportar.js` | Exportar os dados de um contacto bate com a base |
 | `exportar-tudo.js` | CSV da Conta batem com a base e voltam a entrar no importador sem erros; cópia completa sem cortes |
 | `semrede.js` | Lista do dia guardada para a página sem rede, com ligar; não mostra outro dia; sair apaga |

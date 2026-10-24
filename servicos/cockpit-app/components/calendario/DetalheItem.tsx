@@ -73,6 +73,15 @@ export default function DetalheItem({
             {l.texto}
           </Link>
         )}
+        {ini && !t.feita && (
+          // ficheiro de calendário: o telemóvel avisa com notificação própria (30 min antes nas marcações)
+          <a
+            href={`/api/tarefas/${t.id}/calendario`}
+            className="block rounded-xl border border-linha py-2.5 text-center text-sm font-semibold text-tinta"
+          >
+            Pôr no calendário do telemóvel
+          </a>
+        )}
         <button onClick={onApagar} className="w-full py-1 text-sm text-red-600">
           Apagar
         </button>
