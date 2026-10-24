@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { apagarDia } from "@/lib/semRede";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [aEnviar, setAEnviar] = useState(false);
+
+  // quem chega ao login já não tem sessão: a lista do dia guardada para sem rede deixa de fazer sentido
+  useEffect(() => apagarDia(), []);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();

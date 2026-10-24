@@ -34,6 +34,8 @@ na base de dados. Correm contra o servidor local e o Supabase **de teste**. Cria
 | `funis.js` | Taxas de passagem e origens batem com a base; tocar numa fase filtra a lista |
 | `calendario.js` | Vistas de mês, semana e lista de tarefas |
 | `exportar.js` | Exportar os dados de um contacto bate com a base |
+| `exportar-tudo.js` | CSV da Conta batem com a base e voltam a entrar no importador sem erros; cópia completa sem cortes |
+| `semrede.js` | Lista do dia guardada para a página sem rede, com ligar; não mostra outro dia; sair apaga |
 | `whatsapp.js` | Enviar um imóvel ao comprador a partir de um alerta |
 | `importar.js` | Importar CSV e Excel, com erros, duplicados, planos e alertas |
 | `documentos.js` | Lista habitual de documentos da escritura |

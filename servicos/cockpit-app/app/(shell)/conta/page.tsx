@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { useToast } from "@/components/Toast";
+import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
 import type { Entidade } from "@/lib/importar/esquemas";
 
@@ -60,6 +61,7 @@ export default function Conta() {
   }
 
   async function sair() {
+    apagarDia();
     await sbBrowser().auth.signOut();
     router.push("/login");
     router.refresh();

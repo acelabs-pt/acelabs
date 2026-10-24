@@ -17,6 +17,7 @@ import AdiarFolha from "@/components/gestos/AdiarFolha";
 import { usePuxarParaAtualizar } from "@/components/gestos/useGestos";
 import { useToast } from "@/components/Toast";
 import { formatarDia, inicioDoDia } from "@/lib/datas";
+import { guardarDia } from "@/lib/semRede";
 import type { Tarefa } from "@/lib/types";
 
 export default function DashboardApp() {
@@ -31,6 +32,7 @@ export default function DashboardApp() {
     else {
       setErro(null);
       setDados(r);
+      guardarDia(r.tarefas, (t) => telefoneDaTarefa(r, t)); // para a página sem rede
     }
   }, []);
 

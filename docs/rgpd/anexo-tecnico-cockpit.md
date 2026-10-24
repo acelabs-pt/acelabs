@@ -49,10 +49,15 @@ O Cockpit **não** usa serviços de inteligência artificial, ferramentas de ana
 - A chave de administrador da base de dados nunca está na aplicação publicada nem no repositório de código;
   só é usada pela Ace Labs, a partir de computadores dos sócios, para convidar utilizadores e dar apoio.
 - Passwords com mínimo de 8 caracteres, guardadas cifradas pelo Supabase. Recuperação por link de uso único.
+- No telemóvel do agente fica guardada apenas a lista de tarefas do dia (título, hora e telefone do contacto,
+  no máximo 20), para a mostrar quando não há rede. Só é mostrada se for do próprio dia e apaga-se ao sair
+  da conta ou quando a sessão termina.
 
 **Direitos dos titulares**
 - Em cada ficha de comprador e de proprietário: **exportar** todos os dados da pessoa (ficheiro JSON) e
   **apagar** a pessoa com tudo o que lhe está associado.
+- Na Conta: descarregar as listas em CSV e uma cópia completa de todas as tabelas (JSON), que é o que se
+  entrega ao Cliente no fim do contrato.
 
 **Continuidade e fim do contrato**
 - Cópias de segurança: as do plano do Supabase **[a confirmar: frequência e retenção]**.

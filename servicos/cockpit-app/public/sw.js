@@ -1,7 +1,8 @@
 // Service worker mínimo: torna a app instalável e dá um ecrã "sem rede".
-// Não guarda dados do Supabase em cache (dados de clientes nunca ficam no dispositivo
-// fora da sessão); só a página de "sem rede".
-const VERSAO = "cockpit-v1";
+// Não guarda respostas do Supabase em cache; só a página de "sem rede". Essa página mostra a
+// lista do dia que o Dashboard guarda no telemóvel (lib/semRede.ts), apagada ao sair.
+// Ao mudar offline.html, subir a VERSAO para os telemóveis instalados a voltarem a guardar.
+const VERSAO = "cockpit-v2";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (e) => {
