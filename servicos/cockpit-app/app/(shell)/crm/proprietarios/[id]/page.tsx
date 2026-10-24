@@ -86,6 +86,8 @@ export default function FichaProprietario() {
     }
   }
 
+  const tReuniao = p ? tarefas.find((t) => t.chave_automacao === `proprietario:${p.id}:reuniao` && !t.feita) : undefined;
+
   async function marcarReuniao(e: React.FormEvent) {
     e.preventDefault();
     if (!p || !reuniao) return;
@@ -315,9 +317,17 @@ export default function FichaProprietario() {
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Reunião de angariação</h3>
         {p.reuniao_em && (
-          <p className="text-sm text-tinta">
-            {formatarDia(new Date(p.reuniao_em))} às {formatarHora(p.reuniao_em) || "00:00"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-tinta">
+              {formatarDia(new Date(p.reuniao_em))} às {formatarHora(p.reuniao_em) || "00:00"}
+            </p>
+            {tReuniao && (
+              // o telemóvel avisa 30 minutos antes, com notificação própria
+              <a href={`/api/tarefas/${tReuniao.id}/calendario`} className="rounded-full bg-azul-suave px-3 py-1.5 text-xs font-semibold text-azul-escuro">
+                Pôr no calendário do telemóvel
+              </a>
+            )}
+          </div>
         )}
         <form onSubmit={marcarReuniao} className="flex flex-wrap gap-2">
           <input type="datetime-local" aria-label="Data e hora da reunião" value={reuniao} onChange={(e) => setReuniao(e.target.value)} className={`${campo} min-w-0 flex-1`} />

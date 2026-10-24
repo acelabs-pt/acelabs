@@ -63,6 +63,15 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
       ok('e tocar descarrega o .ics da marcação nova', !!resp && !!criada && resp.url().includes(criada.id) && resp.headers()['content-type'].startsWith('text/calendar'), resp ? resp.url().slice(-60) : 'sem resposta');
     }
     if (criada) await rest('DELETE', `tarefas?id=eq.${criada.id}`);
+
+    // reunião de angariação na ficha do proprietário
+    const [pr] = await rest('POST', 'proprietarios', { contacto_id: ct.id, estado: 'reuniao_marcada', reuniao_em: ini.toISOString() });
+    const [tr] = await rest('POST', 'tarefas', { titulo: 'ZZ Reunião de angariação', tipo: 'evento', inicio: ini.toISOString(), proprietario_id: pr.id, contacto_id: ct.id, origem: 'proprietario', chave_automacao: `proprietario:${pr.id}:reuniao` });
+    await page.goto(`http://localhost:3001/crm/proprietarios/${pr.id}`);
+    const lr = page.getByRole('link', { name: 'Pôr no calendário do telemóvel' });
+    await lr.waitFor({ timeout: 15000 }).catch(() => {});
+    ok('a reunião de angariação tem "Pôr no calendário do telemóvel"', (await lr.getAttribute('href').catch(() => null)) === `/api/tarefas/${tr.id}/calendario`);
+    await page.screenshot({ path: `${SP}/calendario-telemovel-reuniao.png` });
     ok('sem erros de página', erros.length === 0, JSON.stringify(erros));
     await b.close();
   } finally {
