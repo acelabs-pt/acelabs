@@ -48,6 +48,21 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     ok('tarefa que não existe dá 404', nada.status() === 404, String(nada.status()));
     const anon = await (await b.newContext()).request.get('http://localhost:3001' + href, { maxRedirects: 0 });
     ok('sem sessão não devolve a marcação', anon.status() >= 300 && anon.status() < 400 && !(await anon.text()).includes('BEGIN:VCALENDAR'), String(anon.status()));
+    // criar uma marcação: o aviso oferece logo "Pôr no telemóvel"
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.goto('http://localhost:3001/calendario');
+    await page.getByRole('button', { name: 'Novo', exact: true }).click();
+    await page.fill('input[placeholder="Título"]', 'ZZ Calendario Telemovel nova marcação');
+    await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
+    const acao = page.getByRole('button', { name: 'Pôr no telemóvel' });
+    await acao.waitFor({ timeout: 10000 }).catch(() => {});
+    ok('ao criar uma marcação, o aviso oferece "Pôr no telemóvel"', await acao.isVisible() && await page.locator('text=Marcação criada.').isVisible());
+    const [criada] = await rest('GET', 'tarefas?titulo=eq.ZZ%20Calendario%20Telemovel%20nova%20marca%C3%A7%C3%A3o&select=id');
+    if (await acao.isVisible()) {
+      const [resp] = await Promise.all([page.waitForResponse((r) => r.url().includes('/calendario') && r.url().includes('/api/tarefas/'), { timeout: 10000 }).catch(() => null), acao.click()]);
+      ok('e tocar descarrega o .ics da marcação nova', !!resp && !!criada && resp.url().includes(criada.id) && resp.headers()['content-type'].startsWith('text/calendar'), resp ? resp.url().slice(-60) : 'sem resposta');
+    }
+    if (criada) await rest('DELETE', `tarefas?id=eq.${criada.id}`);
     ok('sem erros de página', erros.length === 0, JSON.stringify(erros));
     await b.close();
   } finally {

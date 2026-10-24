@@ -139,10 +139,15 @@ export default function CalendarioApp() {
 
   async function criar(v: NovoValores) {
     setErro(null);
-    const { error } = await sbBrowser().from("tarefas").insert(v);
+    const { data: criada, error } = await sbBrowser().from("tarefas").insert(v).select("id").single();
     if (error) return setErro("Não foi possível criar.");
     setNovo(null);
     setTipoNovo("evento");
+    if (v.inicio && criada) {
+      // o calendário do telemóvel avisa com notificação própria
+      const ics = `/api/tarefas/${criada.id}/calendario`;
+      avisar(v.tipo === "evento" ? "Marcação criada." : "Tarefa criada.", { rotulo: "Pôr no telemóvel", onAcao: () => window.location.assign(ics) });
+    }
     if (vista !== "tarefas" && v.inicio) {
       const r = inicioDoDia(new Date(v.inicio));
       if (r.getTime() !== ref.getTime()) {
