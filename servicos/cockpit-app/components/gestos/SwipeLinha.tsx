@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 export type AcaoSwipe = {
   rotulo: string;
-  /** Classes de cor do fundo que aparece por baixo, ex: "bg-verde text-white". */
+  /** Classes de cor do fundo que aparece por baixo, ex: "bg-verde text-tinta". */
   classe: string;
   onAcao: () => void;
 };

@@ -95,7 +95,7 @@ export default function Relatorio() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <Link href={`/angariacoes/${ang.id}`} className="text-sm text-azul">
+        <Link href={`/angariacoes/${ang.id}`} className="text-sm font-medium text-azul-escuro">
           &larr; Plano
         </Link>
         <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export default function Relatorio() {
               href={`https://wa.me/${tel.replace(/\D/g, "")}?text=${encodeURIComponent(resumo)}`}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-verde px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-full bg-verde px-4 py-2 text-sm font-semibold text-tinta"
             >
               Enviar por WhatsApp
             </a>
@@ -140,7 +140,7 @@ export default function Relatorio() {
         <div className={`${tile} col-span-2 sm:col-span-1`}>
           {ang.vendido_em ? (
             <>
-              <p className="text-2xl font-bold tracking-tight text-verde">Vendido</p>
+              <p className="text-2xl font-bold tracking-tight text-tinta">Vendido</p>
               <p className="text-sm text-secundario">a {formatarDia(new Date(ang.vendido_em + "T00:00:00"))}</p>
             </>
           ) : (

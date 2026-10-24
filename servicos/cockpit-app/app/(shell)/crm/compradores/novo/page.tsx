@@ -14,7 +14,7 @@ export default function NovoComprador() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/compradores" className="text-sm text-azul">
+      <Link href="/crm/compradores" className="text-sm font-medium text-azul-escuro">
         &larr; Compradores
       </Link>
       <h2 className="text-xl font-semibold text-tinta">Novo comprador</h2>

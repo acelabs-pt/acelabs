@@ -113,7 +113,7 @@ export default function AreaFaturacao({ meses, mesAtual, objetivo }: { meses: (n
           "Ainda sem comissões recebidas este ano."
         )}
         {mesAtual >= 0 && (
-          <span className={`mt-0.5 block font-medium ${diferenca >= 0 ? "text-verde" : "text-ambar-texto"}`}>
+          <span className={`mt-0.5 block font-medium ${diferenca >= 0 ? "text-tinta" : "text-ambar-texto"}`}>
             {diferenca >= 0 ? `${eur(diferenca)} à frente do ritmo do objetivo.` : `${eur(-diferenca)} abaixo do ritmo do objetivo.`}
           </span>
         )}

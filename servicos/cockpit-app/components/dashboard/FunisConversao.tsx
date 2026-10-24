@@ -36,7 +36,7 @@ export default function FunisConversao({ dados }: { dados: Dados }) {
             key={v}
             onClick={() => setQuem(v)}
             aria-pressed={quem === v}
-            className={`flex-1 rounded-lg py-1.5 ${quem === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+            className={`flex-1 rounded-lg py-1.5 ${quem === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
           >
             {r}
           </button>

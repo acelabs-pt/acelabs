@@ -53,7 +53,7 @@ export default function FolhaAcao({
 
         <button
           onClick={onAlternar}
-          className={`w-full rounded-xl py-3 text-base font-semibold ${acao.feita ? "bg-black/5 text-tinta" : "bg-verde text-white"}`}
+          className={`w-full rounded-xl py-3 text-base font-semibold ${acao.feita ? "bg-black/5 text-tinta" : "bg-verde text-tinta"}`}
         >
           {acao.feita ? "Desmarcar (voltar a por fazer)" : "Marcar como feita"}
         </button>

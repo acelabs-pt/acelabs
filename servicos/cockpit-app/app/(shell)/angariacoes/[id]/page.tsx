@@ -94,7 +94,7 @@ export default function PlanoAngariacao() {
 
   return (
     <div className="space-y-4">
-      <Link href="/angariacoes" className="text-sm text-azul">&larr; Angariações</Link>
+      <Link href="/angariacoes" className="text-sm font-medium text-azul-escuro">&larr; Angariações</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       <section className={cartao}>
@@ -184,7 +184,7 @@ export default function PlanoAngariacao() {
               <button
                 key={d}
                 onClick={() => setDuracao(d)}
-                className={`flex-1 rounded-lg py-2 ${duracao === d ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                className={`flex-1 rounded-lg py-2 ${duracao === d ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {d} dias
               </button>
@@ -397,7 +397,7 @@ export default function PlanoAngariacao() {
                     correr(marcarVendido(ang, acoes, hojeISO()));
                   }
                 }}
-                className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-white"
+                className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-tinta"
               >
                 Marcar como vendido
               </button>
@@ -433,7 +433,7 @@ export default function PlanoAngariacao() {
           await sbBrowser().from("angariacoes").delete().eq("id", ang.id);
           router.push("/angariacoes");
         }}
-        className="w-full py-2 text-sm text-red-600"
+        className="w-full py-2 text-sm font-medium text-red-700"
       >
         Apagar angariação
       </button>

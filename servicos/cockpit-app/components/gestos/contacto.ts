@@ -11,7 +11,7 @@ export function swipeContacto(tel: string | null | undefined, aoLigar?: () => vo
     },
     esquerda: {
       rotulo: "WhatsApp",
-      classe: "bg-verde text-white",
+      classe: "bg-verde text-tinta",
       onAcao: () => void window.open(`https://wa.me/${tel.replace(/\D/g, "")}`, "_blank", "noopener"),
     },
   };

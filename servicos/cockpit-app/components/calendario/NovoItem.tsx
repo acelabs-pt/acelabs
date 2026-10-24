@@ -68,7 +68,7 @@ export default function NovoItem({
               key={v}
               type="button"
               onClick={() => setTipo(v)}
-              className={`flex-1 rounded-lg py-1.5 ${tipo === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+              className={`flex-1 rounded-lg py-1.5 ${tipo === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
             >
               {r}
             </button>

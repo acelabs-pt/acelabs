@@ -99,7 +99,7 @@ export default function ListaProprietarios() {
         if (valorMin && (p.valor ?? -1) < Number(valorMin)) return false;
         if (valorMax && (p.valor ?? Infinity) > Number(valorMax)) return false;
         if (soAtrasados && !atrasado(p.id)) return false;
-        if (!combina(pesquisa, [p.contactos.nome, p.contactos.telemovel, p.contactos.email, p.concelho, p.freguesia, p.distrito])) return false;
+        if (!combina(pesquisa, [p.contactos.nome, p.contactos.email, p.concelho, p.freguesia, p.distrito], [p.contactos.telemovel])) return false;
         return true;
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,7 +154,7 @@ export default function ListaProprietarios() {
             <button
               key={v}
               onClick={() => setVista(v)}
-              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
             >
               {v === "lista" ? "Lista" : "Funil"}
             </button>
@@ -288,7 +288,7 @@ function Cartao({ p, proxima, atrasado, compacto, ultimo }: { p: Proprietario; p
           </p>
         </div>
         {!compacto && (
-          <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
+          <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
             {labelEstadoProp(p.estado)}
           </span>
         )}

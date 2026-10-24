@@ -14,7 +14,7 @@ export default function NovoProprietario() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/proprietarios" className="text-sm text-azul">
+      <Link href="/crm/proprietarios" className="text-sm font-medium text-azul-escuro">
         &larr; Proprietários
       </Link>
       <h2 className="text-xl font-semibold text-tinta">Novo proprietário</h2>

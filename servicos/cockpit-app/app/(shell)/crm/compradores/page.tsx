@@ -121,7 +121,7 @@ export default function ListaCompradores() {
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
       if (soAlertas && !alertaLaranja(c)) return false;
       if (fase && c.estado !== fase) return false;
-      if (!combina(pesquisa, [c.contactos.nome, c.contactos.telemovel, c.contactos.email, c.concelho, c.freguesia, c.distrito, c.referencia_imovel])) return false;
+      if (!combina(pesquisa, [c.contactos.nome, c.contactos.email, c.concelho, c.freguesia, c.distrito, c.referencia_imovel], [c.contactos.telemovel])) return false;
       return true;
     });
   }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase, pesquisa]);
@@ -168,7 +168,7 @@ export default function ListaCompradores() {
             <button
               key={v}
               onClick={() => setVista(v)}
-              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
             >
               {v === "lista" ? "Lista" : "Funil"}
             </button>
@@ -298,7 +298,7 @@ export default function ListaCompradores() {
                         {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
+                    <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
                       {labelEstado(c.estado)}
                     </span>
                   </div>

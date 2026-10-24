@@ -64,12 +64,12 @@ export default function DetalheItem({
         </div>
         <button
           onClick={onAlternar}
-          className={`w-full rounded-xl py-3 text-base font-semibold ${t.feita ? "bg-black/5 text-tinta" : "bg-verde text-white"}`}
+          className={`w-full rounded-xl py-3 text-base font-semibold ${t.feita ? "bg-black/5 text-tinta" : "bg-verde text-tinta"}`}
         >
           {t.feita ? "Desmarcar (voltar a por fazer)" : "Marcar como feita"}
         </button>
         {l && (
-          <Link href={l.href} className="block rounded-xl bg-azul/10 py-2.5 text-center text-sm font-semibold text-azul">
+          <Link href={l.href} className="block rounded-xl bg-azul/10 py-2.5 text-center text-sm font-semibold text-azul-escuro">
             {l.texto}
           </Link>
         )}

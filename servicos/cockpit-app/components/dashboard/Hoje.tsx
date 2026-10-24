@@ -55,7 +55,7 @@ export default function Hoje({
               <li key={t.id}>
                 <SwipeLinha
                   className="rounded-xl"
-                  direita={{ rotulo: "Feita", classe: "bg-verde text-white", onAcao: () => onAlternar(t) }}
+                  direita={{ rotulo: "Feita", classe: "bg-verde text-tinta", onAcao: () => onAlternar(t) }}
                   esquerda={{ rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) }}
                 >
                   <div className="flex items-center gap-3 bg-white py-1.5">

@@ -71,7 +71,7 @@ export default function Conta() {
           className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
         />
         {msg && (
-          <p role={msg.tipo === "erro" ? "alert" : "status"} className={`text-sm ${msg.tipo === "erro" ? "text-red-600" : "text-verde"}`}>
+          <p role={msg.tipo === "erro" ? "alert" : "status"} className={`text-sm ${msg.tipo === "erro" ? "text-red-600" : "text-tinta"}`}>
             {msg.texto}
           </p>
         )}

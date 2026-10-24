@@ -17,7 +17,7 @@ export default function CrmTabs() {
           key={t.href}
           href={t.href}
           className={`flex-1 rounded-lg px-3 py-1.5 text-center ${
-            pathname?.startsWith(t.href) ? "bg-white text-tinta shadow-sm" : "text-secundario"
+            pathname?.startsWith(t.href) ? "bg-white text-tinta shadow-sm" : "text-tinta/70"
           }`}
         >
           {t.label}

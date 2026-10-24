@@ -175,7 +175,7 @@ export default function FichaProprietario() {
   if (editar) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditar(false)} className="text-sm text-azul">&larr; Cancelar</button>
+        <button onClick={() => setEditar(false)} className="text-sm font-medium text-azul-escuro">&larr; Cancelar</button>
         <FormProprietario
           inicial={valoresIniciaisProp(p)}
           textoBotao="Guardar alterações"
@@ -198,7 +198,7 @@ export default function FichaProprietario() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/proprietarios" className="text-sm text-azul">&larr; Proprietários</Link>
+      <Link href="/crm/proprietarios" className="text-sm font-medium text-azul-escuro">&larr; Proprietários</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       <section className={cartao}>
@@ -210,7 +210,7 @@ export default function FichaProprietario() {
             </p>
             {p.valor != null && <p className="text-sm text-secundario">{p.valor.toLocaleString("pt-PT")} EUR</p>}
             {p.estado === "angariado" && regimeGuardado && (
-              <span className="mt-1 inline-block rounded-full bg-verde/15 px-2.5 py-0.5 text-xs font-medium text-verde">
+              <span className="mt-1 inline-block rounded-full bg-verde/15 px-2.5 py-0.5 text-xs font-medium text-tinta">
                 {regimeGuardado === "exclusivo" ? "Em exclusivo" : "Não exclusivo"}
               </span>
             )}
@@ -223,7 +223,7 @@ export default function FichaProprietario() {
         {tel && (
           <div className="flex gap-2">
             <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
-            <a href={`https://wa.me/${tel.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-white">WhatsApp</a>
+            <a href={`https://wa.me/${tel.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-tinta">WhatsApp</a>
           </div>
         )}
       </section>
@@ -239,7 +239,7 @@ export default function FichaProprietario() {
                 key={f.id}
                 onClick={() => mudarEstado(f.id)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${
-                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul" : "bg-black/5 text-secundario"
+                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul-escuro" : "bg-black/5 text-secundario"
                 }`}
               >
                 {f.label}
@@ -286,7 +286,7 @@ export default function FichaProprietario() {
                   key={v}
                   type="button"
                   onClick={() => setAngRegime(v)}
-                  className={`flex-1 rounded-lg py-2 ${angRegime === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                  className={`flex-1 rounded-lg py-2 ${angRegime === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
                 >
                   {rotulo}
                 </button>
@@ -301,7 +301,7 @@ export default function FichaProprietario() {
             >
               Não angariado
             </button>
-            <button type="submit" disabled={!angRegime} className="flex-1 rounded-xl bg-verde py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+            <button type="submit" disabled={!angRegime} className="flex-1 rounded-xl bg-verde py-2.5 text-sm font-semibold text-tinta disabled:opacity-50">
               Angariado
             </button>
           </div>
@@ -320,7 +320,7 @@ export default function FichaProprietario() {
           </p>
         )}
         <form onSubmit={marcarReuniao} className="flex flex-wrap gap-2">
-          <input type="datetime-local" value={reuniao} onChange={(e) => setReuniao(e.target.value)} className={`${campo} min-w-0 flex-1`} />
+          <input type="datetime-local" aria-label="Data e hora da reunião" value={reuniao} onChange={(e) => setReuniao(e.target.value)} className={`${campo} min-w-0 flex-1`} />
           <button type="submit" disabled={!reuniao} className="rounded-xl bg-azul px-4 text-sm font-semibold text-white disabled:opacity-50">
             {p.reuniao_em ? "Reagendar" : "Marcar reunião"}
           </button>
@@ -359,7 +359,7 @@ export default function FichaProprietario() {
 
       <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
 
-      <button onClick={apagar} className="w-full py-2 text-sm text-red-600">Apagar proprietário</button>
+      <button onClick={apagar} className="w-full py-2 text-sm font-medium text-red-700">Apagar proprietário</button>
     </div>
   );
 }

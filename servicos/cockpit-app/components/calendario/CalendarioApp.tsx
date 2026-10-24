@@ -199,7 +199,7 @@ export default function CalendarioApp() {
           <button
             key={v}
             onClick={() => setVista(v)}
-            className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+            className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
           >
             {r}
           </button>
@@ -235,7 +235,7 @@ export default function CalendarioApp() {
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold capitalize text-tinta">{formatarDia(ref)}</h3>
-              <button onClick={() => setVista("dia")} className="text-sm font-medium text-azul">
+              <button onClick={() => setVista("dia")} className="text-sm font-medium text-azul-escuro">
                 Abrir dia
               </button>
             </div>
@@ -293,7 +293,7 @@ function LinhaTarefa({
   return (
     <li>
       <SwipeLinha
-        direita={{ rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-white" : "bg-verde text-white", onAcao: () => onAlternar(t) }}
+        direita={{ rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => onAlternar(t) }}
         esquerda={onAdiar && !t.feita ? { rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) } : undefined}
       >
     <div className="flex items-center gap-3 rounded-2xl border border-linha bg-white px-3 py-3">
@@ -301,7 +301,7 @@ function LinhaTarefa({
         onClick={() => onAlternar(t)}
         aria-label={t.feita ? "Marcar como por fazer" : "Marcar como feita"}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${
-          t.feita ? "border-verde bg-verde text-white" : "border-black/20"
+          t.feita ? "border-verde bg-verde text-tinta" : "border-black/20"
         }`}
       >
         {t.feita && (

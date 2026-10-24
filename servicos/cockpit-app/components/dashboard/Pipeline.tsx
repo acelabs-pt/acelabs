@@ -88,7 +88,7 @@ export default function Pipeline({ dados }: { dados: Dados }) {
                     <span className="truncate text-tinta">{c.contactos.nome}</span>
                     <span
                       className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        dias === null ? "bg-black/5 text-secundario" : dias < 0 ? "bg-red-50 text-red-700" : dias <= 15 ? "bg-ambar-fundo text-ambar-texto" : "bg-verde-suave text-verde"
+                        dias === null ? "bg-black/5 text-secundario" : dias < 0 ? "bg-red-50 text-red-700" : dias <= 15 ? "bg-ambar-fundo text-ambar-texto" : "bg-verde-suave text-tinta"
                       }`}
                     >
                       {dias === null ? "sem prazo" : dias < 0 ? `${-dias} dias de atraso` : dias === 0 ? "hoje" : `${dias} dias`}

@@ -98,7 +98,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
               <button
                 key={v}
                 onClick={() => setPeriodo(v)}
-                className={`flex-1 rounded-lg py-1.5 ${periodo === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                className={`flex-1 rounded-lg py-1.5 ${periodo === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {r}
               </button>

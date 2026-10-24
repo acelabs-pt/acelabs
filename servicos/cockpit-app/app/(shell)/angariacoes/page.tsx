@@ -106,9 +106,9 @@ export default function Angariacoes() {
                       </p>
                     </div>
                     {a.vendido_em ? (
-                      <span className="shrink-0 rounded-full bg-verde/15 px-2.5 py-1 text-xs font-medium text-verde">Vendido</span>
+                      <span className="shrink-0 rounded-full bg-verde/15 px-2.5 py-1 text-xs font-medium text-tinta">Vendido</span>
                     ) : (
-                      <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
+                      <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
                         {dia < 1 ? "Ainda não começou" : dia > a.duracao_dias ? "Contrato terminado" : `Dia ${dia} de ${a.duracao_dias}`}
                       </span>
                     )}

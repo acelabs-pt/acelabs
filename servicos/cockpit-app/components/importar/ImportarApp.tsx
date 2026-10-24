@@ -115,7 +115,7 @@ export default function ImportarApp() {
                 key={e}
                 onClick={() => setEntidade(e)}
                 aria-pressed={entidade === e}
-                className={`flex-1 rounded-lg py-2 ${entidade === e ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                className={`flex-1 rounded-lg py-2 ${entidade === e ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {ESQUEMAS[e].titulo}
               </button>
@@ -210,7 +210,7 @@ export default function ImportarApp() {
             <h2 className="text-lg font-semibold text-tinta">Resultado da verificação</h2>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-2xl bg-verde-suave p-3">
-                <p className="text-2xl font-bold text-verde">{prontas.length}</p>
+                <p className="text-2xl font-bold text-tinta">{prontas.length}</p>
                 <p className="text-xs text-secundario">prontas</p>
               </div>
               <div className="rounded-2xl bg-ambar-fundo p-3">

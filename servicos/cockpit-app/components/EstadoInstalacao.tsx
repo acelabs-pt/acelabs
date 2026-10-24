@@ -14,7 +14,7 @@ export default function EstadoInstalacao() {
   useEffect(() => setInstalada(estaInstalada()), []);
   if (instalada === null) return null;
   return instalada ? (
-    <p className="flex items-center gap-2 rounded-2xl bg-verde-suave px-4 py-3 text-sm font-medium text-verde" role="status">
+    <p className="flex items-center gap-2 rounded-2xl bg-verde-suave px-4 py-3 text-sm font-medium text-tinta" role="status">
       <span className="h-2.5 w-2.5 rounded-full bg-verde" />
       Já estás a usar a app instalada.
     </p>

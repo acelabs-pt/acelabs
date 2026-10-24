@@ -192,7 +192,7 @@ export default function FichaComprador() {
   if (editar) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditar(false)} className="text-sm text-azul">&larr; Cancelar</button>
+        <button onClick={() => setEditar(false)} className="text-sm font-medium text-azul-escuro">&larr; Cancelar</button>
         <FormComprador
           inicial={valoresIniciais(c, zonas)}
           textoBotao="Guardar alterações"
@@ -216,7 +216,7 @@ export default function FichaComprador() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/compradores" className="text-sm text-azul">&larr; Compradores</Link>
+      <Link href="/crm/compradores" className="text-sm font-medium text-azul-escuro">&larr; Compradores</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       <section className="space-y-4 rounded-3xl border border-linha bg-white p-5">
@@ -228,7 +228,7 @@ export default function FichaComprador() {
                 {labelEstado(c.estado)}
               </span>
               {c.motivacao != null && (
-                <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${(c.motivacao / 10) * 120} 70% 42% / 0.12)`, color: `hsl(${(c.motivacao / 10) * 120} 70% 30%)` }}>
+                <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${(c.motivacao / 10) * 120} 70% 42% / 0.12)`, color: `hsl(${(c.motivacao / 10) * 120} 70% 22%)` }}>
                   Motivação {c.motivacao}/10
                 </span>
               )}
@@ -271,7 +271,7 @@ export default function FichaComprador() {
               href={`https://wa.me/${tel.replace(/D/g, "")}`}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-white"
+              className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta"
             >
               WhatsApp
             </a>
@@ -306,7 +306,7 @@ export default function FichaComprador() {
                 key={f.id}
                 onClick={() => mudarEstado(f.id)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${
-                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul" : "bg-black/5 text-secundario"
+                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul-escuro" : "bg-black/5 text-secundario"
                 }`}
               >
                 {f.label}
@@ -352,9 +352,9 @@ export default function FichaComprador() {
                 className="rounded-xl"
                 direita={
                   !i.visitado_em
-                    ? { rotulo: "Visitado", classe: "bg-verde text-white", onAcao: () => alternarMarco(i, "visitado_em") }
+                    ? { rotulo: "Visitado", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "visitado_em") }
                     : !i.proposta_em
-                    ? { rotulo: "Proposta", classe: "bg-verde text-white", onAcao: () => alternarMarco(i, "proposta_em") }
+                    ? { rotulo: "Proposta", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "proposta_em") }
                     : undefined
                 }
                 esquerda={{ rotulo: "Remover", classe: "bg-red-600 text-white", onAcao: () => apagarImovel(i) }}
@@ -377,7 +377,7 @@ export default function FichaComprador() {
                   <button
                     key={campo}
                     onClick={() => alternarMarco(i, campo)}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${i[campo] ? "bg-verde text-white" : "bg-black/5 text-secundario"}`}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${i[campo] ? "bg-verde text-tinta" : "bg-black/5 text-secundario"}`}
                   >
                     {rotulo}
                   </button>
@@ -469,7 +469,7 @@ export default function FichaComprador() {
               <li key={d.id}>
                 <SwipeLinha
                   className="rounded-lg"
-                  direita={{ rotulo: d.entregue ? "Por entregar" : "Entregue", classe: d.entregue ? "bg-secundario text-white" : "bg-verde text-white", onAcao: () => alternarDoc(d) }}
+                  direita={{ rotulo: d.entregue ? "Por entregar" : "Entregue", classe: d.entregue ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => alternarDoc(d) }}
                 >
                   <label className="flex items-center gap-2 bg-white py-1 text-sm">
                     <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
@@ -497,7 +497,7 @@ export default function FichaComprador() {
           </form>
 
           {c.estado === "escritura" && (
-            <button onClick={concluir} className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-white">
+            <button onClick={concluir} className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-tinta">
               Escritura feita: concluir negócio
             </button>
           )}
@@ -506,7 +506,7 @@ export default function FichaComprador() {
 
       <BotaoExportar contactoId={c.contacto_id} nome={c.contactos.nome} />
 
-      <button onClick={apagarComprador} className="w-full py-2 text-sm text-red-600">
+      <button onClick={apagarComprador} className="w-full py-2 text-sm font-medium text-red-700">
         Apagar comprador
       </button>
     </div>

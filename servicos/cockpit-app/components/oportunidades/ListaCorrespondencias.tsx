@@ -25,7 +25,7 @@ export default function ListaCorrespondencias({
         return (
           <li key={c.id}>
             <SwipeLinha
-              direita={c.estado === "faz_sentido" ? undefined : { rotulo: "Faz sentido", classe: "bg-verde text-white", onAcao: () => onResponder(c, "faz_sentido") }}
+              direita={c.estado === "faz_sentido" ? undefined : { rotulo: "Faz sentido", classe: "bg-verde text-tinta", onAcao: () => onResponder(c, "faz_sentido") }}
               esquerda={{ rotulo: "Descartar", classe: "bg-secundario text-white", onAcao: () => onResponder(c, "descartada") }}
             >
             <div className="space-y-2 rounded-2xl bg-azul-suave p-3">
@@ -45,7 +45,7 @@ export default function ListaCorrespondencias({
             </p>
             {c.estado === "faz_sentido" ? (
               <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-verde-suave px-2.5 py-1 text-xs font-medium text-verde">Confirmada</span>
+                <span className="rounded-full bg-verde-suave px-2.5 py-1 text-xs font-medium text-tinta">Confirmada</span>
                 <button onClick={() => onResponder(c, "descartada")} className="text-xs text-secundario underline">
                   Descartar
                 </button>
@@ -61,7 +61,7 @@ export default function ListaCorrespondencias({
                       await registarEnvio(c);
                       onResponder(c, "faz_sentido");
                     }}
-                    className="flex-1 rounded-full bg-verde py-2 text-sm font-semibold text-white"
+                    className="flex-1 rounded-full bg-verde py-2 text-sm font-semibold text-tinta"
                   >
                     Enviar por WhatsApp
                   </button>

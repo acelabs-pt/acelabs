@@ -78,14 +78,14 @@ export default function PrimeirosPassos({ dados }: { dados: Dados }) {
           Esconder
         </button>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-black/[0.06]" role="progressbar" aria-valuemin={0} aria-valuemax={passos.length} aria-valuenow={feitos}>
+      <div className="h-2 overflow-hidden rounded-full bg-black/[0.06]" role="progressbar" aria-label="Progresso dos primeiros passos" aria-valuemin={0} aria-valuemax={passos.length} aria-valuenow={feitos}>
         <div className="h-full rounded-full bg-azul transition-[width] duration-500" style={{ width: `${(feitos / passos.length) * 100}%` }} />
       </div>
       <ul className="divide-y divide-black/[0.06]">
         {passos.map((p) => (
           <li key={p.titulo} className="flex items-center gap-3 py-3">
             <span
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${p.feito ? "border-verde bg-verde text-white" : "border-black/15"}`}
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${p.feito ? "border-verde bg-verde text-tinta" : "border-black/15"}`}
               aria-hidden="true"
             >
               {p.feito && (
