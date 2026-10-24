@@ -1,4 +1,4 @@
-// Verifica, só em leitura, as definições de segurança do Supabase de um cliente. Uso:
+// Verifica, só em leitura, o Supabase de um cliente: se as migrações estão corridas e as definições de segurança. Uso:
 //
 //   node scripts/verificar-seguranca.mjs
 //
@@ -29,6 +29,23 @@ const linha = (ok, texto, conselho) => {
   }
 };
 
+const h = { apikey: anon, Authorization: `Bearer ${anon}` };
+
+// Migrações: o que cada ficheiro SQL cria tem de existir (sem sessão as tabelas respondem vazias, não 404)
+console.log("Base de dados");
+const existe = async (caminho, init) => {
+  const r = await fetch(`${url}/rest/v1/${caminho}`, { headers: { ...h, "Content-Type": "application/json" }, ...init });
+  return r.status !== 404 && r.status !== 400;
+};
+linha(await existe("contactos?select=id&limit=1"), "Tabelas base (create_tables.sql)", "Corre create_tables.sql no SQL Editor do Supabase.");
+linha(
+  (await existe("comprador_zonas?select=id&limit=1")) && (await existe("correspondencias?select=id&limit=1")) && (await existe("angariacoes?select=tipo_imovel,valor&limit=1")),
+  "Várias zonas e alertas de imóveis (migracao_zonas_correspondencias.sql)",
+  "Corre migracao_zonas_correspondencias.sql (sem ela não há alertas de correspondência nem dados do imóvel nas angariações)."
+);
+linha(await existe("rpc/resumo_angariacoes", { method: "POST", body: "{}" }), "Resumo rápido das angariações (migracao_escala.sql)", "Corre migracao_escala.sql (sem ela o Dashboard fica lento com muitas angariações).");
+
+console.log("\nSegurança");
 const s = await (await fetch(`${url}/auth/v1/settings`, { headers: { apikey: anon } })).json();
 linha(s.disable_signup === true, "Registo público desligado", 'Authentication, Sign In / Providers: desligar "Allow new users to sign up".');
 linha(!s.external?.anonymous_users, "Entrada anónima desligada", "Authentication: desligar anonymous sign-ins.");

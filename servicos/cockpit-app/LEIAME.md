@@ -16,6 +16,9 @@ Cada cliente tem o seu endereço, a sua base de dados e os seus utilizadores. Fa
    conta. Os convites continuam a funcionar com o registo desligado. Confirmar: `GET <Project URL>/auth/v1/settings`
    com a chave anon tem de dizer `"disable_signup": true`.
 4. Copiar o **Project URL** e a chave **anon** (Settings, API). Estas duas vão para a Vercel. A chave `service_role` **nunca** vai para a Vercel nem para o repositório.
+5. **Confirmar tudo de uma vez:** com o `.env.local` a apontar para este projeto, `npm run seguranca`. Diz que migrações
+   faltam correr e que definições de segurança estão por mudar, e só usa a chave pública (não altera nada).
+   Tem de acabar em "Tudo em ordem.".
 
 ## 2. Emails de convite e de recuperação de password
 
