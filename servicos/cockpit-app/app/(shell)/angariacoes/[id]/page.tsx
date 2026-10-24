@@ -27,6 +27,7 @@ import Comissao from "@/components/crm/Comissao";
 import DadosImovel, { imovelDe, imovelParaBd, resumoImovel, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import { atualizarPorAngariacao, carregarDaAngariacao, responder, type Correspondencia } from "@/lib/oportunidades";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 
@@ -57,7 +58,7 @@ export default function PlanoAngariacao() {
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
     const [r1, r2, cs] = await Promise.all([
-      sb.from("angariacoes").select("*, proprietarios(contactos(nome))").eq("id", id).single(),
+      sb.from("angariacoes").select("*, proprietarios(id, contactos(nome, telemovel))").eq("id", id).single(),
       sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
       carregarDaAngariacao(id),
     ]);
@@ -102,7 +103,13 @@ export default function PlanoAngariacao() {
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-tinta">{ang.titulo}</h1>
             <p className="text-sm text-secundario">
-              {ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"}
+              {ang.proprietarios?.id ? (
+                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="font-medium text-azul-escuro">
+                  {ang.proprietarios.contactos.nome}
+                </Link>
+              ) : (
+                ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"
+              )}
               {ang.regime ? ` · ${REGIME[ang.regime]}` : ""}
             </p>
             <p className="text-sm text-secundario">
@@ -116,6 +123,22 @@ export default function PlanoAngariacao() {
             </Link>
           )}
         </div>
+        {ang.proprietarios?.contactos.telemovel && (
+          // falar com o proprietário sem sair da angariação (feedback das visitas, relatório)
+          <div className="flex gap-2">
+            <a href={`tel:${ang.proprietarios.contactos.telemovel}`} className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white">
+              Ligar ao proprietário
+            </a>
+            <a
+              href={linkWhatsapp(ang.proprietarios.contactos.telemovel)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 rounded-full bg-verde py-2.5 text-center text-sm font-semibold text-tinta"
+            >
+              WhatsApp
+            </a>
+          </div>
+        )}
       </section>
 
       <section className={cartao}>

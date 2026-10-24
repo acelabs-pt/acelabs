@@ -19,7 +19,7 @@ export type Angariacao = {
   concelho: string | null;
   freguesia: string | null;
   valor: number | null;
-  proprietarios: { contactos: { nome: string } } | null;
+  proprietarios: { id?: string; contactos: { nome: string; telemovel?: string | null } } | null;
 };
 
 export type Acao = {
