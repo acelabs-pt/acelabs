@@ -95,7 +95,7 @@ export default function DashboardApp() {
           {/* Colunas que se enchem sem buracos; em telemóvel fica uma coluna, pela ordem de urgência. */}
           <div className="md:columns-2 md:gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
             <div>
-              <Hoje tarefas={dados.tarefas} total={dados.nHoje} onAlternar={alternar} onAdiar={setAdiar} />
+              <Hoje tarefas={dados.tarefas} total={dados.nHoje} onAlternar={alternar} onAdiar={setAdiar} telefone={(t) => telefoneDaTarefa(dados, t)} />
             </div>
             <div>
               <Atencao avisos={avisos(dados)} />
@@ -156,4 +156,17 @@ function ResumoDoDia({ dados }: { dados: Dados }) {
       )}
     </p>
   );
+}
+
+/** Telemóvel da pessoa a quem a tarefa diz respeito (comprador, proprietário ou contacto), se houver. */
+function telefoneDaTarefa(d: Dados, t: Tarefa): string | null {
+  const c = t.comprador_id ? d.compradores.find((x) => x.id === t.comprador_id) : undefined;
+  if (c?.contactos.telemovel) return c.contactos.telemovel;
+  const p = t.proprietario_id ? d.proprietarios.find((x) => x.id === t.proprietario_id) : undefined;
+  if (p?.contactos.telemovel) return p.contactos.telemovel;
+  if (t.contacto_id) {
+    const k = d.compradores.find((x) => x.contacto_id === t.contacto_id) ?? d.proprietarios.find((x) => x.contacto_id === t.contacto_id);
+    return k?.contactos.telemovel ?? null;
+  }
+  return null;
 }

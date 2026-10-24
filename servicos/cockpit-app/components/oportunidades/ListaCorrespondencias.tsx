@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
-import type { Correspondencia } from "@/lib/oportunidades";
+import { registarEnvio, whatsappParaComprador, type Correspondencia } from "@/lib/oportunidades";
 
 // Lista de alertas de correspondência. "imovel" mostra o imóvel (ficha do comprador),
 // "comprador" mostra quem pode comprar (ficha da angariação ou do proprietário), "ambos" mostra os dois (dashboard).
@@ -51,19 +51,40 @@ export default function ListaCorrespondencias({
                 </button>
               </div>
             ) : (
+              <div className="space-y-1.5">
               <div className="flex gap-2">
-                <button
-                  onClick={() => onResponder(c, "faz_sentido")}
-                  className="flex-1 rounded-full bg-tinta py-2 text-sm font-semibold text-white"
-                >
-                  Faz sentido
-                </button>
+                {whatsappParaComprador(c) ? (
+                  <button
+                    onClick={async () => {
+                      // abrir já, no próprio toque (senão o browser bloqueia a janela), e registar a seguir
+                      window.open(whatsappParaComprador(c)!, "_blank", "noopener");
+                      await registarEnvio(c);
+                      onResponder(c, "faz_sentido");
+                    }}
+                    className="flex-1 rounded-full bg-verde py-2 text-sm font-semibold text-white"
+                  >
+                    Enviar por WhatsApp
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onResponder(c, "faz_sentido")}
+                    className="flex-1 rounded-full bg-tinta py-2 text-sm font-semibold text-white"
+                  >
+                    Faz sentido
+                  </button>
+                )}
                 <button
                   onClick={() => onResponder(c, "descartada")}
                   className="flex-1 rounded-full bg-white py-2 text-sm font-medium text-tinta"
                 >
                   Descartar
                 </button>
+              </div>
+              {whatsappParaComprador(c) && (
+                <button onClick={() => onResponder(c, "faz_sentido")} className="w-full text-center text-xs text-secundario underline">
+                  Faz sentido, envio depois
+                </button>
+              )}
               </div>
             )}
             </div>

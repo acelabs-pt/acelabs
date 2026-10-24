@@ -142,12 +142,12 @@ export type Correspondencia = {
   proprietario_id: string | null;
   estado: EstadoCorrespondencia;
   created_at: string;
-  compradores: { contactos: { nome: string } } | null;
+  compradores: { estado: string; contactos: { nome: string; telemovel: string | null } } | null;
   angariacoes: { titulo: string } | null;
   proprietarios: { contactos: { nome: string } } | null;
 };
 
-const SELECT_CORRESPONDENCIA = "*, compradores(contactos(nome)), angariacoes(titulo), proprietarios(contactos(nome))";
+const SELECT_CORRESPONDENCIA = "*, compradores(estado, contactos(nome, telemovel)), angariacoes(titulo), proprietarios(contactos(nome))";
 
 /** Alertas por rever (estado "nova"), do mais recente para o mais antigo. */
 export async function carregarNovas(): Promise<Correspondencia[]> {
@@ -186,6 +186,32 @@ export async function carregarDoProprietario(proprietarioId: string): Promise<Co
     .neq("estado", "descartada")
     .order("created_at", { ascending: false });
   return (data ?? []) as unknown as Correspondencia[];
+}
+
+/** Endereço do WhatsApp com a mensagem ao comprador já escrita. Null se não houver telemóvel ou angariação. */
+export function whatsappParaComprador(c: Correspondencia): string | null {
+  const tel = c.compradores?.contactos.telemovel;
+  if (!tel || !c.angariacao_id) return null;
+  const primeiro = (c.compradores?.contactos.nome ?? "").split(" ")[0];
+  const texto = `Olá ${primeiro}, tenho um imóvel que pode ser do seu interesse: ${c.angariacoes?.titulo ?? "um imóvel"}. Quer que lhe envie mais informação ou marcamos uma visita?`;
+  return `https://wa.me/${tel.replace(/D/g, "")}?text=${encodeURIComponent(texto)}`;
+}
+
+/**
+ * Depois de enviar o imóvel ao comprador: fica registado na ficha dele como enviado (hoje), o alerta passa a
+ * "faz sentido" e, se o comprador ainda estava em "Lead qualificada", avança para "Imóveis enviados".
+ */
+export async function registarEnvio(c: Correspondencia): Promise<string | null> {
+  const sb = sbBrowser();
+  const d = new Date();
+  const hoje = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const { error } = await sb.from("comprador_imoveis").insert({ comprador_id: c.comprador_id, descricao: c.angariacoes?.titulo ?? "Imóvel", enviado_em: hoje });
+  if (error) return "Não foi possível registar o envio.";
+  await sb.from("correspondencias").update({ estado: "faz_sentido" }).eq("id", c.id);
+  if (c.compradores?.estado === "lead_qualificada") {
+    await sb.from("compradores").update({ estado: "imoveis_enviados", estado_desde: new Date().toISOString() }).eq("id", c.comprador_id);
+  }
+  return null;
 }
 
 export async function responder(id: string, estado: EstadoCorrespondencia): Promise<string | null> {

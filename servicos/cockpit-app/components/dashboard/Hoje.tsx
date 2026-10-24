@@ -7,7 +7,20 @@ import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDoDia, somarDias } from "@/lib/datas";
 
 // Tarefas em atraso e de hoje. Marcar aqui é o mesmo que marcar no Calendário.
-export default function Hoje({ tarefas, total, onAlternar, onAdiar }: { tarefas: Tarefa[]; total: number; onAlternar: (t: Tarefa) => void; onAdiar: (t: Tarefa) => void }) {
+export default function Hoje({
+  tarefas,
+  total,
+  onAlternar,
+  onAdiar,
+  telefone,
+}: {
+  tarefas: Tarefa[];
+  total: number;
+  onAlternar: (t: Tarefa) => void;
+  onAdiar: (t: Tarefa) => void;
+  /** Telemóvel do contacto da tarefa, se houver (para ligar sem abrir a ficha). */
+  telefone?: (t: Tarefa) => string | null;
+}) {
   const hoje = inicioDoDia(new Date());
   const amanha = somarDias(hoje, 1);
   const lista = tarefas
@@ -57,6 +70,17 @@ export default function Hoje({ tarefas, total, onAlternar, onAdiar }: { tarefas:
                         {atrasada ? `${formatarDia(new Date(t.inicio!))} · em atraso` : formatarHora(t.inicio!) || "Hoje"}
                       </p>
                     </div>
+                    {telefone?.(t) && (
+                      <a
+                        href={`tel:${telefone(t)}`}
+                        aria-label="Ligar"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-azul-suave text-azul-escuro hover:bg-azul hover:text-white"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z" />
+                        </svg>
+                      </a>
+                    )}
                     <button onClick={() => onAdiar(t)} className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-secundario">
                       Adiar
                     </button>
