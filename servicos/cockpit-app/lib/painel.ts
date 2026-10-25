@@ -4,9 +4,12 @@ import type { Proprietario } from "@/lib/proprietario";
 import { dataLocal, diaDeHoje, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
-import { diasAte, diasDesde, semanaISO } from "@/lib/datas";
+import { diasAte, diasDesde, inicioDaSemana, semanaISO } from "@/lib/datas";
 import { todas } from "@/lib/todas";
 import { carregarResumo, type ResumoAng } from "@/lib/resumoAngariacoes";
+
+/** Tarefa com o proprietário da angariação, quando é um follow up do plano (para abrir a ficha certa). */
+export type TarefaSeguimento = Tarefa & { angariacao_acoes?: { follow_up: boolean; angariacoes: { proprietario_id: string | null } | null } | null };
 
 export type Dados = {
   compradores: Comprador[];
@@ -19,6 +22,8 @@ export type Dados = {
   tarefas: Tarefa[];
   /** Quantas tarefas há para hoje ou em atraso (a lista só mostra as primeiras). */
   nHoje: number;
+  /** Seguimentos a clientes até ao fim da semana (e os em atraso): tarefas de comprador ou proprietário e os follow ups das angariações. */
+  seguimentos: TarefaSeguimento[];
   metas: Metas;
   decisaoSemana: "colocada" | "ignorada" | null;
 };
@@ -41,7 +46,10 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   const amanhaIso = amanha.toISOString();
   const agoraIso = agora.toISOString();
   const calendario = () => sb.from("tarefas").select("*").eq("no_calendario", true).eq("feita", false);
-  const [c, i, p, a, resumo, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem] = await Promise.all([
+  // fim da semana (segunda seguinte), para os seguimentos
+  const fimSemana = inicioDaSemana(agora);
+  fimSemana.setDate(fimSemana.getDate() + 7);
+  const [c, i, p, a, resumo, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem, seg] = await Promise.all([
     todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("id").range(de, ate)),
     todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
     todas((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("id").range(de, ate)),
@@ -54,8 +62,19 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
     sb.from("metas").select("*").eq("ano", ano),
     sb.from("metas_config").select("*").eq("ano", ano),
     sb.from("metas_semanas").select("*").eq("semana", semana),
+    // só tarefas ligadas a um cliente, com limite: com planos de angariação há milhares de ações no total
+    sb
+      .from("tarefas")
+      .select("*, angariacao_acoes(follow_up, angariacoes(proprietario_id))")
+      .eq("no_calendario", true)
+      .eq("feita", false)
+      .eq("tipo", "tarefa")
+      .lt("inicio", fimSemana.toISOString())
+      .or("comprador_id.not.is.null,proprietario_id.not.is.null,titulo.like.Follow up com o proprietário*")
+      .order("inicio")
+      .limit(300),
   ]);
-  const falhou = [c, i, p, a, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem].find((r) => r.error);
+  const falhou = [c, i, p, a, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem, seg].find((r) => r.error);
   if (falhou) return "Não foi possível carregar o Dashboard.";
 
   const metas = SEM_METAS(ano);
@@ -77,12 +96,18 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
     resumo,
     tarefas: [...new Map([...(hoje6.data ?? []), ...(proxEvento.data ?? []), ...tProp.data].map((x) => [(x as Tarefa).id, x as Tarefa])).values()],
     nHoje: nHojeQ.count ?? 0,
+    seguimentos: (seg.data ?? []) as unknown as TarefaSeguimento[],
     metas,
     decisaoSemana: (sem.data?.[0]?.decisao as "colocada" | "ignorada") ?? null,
   };
 }
 
-export type Feitos = Record<Metrica, number> & { transCompradores: number; transAngariacoes: number; faturado: number };
+export type Feitos = Record<Metrica, number> & {
+  transCompradores: number;
+  transAngariacoes: number;
+  faturado: number;
+  fechadoValor: number; // comissões dos negócios fechados no período, recebidas ou não
+};
 
 /** Quanto foi feito em cada métrica no período (contagens diretas dos dados, sem estimativas). */
 export function feitos(d: Dados, p: Periodo, agora: Date = new Date()): Feitos {
@@ -102,7 +127,12 @@ export function feitos(d: Dados, p: Periodo, agora: Date = new Date()): Feitos {
   const recebidasC = d.compradores.filter((c) => c.comissao_recebida && c.comissao_recebida_em && dentro(dataLocal(c.comissao_recebida_em), l));
   const recebidasA = d.angariacoes.filter((a) => a.comissao_recebida && a.comissao_recebida_em && dentro(dataLocal(a.comissao_recebida_em), l));
   const faturado = [...recebidasC, ...recebidasA].reduce((s, x) => s + Number(x.comissao_valor ?? 0), 0);
+  // Negócios fechados no período (CPCV fechado ou angariação vendida), já pagos ou não
+  const fechadosC = d.compradores.filter((c) => c.cpcv_fechado && c.cpcv_data && dentro(dataLocal(c.cpcv_data), l));
+  const fechadosA = d.angariacoes.filter((a) => a.vendido_em && dentro(dataLocal(a.vendido_em), l));
+  const fechadoValor = [...fechadosC, ...fechadosA].reduce((s, x) => s + Number(x.comissao_valor ?? 0), 0);
   return {
+    fechadoValor,
     visitas,
     reunioes_angariacao: reunioes,
     angariacoes,

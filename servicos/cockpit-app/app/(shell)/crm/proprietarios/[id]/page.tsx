@@ -5,7 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { atualizarPorProprietario } from "@/lib/oportunidades";
+import { atualizarPorProprietario, carregarDoProprietario, responder, type Correspondencia } from "@/lib/oportunidades";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import BotaoExportar from "@/components/crm/BotaoExportar";
 import ContactosRegistados from "@/components/crm/ContactosRegistados";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
@@ -30,6 +31,7 @@ export default function FichaProprietario() {
   const router = useRouter();
   const [p, setP] = useState<Proprietario | null>(null);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [temAngariacao, setTemAngariacao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
@@ -51,10 +53,12 @@ export default function FichaProprietario() {
       return;
     }
     const prop = r1.data as unknown as Proprietario;
-    const [r3, r4] = await Promise.all([
+    const [r3, r4, cs] = await Promise.all([
       sb.from("tarefas").select("*").eq("proprietario_id", id).order("inicio", { ascending: true }),
       sb.from("angariacoes").select("id, regime").eq("proprietario_id", id),
+      carregarDoProprietario(id),
     ]);
+    setCorresp(cs);
     setP(prop);
     setTarefas((r3.data ?? []) as Tarefa[]);
     setTemAngariacao((r4.data ?? []).length > 0);
@@ -262,6 +266,24 @@ export default function FichaProprietario() {
           </div>
         )}
       </section>
+
+      {/* compradores cujo perfil serve este imóvel (ideia do Miguel, sobre os alertas de correspondência) */}
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
+
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>

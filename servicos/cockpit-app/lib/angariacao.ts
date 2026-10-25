@@ -61,6 +61,8 @@ export const FOLLOW_UP_BLOCOS = [2, 3, 5, 6, 8, 9, 10, 12, 14, 15, 16, 17];
 export const blocoDeDia = (dia: number) => Math.floor(dia / DIAS_POR_BLOCO) + 1;
 export const diaInicioBloco = (bloco: number) => (bloco - 1) * DIAS_POR_BLOCO;
 const diaMeioBloco = (bloco: number) => diaInicioBloco(bloco) + 5;
+export const diaPadraoDoBloco = (bloco: number, followUp: boolean) =>
+  followUp ? diaMeioBloco(bloco) : diaInicioBloco(bloco);
 
 export const nBlocos = (duracao: number) => duracao / DIAS_POR_BLOCO;
 
@@ -82,6 +84,11 @@ export function blocoAtual(inicio: string, duracao: number): number | null {
   const d = diaDeHoje(inicio);
   if (d < 1 || d > duracao) return null;
   return Math.ceil(d / DIAS_POR_BLOCO);
+}
+
+/** O bloco de 10 dias da ação já terminou e a ação não está feita. */
+export function emAtraso(ang: Pick<Angariacao, "inicio">, a: Acao, hoje = new Date()): boolean {
+  return !a.feita && dataDoDia(ang.inicio, blocoDeDia(a.dia) * DIAS_POR_BLOCO) < hoje;
 }
 
 type Linha = { nome: string; dia: number; follow_up: boolean };
@@ -174,6 +181,24 @@ export async function marcarAcao(a: Acao, feita: boolean): Promise<string | null
   return null;
 }
 
+/** Muda a ação para outro dia do contrato e leva a tarefa do calendário atrás. */
+export async function mudarDiaAcao(
+  ang: Pick<Angariacao, "inicio">,
+  a: Acao,
+  novoDia: number
+): Promise<string | null> {
+  const sb = sbBrowser();
+  const { error } = await sb.from("angariacao_acoes").update({ dia: novoDia }).eq("id", a.id);
+  if (error) return "Não foi possível mudar a ação de dia.";
+  const quando = dataDoDia(ang.inicio, novoDia);
+  quando.setHours(9, 0, 0, 0);
+  const { error: e2 } = await sb
+    .from("tarefas")
+    .update({ inicio: quando.toISOString() })
+    .eq("angariacao_acao_id", a.id);
+  return e2 ? "Ação mudada de dia, mas a tarefa do calendário não foi atualizada." : null;
+}
+
 /** "Vendido" em qualquer ponto do plano: as tarefas por fazer saem do calendário (reversível). */
 export async function marcarVendido(ang: Angariacao, acoes: Acao[], vendidoEm: string | null): Promise<string | null> {
   const sb = sbBrowser();
@@ -205,6 +230,6 @@ export async function moverAcao(ang: Angariacao, a: Acao, outras: Acao[], novoDi
   if (error) return "Não foi possível mover a ação.";
   const quando = dataDoDia(ang.inicio, novoDia);
   quando.setHours(9, 0, 0, 0);
-  await sb.from("tarefas").update({ inicio: quando.toISOString() }).eq("angariacao_acao_id", a.id);
-  return null;
+  const { error: e2 } = await sb.from("tarefas").update({ inicio: quando.toISOString() }).eq("angariacao_acao_id", a.id);
+  return e2 ? "Ação mudada de dia, mas a tarefa do calendário não foi atualizada." : null;
 }

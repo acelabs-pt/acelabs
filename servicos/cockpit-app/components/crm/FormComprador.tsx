@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Campo, Escolha, Texto } from "@/components/crm/Campos";
-import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
+import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
+import SeletorLocalizacoes from "@/components/crm/SeletorLocalizacoes";
 import { sbBrowser } from "@/lib/supabase-browser";
 import {
   CANAIS_ORIGEM,
@@ -130,7 +131,7 @@ export default function FormComprador({
   onSubmit: (v: ValoresComprador) => void;
 }) {
   const [v, setV] = useState(inicial);
-  const set = <K extends keyof ValoresComprador>(k: K) => (valor: string) =>
+  const set = <K extends keyof ValoresComprador>(k: K) => (valor: ValoresComprador[K]) =>
     setV((x) => ({ ...x, [k]: valor }));
 
   return (
@@ -184,43 +185,11 @@ export default function FormComprador({
         <Texto label="Referência do imóvel" value={v.referencia_imovel} onChange={set("referencia_imovel")} />
         <Escolha label="Tipo de imóvel" value={v.tipo_imovel} onChange={set("tipo_imovel")} opcoes={TIPOS_IMOVEL} />
         <Escolha label="Tipologia mínima" value={v.tipologia_minima} onChange={set("tipologia_minima")} opcoes={TIPOLOGIAS} />
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-secundario">Zonas de interesse (podes juntar várias)</p>
-          {v.zonas.length > 0 && (
-            <ul className="flex flex-wrap gap-2">
-              {v.zonas.map((z, i) => (
-                <li key={i} className="flex items-center gap-1 rounded-full bg-azul-suave py-1 pl-3 pr-1 text-sm text-azul-escuro">
-                  {nomeZona(z)}
-                  <button
-                    type="button"
-                    aria-label={`Retirar ${nomeZona(z)}`}
-                    onClick={() => setV((x) => ({ ...x, zonas: x.zonas.filter((_, j) => j !== i) }))}
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-base leading-none hover:bg-white/60"
-                  >
-                    &times;
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <SeletorLocalizacao
-              comRotulos
-              valor={{ distrito: v.distrito, concelho: v.concelho, freguesia: v.freguesia }}
-              onChange={(l) => setV((x) => ({ ...x, ...l }))}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base"
-            />
-          </div>
-          <p className="text-xs text-secundario">Sem concelho = o distrito todo. Sem freguesia = o concelho todo.</p>
-          <button
-            type="button"
-            disabled={!v.distrito}
-            onClick={() => setV((x) => ({ ...x, zonas: zonasFinais(x), distrito: "", concelho: "", freguesia: "" }))}
-            className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta disabled:opacity-40"
-          >
-            Juntar zona
-          </button>
-        </div>
+        {/* seletor do Miguel (várias freguesias de uma vez); grava em comprador_zonas via guardarZonas */}
+        <SeletorLocalizacoes
+          valor={v.zonas.map((z) => ({ distrito: z.distrito, concelho: z.concelho || undefined, freguesia: z.freguesia || undefined }))}
+          onChange={(ls) => setV((x) => ({ ...x, zonas: ls.map((l) => ({ distrito: l.distrito, concelho: l.concelho ?? "", freguesia: l.freguesia ?? "" })) }))}
+        />
         <Texto label="Expectativa de valor (EUR)" type="number" value={v.expectativa_valor} onChange={set("expectativa_valor")} />
         <Escolha label="Financiamento" value={v.financiamento} onChange={set("financiamento")} opcoes={FINANCIAMENTO} />
         <Escolha label="Simulação de crédito" value={v.simulacao_credito} onChange={set("simulacao_credito")} opcoes={SIMULACAO_CREDITO} />

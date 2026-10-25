@@ -18,14 +18,15 @@ import {
   FUNIL,
   OBJETIVOS,
   alertaLaranja,
+  concluirTarefasSemanais,
   contar,
-  corProgresso,
   indiceFunil,
   labelEstado,
   type Comprador,
   type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
+import BarraProgresso from "@/components/BarraProgresso";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
@@ -130,6 +131,7 @@ export default function FichaComprador() {
       });
     if (error) return setErro("Não foi possível adicionar o imóvel.");
     setNovoImovel("");
+    await concluirTarefasSemanais(c.id, "enviar");
     await avancarPara("imoveis_enviados", c.estado);
     await carregar();
   }
@@ -140,6 +142,8 @@ export default function FichaComprador() {
     const { error } = await sbBrowser().from("comprador_imoveis").update({ [campo]: novo }).eq("id", i.id);
     if (error) return setErro("Não foi possível guardar.");
     if (novo) {
+      if (campo === "enviado_em") await concluirTarefasSemanais(c.id, "enviar");
+      if (campo === "visitado_em") await concluirTarefasSemanais(c.id, "visita");
       if (campo === "visitado_em") await avancarPara("visitas_realizadas", c.estado);
       if (campo === "proposta_em") await avancarPara("propostas_efetuadas", c.estado);
     }
@@ -341,12 +345,7 @@ export default function FichaComprador() {
               <span>{rotulo}</span>
               <span>{valor}/{objetivo}</span>
             </div>
-            <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-              <div
-                className={`h-full rounded-full ${corProgresso(valor, objetivo)}`}
-                style={{ width: `${Math.min(100, (valor / objetivo) * 100)}%` }}
-              />
-            </div>
+            <BarraProgresso valor={valor} objetivo={objetivo} />
           </div>
         ))}
 

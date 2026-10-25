@@ -4,6 +4,8 @@ import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import Link from "next/link";
+import { tipoTarefaComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
@@ -295,13 +297,18 @@ function LinhaTarefa({
   atrasada?: boolean;
 }) {
   const hora = t.inicio ? formatarHora(t.inicio) : "";
+  const paraFicha = !t.feita && Boolean(t.comprador_id && tipoTarefaComprador(t));
   return (
     <li>
       <SwipeLinha
-        direita={{ rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => onAlternar(t) }}
+        // tarefas semanais automáticas não se marcam à mão: fecham-se ao registar o envio ou a visita na ficha
+        direita={paraFicha ? undefined : { rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => onAlternar(t) }}
         esquerda={onAdiar && !t.feita ? { rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) } : undefined}
       >
     <div className="flex items-center gap-3 rounded-2xl border border-linha bg-white px-3 py-3">
+      {paraFicha ? (
+        <span className="h-7 w-7 shrink-0" aria-hidden="true" />
+      ) : (
       <button
         onClick={() => onAlternar(t)}
         aria-label={t.feita ? "Marcar como por fazer" : "Marcar como feita"}
@@ -315,6 +322,7 @@ function LinhaTarefa({
           </svg>
         )}
       </button>
+      )}
       <button onClick={onAbrir} disabled={!onAbrir} className="min-w-0 flex-1 text-left">
         <p className={`truncate text-base ${t.feita ? "text-secundario line-through" : "text-tinta"}`}>
           {t.tipo === "evento" && <span className="mr-1.5 text-azul">&#9679;</span>}
@@ -328,6 +336,14 @@ function LinhaTarefa({
         <button onClick={() => onAdiar(t)} className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-secundario">
           Adiar
         </button>
+      )}
+      {paraFicha && (
+        <Link
+          href={`/crm/compradores/${t.comprador_id}`}
+          className="shrink-0 rounded-lg bg-azul px-3 py-1.5 text-xs font-semibold text-white"
+        >
+          Abrir ficha
+        </Link>
       )}
       {onApagar && (
         <button onClick={() => onApagar(t)} aria-label="Apagar" className="p-2 text-secundario">

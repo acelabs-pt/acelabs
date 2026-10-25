@@ -2,8 +2,8 @@
 
 import { useArrastarParaFechar } from "@/components/gestos/useGestos";
 import { useState } from "react";
-import { blocoDeDia, dataDoDia, DIAS_POR_BLOCO, type Acao, type Angariacao } from "@/lib/angariacao";
-import { formatarDia } from "@/lib/datas";
+import { blocoDeDia, dataDoDia, dataLocal, DIAS_POR_BLOCO, type Acao, type Angariacao } from "@/lib/angariacao";
+import { formatarDia, inicioDoDia, isoDataLocal } from "@/lib/datas";
 
 // Detalhe de uma ação: marcar como feita, feedback e retirar do plano.
 export default function FolhaAcao({
@@ -28,8 +28,10 @@ export default function FolhaAcao({
   const bloco = blocoDeDia(acao.dia);
   const de = dataDoDia(ang.inicio, (bloco - 1) * DIAS_POR_BLOCO);
   const ate = dataDoDia(ang.inicio, bloco * DIAS_POR_BLOCO - 1);
-  const dataIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const diaDaData = (iso: string) => Math.round((new Date(iso + "T00:00:00").getTime() - dataDoDia(ang.inicio, 0).getTime()) / 86400000);
+  const prevista = dataDoDia(ang.inicio, acao.dia);
+  const primeiroDia = dataDoDia(ang.inicio, 0);
+  const minimo = new Date(Math.max(inicioDoDia(new Date()).getTime(), primeiroDia.getTime()));
+  const maximo = dataDoDia(ang.inicio, ang.duracao_dias - 1);
 
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
@@ -47,6 +49,7 @@ export default function FolhaAcao({
             <p className="text-sm text-secundario">
               Dias {(bloco - 1) * DIAS_POR_BLOCO + 1} a {bloco * DIAS_POR_BLOCO} ({formatarDia(de)} a {formatarDia(ate)})
             </p>
+            <p className="text-sm text-secundario">Prevista para {formatarDia(prevista)}</p>
           </div>
           <button onClick={onFechar} aria-label="Fechar" className="p-1 text-2xl leading-none text-secundario">&times;</button>
         </div>
@@ -81,13 +84,18 @@ export default function FolhaAcao({
                 +1 semana
               </button>
             </div>
+            {/* não se muda para um dia que já passou nem para fora do contrato */}
             <input
               type="date"
               aria-label="Escolher o dia"
-              min={dataIso(dataDoDia(ang.inicio, 0))}
-              max={dataIso(dataDoDia(ang.inicio, ang.duracao_dias - 1))}
-              defaultValue={dataIso(dataDoDia(ang.inicio, acao.dia))}
-              onChange={(e) => e.target.value && onMover(diaDaData(e.target.value))}
+              min={isoDataLocal(minimo)}
+              max={isoDataLocal(maximo)}
+              defaultValue={isoDataLocal(prevista)}
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const dia = Math.round((dataLocal(e.target.value).getTime() - primeiroDia.getTime()) / 86400000);
+                if (dia !== acao.dia && dia >= 0 && dia < ang.duracao_dias) onMover(dia);
+              }}
               className="w-full rounded-xl border border-linha bg-white px-3 py-2 text-base text-tinta"
             />
           </div>

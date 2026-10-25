@@ -4,14 +4,14 @@ import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
 import MetasForm from "@/components/dashboard/MetasForm";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { corProgresso } from "@/lib/comprador";
-import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Periodo } from "@/lib/metricas";
+import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
 import { faturacaoAcumulada, feitos, type Dados } from "@/lib/painel";
 import AneisAtividade from "@/components/dashboard/graficos/AneisAtividade";
 import AreaFaturacao from "@/components/dashboard/graficos/AreaFaturacao";
+import BarraProgresso from "@/components/BarraProgresso";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
 
-// Azul, verde, âmbar e tinta: as cores da marca, sempre pela mesma ordem (visitas, reuniões, angariações, transações)
+// Azul, verde e âmbar: as cores da marca, sempre pela mesma ordem (visitas, reuniões, transações)
 const CORES_ANEL = ["#0071e3", "#1fae5a", "#ff9f0a", "#1d1d1f"];
 const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
 
@@ -21,6 +21,9 @@ const PERIODOS: [Periodo, string][] = [
   ["trimestre", "Trimestre"],
   ["ano", "Ano"],
 ];
+
+// Indicadores secundários, por baixo das duas metas principais (angariações e faturação)
+const SECUNDARIAS: Metrica[] = ["visitas", "reunioes_angariacao", "transacoes"];
 
 export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado: () => void }) {
   const [periodo, setPeriodo] = useState<Periodo>("semana");
@@ -93,11 +96,12 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
         <MetasForm inicial={m} onGuardar={guardar} onCancelar={() => setEditar(false)} />
       ) : (
         <>
-          <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium">
+          <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium" role="group" aria-label="Período das metas">
             {PERIODOS.map(([v, r]) => (
               <button
                 key={v}
                 onClick={() => setPeriodo(v)}
+                aria-pressed={periodo === v}
                 className={`flex-1 rounded-lg py-1.5 ${periodo === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {r}
@@ -121,8 +125,34 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
             </div>
           )}
 
+          {/* as duas metas principais de um agente (Miguel): angariações e faturação do período */}
+          {(() => {
+            const objFat = m.faturacaoAnual == null ? null : metaDoPeriodo(m.faturacaoAnual, periodo, m.semanasUteis);
+            const objAng = m.anual.angariacoes == null ? null : metaDoPeriodo(m.anual.angariacoes, periodo, m.semanasUteis);
+            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => (
+              <div className="rounded-2xl quadro-glossy p-3 sm:p-4">
+                <p className="text-sm font-medium text-secundario">{rotulo}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">{rotulo === "Faturação" ? eur(valor) : valor}</p>
+                {fechado != null && (
+                  <p className="text-xs text-secundario">
+                    negócios fechados <b className="text-tinta">{eur(fechado)}</b>
+                  </p>
+                )}
+                <p className="text-xs text-secundario sm:text-sm">{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
+                {objetivo != null && objetivo > 0 && <BarraProgresso valor={valor} objetivo={objetivo} className="mt-3 h-3" />}
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
+                <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} />
+              </div>
+            );
+          })()}
+
+          {/* o resto da atividade em anéis (Pedro), só com os indicadores secundários */}
           <AneisAtividade
-            metricas={METRICAS.map((x, i) => ({
+            metricas={SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x, i) => ({
               rotulo: x.label,
               feito: f[x.id],
               meta: m.anual[x.id] == null ? null : metaDoPeriodo(m.anual[x.id]!, periodo, m.semanasUteis),
@@ -138,9 +168,8 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
           {m.faturacaoAnual != null && (
             <div className="space-y-3 border-t border-linha pt-5">
               <div>
-                <p className="text-sm font-medium text-secundario">Faturação de {m.ano}</p>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <p className="text-4xl font-bold tracking-tight text-tinta">{eur(fAno.faturado)}</p>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <p className="text-sm font-medium text-secundario">Faturação de {m.ano}: {eur(fAno.faturado)}</p>
                   <span className="rounded-full bg-azul-suave px-2.5 py-1 text-xs font-semibold text-azul-escuro">
                     {fAno.faturado > 0 && fAno.faturado / m.faturacaoAnual < 0.01 ? "menos de 1" : Math.round((fAno.faturado / m.faturacaoAnual) * 100)}% do objetivo
                   </span>

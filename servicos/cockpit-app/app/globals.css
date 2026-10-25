@@ -129,3 +129,15 @@ input[type="search"]::-webkit-search-decoration {
     display: none;
   }
 }
+
+/* Quadros com um toque glossy em azul suave (tons claros do azul da marca, #0071e3). */
+@layer components {
+  .quadro-glossy {
+    background-image: linear-gradient(180deg, #e8f2ff 0%, #ffffff 100%);
+    border: 1px solid rgba(0, 113, 227, 0.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 0 -1px 0 rgba(0, 113, 227, 0.05),
+      0 1px 3px rgba(0, 113, 227, 0.12);
+  }
+}

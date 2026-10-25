@@ -27,17 +27,17 @@ export function limites(p: Periodo, ref: Date = new Date()): { ini: Date; fim: D
     const ini = inicioDaSemana(ref);
     return { ini, fim: somarDias(ini, 7) };
   }
-  if (p === "mes") return { ini: new Date(ref.getFullYear(), ref.getMonth(), 1), fim: new Date(ref.getFullYear(), ref.getMonth() + 1, 1) };
   if (p === "trimestre") {
-    const m0 = Math.floor(ref.getMonth() / 3) * 3;
-    return { ini: new Date(ref.getFullYear(), m0, 1), fim: new Date(ref.getFullYear(), m0 + 3, 1) };
+    const mes = Math.floor(ref.getMonth() / 3) * 3;
+    return { ini: new Date(ref.getFullYear(), mes, 1), fim: new Date(ref.getFullYear(), mes + 3, 1) };
   }
+  if (p === "mes") return { ini: new Date(ref.getFullYear(), ref.getMonth(), 1), fim: new Date(ref.getFullYear(), ref.getMonth() + 1, 1) };
   return { ini: new Date(ref.getFullYear(), 0, 1), fim: new Date(ref.getFullYear() + 1, 0, 1) };
 }
 
 export const dentro = (d: Date, l: { ini: Date; fim: Date }) => d >= l.ini && d < l.fim;
 
-/** Meta de um período a partir da meta anual: semana = anual / semanas úteis, mês = anual / 12. */
+/** Meta de um período a partir da meta anual: semana = anual / semanas úteis, mês = anual / 12, trimestre = anual / 4. */
 export function metaDoPeriodo(anual: number, p: Periodo, semanasUteis: number): number {
   if (p === "ano") return anual;
   if (p === "mes") return anual / 12;

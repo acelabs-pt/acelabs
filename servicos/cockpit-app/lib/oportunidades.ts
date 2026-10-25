@@ -1,5 +1,5 @@
 import { sbBrowser } from "@/lib/supabase-browser";
-import { TIPOLOGIAS } from "@/lib/comprador";
+import { TIPOLOGIAS, concluirTarefasSemanais } from "@/lib/comprador";
 import { todas } from "@/lib/todas";
 import { linkWhatsapp } from "@/lib/whatsapp";
 
@@ -209,6 +209,7 @@ export async function registarEnvio(c: Correspondencia): Promise<string | null> 
   const { error } = await sb.from("comprador_imoveis").insert({ comprador_id: c.comprador_id, descricao: c.angariacoes?.titulo ?? "Imóvel", enviado_em: hoje });
   if (error) return "Não foi possível registar o envio.";
   await sb.from("correspondencias").update({ estado: "faz_sentido" }).eq("id", c.id);
+  await concluirTarefasSemanais(c.comprador_id, "enviar"); // a tarefa semanal "Enviar opções de imóveis" fica feita
   if (c.compradores?.estado === "lead_qualificada") {
     await sb.from("compradores").update({ estado: "imoveis_enviados", estado_desde: new Date().toISOString() }).eq("id", c.comprador_id);
   }

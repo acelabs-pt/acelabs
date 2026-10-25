@@ -14,6 +14,8 @@ import { apagarChamada, haQuanto, registarChamadaAgora, ultimosContactos } from 
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { swipeContacto } from "@/components/gestos/contacto";
 import { contarNovasPorComprador } from "@/lib/oportunidades";
+import { localCobre, resumoLocais, type Local } from "@/lib/localizacoes";
+import { corDoProgresso } from "@/components/BarraProgresso";
 import {
   FUNIL,
   OBJETIVOS,
@@ -44,7 +46,7 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
   if (valor == null) {
     return <span className="shrink-0 text-[11px] text-secundario" title="Motivação por definir">-</span>;
   }
-  const cor = `hsl(${(valor / 10) * 120} 70% 42%)`;
+  const cor = corDoProgresso(valor / 10);
   return (
     <span className="flex shrink-0 items-center gap-1" title={`Motivação ${valor}/10`}>
       <span className="h-1.5 w-14 overflow-hidden rounded-full bg-black/10">
@@ -60,6 +62,7 @@ export default function ListaCompradores() {
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [contagens, setContagens] = useState<Record<string, Contagens>>({});
   const [novas, setNovas] = useState<Record<string, number>>({});
+  const [zonas, setZonas] = useState<Record<string, Local[]>>({});
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -86,9 +89,12 @@ export default function ListaCompradores() {
   useEffect(() => {
     (async () => {
       const sb = sbBrowser();
-      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }] = await Promise.all([
+      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }, { data: zs }] = await Promise.all([
         todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }).order("id").range(de, ate)),
         todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
+        todas<{ comprador_id: string; distrito: string; concelho: string | null; freguesia: string | null }>((de, ate) =>
+          sb.from("comprador_zonas").select("comprador_id, distrito, concelho, freguesia").order("id").range(de, ate)
+        ),
       ]);
       if (e1 || e2) {
         setErro("Não foi possível carregar os compradores.");
@@ -100,6 +106,10 @@ export default function ListaCompradores() {
       for (const i of (imoveis ?? []) as ImovelComprador[]) (porComprador[i.comprador_id] ??= []).push(i);
       const cont: Record<string, Contagens> = {};
       for (const c of lista) cont[c.id] = contar(porComprador[c.id] ?? []);
+      // todas as zonas de cada comprador, para o filtro de localização (a primeira está também na ficha)
+      const porZona: Record<string, Local[]> = {};
+      for (const z of zs) (porZona[z.comprador_id] ??= []).push({ distrito: z.distrito, concelho: z.concelho ?? undefined, freguesia: z.freguesia ?? undefined });
+      setZonas(porZona);
       setNovas(await contarNovasPorComprador());
       setUltimos(await ultimosContactos());
       setCompradores(lista);
@@ -114,9 +124,7 @@ export default function ListaCompradores() {
     return compradores.filter((c) => {
       if (tipo && c.tipo_imovel !== tipo) return false;
       if (tipologia && c.tipologia_minima !== tipologia) return false;
-      if (local.distrito && c.distrito !== local.distrito) return false;
-      if (local.concelho && c.concelho !== local.concelho) return false;
-      if (local.freguesia && c.freguesia !== local.freguesia) return false;
+      if (local.distrito && !localCobre(zonas[c.id]?.length ? zonas[c.id] : c.distrito ? [{ distrito: c.distrito, concelho: c.concelho ?? undefined, freguesia: c.freguesia ?? undefined }] : [], local)) return false;
       if (valorMin && (c.expectativa_valor ?? -1) < Number(valorMin)) return false;
       if (valorMax && (c.expectativa_valor ?? Infinity) > Number(valorMax)) return false;
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
@@ -125,7 +133,7 @@ export default function ListaCompradores() {
       if (!combina(pesquisa, [c.contactos.nome, c.contactos.email, c.concelho, c.freguesia, c.distrito, c.referencia_imovel], [c.contactos.telemovel])) return false;
       return true;
     });
-  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase, pesquisa]);
+  }, [compradores, zonas, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase, pesquisa]);
 
   // Lista: só em curso. Funil: todas as fases, incluindo concluídos (os perdidos ficam de fora).
   const filtrados = useMemo(
@@ -296,7 +304,7 @@ export default function ListaCompradores() {
                         <AlertaImoveis n={novas[c.id] ?? 0} />
                       </div>
                       <p className="truncate text-xs text-secundario">
-                        {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
+                        {[c.tipo_imovel, c.tipologia_minima, resumoLocais(zonas[c.id]) || c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                       </p>
                     </div>
                     <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">

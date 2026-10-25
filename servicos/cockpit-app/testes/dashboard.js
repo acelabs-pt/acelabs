@@ -59,7 +59,12 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.waitForTimeout(500);
     ok('e lembra-se depois de recarregar', !(await pp.isVisible().catch(() => false)));
 
-    // 4. desfazer "feita"
+    // 4. Seguimentos da semana no Dashboard
+    ok('Dashboard mostra os Seguimentos da semana', await page.locator('text=/Seguimentos da semana/').first().isVisible());
+
+    // 5. desfazer "feita" (na lista de tarefas do calendário)
+    await page.goto('http://localhost:3001/calendario');
+    await page.locator('button', { hasText: /^Tarefas$/ }).click();
     const linha = page.locator('li', { hasText: 'ZZ UX desfazer' }).first();
     await linha.waitFor();
     await linha.locator('button[aria-label="Marcar como feita"]').click();
@@ -67,19 +72,19 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.screenshot({ path: `${SP}/ux-toast.png` });
     let db = (await rest('GET', `tarefas?id=eq.${t.id}&select=feita`))[0];
     ok('marcar feita grava', db.feita === true);
-    await page.locator('button', { hasText: 'Desfazer' }).click();
+    await page.locator('button', { hasText: 'Desfazer' }).last().click();
     await page.waitForTimeout(1500);
     db = (await rest('GET', `tarefas?id=eq.${t.id}&select=feita`))[0];
     ok('"Desfazer" volta a pôr por fazer', db.feita === false);
 
-    // 5. desfazer "adiar"
+    // 6. desfazer "adiar"
     const linha2 = page.locator('li', { hasText: 'ZZ UX desfazer' }).first();
     await linha2.locator('button', { hasText: 'Adiar' }).click();
     await page.locator('button', { hasText: 'Amanhã' }).click();
     await page.waitForSelector('text=Adiada para', { timeout: 10000 });
     db = (await rest('GET', `tarefas?id=eq.${t.id}&select=inicio`))[0];
     ok('adiar muda a data', new Date(db.inicio).getFullYear() !== 2020, db.inicio);
-    await page.locator('button', { hasText: 'Desfazer' }).click();
+    await page.locator('button', { hasText: 'Desfazer' }).last().click();
     await page.waitForTimeout(1500);
     db = (await rest('GET', `tarefas?id=eq.${t.id}&select=inicio`))[0];
     ok('"Desfazer" repõe a data e a hora originais', new Date(db.inicio).getTime() === antigo.getTime(), db.inicio);

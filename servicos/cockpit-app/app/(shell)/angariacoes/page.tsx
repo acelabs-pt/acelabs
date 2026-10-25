@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { todas } from "@/lib/todas";
+import BarraProgresso from "@/components/BarraProgresso";
 import DadosImovel, { IMOVEL_VAZIO, imovelParaBd, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
 import { atualizarPorAngariacao } from "@/lib/oportunidades";
 import { blocoAtual, diaDeHoje, type Angariacao } from "@/lib/angariacao";
@@ -115,9 +116,7 @@ export default function Angariacoes() {
                   </div>
                   {total > 0 ? (
                     <>
-                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/5">
-                        <div className="h-full rounded-full bg-verde" style={{ width: `${(feitas / total) * 100}%` }} />
-                      </div>
+                      <BarraProgresso valor={feitas} objetivo={total} className="mt-3 h-2" />
                       <p className="mt-1.5 text-xs text-secundario">
                         {feitas}/{total} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
                         {proxima && !a.vendido_em ? ` · a seguir: ${proxima.follow_up ? "Follow up" : proxima.nome}` : ""}

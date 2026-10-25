@@ -49,11 +49,17 @@ async function arrastar(page, loc, dx) {
     await page.waitForURL('**/dashboard', { timeout: 20000 });
     await page.waitForSelector('text=Angariações ativas');
 
-    // 1. Dashboard: tarefa de teste
+    // 1. Lista de tarefas do calendário (o Dashboard passou a ter os Seguimentos, sem gestos)
+    const abrirLista = async () => {
+      await page.goto('http://localhost:3001/calendario');
+      await page.locator('button', { hasText: /^Tarefas$/ }).click();
+      await page.locator('li', { hasText: 'ZZ teste swipe' }).first().waitFor({ timeout: 15000 });
+    };
+    await abrirLista();
     const linha = page.locator('li', { hasText: 'ZZ teste swipe' }).first();
     await linha.scrollIntoViewIfNeeded();
     await arrastar(page, linha.locator('div.relative').first(), -150);
-    ok('dashboard: deslizar esquerda abre "Adiar para quando?"', await page.locator('text=Adiar para quando?').isVisible());
+    ok('tarefas: deslizar esquerda abre "Adiar para quando?"', await page.locator('text=Adiar para quando?').isVisible());
     await page.screenshot({ path: `${SP}/g-adiar.png` });
     await page.locator('button', { hasText: 'Amanhã' }).click();
     await page.waitForTimeout(1200);
@@ -62,14 +68,13 @@ async function arrastar(page, loc, dx) {
     ok('adiar: tarefa passou para amanhã, mesma hora', new Date(apos.inicio).getDate() === amanha.getDate() && new Date(apos.inicio).getHours() === 9, apos.inicio);
 
     await rest('PATCH', `tarefas?id=eq.${t.id}`, { inicio: hoje9.toISOString() });
-    await page.reload();
-    await page.waitForSelector('text=Angariações ativas');
+    await abrirLista();
     const linha2 = page.locator('li', { hasText: 'ZZ teste swipe' }).first();
     await linha2.scrollIntoViewIfNeeded();
     await arrastar(page, linha2.locator('div.relative').first(), 150);
     await page.waitForTimeout(800);
     const feita = (await rest('GET', `tarefas?id=eq.${t.id}&select=feita`))[0];
-    ok('dashboard: deslizar direita marca como feita', feita.feita === true);
+    ok('tarefas: deslizar direita marca como feita', feita.feita === true);
 
     // 2. CRM: deslizar entre separadores (toque)
     await page.goto('http://localhost:3001/crm/compradores');

@@ -2,7 +2,7 @@
 
 import { EsqueletoDashboard } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
-import Hoje from "@/components/dashboard/Hoje";
+import Seguimentos from "@/components/dashboard/Seguimentos";
 import Oportunidades from "@/components/dashboard/Oportunidades";
 import PrimeirosPassos from "@/components/dashboard/PrimeirosPassos";
 import Metas from "@/components/dashboard/Metas";
@@ -12,19 +12,13 @@ import Carteira from "@/components/dashboard/Carteira";
 import FunisConversao from "@/components/dashboard/FunisConversao";
 import Origens from "@/components/dashboard/Origens";
 import { avisos, carregarDados, type Dados } from "@/lib/painel";
-import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
-import AdiarFolha from "@/components/gestos/AdiarFolha";
 import { usePuxarParaAtualizar } from "@/components/gestos/useGestos";
-import { useToast } from "@/components/Toast";
-import { formatarDia, inicioDoDia } from "@/lib/datas";
 import { guardarDia } from "@/lib/semRede";
 import type { Tarefa } from "@/lib/types";
 
 export default function DashboardApp() {
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [adiar, setAdiar] = useState<Tarefa | null>(null);
-  const { avisar } = useToast();
 
   const carregar = useCallback(async () => {
     const r = await carregarDados();
@@ -40,36 +34,7 @@ export default function DashboardApp() {
     carregar();
   }, [carregar]);
 
-  async function alternar(t: Tarefa) {
-    // atualização otimista
-    setDados((d) => (d ? { ...d, tarefas: d.tarefas.map((x) => (x.id === t.id ? { ...x, feita: !t.feita } : x)) } : d));
-    const e = await marcarTarefa(t, !t.feita);
-    if (e) setErro(e);
-    else if (!t.feita) avisar("Tarefa feita.", { rotulo: "Desfazer", onAcao: () => alternar({ ...t, feita: true }) });
-    // a lista só tem as primeiras tarefas: recarregar para entrar a seguinte e acertar o "+N mais"
-    await carregar();
-  }
-
   const puxar = usePuxarParaAtualizar(carregar);
-
-  async function adiarPara(dia: Date) {
-    const t = adiar;
-    setAdiar(null);
-    if (!t) return;
-    const e = await adiarTarefa(t, dia);
-    if (e) setErro(e);
-    else if (t.inicio) {
-      const antes = inicioDoDia(new Date(t.inicio));
-      avisar(`Adiada para ${formatarDia(dia)}.`, {
-        rotulo: "Desfazer",
-        onAcao: async () => {
-          await adiarTarefa(t, antes);
-          await carregar();
-        },
-      });
-    }
-    await carregar();
-  }
 
   return (
     <div className="space-y-4" {...puxar.handlers}>
@@ -97,7 +62,8 @@ export default function DashboardApp() {
           {/* Colunas que se enchem sem buracos; em telemóvel fica uma coluna, pela ordem de urgência. */}
           <div className="md:columns-2 md:gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
             <div>
-              <Hoje tarefas={dados.tarefas} total={dados.nHoje} onAlternar={alternar} onAdiar={setAdiar} telefone={(t) => telefoneDaTarefa(dados, t)} />
+              {/* seguimentos a clientes da semana (versão do Miguel): cada um abre a ficha, onde se dá como feito */}
+              <Seguimentos dados={dados} />
             </div>
             <div>
               <Atencao avisos={avisos(dados)} />
@@ -120,7 +86,6 @@ export default function DashboardApp() {
           </div>
         </div>
       )}
-      {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}
     </div>
   );
 }
