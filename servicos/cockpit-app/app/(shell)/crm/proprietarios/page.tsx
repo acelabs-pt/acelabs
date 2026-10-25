@@ -210,7 +210,7 @@ export default function ListaProprietarios() {
         )}
 
         <div className="flex items-center justify-between text-xs text-secundario">
-          <span>{nVisiveis} {nVisiveis === 1 ? "proprietário" : "proprietários"}</span>
+          <span className="shrink-0 whitespace-nowrap">{nVisiveis} {nVisiveis === 1 ? "proprietário" : "proprietários"}</span>
           {vista === "lista" && (
             <SeletorOrdem
               valor={ordem}

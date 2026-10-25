@@ -233,7 +233,7 @@ export default function ListaCompradores() {
         )}
 
         <div className="flex items-center justify-between gap-2 text-xs text-secundario">
-          <span>
+          <span className="shrink-0 whitespace-nowrap">
             {nVisiveis} {nVisiveis === 1 ? "comprador" : "compradores"}
           </span>
           {vista === "lista" && (

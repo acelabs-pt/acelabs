@@ -50,6 +50,7 @@ na base de dados. Correm contra o servidor local e o Supabase **de teste**. Cria
 - `escala/semear.js`, `escala/medir.js`, `escala/limpar.js`: põem 1000 compradores, 1000 proprietários e
   1000 angariações com plano (cerca de 120 mil linhas), medem os tempos e apagam tudo. Correr sempre o `limpar` no fim.
 - `ferramentas/screenshots.js`: screenshots de todas as páginas (largura em `W`, ex.: `W=1280`).
+- `ferramentas/iphone-webkit.js`: percorre as 11 páginas num iPhone 14 com o motor do Safari (WebKit), vê erros, páginas que deslizam de lado e campos com menos de 16px (o Safari faz zoom). Usar com a versão compilada (`NEXT_DIST_DIR=.next-build npx next build` e `next start -p 3001`), não com `next dev`.
 - `ferramentas/relatorio-pdf.js`: gera o PDF do relatório de uma angariação, como o proprietário o recebe.
 
 Para correr estas, exportar as variáveis do `.env.local` e do `.env.testes` e `SP=testes/resultados`.

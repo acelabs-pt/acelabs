@@ -141,3 +141,13 @@ input[type="search"]::-webkit-search-decoration {
       0 1px 3px rgba(0, 113, 227, 0.12);
   }
 }
+
+/* iPhone: o Safari faz zoom ao tocar num campo com letra menor que 16px e a página fica desalinhada.
+   No toque, todos os campos de escrever e escolher têm pelo menos 16px, também os que vierem a ser criados. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
