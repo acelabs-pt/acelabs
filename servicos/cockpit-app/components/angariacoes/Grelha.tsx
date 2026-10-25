@@ -1,12 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import {
   ACOES_PADRAO,
   NOME_FOLLOW_UP,
   blocoAtual,
   blocoDeDia,
-  dataDoDia,
-  nBlocos,
+  emAtraso,
   type Acao,
   type Angariacao,
 } from "@/lib/angariacao";
@@ -21,6 +21,18 @@ function nomesDasLinhas(acoes: Acao[]): string[] {
   return [...(presentes.has(NOME_FOLLOW_UP) ? [NOME_FOLLOW_UP] : []), ...doDesenho, ...extras];
 }
 
+// Agrupa blocos consecutivos (ex: de 6 em 6 para as fases, de 3 em 3 para os 30 dias).
+function agrupar(blocos: number[], tamanho: number) {
+  const grupos: { chave: number; span: number }[] = [];
+  for (const b of blocos) {
+    const chave = Math.floor((b - 1) / tamanho);
+    const ultimo = grupos[grupos.length - 1];
+    if (ultimo && ultimo.chave === chave) ultimo.span++;
+    else grupos.push({ chave, span: 1 });
+  }
+  return grupos;
+}
+
 function Bandeira({ feita }: { feita: boolean }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className={feita ? "text-white" : "text-red-600"}>
@@ -33,20 +45,27 @@ export default function Grelha({
   ang,
   acoes,
   editar,
+  de,
+  ate,
   onAbrir,
   onVazia,
+  onMover,
 }: {
   ang: Angariacao;
   acoes: Acao[];
   editar: boolean;
+  de: number; // primeiro e último bloco visíveis (filtro de mês/trimestre)
+  ate: number;
   onAbrir: (a: Acao) => void;
   onVazia: (nome: string, bloco: number) => void;
+  onMover: (a: Acao, bloco: number) => void;
 }) {
-  const n = nBlocos(ang.duracao_dias);
+  const [arrastada, setArrastada] = useState<Acao | null>(null);
+  const n = ang.duracao_dias / 10;
   const atual = blocoAtual(ang.inicio, ang.duracao_dias);
   const hoje = new Date();
   const linhas = nomesDasLinhas(acoes);
-  const blocos = Array.from({ length: n }, (_, i) => i + 1);
+  const blocos = Array.from({ length: ate - de + 1 }, (_, i) => de + i);
   const blocoVendido = ang.vendido_em
     ? Math.min(n, Math.max(1, Math.ceil(((new Date(ang.vendido_em + "T00:00:00").getTime() - new Date(ang.inicio + "T00:00:00").getTime()) / 86400000 + 1) / 10)))
     : null;
@@ -57,17 +76,17 @@ export default function Grelha({
         <thead>
           <tr>
             <th className="sticky left-0 z-10 bg-background" />
-            {Array.from({ length: n / 6 }, (_, i) => (
-              <th key={i} colSpan={6} className="rounded-lg bg-ambar-fundo px-2 py-1 text-center font-semibold text-ambar-texto">
-                {FASES[i]}
+            {agrupar(blocos, 6).map((g) => (
+              <th key={g.chave} colSpan={g.span} className="rounded-lg bg-ambar-fundo px-2 py-1 text-center font-semibold text-ambar-texto">
+                {FASES[g.chave]}
               </th>
             ))}
           </tr>
           <tr>
             <th className="sticky left-0 z-10 bg-background" />
-            {Array.from({ length: n / 3 }, (_, i) => (
-              <th key={i} colSpan={3} className="rounded-lg bg-black/5 px-2 py-1 text-center font-medium text-secundario">
-                {(i + 1) * 30} dias
+            {agrupar(blocos, 3).map((g) => (
+              <th key={g.chave} colSpan={g.span} className="rounded-lg bg-black/5 px-2 py-1 text-center font-medium text-secundario">
+                {(g.chave + 1) * 30} dias
               </th>
             ))}
           </tr>
@@ -89,8 +108,19 @@ export default function Grelha({
               {blocos.map((b) => {
                 const a = acoes.find((x) => x.nome === nome && blocoDeDia(x.dia) === b);
                 if (!a) {
+                  const alvo = arrastada !== null && arrastada.nome === nome;
                   return (
-                    <td key={b} className="p-0">
+                    <td
+                      key={b}
+                      className={`p-0 ${alvo ? "rounded-lg ring-2 ring-azul/40" : ""}`}
+                      onDragOver={(e) => alvo && e.preventDefault()}
+                      onDrop={(e) => {
+                        if (!alvo) return;
+                        e.preventDefault();
+                        onMover(arrastada, b);
+                        setArrastada(null);
+                      }}
+                    >
                       {editar ? (
                         <button
                           onClick={() => onVazia(nome, b)}
@@ -105,11 +135,13 @@ export default function Grelha({
                     </td>
                   );
                 }
-                const fimBloco = dataDoDia(ang.inicio, b * 10);
-                const atrasada = !a.feita && fimBloco < hoje;
+                const atrasada = emAtraso(ang, a, hoje);
                 return (
                   <td key={b} className="p-0">
                     <button
+                      draggable={!a.feita}
+                      onDragStart={() => setArrastada(a)}
+                      onDragEnd={() => setArrastada(null)}
                       onClick={() => onAbrir(a)}
                       aria-label={`${a.nome}, bloco ${b}${a.feita ? ", feita" : ""}`}
                       className={`flex h-9 w-9 items-center justify-center rounded-lg ${

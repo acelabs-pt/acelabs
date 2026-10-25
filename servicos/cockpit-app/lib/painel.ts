@@ -67,7 +67,12 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   };
 }
 
-export type Feitos = Record<Metrica, number> & { transCompradores: number; transAngariacoes: number; faturado: number };
+export type Feitos = Record<Metrica, number> & {
+  transCompradores: number;
+  transAngariacoes: number;
+  faturado: number;
+  fechadoValor: number; // comissões dos negócios fechados no período, recebidas ou não
+};
 
 /** Quanto foi feito em cada métrica no período (contagens diretas dos dados, sem estimativas). */
 export function feitos(d: Dados, p: Periodo, agora: Date = new Date()): Feitos {
@@ -87,7 +92,12 @@ export function feitos(d: Dados, p: Periodo, agora: Date = new Date()): Feitos {
   const recebidasC = d.compradores.filter((c) => c.comissao_recebida && c.comissao_recebida_em && dentro(dataLocal(c.comissao_recebida_em), l));
   const recebidasA = d.angariacoes.filter((a) => a.comissao_recebida && a.comissao_recebida_em && dentro(dataLocal(a.comissao_recebida_em), l));
   const faturado = [...recebidasC, ...recebidasA].reduce((s, x) => s + Number(x.comissao_valor ?? 0), 0);
+  // Negócios fechados no período (CPCV fechado ou angariação vendida), já pagos ou não
+  const fechadosC = d.compradores.filter((c) => c.cpcv_fechado && c.cpcv_data && dentro(dataLocal(c.cpcv_data), l));
+  const fechadosA = d.angariacoes.filter((a) => a.vendido_em && dentro(dataLocal(a.vendido_em), l));
+  const fechadoValor = [...fechadosC, ...fechadosA].reduce((s, x) => s + Number(x.comissao_valor ?? 0), 0);
   return {
+    fechadoValor,
     visitas,
     reunioes_angariacao: reunioes,
     angariacoes,

@@ -1,18 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Hoje from "@/components/dashboard/Hoje";
+import Seguimentos from "@/components/dashboard/Seguimentos";
 import Metas from "@/components/dashboard/Metas";
-import Atencao from "@/components/dashboard/Atencao";
-import Pipeline from "@/components/dashboard/Pipeline";
-import FunilResumo from "@/components/dashboard/FunilResumo";
-import { avisos, carregarDados, type Dados } from "@/lib/painel";
-import { marcarTarefa } from "@/lib/tarefas";
-import type { Tarefa } from "@/lib/types";
+import AlertasCompatibilidade from "@/components/dashboard/AlertasCompatibilidade";
+import { useMatches } from "@/lib/match";
+import { carregarDados, type Dados } from "@/lib/painel";
 
 export default function DashboardApp() {
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const { matches } = useMatches();
 
   const carregar = useCallback(async () => {
     const r = await carregarDados();
@@ -27,16 +25,6 @@ export default function DashboardApp() {
     carregar();
   }, [carregar]);
 
-  async function alternar(t: Tarefa) {
-    // atualização otimista
-    setDados((d) => (d ? { ...d, tarefas: d.tarefas.map((x) => (x.id === t.id ? { ...x, feita: !t.feita } : x)) } : d));
-    const e = await marcarTarefa(t, !t.feita);
-    if (e) {
-      setErro(e);
-      carregar();
-    }
-  }
-
   return (
     <div className="space-y-4">
       <div>
@@ -50,12 +38,14 @@ export default function DashboardApp() {
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
         <div className="grid items-start gap-4 md:grid-cols-2">
-          <Hoje tarefas={dados.tarefas} onAlternar={alternar} />
-          <Metas dados={dados} onAlterado={carregar} />
-          <Atencao avisos={avisos(dados)} />
-          <Pipeline dados={dados} />
           <div className="md:col-span-2">
-            <FunilResumo dados={dados} />
+            <Metas dados={dados} onAlterado={carregar} />
+          </div>
+          <div className="md:col-span-2">
+            <Seguimentos dados={dados} />
+          </div>
+          <div className="md:col-span-2">
+            <AlertasCompatibilidade matches={matches} />
           </div>
         </div>
       )}

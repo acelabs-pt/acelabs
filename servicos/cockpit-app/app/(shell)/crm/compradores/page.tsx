@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { localCobre, resumoLocais } from "@/lib/localizacoes";
+import { useMatches } from "@/lib/match";
+import { corDoProgresso, corTextoDoProgresso } from "@/components/BarraProgresso";
 import {
   FUNIL,
   OBJETIVOS,
@@ -23,18 +26,37 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
   if (valor == null) {
     return <span className="shrink-0 text-[11px] text-secundario/60" title="Motivação por definir">-</span>;
   }
-  const cor = `hsl(${(valor / 10) * 120} 70% 42%)`;
+  const cor = corDoProgresso(valor / 10);
   return (
     <span className="flex shrink-0 items-center gap-1" title={`Motivação ${valor}/10`}>
       <span className="h-1.5 w-14 overflow-hidden rounded-full bg-black/10">
         <span className="block h-full rounded-full" style={{ width: `${Math.max(valor, 0.5) * 10}%`, backgroundColor: cor }} />
       </span>
-      <span className="text-[11px] font-medium tabular-nums" style={{ color: cor }}>{valor}</span>
+      <span className="text-[11px] font-medium tabular-nums" style={{ color: corTextoDoProgresso(valor / 10) }}>{valor}</span>
+    </span>
+  );
+}
+
+// Compradores que cruzam com imóveis ainda por verificar
+function BadgeMatch({ n }: { n?: number }) {
+  if (!n) return null;
+  return (
+    <span
+      className="shrink-0 rounded-full bg-ambar-fundo px-2 py-0.5 text-[11px] font-semibold text-ambar-texto"
+      title={`${n} ${n === 1 ? "imóvel compatível por verificar" : "imóveis compatíveis por verificar"}`}
+    >
+      {n} {n === 1 ? "imóvel" : "imóveis"}
     </span>
   );
 }
 
 export default function ListaCompradores() {
+  const { matches } = useMatches();
+  const pend = useMemo(() => {
+    const r: Record<string, number> = {};
+    for (const m of matches) if (!m.confirmado) r[m.comprador.id] = (r[m.comprador.id] ?? 0) + 1;
+    return r;
+  }, [matches]);
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [contagens, setContagens] = useState<Record<string, Contagens>>({});
   const [aCarregar, setACarregar] = useState(true);
@@ -79,9 +101,7 @@ export default function ListaCompradores() {
     return compradores.filter((c) => {
       if (tipo && c.tipo_imovel !== tipo) return false;
       if (tipologia && c.tipologia_minima !== tipologia) return false;
-      if (local.distrito && c.distrito !== local.distrito) return false;
-      if (local.concelho && c.concelho !== local.concelho) return false;
-      if (local.freguesia && c.freguesia !== local.freguesia) return false;
+      if (local.distrito && !localCobre(c.localizacoes, local)) return false;
       if (valorMin && (c.expectativa_valor ?? -1) < Number(valorMin)) return false;
       if (valorMax && (c.expectativa_valor ?? Infinity) > Number(valorMax)) return false;
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
@@ -180,7 +200,7 @@ export default function ListaCompradores() {
       {aCarregar ? (
         <p className="text-sm text-secundario">A carregar...</p>
       ) : vista === "funil" ? (
-        <Funil compradores={filtradosBase} contagens={contagens} />
+        <Funil compradores={filtradosBase} contagens={contagens} pend={pend} />
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
           {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : "Nenhum comprador com estes filtros."}
@@ -198,9 +218,10 @@ export default function ListaCompradores() {
                       <div className="flex items-center gap-2">
                         <p className="truncate text-base font-semibold text-tinta">{c.contactos.nome}</p>
                         <BarraMotivacao valor={c.motivacao} />
+                        <BadgeMatch n={pend[c.id]} />
                       </div>
                       <p className="truncate text-xs text-secundario">
-                        {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
+                        {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ") || "Sem qualificação"}
                       </p>
                     </div>
                     <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
@@ -227,9 +248,11 @@ export default function ListaCompradores() {
 function Funil({
   compradores,
   contagens,
+  pend,
 }: {
   compradores: Comprador[];
   contagens: Record<string, Contagens>;
+  pend: Record<string, number>;
 }) {
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
@@ -253,9 +276,10 @@ function Funil({
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate text-sm font-semibold text-tinta">{c.contactos.nome}</p>
                           <BarraMotivacao valor={c.motivacao} />
+                          <BadgeMatch n={pend[c.id]} />
                         </div>
                         <p className="mt-0.5 truncate text-xs text-secundario">
-                          {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
+                          {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ") || "Sem qualificação"}
                         </p>
                         <p className="mt-1.5 text-[11px] text-secundario">
                           {n.enviados} env. · {n.visitas} vis. · {n.propostas} prop.

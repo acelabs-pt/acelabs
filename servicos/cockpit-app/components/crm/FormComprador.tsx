@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Campo, Escolha, Texto } from "@/components/crm/Campos";
-import SeletorLocalizacao from "@/components/crm/SeletorLocalizacao";
+import SeletorLocalizacoes from "@/components/crm/SeletorLocalizacoes";
+import type { Local } from "@/lib/localizacoes";
 import {
   CANAIS_ORIGEM,
   FINANCIAMENTO,
@@ -23,9 +24,7 @@ export type ValoresComprador = {
   motivacao: string;
   referencia_imovel: string;
   tipo_imovel: string;
-  distrito: string;
-  concelho: string;
-  freguesia: string;
+  localizacoes: Local[];
   tipologia_minima: string;
   expectativa_valor: string;
   financiamento: string;
@@ -46,9 +45,7 @@ export function valoresIniciais(c?: Comprador): ValoresComprador {
     motivacao: c?.motivacao?.toString() ?? "",
     referencia_imovel: c?.referencia_imovel ?? "",
     tipo_imovel: c?.tipo_imovel ?? "",
-    distrito: c?.distrito ?? "",
-    concelho: c?.concelho ?? "",
-    freguesia: c?.freguesia ?? "",
+    localizacoes: c?.localizacoes ?? [],
     tipologia_minima: c?.tipologia_minima ?? "",
     expectativa_valor: c?.expectativa_valor?.toString() ?? "",
     financiamento: c?.financiamento ?? "",
@@ -75,9 +72,7 @@ export function paraComprador(v: ValoresComprador) {
     motivacao: v.motivacao === "" ? null : Number(v.motivacao),
     referencia_imovel: vazio(v.referencia_imovel),
     tipo_imovel: vazio(v.tipo_imovel),
-    distrito: vazio(v.distrito),
-    concelho: vazio(v.concelho),
-    freguesia: vazio(v.freguesia),
+    localizacoes: v.localizacoes,
     tipologia_minima: vazio(v.tipologia_minima),
     expectativa_valor: v.expectativa_valor === "" ? null : Number(v.expectativa_valor),
     financiamento: vazio(v.financiamento),
@@ -98,7 +93,7 @@ export default function FormComprador({
   onSubmit: (v: ValoresComprador) => void;
 }) {
   const [v, setV] = useState(inicial);
-  const set = <K extends keyof ValoresComprador>(k: K) => (valor: string) =>
+  const set = <K extends keyof ValoresComprador>(k: K) => (valor: ValoresComprador[K]) =>
     setV((x) => ({ ...x, [k]: valor }));
 
   return (
@@ -152,14 +147,7 @@ export default function FormComprador({
         <Texto label="Referência do imóvel" value={v.referencia_imovel} onChange={set("referencia_imovel")} />
         <Escolha label="Tipo de imóvel" value={v.tipo_imovel} onChange={set("tipo_imovel")} opcoes={TIPOS_IMOVEL} />
         <Escolha label="Tipologia mínima" value={v.tipologia_minima} onChange={set("tipologia_minima")} opcoes={TIPOLOGIAS} />
-        <div className="grid gap-3 sm:grid-cols-3">
-          <SeletorLocalizacao
-            comRotulos
-            valor={{ distrito: v.distrito, concelho: v.concelho, freguesia: v.freguesia }}
-            onChange={(l) => setV((x) => ({ ...x, ...l }))}
-            className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base"
-          />
-        </div>
+        <SeletorLocalizacoes valor={v.localizacoes} onChange={set("localizacoes")} />
         <Texto label="Expectativa de valor (EUR)" type="number" value={v.expectativa_valor} onChange={set("expectativa_valor")} />
         <Escolha label="Financiamento" value={v.financiamento} onChange={set("financiamento")} opcoes={FINANCIAMENTO} />
         <Escolha label="Simulação de crédito" value={v.simulacao_credito} onChange={set("simulacao_credito")} opcoes={SIMULACAO_CREDITO} />

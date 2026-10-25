@@ -4,19 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { resumoLocais } from "@/lib/localizacoes";
+import { useMatches } from "@/lib/match";
+import ListaMatches from "@/components/crm/ListaMatches";
 import FormComprador, { paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
 import {
   FUNIL,
   OBJETIVOS,
   alertaLaranja,
+  concluirTarefasSemanais,
   contar,
-  corProgresso,
   indiceFunil,
   labelEstado,
   type Comprador,
   type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
+import BarraProgresso from "@/components/BarraProgresso";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
@@ -34,6 +38,7 @@ export default function FichaComprador() {
   const [aGuardar, setAGuardar] = useState(false);
   const [novoImovel, setNovoImovel] = useState("");
   const [novoDoc, setNovoDoc] = useState("");
+  const { matches, recarregar: recarregarMatches } = useMatches();
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -112,6 +117,7 @@ export default function FichaComprador() {
       });
     if (error) return setErro("Não foi possível adicionar o imóvel.");
     setNovoImovel("");
+    await concluirTarefasSemanais(c.id, "enviar");
     await avancarPara("imoveis_enviados", c.estado);
     await carregar();
   }
@@ -122,6 +128,8 @@ export default function FichaComprador() {
     const { error } = await sbBrowser().from("comprador_imoveis").update({ [campo]: novo }).eq("id", i.id);
     if (error) return setErro("Não foi possível guardar.");
     if (novo) {
+      if (campo === "enviado_em") await concluirTarefasSemanais(c.id, "enviar");
+      if (campo === "visitado_em") await concluirTarefasSemanais(c.id, "visita");
       if (campo === "visitado_em") await avancarPara("visitas_realizadas", c.estado);
       if (campo === "proposta_em") await avancarPara("propostas_efetuadas", c.estado);
     }
@@ -196,7 +204,7 @@ export default function FichaComprador() {
           <div className="min-w-0">
             <h2 className="truncate text-xl font-semibold text-tinta">{c.contactos.nome}</h2>
             <p className="text-sm text-secundario">
-              {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ")}
+              {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ")}
             </p>
           </div>
           <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
@@ -218,6 +226,12 @@ export default function FichaComprador() {
         )}
         {alerta && <p className="rounded-lg bg-ambar-fundo px-3 py-2 text-sm font-medium text-ambar-texto">{alerta}</p>}
       </section>
+
+      <ListaMatches
+        matches={matches.filter((m) => m.comprador.id === c.id)}
+        vista="comprador"
+        onAlterado={recarregarMatches}
+      />
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -260,12 +274,7 @@ export default function FichaComprador() {
               <span>{rotulo}</span>
               <span>{valor}/{objetivo}</span>
             </div>
-            <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-              <div
-                className={`h-full rounded-full ${corProgresso(valor, objetivo)}`}
-                style={{ width: `${Math.min(100, (valor / objetivo) * 100)}%` }}
-              />
-            </div>
+            <BarraProgresso valor={valor} objetivo={objetivo} />
           </div>
         ))}
 

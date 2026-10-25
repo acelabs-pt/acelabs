@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { blocoDeDia, dataDoDia, DIAS_POR_BLOCO, type Acao, type Angariacao } from "@/lib/angariacao";
-import { formatarDia } from "@/lib/datas";
+import { blocoDeDia, dataDoDia, dataLocal, DIAS_POR_BLOCO, type Acao, type Angariacao } from "@/lib/angariacao";
+import { formatarDia, inicioDoDia, isoDataLocal } from "@/lib/datas";
 
 // Detalhe de uma ação: marcar como feita, feedback e retirar do plano.
 export default function FolhaAcao({
@@ -11,6 +11,7 @@ export default function FolhaAcao({
   onFechar,
   onAlternar,
   onFeedback,
+  onMudarDia,
   onRetirar,
 }: {
   ang: Angariacao;
@@ -18,12 +19,17 @@ export default function FolhaAcao({
   onFechar: () => void;
   onAlternar: () => void;
   onFeedback: (texto: string) => void;
+  onMudarDia: (dia: number) => void;
   onRetirar: () => void;
 }) {
   const [texto, setTexto] = useState(acao.feedback ?? "");
   const bloco = blocoDeDia(acao.dia);
   const de = dataDoDia(ang.inicio, (bloco - 1) * DIAS_POR_BLOCO);
   const ate = dataDoDia(ang.inicio, bloco * DIAS_POR_BLOCO - 1);
+  const prevista = dataDoDia(ang.inicio, acao.dia);
+  const primeiroDia = dataDoDia(ang.inicio, 0);
+  const minimo = new Date(Math.max(inicioDoDia(new Date()).getTime(), primeiroDia.getTime()));
+  const maximo = dataDoDia(ang.inicio, ang.duracao_dias - 1);
 
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
@@ -37,6 +43,7 @@ export default function FolhaAcao({
             <p className="text-sm text-secundario">
               Dias {(bloco - 1) * DIAS_POR_BLOCO + 1} a {bloco * DIAS_POR_BLOCO} ({formatarDia(de)} a {formatarDia(ate)})
             </p>
+            <p className="text-sm text-secundario">Prevista para {formatarDia(prevista)}</p>
           </div>
           <button onClick={onFechar} aria-label="Fechar" className="p-1 text-2xl leading-none text-secundario">&times;</button>
         </div>
@@ -47,6 +54,24 @@ export default function FolhaAcao({
         >
           {acao.feita ? "Desmarcar (voltar a por fazer)" : "Marcar como feita"}
         </button>
+
+        {!acao.feita && (
+          <label className="block text-xs text-secundario">
+            Mudar para outro dia
+            <input
+              type="date"
+              value={isoDataLocal(prevista)}
+              min={isoDataLocal(minimo)}
+              max={isoDataLocal(maximo)}
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const dia = Math.round((dataLocal(e.target.value).getTime() - primeiroDia.getTime()) / 86400000);
+                if (dia !== acao.dia && dia >= 0 && dia < ang.duracao_dias) onMudarDia(dia);
+              }}
+              className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2.5 text-base text-tinta"
+            />
+          </label>
+        )}
 
         <label className="block text-xs text-secundario">
           Feedback

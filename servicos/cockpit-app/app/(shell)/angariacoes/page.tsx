@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import BarraProgresso from "@/components/BarraProgresso";
 import { blocoAtual, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import { hojeISO } from "@/lib/datas";
 
@@ -97,9 +98,7 @@ export default function Angariacoes() {
                   </div>
                   {as.length > 0 ? (
                     <>
-                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/5">
-                        <div className="h-full rounded-full bg-verde" style={{ width: `${(feitas / as.length) * 100}%` }} />
-                      </div>
+                      <BarraProgresso valor={feitas} objetivo={as.length} className="mt-3 h-2" />
                       <p className="mt-1.5 text-xs text-secundario">
                         {feitas}/{as.length} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
                         {proxima && !a.vendido_em ? ` · a seguir: ${proxima.follow_up ? "Follow up" : proxima.nome}` : ""}

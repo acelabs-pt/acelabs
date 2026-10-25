@@ -10,9 +10,12 @@ import {
   ACOES_PADRAO,
   adicionarAcao,
   criarPlano,
+  blocoAtual,
   dataDoDia,
   diaDeHoje,
+  diaPadraoDoBloco,
   marcarAcao,
+  mudarDiaAcao,
   marcarVendido,
   nBlocos,
   NOME_FOLLOW_UP,
@@ -22,6 +25,11 @@ import {
 } from "@/lib/angariacao";
 import { formatarDia, hojeISO } from "@/lib/datas";
 import Comissao from "@/components/crm/Comissao";
+import ListaMatches from "@/components/crm/ListaMatches";
+import { useMatches } from "@/lib/match";
+
+const BLOCOS_POR_VISTA = { mes: 3, trimestre: 9 } as const;
+type Vista = "tudo" | "mes" | "trimestre";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 
@@ -35,6 +43,9 @@ export default function PlanoAngariacao() {
   const [editar, setEditar] = useState(false);
   const [novaNome, setNovaNome] = useState("");
   const [novaBloco, setNovaBloco] = useState(1);
+  const [vista, setVista] = useState<Vista>("tudo");
+  const [periodo, setPeriodo] = useState(0);
+  const { matches, recarregar: recarregarMatches } = useMatches();
 
   // montagem do plano
   const [duracao, setDuracao] = useState<120 | 180>(180);
@@ -81,6 +92,18 @@ export default function PlanoAngariacao() {
   const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
   const feitas = acoes.filter((a) => a.feita).length;
 
+  const nB = ang.duracao_dias / 10;
+  const porPeriodo = vista === "tudo" ? nB : BLOCOS_POR_VISTA[vista];
+  const nPeriodos = Math.ceil(nB / porPeriodo);
+  const periodoAtivo = Math.min(periodo, nPeriodos - 1);
+  const de = periodoAtivo * porPeriodo + 1;
+  const ate = Math.min(nB, (periodoAtivo + 1) * porPeriodo);
+  function mudarVista(v: Vista) {
+    const bloco = blocoAtual(ang!.inicio, ang!.duracao_dias) ?? 1;
+    setVista(v);
+    setPeriodo(v === "tudo" ? 0 : Math.floor((bloco - 1) / BLOCOS_POR_VISTA[v]));
+  }
+
   return (
     <div className="space-y-4">
       <Link href="/angariacoes" className="text-sm text-azul">&larr; Angariações</Link>
@@ -106,6 +129,12 @@ export default function PlanoAngariacao() {
           )}
         </div>
       </section>
+
+      <ListaMatches
+        matches={matches.filter((m) => m.angariacao?.id === ang.id)}
+        vista="imovel"
+        onAlterado={recarregarMatches}
+      />
 
       {acoes.length === 0 ? (
         <section className={cartao}>
@@ -236,18 +265,57 @@ export default function PlanoAngariacao() {
             </div>
             {editar && (
               <p className="text-xs text-secundario">
-                Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de bloco (retira e junta noutro).
+                Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de dia.
               </p>
+            )}
+            <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium">
+              {([["tudo", "Tudo"], ["mes", "Mês"], ["trimestre", "Trimestre"]] as const).map(([v, rotulo]) => (
+                <button
+                  key={v}
+                  onClick={() => mudarVista(v)}
+                  className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+            {vista !== "tudo" && (
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  onClick={() => setPeriodo(periodoAtivo - 1)}
+                  disabled={periodoAtivo === 0}
+                  aria-label="Período anterior"
+                  className="px-3 py-1 text-azul disabled:text-secundario/40"
+                >
+                  &larr;
+                </button>
+                <span className="font-medium text-tinta">
+                  {vista === "mes" ? "Mês" : "Trimestre"} {periodoAtivo + 1}{" "}
+                  <span className="font-normal text-secundario">· dias {(de - 1) * 10 + 1} a {ate * 10}</span>
+                </span>
+                <button
+                  onClick={() => setPeriodo(periodoAtivo + 1)}
+                  disabled={periodoAtivo >= nPeriodos - 1}
+                  aria-label="Período seguinte"
+                  className="px-3 py-1 text-azul disabled:text-secundario/40"
+                >
+                  &rarr;
+                </button>
+              </div>
             )}
             <Grelha
               ang={ang}
               acoes={acoes}
               editar={editar}
+              de={de}
+              ate={ate}
               onAbrir={setAberta}
               onVazia={(nome, bloco) => correr(adicionarAcao(ang, nome, bloco, nome === NOME_FOLLOW_UP))}
+              onMover={(a, bloco) => correr(mudarDiaAcao(ang, a, diaPadraoDoBloco(bloco, a.follow_up)))}
             />
             <p className="text-xs text-secundario">
               Cada quadrado são 10 dias. Verde = feita, laranja = bloco já passou sem estar feita, bandeira = follow up.
+              Arrasta uma ação por fazer para outro quadrado da mesma linha para a adiar.
             </p>
           </section>
 
@@ -333,6 +401,7 @@ export default function PlanoAngariacao() {
             await sbBrowser().from("angariacao_acoes").update({ feedback: texto.trim() || null }).eq("id", aberta.id);
             await carregar();
           }}
+          onMudarDia={(novoDia) => correr(mudarDiaAcao(ang, aberta, novoDia))}
           onRetirar={async () => {
             if (!window.confirm("Retirar esta ação do plano?")) return;
             await sbBrowser().from("angariacao_acoes").delete().eq("id", aberta.id);

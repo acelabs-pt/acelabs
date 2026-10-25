@@ -19,6 +19,8 @@ import {
 } from "@/lib/proprietario";
 import { formatarDia, formatarHora, hojeISO, isoParaLocal, localParaISO } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
+import { useMatches } from "@/lib/match";
+import ListaMatches from "@/components/crm/ListaMatches";
 
 export default function FichaProprietario() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +42,7 @@ export default function FichaProprietario() {
   const [angInicio, setAngInicio] = useState(hojeISO());
   const [angRegime, setAngRegime] = useState<"" | "exclusivo" | "nao_exclusivo">("");
   const [regimeGuardado, setRegimeGuardado] = useState<string | null>(null);
+  const { matches, recarregar: recarregarMatches } = useMatches();
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -242,6 +245,12 @@ export default function FichaProprietario() {
           </div>
         )}
       </section>
+
+      <ListaMatches
+        matches={matches.filter((m) => m.proprietario.id === p.id)}
+        vista="imovel"
+        onAlterado={recarregarMatches}
+      />
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>

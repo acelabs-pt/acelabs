@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { tipoTarefaComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
@@ -202,9 +204,10 @@ function LinhaTarefa({
   atrasada?: boolean;
 }) {
   const hora = t.inicio ? formatarHora(t.inicio) : "";
+  const paraFicha = !t.feita && Boolean(t.comprador_id && tipoTarefaComprador(t));
   return (
     <li className="flex items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm">
-      <button
+      {!paraFicha && <button
         onClick={() => onAlternar(t)}
         aria-label={t.feita ? "Marcar como por fazer" : "Marcar como feita"}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${
@@ -216,7 +219,7 @@ function LinhaTarefa({
             <path d="M5 12l4 4 10-10" />
           </svg>
         )}
-      </button>
+      </button>}
       <button onClick={onAbrir} disabled={!onAbrir} className="min-w-0 flex-1 text-left">
         <p className={`truncate text-base ${t.feita ? "text-secundario line-through" : "text-tinta"}`}>
           {t.tipo === "evento" && <span className="mr-1.5 text-azul">&#9679;</span>}
@@ -226,6 +229,14 @@ function LinhaTarefa({
           {[t.inicio ? formatarDia(new Date(t.inicio)) : "Sem data", hora, ORIGEM_LABEL[t.origem]].filter(Boolean).join(" · ")}
         </p>
       </button>
+      {paraFicha && (
+        <Link
+          href={`/crm/compradores/${t.comprador_id}`}
+          className="shrink-0 rounded-lg bg-azul px-3 py-1.5 text-xs font-semibold text-white"
+        >
+          Abrir ficha
+        </Link>
+      )}
       {onApagar && (
         <button onClick={() => onApagar(t)} aria-label="Apagar" className="p-2 text-secundario">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">

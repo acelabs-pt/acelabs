@@ -39,9 +39,7 @@ create table compradores (
   motivacao smallint check (motivacao between 0 and 10),
   referencia_imovel text,
   tipo_imovel text,          -- Apartamento, Moradia, Terreno, Armazém, Loja, Prédio, ...
-  distrito text,
-  concelho text,
-  freguesia text,
+  localizacoes jsonb not null default '[]'::jsonb,   -- zonas de procura: [{distrito, concelho?, freguesia?}]
   tipologia_minima text,
   expectativa_valor numeric(12,2),
   financiamento text,
@@ -222,6 +220,15 @@ create table metas_semanas (
   decisao text not null check (decisao in ('colocada', 'ignorada'))
 );
 
+-- Decisões do consultor sobre compradores que cruzam com um imóvel (o alerta em si é calculado na app).
+create table alertas_match (
+  comprador_id uuid not null references compradores(id) on delete cascade,
+  proprietario_id uuid not null references proprietarios(id) on delete cascade,
+  estado text not null check (estado in ('faz_sentido', 'nao_faz_sentido')),
+  decidido_em timestamptz not null default now(),
+  primary key (comprador_id, proprietario_id)
+);
+
 -- ---------------------------------------------------------------------------
 -- Triggers updated_at
 -- ---------------------------------------------------------------------------
@@ -240,7 +247,7 @@ begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos',
     'proprietarios', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'metas',
-    'metas_config', 'metas_semanas'
+    'metas_config', 'metas_semanas', 'alertas_match'
   ] loop
     execute format('alter table %I enable row level security', t);
     execute format(

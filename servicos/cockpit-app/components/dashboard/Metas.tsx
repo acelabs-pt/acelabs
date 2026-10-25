@@ -4,8 +4,8 @@ import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
 import MetasForm from "@/components/dashboard/MetasForm";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { corProgresso } from "@/lib/comprador";
-import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Periodo } from "@/lib/metricas";
+import BarraProgresso from "@/components/BarraProgresso";
+import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
 import { feitos, type Dados } from "@/lib/painel";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
 
@@ -14,8 +14,12 @@ const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
 const PERIODOS: [Periodo, string][] = [
   ["semana", "Semana"],
   ["mes", "Mês"],
+  ["trimestre", "Trimestre"],
   ["ano", "Ano"],
 ];
+
+// Indicadores secundários, por baixo das duas metas principais (angariações e faturação)
+const SECUNDARIAS: Metrica[] = ["visitas", "reunioes_angariacao", "transacoes"];
 
 export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado: () => void }) {
   const [periodo, setPeriodo] = useState<Periodo>("semana");
@@ -24,7 +28,6 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   const m = dados.metas;
   const definidas = Object.values(m.anual).some((v) => v != null) || m.faturacaoAnual != null;
   const f = feitos(dados, periodo);
-  const fAno = feitos(dados, "ano");
 
   const metaSemanal = (k: "visitas" | "reunioes_angariacao") => (m.anual[k] == null ? 0 : metaDoPeriodo(m.anual[k]!, "semana", m.semanasUteis));
 
@@ -86,12 +89,12 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
         <MetasForm inicial={m} onGuardar={guardar} onCancelar={() => setEditar(false)} />
       ) : (
         <>
-          <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium">
+          <div className="flex gap-2 text-sm font-medium">
             {PERIODOS.map(([v, r]) => (
               <button
                 key={v}
                 onClick={() => setPeriodo(v)}
-                className={`flex-1 rounded-lg py-1.5 ${periodo === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                className={`quadro-glossy flex-1 rounded-xl py-2 ${periodo === v ? "text-azul ring-2 ring-azul" : "text-secundario"}`}
               >
                 {r}
               </button>
@@ -114,46 +117,47 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
             </div>
           )}
 
-          {m.faturacaoAnual != null && (
-            <div className="rounded-xl bg-black/[0.04] px-3 py-2.5">
-              <p className="text-xs text-secundario">Objetivo de faturação {m.ano}</p>
-              <p className="text-lg font-semibold text-tinta">{eur(m.faturacaoAnual)}</p>
-              <p className="text-[11px] text-secundario">Comissões recebidas {m.ano}: {eur(fAno.faturado)}</p>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-                <div className={`h-full rounded-full ${corProgresso(fAno.faturado, m.faturacaoAnual)}`} style={{ width: `${Math.min(100, (fAno.faturado / m.faturacaoAnual) * 100)}%` }} />
-              </div>
-              {m.anual.transacoes != null && m.anual.transacoes > 0 && (
-                <p className="text-[11px] text-secundario">
-                  Equivale a {eur(m.faturacaoAnual / m.anual.transacoes)} por transação, com {plural(m.anual.transacoes, "transação", "transações")} no ano
+          {(() => {
+            const objFat = m.faturacaoAnual == null ? null : metaDoPeriodo(m.faturacaoAnual, periodo, m.semanasUteis);
+            const objAng = m.anual.angariacoes == null ? null : metaDoPeriodo(m.anual.angariacoes, periodo, m.semanasUteis);
+            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => (
+              <div className="rounded-2xl quadro-glossy p-3 sm:p-4">
+                <p className="text-sm font-medium text-secundario">{rotulo}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">
+                  {rotulo === "Faturação" ? eur(valor) : valor}
                 </p>
-              )}
-            </div>
-          )}
+                {fechado != null && (
+                  <p className="text-xs text-secundario">
+                    negócios fechados <b className="text-tinta">{eur(fechado)}</b>
+                  </p>
+                )}
+                <p className="text-xs text-secundario sm:text-sm">{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
+                {objetivo != null && objetivo > 0 && <BarraProgresso valor={valor} objetivo={objetivo} className="mt-3 h-3" />}
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
+                <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} />
+              </div>
+            );
+          })()}
 
-          <ul className="space-y-3">
-            {METRICAS.map((x) => {
+          <ul className="grid grid-cols-2 gap-3">
+            {SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x) => {
               const feito = f[x.id];
               const anual = m.anual[x.id];
               const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
               return (
-                <li key={x.id}>
-                  <div className="flex items-baseline justify-between text-sm">
-                    <span className="text-tinta">{x.label}</span>
-                    <span className="text-secundario">
+                <li key={x.id} className="quadro-glossy rounded-xl px-3 py-2.5">
+                  <div className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+                    <span className="text-[13px] leading-tight text-tinta sm:whitespace-nowrap">{x.label}</span>
+                    <span className="shrink-0 text-secundario">
                       <b className="text-base text-tinta">{feito}</b>
                       {meta != null ? ` / ${fmtNum(meta)}` : ""}
                     </span>
                   </div>
-                  {meta != null && meta > 0 && (
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/5">
-                      <div className={`h-full rounded-full ${corProgresso(feito, meta)}`} style={{ width: `${Math.min(100, (feito / meta) * 100)}%` }} />
-                    </div>
-                  )}
-                  {x.id === "transacoes" && feito > 0 && (
-                    <p className="mt-1 text-[11px] text-secundario">
-                      Com CPCV: {f.transCompradores} do lado do comprador + {f.transAngariacoes} do lado da angariação (vendida) (um pleno conta nas duas)
-                    </p>
-                  )}
+                  {meta != null && meta > 0 && <BarraProgresso valor={feito} objetivo={meta} />}
                 </li>
               );
             })}

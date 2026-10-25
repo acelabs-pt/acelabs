@@ -44,6 +44,7 @@ export type Proprietario = {
   estado: EstadoProprietario;
   estado_desde: string;
   reuniao_em: string | null;
+  created_at: string;
   contactos: {
     id: string;
     nome: string;

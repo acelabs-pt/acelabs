@@ -1,7 +1,7 @@
 import { inicioDaSemana, somarDias } from "@/lib/datas";
 
 export type Metrica = "visitas" | "reunioes_angariacao" | "angariacoes" | "transacoes";
-export type Periodo = "semana" | "mes" | "ano";
+export type Periodo = "semana" | "mes" | "trimestre" | "ano";
 
 export const METRICAS: { id: Metrica; label: string }[] = [
   { id: "visitas", label: "Visitas" },
@@ -27,16 +27,21 @@ export function limites(p: Periodo, ref: Date = new Date()): { ini: Date; fim: D
     const ini = inicioDaSemana(ref);
     return { ini, fim: somarDias(ini, 7) };
   }
+  if (p === "trimestre") {
+    const mes = Math.floor(ref.getMonth() / 3) * 3;
+    return { ini: new Date(ref.getFullYear(), mes, 1), fim: new Date(ref.getFullYear(), mes + 3, 1) };
+  }
   if (p === "mes") return { ini: new Date(ref.getFullYear(), ref.getMonth(), 1), fim: new Date(ref.getFullYear(), ref.getMonth() + 1, 1) };
   return { ini: new Date(ref.getFullYear(), 0, 1), fim: new Date(ref.getFullYear() + 1, 0, 1) };
 }
 
 export const dentro = (d: Date, l: { ini: Date; fim: Date }) => d >= l.ini && d < l.fim;
 
-/** Meta de um período a partir da meta anual: semana = anual / semanas úteis, mês = anual / 12. */
+/** Meta de um período a partir da meta anual: semana = anual / semanas úteis, mês = anual / 12, trimestre = anual / 4. */
 export function metaDoPeriodo(anual: number, p: Periodo, semanasUteis: number): number {
   if (p === "ano") return anual;
   if (p === "mes") return anual / 12;
+  if (p === "trimestre") return anual / 4;
   return anual / Math.max(1, semanasUteis);
 }
 

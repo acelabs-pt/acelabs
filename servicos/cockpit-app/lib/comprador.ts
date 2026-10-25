@@ -1,5 +1,6 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { semanaISO, diasDesde } from "@/lib/datas";
+import type { Local } from "@/lib/localizacoes";
 
 export type EstadoComprador =
   | "lead_qualificada"
@@ -39,9 +40,7 @@ export type Comprador = {
   motivacao: number | null;
   referencia_imovel: string | null;
   tipo_imovel: string | null;
-  distrito: string | null;
-  concelho: string | null;
-  freguesia: string | null;
+  localizacoes: Local[] | null;
   tipologia_minima: string | null;
   expectativa_valor: number | null;
   financiamento: string | null;
@@ -49,6 +48,7 @@ export type Comprador = {
   precisa_vender: boolean | null;
   estado: EstadoComprador;
   estado_desde: string;
+  created_at: string;
   cpcv_fechado: boolean;
   cpcv_data: string | null;
   escritura_agendada: boolean;
@@ -94,13 +94,6 @@ export function alertaLaranja(c: Pick<Comprador, "estado" | "estado_desde">): st
     return `${diasDesde(c.estado_desde)} dias sem enviar imóveis`;
   }
   return null;
-}
-
-// Escala de cor do progresso (vermelho -> âmbar -> verde ao atingir o objetivo)
-export function corProgresso(n: number, objetivo: number): string {
-  if (n >= objetivo) return "bg-verde";
-  if (n >= objetivo / 2) return "bg-ambar";
-  return "bg-red-500";
 }
 
 export const TIPOS_IMOVEL = ["Apartamento", "Moradia", "Terreno", "Armazém", "Loja", "Prédio", "Outro"];
@@ -155,4 +148,27 @@ export async function garantirTarefasSemanais(
       chave_automacao: c.chave,
     }));
   if (novas.length > 0) await sb.from("tarefas").insert(novas);
+}
+
+export type TipoTarefaComprador = "enviar" | "visita";
+
+// Tarefas semanais automáticas ("Enviar opções de imóveis", "Propor visita"): não se marcam à mão,
+// abre-se a ficha do comprador e a tarefa fecha-se quando o consultor regista o envio ou a visita.
+export function tipoTarefaComprador(t: { origem: string; chave_automacao: string | null; titulo: string }): TipoTarefaComprador | null {
+  if (t.origem !== "comprador") return null;
+  const tipo = t.chave_automacao?.split(":")[2];
+  if (tipo === "enviar" || tipo === "visita") return tipo;
+  // tarefas sem chave de automação (criadas à mão ou por outro script): reconhece-se pelo título
+  if (t.titulo.startsWith("Enviar opções de imóveis")) return "enviar";
+  if (t.titulo.startsWith("Propor visita")) return "visita";
+  return null;
+}
+
+/** Dá como feitas as tarefas semanais em aberto deste comprador (também as de semanas anteriores). */
+export async function concluirTarefasSemanais(compradorId: string, tipo: TipoTarefaComprador): Promise<void> {
+  await sbBrowser()
+    .from("tarefas")
+    .update({ feita: true, feita_em: new Date().toISOString() })
+    .like("chave_automacao", `comprador:${compradorId}:${tipo}:%`)
+    .eq("feita", false);
 }
