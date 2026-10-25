@@ -42,7 +42,7 @@ function AlertaImoveis({ n }: { n: number }) {
 // Escala contínua do vermelho (0) ao verde (10) através do âmbar.
 function BarraMotivacao({ valor }: { valor: number | null }) {
   if (valor == null) {
-    return <span className="shrink-0 text-[11px] text-secundario/60" title="Motivação por definir">-</span>;
+    return <span className="shrink-0 text-[11px] text-secundario" title="Motivação por definir">-</span>;
   }
   const cor = `hsl(${(valor / 10) * 120} 70% 42%)`;
   return (
@@ -50,7 +50,8 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
       <span className="h-1.5 w-14 overflow-hidden rounded-full bg-black/10">
         <span className="block h-full rounded-full" style={{ width: `${Math.max(valor, 0.5) * 10}%`, backgroundColor: cor }} />
       </span>
-      <span className="text-[11px] font-medium tabular-nums" style={{ color: cor }}>{valor}</span>
+      {/* o número em tinta: a cor da escala, em letra pequena, não tem contraste suficiente */}
+      <span className="text-[11px] font-medium tabular-nums text-tinta">{valor}</span>
     </span>
   );
 }

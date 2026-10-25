@@ -6,9 +6,13 @@ const out = [];
 const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra}`);
 (async () => {
   const inicioTeste = new Date().toISOString();
-  const cs = await rest('GET', 'compradores?select=id,contacto_id,contactos(nome,telemovel)&estado=not.in.(perdido,negocio_concluido)&limit=6&order=created_at.desc');
-  const comTel = cs.filter((c) => c.contactos.telemovel);
-  const A = comTel[0], B = comTel[1];
+  // dois compradores só deste teste (sem chamadas nem dados antigos), os mais recentes da lista
+  const cts = await rest('POST', 'contactos', [
+    { nome: 'ZZ UX Chamadas A', telemovel: '+351900777001' },
+    { nome: 'ZZ UX Chamadas B', telemovel: '+351900777002' },
+  ]);
+  const cps = await rest('POST', 'compradores', cts.map((c) => ({ contacto_id: c.id })));
+  const [A, B] = cps.map((c) => ({ id: c.id, contacto_id: c.contacto_id }));
   const antiga = new Date(Date.now() - 10 * 86400000).toISOString();
   await rest('POST', 'chamadas', [
     { contacto_id: A.contacto_id, ocorreu_em: antiga, observacoes: 'ZZ UX antigo' },
@@ -89,6 +93,7 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     ok('sem erros de página', erros.length === 0, JSON.stringify(erros));
     await b.close();
   } finally {
+    await rest('DELETE', 'contactos?nome=ilike.ZZ UX Chamadas*'); // cascata: fichas e chamadas
     await rest('DELETE', `chamadas?or=(observacoes.ilike.ZZ UX*,and(contacto_id.in.(${A.contacto_id},${B.contacto_id}),ocorreu_em.gte.${inicioTeste}))`);
     const sobra = await rest('GET', `chamadas?or=(observacoes.ilike.ZZ UX*,and(contacto_id.in.(${A.contacto_id},${B.contacto_id}),ocorreu_em.gte.${inicioTeste}))&select=id`);
     const d = await fetch(`${U}/auth/v1/admin/users/${u.id}`, { method: 'DELETE', headers: { apikey: K, Authorization: `Bearer ${K}` } });

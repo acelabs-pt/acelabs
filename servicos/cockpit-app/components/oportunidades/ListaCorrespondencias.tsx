@@ -35,11 +35,11 @@ export default function ListaCorrespondencias({
                   {compradorNome}
                 </Link>
               )}
-              {mostrar === "ambos" && <span className="text-secundario"> procura algo como </span>}
+              {mostrar === "ambos" && <span className="text-tinta/70"> procura algo como </span>}
               {mostrar !== "comprador" && (
                 <Link href={imovelHref} className="font-semibold">
                   {imovelNome}
-                  {!c.angariacao_id && <span className="font-normal text-secundario"> (proprietário por angariar)</span>}
+                  {!c.angariacao_id && <span className="font-normal text-tinta/70"> (proprietário por angariar)</span>}
                 </Link>
               )}
             </p>
