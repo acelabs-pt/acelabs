@@ -253,11 +253,12 @@ export default function FichaComprador() {
               ["Origem", c.contactos.canal_origem ?? ""],
               ["Telemóvel", c.contactos.telemovel ?? ""],
               ["Email", c.contactos.email ?? ""],
+              ["Notas", c.contactos.observacoes ?? ""],
             ] as [string, string][]
           )
             .filter(([, v]) => v)
             .map(([k, v]) => (
-              <div key={k} className={k === "Zonas" || k === "Email" ? "col-span-2" : ""}>
+              <div key={k} className={k === "Zonas" || k === "Email" || k === "Notas" ? "col-span-2" : ""}>
                 <dt className="text-xs text-secundario">{k}</dt>
                 <dd className="break-words font-medium text-tinta">{v}</dd>
               </div>

@@ -23,6 +23,7 @@ import {
 import { formatarDia, formatarHora, hojeISO, isoParaLocal, localParaISO } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import { eur } from "@/lib/graficos";
 
 export default function FichaProprietario() {
   const { id } = useParams<{ id: string }>();
@@ -204,29 +205,60 @@ export default function FichaProprietario() {
       <Link href="/crm/proprietarios" className="text-sm font-medium text-azul-escuro">&larr; Proprietários</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
+      <section className="space-y-4 rounded-3xl border border-linha bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold text-tinta">{p.contactos.nome}</h2>
-            <p className="text-sm text-secundario">
-              {[p.tipo_imovel, p.tipologia, p.freguesia || p.concelho || p.distrito].filter(Boolean).join(" · ")}
-            </p>
-            {p.valor != null && <p className="text-sm text-secundario">{p.valor.toLocaleString("pt-PT")} EUR</p>}
-            {p.estado === "angariado" && regimeGuardado && (
-              <span className="mt-1 inline-block rounded-full bg-verde/15 px-2.5 py-0.5 text-xs font-medium text-tinta">
-                {regimeGuardado === "exclusivo" ? "Em exclusivo" : "Não exclusivo"}
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-tinta">{p.contactos.nome}</h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.estado === "perdido" ? "bg-black/5 text-secundario" : "bg-azul-suave text-azul-escuro"}`}>
+                {labelEstadoProp(p.estado)}
               </span>
-            )}
-            {p.link_imovel && /^https?:\/\//i.test(p.link_imovel) && (
-              <a href={p.link_imovel} target="_blank" rel="noreferrer" className="block truncate text-sm text-azul">{p.link_imovel}</a>
-            )}
+              {p.estado === "angariado" && regimeGuardado && (
+                <span className="rounded-full bg-verde-suave px-2.5 py-1 text-xs font-semibold text-tinta">
+                  {regimeGuardado === "exclusivo" ? "Em exclusivo" : "Não exclusivo"}
+                </span>
+              )}
+            </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">Editar</button>
+          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+            Editar
+          </button>
         </div>
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          {(
+            [
+              ["Imóvel", [p.tipo_imovel, p.tipologia].filter(Boolean).join(", ")],
+              ["Preço pedido", p.valor != null ? eur(Number(p.valor)) : ""],
+              ["Zona", [p.freguesia, p.concelho, p.distrito].filter(Boolean).join(", ")],
+              ["Origem", p.contactos.canal_origem ?? ""],
+              ["Telemóvel", p.contactos.telemovel ?? ""],
+              ["Email", p.contactos.email ?? ""],
+              ["Notas", p.contactos.observacoes ?? ""],
+            ] as [string, string][]
+          )
+            .filter(([, v]) => v)
+            .map(([k, v]) => (
+              <div key={k} className={k === "Zona" || k === "Email" || k === "Notas" ? "col-span-2" : ""}>
+                <dt className="text-xs text-secundario">{k}</dt>
+                <dd className="break-words font-medium text-tinta">{v}</dd>
+              </div>
+            ))}
+        </dl>
+        {p.link_imovel && /^https?:\/\//i.test(p.link_imovel) && (
+          <a href={p.link_imovel} target="_blank" rel="noreferrer" className="inline-block text-sm font-medium text-azul-escuro">
+            Ver o anúncio
+          </a>
+        )}
+
         {tel && (
           <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
-            <a href={linkWhatsapp(tel)} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-tinta">WhatsApp</a>
+            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
+              Ligar
+            </a>
+            <a href={linkWhatsapp(tel)} target="_blank" rel="noreferrer" className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta">
+              WhatsApp
+            </a>
           </div>
         )}
       </section>
