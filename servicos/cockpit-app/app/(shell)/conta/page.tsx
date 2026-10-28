@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { useToast } from "@/components/Toast";
+import AtivarNotificacoes from "@/components/AtivarNotificacoes";
 import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
 import type { Entidade } from "@/lib/importar/esquemas";
@@ -81,6 +82,8 @@ export default function Conta() {
           Ver como
         </Link>
       </section>
+
+      <AtivarNotificacoes />
 
       <section className={cartao}>
         <h2 className="text-sm font-semibold text-tinta">Importar contactos</h2>

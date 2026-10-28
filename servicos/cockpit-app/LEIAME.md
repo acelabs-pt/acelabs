@@ -75,6 +75,23 @@ Não passa pelas lojas.
 - Criar um comprador com zona e uma angariação na mesma zona: aparece o alerta no Dashboard.
 - Marcar uma tarefa como feita e adiá-la com o gesto de deslizar.
 
+## 5. Notificações no telemóvel (push)
+
+Funcionam no Android e no iPhone (iOS 16.4 ou mais recente). No iPhone **só com o Cockpit instalado no ecrã principal e
+aberto pelo ícone**, e só num endereço com HTTPS (a Vercel já dá). O consultor liga-as em Conta, "Ativar notificações".
+
+1. Gerar as chaves deste cliente: `node scripts/gerar-vapid.mjs`. Guardar as três linhas fora do repositório.
+2. Na Vercel: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT`. Voltar a publicar.
+3. No Supabase, SQL Editor: correr `migracao_notificacoes.sql` (só a parte de cima; a parte comentada é o passo 5).
+4. Testar: no telemóvel, Conta, "Ativar notificações" e depois "Enviar teste".
+5. Lembretes automáticos (30 minutos antes de cada evento e resumo das tarefas às 08:30): publicar a função
+   `supabase/functions/enviar-lembretes` com a CLI do Supabase (`supabase functions deploy enviar-lembretes --no-verify-jwt`),
+   definir os segredos (`supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=... CRON_SECRET=<texto aleatório>`),
+   ligar as extensões `pg_cron` e `pg_net` e correr o bloco comentado no fim de `migracao_notificacoes.sql` com o
+   `PROJECT_REF` e o `CRON_SECRET` deste cliente.
+
+Trocar as chaves VAPID obriga cada telemóvel a voltar a ligar as notificações. `npm run seguranca` confirma se a tabela existe.
+
 ## O que ainda não existe
 
 - **Vários utilizadores no mesmo cliente** (agência com agentes e gestor): hoje quem entra vê tudo. Está desenhado, não construído.

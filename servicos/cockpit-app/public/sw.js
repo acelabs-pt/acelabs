@@ -22,3 +22,41 @@ self.addEventListener("fetch", (e) => {
   if (req.mode !== "navigate") return;
   e.respondWith(fetch(req).catch(() => caches.match(OFFLINE)));
 });
+
+// Notificações push (lib/push.ts subscreve; app/api/push e supabase/functions/enviar-lembretes enviam).
+// O payload é JSON { titulo, corpo, url, tag }. No iPhone cada push TEM de mostrar uma notificação:
+// se o service worker recebe um push e não mostra nada, o Safari acaba por cancelar a subscrição.
+self.addEventListener("push", (e) => {
+  let d = {};
+  try {
+    d = e.data ? e.data.json() : {};
+  } catch {
+    d = { corpo: e.data ? e.data.text() : "" };
+  }
+  e.waitUntil(
+    self.registration.showNotification(d.titulo || "Cockpit", {
+      body: d.corpo || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: d.tag || undefined,
+      data: { url: d.url || "/dashboard" },
+    })
+  );
+});
+
+// Tocar na notificação abre (ou traz para a frente) a app no ecrã certo.
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/dashboard";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((lista) => {
+      for (const c of lista) {
+        if ("focus" in c) {
+          if ("navigate" in c) c.navigate(url).catch(() => {});
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

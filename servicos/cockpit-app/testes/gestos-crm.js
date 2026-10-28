@@ -25,13 +25,16 @@ async function touchSwipe(page, cdp, x0, y0, x1, y1) {
     await page.waitForURL('**/dashboard', { timeout: 20000 });
     await page.goto('http://localhost:3001/crm/compradores');
     await page.waitForSelector('text=Compradores');
+    await page.locator('li a[href^="/crm/compradores/"]').first().waitFor(); // lista carregada: so ai a pagina responde a gestos
     const tabs = await page.locator('a[href="/crm/compradores"]').first().boundingBox();
     const y = tabs.y + tabs.height / 2;
     await touchSwipe(page, cdp, 340, y, 40, y + 2);
+    await page.waitForURL('**/crm/proprietarios', { timeout: 15000 }).catch(() => {}); // em desenvolvimento a pagina compila na primeira vez
     out.push(`${page.url().endsWith('/crm/proprietarios') ? 'OK   ' : 'FALHA'} esquerda na barra: ${page.url()}`);
     await page.waitForSelector('text=Proprietários');
     const tabs2 = await page.locator('a[href="/crm/compradores"]').first().boundingBox();
     await touchSwipe(page, cdp, 40, tabs2.y + tabs2.height / 2, 340, tabs2.y + tabs2.height / 2 + 2);
+    await page.waitForURL('**/crm/compradores', { timeout: 15000 }).catch(() => {});
     out.push(`${page.url().endsWith('/crm/compradores') ? 'OK   ' : 'FALHA'} direita na barra: ${page.url()}`);
     // sobre uma linha, o gesto nao muda de separador
     const linha = page.locator('li a[href^="/crm/compradores/"]').first();

@@ -33,7 +33,10 @@ async function arrastar(page, loc, dx) {
   const password = 'T' + Math.random().toString(36).slice(2) + 'Aa1!';
   const u = await (await fetch(`${U}/auth/v1/admin/users`, { method: 'POST', headers: H, body: JSON.stringify({ email, password, email_confirm: true }) })).json();
   await fetch(`${U}/rest/v1/membros`, { method: 'POST', headers: { apikey: K, Authorization: `Bearer ${K}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u.id }) }).catch(() => {}); // lista de membros (migracao_seguranca.sql), se existir
-  const hoje9 = new Date(2020, 0, 1, 9, 0, 0, 0);
+  // Ontem às 9h (em atraso, entre as 200 mais recentes que o calendário carrega).
+  const hoje9 = new Date();
+  hoje9.setDate(hoje9.getDate() - 1);
+  hoje9.setHours(9, 0, 0, 0);
   const t = (await rest('POST', 'tarefas', { titulo: 'ZZ teste swipe', tipo: 'tarefa', inicio: hoje9.toISOString(), origem: 'manual' }))[0];
   try {
     const b = await chromium.launch();
@@ -53,11 +56,19 @@ async function arrastar(page, loc, dx) {
     const abrirLista = async () => {
       await page.goto('http://localhost:3001/calendario');
       await page.locator('button', { hasText: /^Tarefas$/ }).click();
-      await page.locator('li', { hasText: 'ZZ teste swipe' }).first().waitFor({ timeout: 15000 });
+      // Com a carteira de demonstração há centenas de tarefas e a lista só mostra as primeiras de cada
+      // secção: abre "Mostrar mais" até a tarefa de teste aparecer.
+      const alvo = page.locator('li', { hasText: 'ZZ teste swipe' }).first();
+      for (let i = 0; i < 15 && !(await alvo.isVisible()); i++) {
+        const mais = page.locator('button', { hasText: /Mostrar mais/ }).first();
+        if (!(await mais.count())) { await page.waitForTimeout(400); continue; }
+        await mais.click();
+      }
+      await alvo.waitFor({ timeout: 15000 });
     };
     await abrirLista();
     const linha = page.locator('li', { hasText: 'ZZ teste swipe' }).first();
-    await linha.scrollIntoViewIfNeeded();
+    await linha.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     await arrastar(page, linha.locator('div.relative').first(), -150);
     ok('tarefas: deslizar esquerda abre "Adiar para quando?"', await page.locator('text=Adiar para quando?').isVisible());
     await page.screenshot({ path: `${SP}/g-adiar.png` });
@@ -70,7 +81,7 @@ async function arrastar(page, loc, dx) {
     await rest('PATCH', `tarefas?id=eq.${t.id}`, { inicio: hoje9.toISOString() });
     await abrirLista();
     const linha2 = page.locator('li', { hasText: 'ZZ teste swipe' }).first();
-    await linha2.scrollIntoViewIfNeeded();
+    await linha2.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     await arrastar(page, linha2.locator('div.relative').first(), 150);
     await page.waitForTimeout(800);
     const feita = (await rest('GET', `tarefas?id=eq.${t.id}&select=feita`))[0];

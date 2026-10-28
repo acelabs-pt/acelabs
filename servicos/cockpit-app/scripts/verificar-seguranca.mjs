@@ -61,5 +61,8 @@ for (const t of ["contactos", "compradores", "proprietarios", "angariacoes", "ta
 const m = await fetch(`${url}/rest/v1/membros?select=user_id&limit=1`, { headers: { apikey: anon, Authorization: `Bearer ${anon}` } });
 linha(m.status !== 404, "Lista de membros criada (só convidados veem dados)", "Corre migracao_seguranca.sql (segunda camada de segurança).");
 
+// Notificações push (migracao_notificacoes.sql): opcional, mas o botão "Ativar notificações" precisa dela.
+linha(await existe("push_subscricoes?select=id&limit=1"), "Tabela das notificações push", "Corre migracao_notificacoes.sql (sem ela, ligar as notificações dá erro).");
+
 console.log(problemas ? `\n${problemas} ${problemas === 1 ? "problema" : "problemas"} a resolver.` : "\nTudo em ordem.");
 process.exit(problemas ? 2 : 0);

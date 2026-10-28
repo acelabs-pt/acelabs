@@ -9,7 +9,11 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
   const password = 'T' + Math.random().toString(36).slice(2) + 'Aa1!';
   const u = await (await fetch(`${U}/auth/v1/admin/users`, { method: 'POST', headers: H, body: JSON.stringify({ email, password, email_confirm: true }) })).json();
   await fetch(`${U}/rest/v1/membros`, { method: 'POST', headers: { apikey: K, Authorization: `Bearer ${K}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u.id }) }).catch(() => {}); // lista de membros (migracao_seguranca.sql), se existir
-  const antigo = new Date(2020, 0, 1, 9, 0, 0, 0);
+  // Ontem às 9h: em atraso, mas dentro das 200 mais recentes que o calendário carrega (uma data de 2020 ficava
+  // de fora assim que a carteira de demonstração enche a lista).
+  const antigo = new Date();
+  antigo.setDate(antigo.getDate() - 1);
+  antigo.setHours(9, 0, 0, 0);
   const t = (await rest('POST', 'tarefas', { titulo: 'ZZ UX desfazer', tipo: 'tarefa', inicio: antigo.toISOString(), origem: 'manual' }))[0];
   try {
     const b = await chromium.launch();
@@ -65,8 +69,15 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     // 5. desfazer "feita" (na lista de tarefas do calendário)
     await page.goto('http://localhost:3001/calendario');
     await page.locator('button', { hasText: /^Tarefas$/ }).click();
-    const linha = page.locator('li', { hasText: 'ZZ UX desfazer' }).first();
-    await linha.waitFor();
+    // Com a carteira de demonstração a lista só mostra as primeiras de cada secção: abre "Mostrar mais" até aparecer.
+      const alvo = page.locator('li', { hasText: 'ZZ UX desfazer' }).first();
+      for (let i = 0; i < 15 && !(await alvo.isVisible()); i++) {
+        const mais = page.locator('button', { hasText: /Mostrar mais/ }).first();
+        if (!(await mais.count())) { await page.waitForTimeout(400); continue; }
+        await mais.click();
+      }
+      await alvo.waitFor({ timeout: 15000 });
+    const linha = alvo;
     await linha.locator('button[aria-label="Marcar como feita"]').click();
     await page.waitForSelector('text=Tarefa feita.', { timeout: 10000 });
     await page.screenshot({ path: `${SP}/ux-toast.png` });
@@ -83,7 +94,7 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.locator('button', { hasText: 'Amanhã' }).click();
     await page.waitForSelector('text=Adiada para', { timeout: 10000 });
     db = (await rest('GET', `tarefas?id=eq.${t.id}&select=inicio`))[0];
-    ok('adiar muda a data', new Date(db.inicio).getFullYear() !== 2020, db.inicio);
+    ok('adiar muda a data', new Date(db.inicio).getTime() !== antigo.getTime(), db.inicio);
     await page.locator('button', { hasText: 'Desfazer' }).last().click();
     await page.waitForTimeout(1500);
     db = (await rest('GET', `tarefas?id=eq.${t.id}&select=inicio`))[0];

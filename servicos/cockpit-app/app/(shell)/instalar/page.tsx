@@ -1,4 +1,5 @@
 import EstadoInstalacao from "@/components/EstadoInstalacao";
+import AtivarNotificacoes from "@/components/AtivarNotificacoes";
 
 const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
@@ -24,6 +25,8 @@ export default function Instalar() {
       </div>
 
       <EstadoInstalacao />
+
+      <AtivarNotificacoes />
 
       <section className={cartao}>
         <h2 className="text-lg font-semibold text-tinta">iPhone</h2>
@@ -54,6 +57,7 @@ export default function Instalar() {
         <h2 className="text-lg font-semibold text-tinta">Bom saber</h2>
         <ul className="space-y-2 text-sm text-secundario">
           <li>Precisa de internet. Sem ligação aparece um aviso e volta ao normal quando ela voltar.</li>
+          <li>No iPhone, as notificações só funcionam depois de instalar e abrir pelo ícone (iOS 16.4 ou mais recente).</li>
           <li>As atualizações chegam sozinhas. Não tens de fazer nada.</li>
           <li>Se limpares os dados do browser, tens de voltar a entrar.</li>
           <li>No computador usa-se no browser, no mesmo endereço.</li>
