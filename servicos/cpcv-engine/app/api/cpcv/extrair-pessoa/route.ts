@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { anthropicClient, EXTRACTION_MODEL } from "@/lib/anthropic";
+import { anthropicClient, LEITURA_PESSOA_MODEL } from "@/lib/anthropic";
 
 // Esta rota é diferente de /api/cpcv/extrair: aquela lê o processo já gravado na BD e
 // actualiza cpcv_processos/campos_em_falta directamente. Esta nunca toca em cpcv_partes -
@@ -55,8 +55,20 @@ forma:
   "documento_validade": "YYYY-MM-DD"|null,
   "representante_nome": string|null,
   "representante_cargo": string|null,
-  "certidao_permanente": string|null
+  "certidao_permanente": string|null,
+  "nome_mrz": string|null,
+  "outros_titulares": [{ "nome": string, "nif": string|null }]
 }
+
+"nome_mrz": se o verso do Cartão de Cidadão (ou a página do passaporte) mostrar a banda de leitura
+óptica (linhas de letras maiúsculas com "<<"), copia as PALAVRAS do nome dessa banda, em maiúsculas
+sem acentos, separadas por espaço, pela ordem em que aparecem (ex.: "GONCALVES ROQUE PEDRO MANUEL").
+É só para o programa conferir o nome - nunca o uses em "nome". Se a banda não estiver visível, null.
+
+"outros_titulares": se o ficheiro contiver documentos de MAIS DO QUE UMA pessoa (ex.: um PDF com os
+cartões de dois cônjuges, ou duas páginas de identificação diferentes), "nome", "nif" e os restantes
+campos são SÓ da primeira pessoa que aparece, e as outras vão aqui (nome e NIF, se legível). Se for
+uma só pessoa, devolve uma lista vazia.
 
 "tipo_pessoa" só é "coletiva" se o documento for uma certidão permanente comercial ou identificar
 claramente uma empresa - nesse caso "nome" é a denominação social, e preenches
@@ -77,7 +89,8 @@ seguido dos Apelidos (ex.: Apelidos "Gonçalves Roque" + Nome Próprio "Pedro Ma
 Manuel Gonçalves Roque"), que é a ordem usada em Portugal para escrever um nome completo. Lê o
 nome sempre dos campos "Apelidos"/"Nome Próprio" da zona visual do cartão (com acentos e
 cedilhas), nunca da banda de leitura óptica no fundo do cartão (linhas de letras maiúsculas sem
-acentos tipo "GONCALVES<<ROQUE<<PEDRO..."), que tem a ordem e a ortografia diferentes.
+acentos tipo "GONCALVES<<ROQUE<<PEDRO..."), que tem a ordem e a ortografia diferentes. Essa banda só
+serve para preencher "nome_mrz" (mais abaixo) - lê-a SEMPRE para esse campo, quando estiver visível.
 
 O Cartão de Cidadão NUNCA mostra a naturalidade (freguesia/concelho de nascimento) - não é um dos
 campos impressos no cartão. "naturalidade_concelho"/"naturalidade_freguesia" ficam sempre null
@@ -126,8 +139,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await anthropic.messages.create({
-      model: EXTRACTION_MODEL,
-      max_tokens: 1000,
+      model: LEITURA_PESSOA_MODEL,
+      // O modelo começa por um bloco de raciocínio que conta para o limite.
+      max_tokens: 8000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: documentBlocks }],
     });
@@ -143,7 +157,34 @@ export async function POST(req: NextRequest) {
       .replace(/```\s*$/i, "");
 
     const extraido = JSON.parse(jsonText);
-    return NextResponse.json({ extraido });
+
+    // Conferências feitas no servidor (nunca confiar só na IA): o nome lido tem de ter as mesmas
+    // palavras que o da banda de leitura óptica (a ordem pode diferir, a banda não tem acentos), e
+    // um ficheiro com várias pessoas só foi lido para a primeira.
+    const avisos: string[] = [];
+    const palavras = (s: string) =>
+      s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .split(/[^A-Z]+/)
+        .filter((p) => p.length > 2 && !["DOS", "DAS"].includes(p))
+        .sort()
+        .join(" ");
+    if (typeof extraido.nome === "string" && typeof extraido.nome_mrz === "string" && extraido.nome_mrz.trim()) {
+      if (palavras(extraido.nome) !== palavras(extraido.nome_mrz)) {
+        avisos.push(
+          `O nome lido (${extraido.nome}) não coincide com o da banda de leitura óptica do cartão (${extraido.nome_mrz}) - confirma a ordem e a grafia.`
+        );
+      }
+    }
+    if (Array.isArray(extraido.outros_titulares) && extraido.outros_titulares.length > 0) {
+      const nomes = extraido.outros_titulares.map((t: { nome?: string }) => t?.nome).filter(Boolean).join(", ");
+      avisos.push(
+        `Este ficheiro tem documentos de mais ${extraido.outros_titulares.length} pessoa(s)${nomes ? ` (${nomes})` : ""}. Só a primeira foi lida: separa o PDF ou acrescenta as outras como outra parte.`
+      );
+    }
+    return NextResponse.json({ extraido, avisos });
   } catch (e) {
     console.error("Erro ao chamar a IA em /api/cpcv/extrair-pessoa:", e);
     return NextResponse.json(

@@ -27,6 +27,11 @@ type Processo = {
   imovel_licenca_entidade_emissora: string | null;
   imovel_certificado_validade: string | null;
   imovel_certificado_classe: string | null;
+  imovel_certificado_estado: string | null;
+  imovel_certificado_data_emissao: string | null;
+  imovel_certificado_isencao_numero: string | null;
+  imovel_situado_em: string | null;
+  imovel_composicao: string | null;
   imovel_condominio: boolean | null;
   hipotecas_verificadas: boolean;
 };
@@ -45,6 +50,8 @@ type ExtracaoImovel = {
   licenca_data_emissao?: string | null;
   certificado_validade?: string | null;
   certificado_classe?: string | null;
+  situado_em?: string | null;
+  composicao?: string | null;
 };
 
 type HipotecaLinha = {
@@ -112,6 +119,11 @@ export default function IdentificacaoImovel({
   );
   const [certificadoValidade, setCertificadoValidade] = useState(processo.imovel_certificado_validade ?? "");
   const [certificadoClasse, setCertificadoClasse] = useState(processo.imovel_certificado_classe ?? "");
+  const [certificadoEstado, setCertificadoEstado] = useState(processo.imovel_certificado_estado ?? "valido");
+  const [certificadoDataEmissao, setCertificadoDataEmissao] = useState(processo.imovel_certificado_data_emissao ?? "");
+  const [isencaoNumero, setIsencaoNumero] = useState(processo.imovel_certificado_isencao_numero ?? "");
+  const [situadoEm, setSituadoEm] = useState(processo.imovel_situado_em ?? "");
+  const [composicao, setComposicao] = useState(processo.imovel_composicao ?? "");
 
   const [hipotecas, setHipotecas] = useState<HipotecaDraft[]>(hipotecasIniciais.map(hipotecaDraftDeLinha));
   const [hipotecasVerificadas, setHipotecasVerificadas] = useState(processo.hipotecas_verificadas);
@@ -173,6 +185,14 @@ export default function IdentificacaoImovel({
       }
       if (!certificadoClasse.trim() && extraido.certificado_classe) {
         setCertificadoClasse(extraido.certificado_classe);
+        alterou = true;
+      }
+      if (!situadoEm.trim() && extraido.situado_em) {
+        setSituadoEm(extraido.situado_em);
+        alterou = true;
+      }
+      if (!composicao.trim() && extraido.composicao) {
+        setComposicao(extraido.composicao);
         alterou = true;
       }
       if (alterou) setLidoPorIA(true);
@@ -262,6 +282,11 @@ export default function IdentificacaoImovel({
         imovel_licenca_entidade_emissora: licencaEntidade.trim() || null,
         imovel_certificado_validade: certificadoValidade || null,
         imovel_certificado_classe: certificadoClasse.trim() || null,
+        imovel_certificado_estado: certificadoEstado,
+        imovel_certificado_data_emissao: certificadoEstado === "isento" ? certificadoDataEmissao || null : null,
+        imovel_certificado_isencao_numero: certificadoEstado === "isento" ? isencaoNumero.trim() || null : null,
+        imovel_situado_em: situadoEm.trim() || null,
+        imovel_composicao: composicao.trim() || null,
         hipotecas_verificadas: hipotecasVerificadas,
         atualizado_em: new Date().toISOString(),
       })
@@ -439,6 +464,22 @@ export default function IdentificacaoImovel({
             </div>
           </div>
 
+          <p className={`${subTituloClass} mt-4`}>Descrição na certidão predial</p>
+          <div className="grid gap-4">
+            <div>
+              <label htmlFor="situadoEm" className={labelClass}>
+                Urbano situado em (como na certidão; é isto que o contrato escreve, não a morada comercial)
+              </label>
+              <input id="situadoEm" value={situadoEm} onChange={(e) => setSituadoEm(e.target.value)} className={campoClass} />
+            </div>
+            <div>
+              <label htmlFor="composicao" className={labelClass}>
+                Composição (opcional)
+              </label>
+              <textarea id="composicao" rows={3} value={composicao} onChange={(e) => setComposicao(e.target.value)} className={campoClass} />
+            </div>
+          </div>
+
           <p className={`${subTituloClass} mt-4`}>Licença de utilização</p>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -462,6 +503,42 @@ export default function IdentificacaoImovel({
           </div>
 
           <p className={`${subTituloClass} mt-4`}>Certificado energético</p>
+          <div className="mb-3">
+            <label htmlFor="certificadoEstado" className={labelClass}>
+              Situação do certificado
+            </label>
+            <select id="certificadoEstado" value={certificadoEstado} onChange={(e) => setCertificadoEstado(e.target.value)} className={campoClass}>
+              <option value="valido">Com certificado válido</option>
+              <option value="isento">Isento de certificado energético</option>
+              <option value="em_execucao">Certificado em execução (a entregar até à escritura)</option>
+            </select>
+          </div>
+          {certificadoEstado === "isento" && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="isencaoNumero" className={labelClass}>
+                  Número da isenção
+                </label>
+                <input id="isencaoNumero" value={isencaoNumero} onChange={(e) => setIsencaoNumero(e.target.value)} className={campoClass} />
+              </div>
+              <div>
+                <label htmlFor="certificadoDataEmissao" className={labelClass}>
+                  Emitida em
+                </label>
+                <input
+                  id="certificadoDataEmissao"
+                  type="date"
+                  value={certificadoDataEmissao}
+                  onChange={(e) => setCertificadoDataEmissao(e.target.value)}
+                  className={campoClass}
+                />
+              </div>
+            </div>
+          )}
+          {certificadoEstado === "em_execucao" && (
+            <p className="text-[12px] text-[#64748B]">O contrato diz que o certificado está em execução e será entregue até à escritura.</p>
+          )}
+          {certificadoEstado === "valido" && (
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="certificadoValidade" className={labelClass}>
@@ -488,6 +565,7 @@ export default function IdentificacaoImovel({
               />
             </div>
           </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "./cpcv-types";
-import { euroPorExtenso, paginasPorExtenso } from "./cpcv-clausulas";
+import { euroPorExtenso, paginasPorExtenso, neg, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
 import { montarContrato, TITULO_CONTRATO } from "./cpcv-contrato";
 import { ARIMO_LATIN_WOFF2_BASE64 } from "./fonts/arimo";
 
@@ -25,7 +25,7 @@ function v(value: unknown, fallback = "____________"): string {
 // "222.000,00€ (Duzentos e Vinte e Dois Mil Euros)" - formato do contrato de referência.
 function euros(value: number | null): string {
   if (value === null || value === undefined) return "____________";
-  return `${formatarEuros(value)}€ (${escapeHtml(euroPorExtenso(value))})`;
+  return `${neg(formatarEuros(value))}€ (${escapeHtml(euroPorExtenso(value))})`;
 }
 
 function dataPT(iso: string | null): string {
@@ -79,7 +79,7 @@ export function gerarHtmlCpcv(
   const linhas = (n: number) =>
     Array.from({ length: n }, () => `<p class="linha-assinatura">__________________________________________________________________</p>`).join("\n");
 
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="pt">
 <head>
 <meta charset="utf-8" />
@@ -89,7 +89,10 @@ export function gerarHtmlCpcv(
   /* Formatação aprovada: Arial 11pt, justificado, espaçamento 1,5; títulos centrados a negrito.
      As margens da página são definidas em lib/cpcv-pdf.ts (page.pdf), porque o rodapé com o
      número de página só aparece com margens passadas por aí, não via @page. */
-  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; margin: 0; }
+  /* width: 170mm = largura útil da página (A4 menos as margens de 20mm) - assim a medição que
+     fecha o fim de cada ponto (ver trancarFimDosPontos) coincide com a paginação do PDF. */
+  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; margin: 0; width: 170mm; }
+  .tranca { white-space: nowrap; }
   p { text-align: justify; margin: 0 0 3mm 0; }
   .titulo-principal { text-align: center; font-size: 12pt; font-weight: bold; margin: 0 0 4mm 0; }
   .cabecalho-outorgantes { font-weight: bold; margin-top: 4mm; }
@@ -125,4 +128,27 @@ ${linhas(assinaturas.linhasVendedores)}
 ${linhas(assinaturas.linhasCompradores)}
 </body>
 </html>`;
+  // Negrito: as marcas U+E000/U+E001 vêm de cpcv-clausulas.ts (neg()).
+  return html.split(NEG_ABRE).join("<b>").split(NEG_FECHA).join("</b>");
+}
+
+// Fecha o fim de cada ponto de cláusula com um traço até à margem direita, para ninguém poder
+// acrescentar texto depois do ponto final ("trancar" o parágrafo). Corre no browser, depois de a
+// fonte carregar: mede onde acaba a última linha e enche o resto com sublinhados (texto normal, como
+// no contrato de referência). Se a última linha já vai quase cheia não se acrescenta nada.
+export async function trancarFimDosPontos(page: { evaluate: (fn: () => Promise<void>) => Promise<unknown> }) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    document.querySelectorAll("p.ponto").forEach((p) => {
+      const s = document.createElement("span");
+      s.className = "tranca";
+      s.textContent = "_";
+      p.appendChild(s);
+      const larguraUm = s.getBoundingClientRect().width;
+      const resto = p.getBoundingClientRect().right - s.getBoundingClientRect().left;
+      const quantos = Math.floor((resto - 2) / larguraUm);
+      if (quantos > 2) s.textContent = "_".repeat(quantos);
+      else p.removeChild(s);
+    });
+  });
 }

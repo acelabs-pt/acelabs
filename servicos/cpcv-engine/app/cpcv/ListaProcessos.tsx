@@ -40,6 +40,7 @@ type Processo = {
   criado_em: string;
   atualizado_em: string;
   campos_em_falta: { campo: string; pergunta: string }[] | null;
+  id_angariacao?: string | null;
 };
 
 function formatarData(iso: string): string {
@@ -65,11 +66,13 @@ export default function ListaProcessos({
   lista,
   isGestora,
   nomesPorAgente,
+  partesPorProcesso = {},
   filtroInicial,
 }: {
   lista: Processo[];
   isGestora: boolean;
   nomesPorAgente: Record<string, string>;
+  partesPorProcesso?: Record<string, string>;
   filtroInicial?: string;
 }) {
   const [filtro, setFiltro] = useState(
@@ -97,7 +100,9 @@ export default function ListaProcessos({
       const termo = pesquisa.toLowerCase();
       const morada = (p.imovel_morada ?? "").toLowerCase();
       const agente = (nomesPorAgente[p.criado_por] ?? "").toLowerCase();
-      return morada.includes(termo) || agente.includes(termo);
+      const idAngariacao = (p.id_angariacao ?? "").toLowerCase();
+      const partes = (partesPorProcesso[p.id] ?? "").toLowerCase();
+      return morada.includes(termo) || agente.includes(termo) || idAngariacao.includes(termo) || partes.includes(termo);
     })
     .sort((a, b) => {
       // Na fila "pronto para aprovação" mostra os mais antigos primeiro (os mais urgentes).
@@ -131,7 +136,7 @@ export default function ListaProcessos({
           type="text"
           value={pesquisa}
           onChange={(e) => setPesquisa(e.target.value)}
-          placeholder={isGestora ? "Pesquisar por morada ou agente..." : "Pesquisar por morada..."}
+          placeholder={isGestora ? "Pesquisar por morada, cliente, ID ou agente..." : "Pesquisar por morada, cliente ou ID..."}
           className="ml-auto w-full sm:w-56 border border-[#E2E8F0] rounded-full px-4 py-1.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E6DB4]"
         />
       </div>
@@ -166,7 +171,14 @@ export default function ListaProcessos({
                 {isGestora && (
                   <td className="hidden sm:table-cell px-5 py-3 text-[#475569]">{nomesPorAgente[p.criado_por] ?? "-"}</td>
                 )}
-                <td className="px-5 py-3 text-[#0F172A] font-medium">{p.imovel_morada || "Sem morada ainda"}</td>
+                <td className="px-5 py-3 text-[#0F172A] font-medium">
+                  {p.imovel_morada || "Sem morada ainda"}
+                  {(p.id_angariacao || partesPorProcesso[p.id]) && (
+                    <span className="block text-[11px] font-normal text-[#94A3B8]">
+                      {[p.id_angariacao ? `ID ${p.id_angariacao}` : "", partesPorProcesso[p.id] ?? ""].filter(Boolean).join(" · ")}
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${ESTADO_COR[p.estado] ?? ""}`}>
                     {ESTADO_LABEL[p.estado] ?? p.estado}

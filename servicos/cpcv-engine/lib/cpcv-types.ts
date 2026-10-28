@@ -14,6 +14,9 @@ export type Parte = {
   representante_nome?: string | null;
   representante_cargo?: string | null;
   certidao_permanente?: string | null;
+  email?: string | null;
+  // Número do casal (1, 2, ...) quando o formulário liga duas partes como cônjuges.
+  casal?: number | null;
 };
 
 export type Processo = Record<string, unknown> & {
@@ -42,6 +45,14 @@ export type Processo = Record<string, unknown> & {
   imovel_licenca_entidade_emissora: string | null;
   imovel_certificado_validade: string | null;
   imovel_certificado_classe: string | null;
+  // "valido" (omissão), "isento" ou "em_execucao". Isento: imovel_certificado_energetico guarda o
+  // número da isenção e imovel_certificado_data_emissao a data em que foi emitida.
+  imovel_certificado_estado?: string | null;
+  imovel_certificado_data_emissao?: string | null;
+  imovel_certificado_isencao_numero?: string | null;
+  // "Urbano situado em ..." e "Composição" tal como constam da certidão predial.
+  imovel_situado_em?: string | null;
+  imovel_composicao?: string | null;
   hipotecas_verificadas: boolean | null;
   preco_total: number | null;
   valor_sinal: number | null;
@@ -111,6 +122,7 @@ export const PARTE_EM_BRANCO: Parte = {
   representante_nome: null,
   representante_cargo: null,
   certidao_permanente: null,
+  email: null,
 };
 
 export const METODO_PAGAMENTO_LABEL: Record<string, string> = {

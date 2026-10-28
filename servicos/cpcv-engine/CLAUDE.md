@@ -147,12 +147,45 @@ mesmo padrão já usado para método de pagamento/reserva/etc.
   `npx tsx --env-file=.env.local scripts/comparar-clausulas-minutas.ts`) compara ponto a ponto
   contra o texto do PDF assinado, com a lista das únicas adaptações aprovadas, e corre os
   cenários A-H do pedido - correr depois de qualquer alteração a `cpcv-clausulas.ts`.
-- Informação que a app recolhe mas não entra em nenhuma das 16 cláusulas (reserva, reforços,
-  mobília, comodato, observações, emails, ...) nunca gera cláusulas: `lib/cpcv-alertas.ts`
+- Feedback da solicitadora (reunião de 25/10/2026, ver `docs/feedback_reuniao_cpcv_2510_margarida.docx`),
+  já aplicado: negrito (nomes, valores em euros só os algarismos, artigo, descrição, licença, certificado,
+  data da escritura) via marcas U+E000/U+E001 de `neg()` em `cpcv-clausulas.ts` (PDF troca por `<b>`, Word
+  divide em runs - nunca escrever `<b>` nas cláusulas); fim de cada ponto "trancado" com sublinhados
+  (PDF: `trancarFimDosPontos` em `cpcv-template.ts`, mede a última linha no browser; Word: tabulação com
+  preenchimento sublinhado); email por parte na identificação e "ou através dos emails convencionados"
+  na Cláusula Terceira; estado civil em minúsculas e sem "maior" para divorciado/viúvo (o solteiro mantém "maior"); casais
+  em pares consecutivos (até 4 partes); reserva entra na Cláusula Segunda; segundo ponto de fiel
+  depositária; hipotecas ("hipoteca voluntária", "um ónus de inalienabilidade"); distrate/protocolo APB na
+  Sexta; certificado energético válido/isento/em execução; "situado em"/composição da certidão no ponto 1
+  da Primeira; TEXTOS ALL CAPS passam por `capitalizarLocal`; local de assinatura = concelho do imóvel;
+  ficheiro descarregado chama-se `CPCV-<id de angariação>`. Migração: `migration_fase15.sql`.
+  Várias partes do mesmo lado numeram-se 1) 2) 3) (não A) B)); reserva conta para o sinal; código postal na
+  morada de cada parte é obrigatório (`/api/cpcv/gerar` recusa sem ele).
+- **Leitura final do Word gerado** (`lib/cpcv-leitor.ts`, chamada em `/api/cpcv/gerar` depois do Word): lê o .docx
+  de ponta a ponta com verificações de regra (campos em branco, numeração, dados do processo ausentes do texto,
+  datas/valores) e uma leitura por IA (`REVISAO_FINAL_MODEL`, Sonnet, ~9k tokens de entrada e ~4k de saída por
+  leitura). Nunca bloqueia: os pontos vão na resposta (painel em `GerarDocumento.tsx`) e como mensagem do processo.
+  `LER_IA=1 npx tsx --env-file=.env.local scripts/testar-contrato.ts` corre a leitura por IA no cenário 12.
+- Feedback falado da solicitadora (reunião de 25/10/2026, transcrição): "maior" só no solteiro (divorciado e
+  viúvo não levam); casais ligados à mão no formulário (coluna `cpcv_partes.casal`, "Casal 1/2/3"), com a
+  deteção automática só como alternativa; `extrair-pessoa` usa `LEITURA_PESSOA_MODEL` (Sonnet), confere o nome
+  contra a banda MRZ (`nome_mrz`) e avisa quando o ficheiro tem mais do que uma pessoa (`outros_titulares`);
+  uma nova leitura só substitui campos vazios ou ainda iguais à leitura anterior da IA (`ultimaLeitura` em
+  `ParteCampos.tsx`), nunca o que o agente editou; a página `/cpcv/entrega/[token]` tem versão inglesa
+  (`?lang=en`) e aceita passaporte/título de residência; o dashboard pesquisa por cliente e ID de angariação.
+- `npm run comparar:final -- <gerado.docx> <final.docx> [relatorio.md]` compara o Word gerado com o Word final
+  editado pela solicitadora (parágrafo a parágrafo e palavra a palavra, com % de fidelidade): é a medida da
+  melhoria. Pedir-lhe os dois ficheiros de cada contrato.
+- O Word gerado foi exportado para PDF com o próprio Word (COM, `ExportAsFixedFormat`) e tem as mesmas 7 páginas
+  do PDF do cenário 12, com negrito e traços de fim de ponto corretos.
+  Redação nova a confirmar com a solicitadora: ponto da reserva, segundo ponto de fiel depositária, "em
+  execução, a entregar até à escritura".
+- Informação que a app recolhe mas não entra em nenhuma das 16 cláusulas (reforços,
+  mobília, comodato, observações, ...) nunca gera cláusulas: `lib/cpcv-alertas.ts`
   lista-a para a gestora/solicitadora (`AlertasSolicitadora.tsx` na página do processo e nos
   avisos de `/api/cpcv/gerar`). Decisão do cliente - não voltar a acrescentar cláusulas por campo.
-- Mediadora fixa no código (`AGENCIA_NOME`/`AGENCIA_AMI` em `cpcv-clausulas.ts`), local de
-  assinatura fixo ("Braga" em `cpcv-contrato.ts`). Só IBAN/banco/email da agência vêm do `.env`.
+- Mediadora fixa no código (`AGENCIA_NOME`/`AGENCIA_AMI` em `cpcv-clausulas.ts`); o local de
+  assinatura é o concelho do imóvel ("Braga" só se faltar, em `cpcv-contrato.ts`). Só IBAN/banco/email da agência vêm do `.env`.
 - Número de páginas no texto final: o PDF é gerado em duas passagens (`lib/cpcv-pdf.ts` - gera,
   conta os `/Type /Page`, volta a gerar com o número por extenso); o Word usa um campo
   `NUMPAGES \* CardText \* Upper` com o número do PDF como valor em cache, que o Word recalcula

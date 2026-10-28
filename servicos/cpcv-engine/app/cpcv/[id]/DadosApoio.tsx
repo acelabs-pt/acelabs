@@ -15,6 +15,7 @@ type Processo = {
   email_processual_agencia: string | null;
   imovel_licenca_utilizacao: string | null;
   imovel_certificado_energetico: string | null;
+  imovel_certificado_estado?: string | null;
 };
 
 // Separado de "Condições do negócio" de propósito - licença/certificado e as referências
@@ -95,7 +96,12 @@ export default function DadosApoio({ processo }: { processo: Processo }) {
         </div>
         <div>
           <label htmlFor="certificadoEnergetico" className={labelClass}>
-            Certificado energético <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV)</span>
+            Certificado energético{" "}
+            {processo.imovel_certificado_estado === "isento" || processo.imovel_certificado_estado === "em_execucao" ? (
+              <span className="text-[#64748B]">(opcional: o imóvel está {processo.imovel_certificado_estado === "isento" ? "isento" : "com o certificado em execução"})</span>
+            ) : (
+              <span className="text-[#9A5B00]">(obrigatório para gerar o CPCV, a não ser que esteja isento ou em execução)</span>
+            )}
           </label>
           <input
             id="certificadoEnergetico"

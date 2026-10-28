@@ -62,6 +62,15 @@ permanente ou na secção "Identificação Predial/Fiscal" de um certificado ene
 normalmente junto à conservatória - nunca uma categoria do imóvel como "fracção autónoma" ou
 "prédio urbano".
 
+"situado_em" é o texto que a certidão predial/permanente escreve a seguir a "SITUADO EM:" na descrição
+do prédio (ex.: "Rua Álvaro Aurélio do Céu Oliveira, n.ºs 312, 356, 360 e Rua Samuel Gramacho, n.º
+10"), copiado tal como está, sem o título "URBANO" nem a área. É a descrição registada do prédio,
+que pode ser diferente da morada comercial do imóvel.
+
+"composicao" é o texto de "COMPOSIÇÃO E CONFRONTAÇÕES" (ou "COMPOSIÇÃO") da certidão predial/
+permanente, copiado tal como está (ex.: "Dois edifícios ligados por um aparcamento central...").
+Só a composição - sem as confrontações nem a lista de frações autónomas.
+
 "artigo_matricial" é o número do artigo matricial (ex.: em "Artigo Matricial nº 3", o valor é
 "3").
 
@@ -89,7 +98,9 @@ forma:
   "fracao_letra": string|null,
   "conservatoria": string|null,
   "descricao_predial": string|null,
-  "artigo_matricial": string|null
+  "artigo_matricial": string|null,
+  "situado_em": string|null,
+  "composicao": string|null
 }`;
 
 export async function POST(req: NextRequest) {

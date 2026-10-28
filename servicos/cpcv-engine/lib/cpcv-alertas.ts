@@ -26,11 +26,6 @@ export function informacaoForaDoContrato(processo: Processo): string[] {
     );
   }
 
-  if (processo.reserva === true) {
-    const data = processo.reserva_ate_data ? `, paga até ${formatarDataCurta(processo.reserva_ate_data)}` : "";
-    alertas.push(`Reserva: ${euros(processo.valor_reserva)}${data}`);
-  }
-
   const reforcos = (processo.reforcos_sinal ?? []).filter((r) => r.valor);
   if (reforcos.length > 0) {
     alertas.push(
@@ -71,12 +66,6 @@ export function informacaoForaDoContrato(processo: Processo): string[] {
   if (processo.prazo_pagamento_sinal) alertas.push(`Prazo de pagamento do sinal (texto da IA): ${processo.prazo_pagamento_sinal}`);
 
   if (processo.comodato === true) alertas.push(`Comodato: ${processo.tempo_comodato || "duração por indicar"}`);
-
-  if (processo.email_proprietario_contrato || processo.email_comprador_contrato) {
-    alertas.push(
-      `Emails para o contrato: proprietário ${processo.email_proprietario_contrato || "-"}; comprador ${processo.email_comprador_contrato || "-"}`
-    );
-  }
 
   if (processo.imovel_estado) alertas.push(`Estado do imóvel: ${processo.imovel_estado}`);
   if (processo.imovel_anexos) alertas.push(`Anexos do imóvel: ${processo.imovel_anexos}`);

@@ -21,17 +21,30 @@ export function hashToken(token: string): string {
 // de extracao continuarem a reconhecer o ficheiro depois de aceite.
 export const DOCUMENTOS_PEDIDOS: Record<"comprador" | "vendedor", { value: string; label: string }[]> = {
   comprador: [
-    { value: "identificacao_comprador", label: "Cartão de Cidadão (frente e verso)" },
+    { value: "identificacao_comprador", label: "Cartão de Cidadão, passaporte ou título de residência (frente e verso)" },
     { value: "comprovativo_morada_comprador", label: "Comprovativo de morada" },
     { value: "outro_comprador", label: "Outro documento" },
   ],
   vendedor: [
-    { value: "identificacao_vendedor", label: "Cartão de Cidadão (frente e verso)" },
+    { value: "identificacao_vendedor", label: "Cartão de Cidadão, passaporte ou título de residência (frente e verso)" },
     { value: "caderneta_predial", label: "Caderneta predial" },
     { value: "certidao_predial", label: "Certidão predial" },
     { value: "certificado_energetico", label: "Certificado energético" },
     { value: "outro_vendedor", label: "Outro documento" },
   ],
+};
+
+// Etiquetas em inglês dos mesmos documentos (a página de entrega tem versão inglesa para clientes
+// estrangeiros). Os valores gravados são os mesmos - só muda o texto mostrado.
+export const ETIQUETAS_EN: Record<string, string> = {
+  identificacao_comprador: "ID card, passport or residence permit (front and back)",
+  comprovativo_morada_comprador: "Proof of address",
+  outro_comprador: "Other document",
+  identificacao_vendedor: "ID card, passport or residence permit (front and back)",
+  caderneta_predial: "Property tax record (caderneta predial)",
+  certidao_predial: "Land registry certificate (certidão predial)",
+  certificado_energetico: "Energy performance certificate",
+  outro_vendedor: "Other document",
 };
 
 export function tipoValido(papel: "comprador" | "vendedor", tipo: string): boolean {
