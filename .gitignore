@@ -14,3 +14,9 @@ business-center/
 
 # loop local de qualidade de design (hook Stop do Pedro; nao partilhar)
 .claude/design-loop/
+
+# Dados reais de clientes e lixo local: nunca vao para o repositorio publico
+docs/PLATAFORMA CPCV.zip
+docs/feedback_reuniao_*.docx
+docs/.impeccable/
+servicos/cockpit-app/undefined/
