@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Cockpit na App Store: plano por fases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --fundo: #ffffff;
+    --cinza: #f5f5f7;
+    --bege: #edebe5;
+    --tinta: #1d1d1f;
+    --sec: #6e6e73;
+    --azul: #0071e3;
+    --azul-escuro: #0059b3;
+    --azul-suave: #eaf2fd;
+    --verde-suave: #e6f6ec;
+    --verde-texto: #126b37;
+    --ambar-suave: #fff4e5;
+    --ambar-texto: #9a5b00;
+    --vermelho-suave: #fdecea;
+    --vermelho-texto: #a1261b;
+    --linha: rgba(0, 0, 0, 0.1);
+    --letra: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  }
+  @page { size: A4; margin: 15mm 15mm 17mm 15mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: var(--letra); font-size: 10.5pt; line-height: 1.45; color: var(--tinta); background: var(--fundo); }
+  h1, h2, h3 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+  h1 { font-size: 25pt; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; }
+  h2 { font-size: 15.5pt; font-weight: 700; margin-top: 6mm; margin-bottom: 2.5mm; break-after: avoid; }
+  h3 { font-size: 12.5pt; font-weight: 700; break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul, ol { margin: 0 0 2.5mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  .sec { color: var(--sec); }
+  .capa { background: var(--azul-suave); border-radius: 5mm; padding: 6.5mm 8mm 6mm; margin-bottom: 4mm; }
+  .capa .marca { font-size: 10pt; font-weight: 600; color: var(--azul-escuro); margin-bottom: 2.5mm; }
+  .capa .sub { font-size: 11pt; color: var(--sec); margin-top: 2.5mm; max-width: 155mm; }
+  .capa .meta { font-size: 9pt; color: var(--sec); margin-top: 3mm; margin-bottom: 0; }
+  .caixa { border-radius: 4mm; padding: 3.8mm 4.6mm; margin: 0 0 3mm; break-inside: avoid; }
+  .caixa.azul { background: var(--azul-suave); }
+  .caixa.verde { background: var(--verde-suave); }
+  .caixa.ambar { background: var(--ambar-suave); }
+  .caixa.cinza { background: var(--cinza); }
+  .caixa h3 { margin-bottom: 1.5mm; }
+  .caixa p:last-child, .caixa ul:last-child, .caixa ol:last-child { margin-bottom: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin-bottom: 3mm; }
+  th, td { text-align: left; vertical-align: top; padding: 1.7mm 2.2mm; border-bottom: 1px solid var(--linha); }
+  th { background: var(--cinza); font-weight: 600; font-size: 8.8pt; }
+  td.rotulo { font-weight: 600; width: 27%; }
+  tr { break-inside: avoid; }
+  .pilula { display: inline-block; border-radius: 99px; padding: 0.4mm 2.4mm; font-size: 8.4pt; font-weight: 600; white-space: nowrap; }
+  .p-ok { background: var(--verde-suave); color: var(--verde-texto); }
+  .p-med { background: var(--ambar-suave); color: var(--ambar-texto); }
+  .p-alto { background: var(--vermelho-suave); color: var(--vermelho-texto); }
+  .p-neutro { background: var(--cinza); color: var(--sec); }
+  .fluxo { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: stretch; gap: 2mm; margin: 2mm 0 4mm; break-inside: avoid; }
+  .fluxo .passo { background: var(--cinza); border-radius: 3.5mm; padding: 3mm 3.2mm; font-size: 9pt; }
+  .fluxo .passo b { display: block; font-size: 9.6pt; margin-bottom: 0.8mm; }
+  .fluxo .seta { align-self: center; color: var(--azul); font-weight: 700; font-size: 12pt; }
+  .fase { border: 1px solid var(--linha); border-radius: 4.5mm; padding: 4mm 5mm 2.5mm; margin-bottom: 4mm; }
+  .fase header { break-after: avoid; display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 1.5mm; }
+  .fase .quando { font-size: 9pt; color: var(--azul-escuro); font-weight: 700; white-space: nowrap; }
+  .fase .obj { color: var(--sec); margin-bottom: 2.5mm; break-after: avoid; }
+  .fase > ul li { break-inside: avoid; }
+  .fase .rodape-fase { display: flex; flex-wrap: wrap; gap: 1.5mm 6mm; font-size: 9.2pt; border-top: 1px solid var(--linha); padding-top: 2mm; margin-top: 1mm; break-inside: avoid; }
+  .fase .rodape-fase b { font-weight: 600; }
+  .gantt { width: 100%; border-collapse: separate; border-spacing: 0 1.2mm; font-size: 8.6pt; }
+  .gantt td { border: none; padding: 0; height: 5.2mm; vertical-align: middle; }
+  .gantt td.nome { width: 42mm; padding-right: 2mm; font-weight: 600; }
+  .gantt td.s { border-left: 1px solid var(--linha); }
+  .gantt .b { display: block; height: 4.2mm; border-radius: 1.2mm; background: var(--azul); margin: 0 0.4mm; }
+  .gantt .b.claro { background: #9cc6f3; }
+  .gantt .b.verde { background: #1fae5a; }
+  .gantt th { background: none; border: none; padding: 0 0 1mm; font-weight: 600; color: var(--sec); text-align: center; font-size: 8pt; }
+  .quebra { break-before: page; }
+  table, .nota { break-inside: avoid; }
+  h2 + table, h2 + .fluxo { break-before: avoid; }
+  .nota { font-size: 9pt; color: var(--sec); }
+  .rodape { margin-top: 8mm; font-size: 8.6pt; color: var(--sec); border-top: 1px solid var(--linha); padding-top: 3mm; }
+  .rodape p { margin-bottom: 1.5mm; }
+</style>
+</head>
+<body>
+
+<div class="capa">
+  <div class="marca">Ace Labs · Cockpit</div>
+  <h1>Cockpit na App Store: plano por fases</h1>
+  <p class="sub">A melhor forma de pôr o Cockpit na App Store com o código que já temos: o que construir, o que a Apple vai exigir, quanto custa, quanto tempo demora e as decisões que temos de tomar já.</p>
+  <p class="meta">Documento interno para o Pedro e o Miguel · 25 de outubro de 2026 · Os prazos são estimativas</p>
+</div>
+
+<h2 style="margin-top:2mm">Em resumo</h2>
+<div class="caixa azul">
+  <h3>A solução</h3>
+  <ol>
+    <li><b>Uma só app, "Cockpit", publicada pela Ace Labs.</b> Cada cliente entra com o seu código, e a app liga-se ao Supabase desse cliente. Continuamos com <b>um Supabase por cliente</b>, como foi decidido. A Apple aceita este modelo de uma app com escolha de cliente, e rejeita uma app copiada por cliente (regra 4.2.6).</li>
+    <li><b>Casca nativa feita com Capacitor à volta da app que já existe.</b> Não se reescreve nada. As mudanças de ecrãs e de regras continuam a sair pela Vercel e chegam à app sem nova revisão da Apple.</li>
+    <li><b>Funções nativas a sério:</b> notificações push, entrada com Face ID, eventos postos diretamente no calendário do iPhone, importar contactos do telemóvel, folha de partilha do iOS, ecrã sem rede dentro da app e convites que abrem diretamente na app. São estas funções que evitam a rejeição por "site embrulhado" (regra 4.2) e que dão ao agente o que a PWA não consegue dar.</li>
+    <li><b>Distribuição "não listada":</b> a app está na App Store mas não aparece nas pesquisas. Só a instala quem recebe o link, ou seja, os nossos clientes. Se a Apple recusar este pedido, a app fica pública e pede login, e funciona na mesma.</li>
+    <li><b>Android sai quase de graça</b> com o mesmo projeto, numa fase opcional no fim.</li>
+  </ol>
+</div>
+
+<table>
+  <tr><th style="width:27%">Quanto tempo</th><td><b>7 a 9 semanas</b> até à app estar na loja. Cerca de 4 a 5 semanas de trabalho técnico; o resto é espera por contas da Apple, testes com agentes reais e revisão.</td></tr>
+  <tr><th>Quanto custa</th><td>Cerca de <b>99 USD por ano</b> pela conta Apple. O Mac já existe (é o do Miguel). Notificações e certificados: 0 EUR. Valores a confirmar antes de pagar.</td></tr>
+  <tr><th>O que trava tudo</th><td><b>A conta Apple</b> (como empresa precisa do número D-U-N-S e de verificação, o que pode levar semanas) e <b>a política de privacidade publicada</b> (a Apple exige o link, e o RGPD ainda não tem resposta). As duas começam esta semana.</td></tr>
+  <tr><th>O que não muda</th><td>A PWA continua a funcionar no Android e no computador. É o mesmo código, o mesmo Supabase por cliente e a mesma Vercel.</td></tr>
+</table>
+
+<div style="break-inside:avoid"><h3 style="margin:4mm 0 1mm">Calendário</h3>
+<table class="gantt">
+  <tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th><th>S5</th><th>S6</th><th>S7</th><th>S8</th><th>S9</th></tr>
+  <tr><td class="nome">0. Contas e decisões</td><td class="s"><span class="b claro"></span></td><td class="s"><span class="b claro"></span></td><td class="s"><span class="b claro"></span></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">1. Preparar a app web</td><td class="s"><span class="b"></span></td><td class="s"><span class="b"></span></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">2. Casca nativa</td><td class="s"></td><td class="s"><span class="b"></span></td><td class="s"><span class="b"></span></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">3. Notificações push</td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"><span class="b"></span></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">4. Testes no TestFlight</td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"><span class="b claro"></span></td><td class="s"><span class="b claro"></span></td><td class="s"><span class="b claro"></span></td><td class="s"></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">5. Ficha e revisão</td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"><span class="b"></span></td><td class="s"><span class="b"></span></td><td class="s"></td><td class="s"></td></tr>
+  <tr><td class="nome">6. Lançamento</td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"><span class="b verde"></span></td><td class="s"></td></tr>
+  <tr><td class="nome">7. Android (opcional)</td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"></td><td class="s"><span class="b claro"></span></td><td class="s"><span class="b claro"></span></td></tr>
+</table>
+<p class="nota">Azul escuro: trabalho técnico. Azul claro: esperas, testes e tarefas administrativas. Verde: app na loja. As fases 1 e 2 avançam enquanto a conta Apple não chega; o TestFlight (fase 4) só arranca com a conta ativa.</p></div>
+
+<h2>1. Como fica montado</h2>
+<div class="fluxo">
+  <div class="passo"><b>App Cockpit no iPhone</b>Instalada pela App Store, com o link que enviamos ao cliente.</div>
+  <div class="seta">›</div>
+  <div class="passo"><b>Código do cliente</b>Vem no convite (o link abre a app) ou escreve-se uma vez no primeiro arranque.</div>
+  <div class="seta">›</div>
+  <div class="passo"><b>cockpit.acelabs.pt</b>Um só endereço e um só deploy na Vercel para todos os clientes.</div>
+  <div class="seta">›</div>
+  <div class="passo"><b>Supabase do cliente</b>Um projeto por cliente, como hoje. Os dados nunca se misturam.</div>
+</div>
+
+<p><b>Porque é que esta é a melhor opção:</b></p>
+<ul>
+  <li><b>Cumpre a regra da Apple para apps de vários clientes.</b> A regra 4.2.6 rejeita apps feitas a partir de um modelo e submetidas por quem o fornece em nome dos clientes. A própria regra aceita a alternativa de um único binário com escolha de cliente, que é este modelo.</li>
+  <li><b>Aproveita tudo o que existe.</b> Os ecrãs, os testes (242 a passar), o Supabase e a Vercel ficam iguais. O Capacitor acrescenta a parte nativa por cima, e o Cockpit antigo já tinha uma configuração Capacitor com o identificador <code>pt.acelabs.cockpit</code>.</li>
+  <li><b>Atualizações rápidas.</b> Uma correção num ecrã sai como hoje (push para o main e deploy na Vercel) e aparece na app sem revisão da Apple, porque é conteúdo web. Só as mudanças na parte nativa (uma função nova, ícones, permissões) precisam de nova versão na loja.</li>
+  <li><b>Resolve os problemas do iPhone que a PWA tem.</b> O convite abre diretamente na app em vez de abrir no Safari com outra sessão. O evento vai para o calendário sem ficheiro. As notificações funcionam sem o cliente ter de "adicionar ao ecrã principal".</li>
+</ul>
+
+<div style="break-inside:avoid"><p><b>Alternativas postas de lado:</b></p>
+<table>
+  <tr><th style="width:27%">Alternativa</th><th>Porque não</th></tr>
+  <tr><td class="rotulo">Uma app por cliente</td><td>Rejeitada pela regra 4.2.6, salvo se cada cliente tiver a sua própria conta Apple, o que não é realista para agentes individuais. Além disso, cada mudança teria de ser submetida N vezes.</td></tr>
+  <tr><td class="rotulo">Só embrulhar o site, sem funções nativas</td><td>É o caso típico de rejeição pela regra 4.2 (funcionalidade mínima): a app tem de ir além de um site reembalado.</td></tr>
+  <tr><td class="rotulo">Reescrever em nativo (Swift ou React Native)</td><td>Meses de trabalho e duas bases de código para manter, sem ganho que o agente note no dia a dia.</td></tr>
+  <tr><td class="rotulo">Um endereço por cliente dentro da app</td><td>Possível, mas as funções nativas do Capacitor funcionam de forma fiável num único endereço. Com um endereço só, temos também um deploy só, o que poupa a Vercel por cliente.</td></tr>
+</table></div>
+
+<div class="caixa ambar">
+  <h3>Única mudança de arquitetura: o cliente escolhe-se no arranque, não no deploy</h3>
+  <p>Hoje o endereço do Supabase fica fixo em cada build (<code>NEXT_PUBLIC_SUPABASE_*</code>). Passa a haver uma lista de clientes na Vercel (código, endereço do Supabase e chave pública, que já é pública hoje; nunca chaves de serviço). O cliente escolhido fica num cookie que o browser, o servidor e o middleware leem. Isto não mexe no modelo de dados e já estava previsto como evolução ("resolver a configuração em runtime").</p>
+</div>
+
+<h2>2. As fases</h2>
+
+<div class="fase">
+  <header><h3>Fase 0. Contas e decisões</h3><span class="quando">Semanas 1 a 3, em paralelo</span></header>
+  <p class="obj">Tirar já do caminho tudo o que depende de terceiros e demora, porque é isso que marca o calendário.</p>
+  <ul>
+    <li><b>Conta Apple Developer.</b> Se for como empresa (recomendado: a loja mostra "Ace Labs"), pedir primeiro o número D-U-N-S, que é gratuito e se pede pela ferramenta da Apple, e depois fazer a inscrição. A Apple verifica a empresa e às vezes telefona. Se for em nome do Pedro, é mais rápido, mas a loja mostra o nome dele.</li>
+    <li><b>Política de privacidade publicada</b> num link público (ex. acelabs.pt/privacidade-cockpit) e <b>página de apoio</b> com contacto. A Apple não aceita a app sem as duas. Partir do <code>docs/privacidade-rascunho.md</code> e fechar o texto com quem trata do RGPD.</li>
+    <li><b>Estatuto de comerciante na UE</b> (regulamento dos serviços digitais): quem vende na UE tem de declarar morada, telefone e email, que ficam públicos na ficha da app.</li>
+    <li><b>Mac do Miguel:</b> as apps de iPhone só se compilam e assinam no Xcode, que só existe em macOS. Usamos o Mac do Miguel: instalar o Xcode mais recente (confirmar que a versão do macOS o suporta) e o Claude Code, e entrar com a conta Apple da equipa. O Pedro escreve o código no Windows; o Miguel faz pull, compila e envia para o TestFlight.</li>
+    <li><b>Nome na loja:</b> "Cockpit" deve estar ocupado. Reservar cedo no App Store Connect (ex. "Cockpit Imobiliário" ou "Cockpit Ace Labs").</li>
+    <li><b>Vercel Pro</b> (o plano gratuito não permite uso comercial) e o domínio <b>cockpit.acelabs.pt</b> a apontar para o projeto.</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro (contas, pagamentos), Miguel (texto de apoio e privacidade)</span><span><b>Entregável:</b> conta Apple ativa, política publicada, Xcode pronto no Mac do Miguel</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 1. Preparar a app web para viver dentro da app</h3><span class="quando">Semanas 1 e 2</span></header>
+  <p class="obj">Mudanças no código atual, testadas com os testes que já temos, antes de existir a casca nativa.</p>
+  <ul>
+    <li><b>Escolha do cliente no arranque:</b> lista de clientes na Vercel, cookie com o código e clientes Supabase (browser, servidor e middleware) criados a partir desse código. Um só deploy em cockpit.acelabs.pt. Os clientes atuais migram sem perder dados, porque o Supabase de cada um não muda.</li>
+    <li><b>Convite que abre a app:</b> o link do email passa a ser <code>cockpit.acelabs.pt/convite/...</code> com o código do cliente. Com a app instalada, abre diretamente nela (universal links, através do ficheiro <code>apple-app-site-association</code> no domínio). Sem a app, abre no browser como hoje.</li>
+    <li><b>Saber quando está dentro da app nativa:</b> esconder as instruções de "instalar no ecrã principal" e trocar o ficheiro .ics e o "Partilhar" pelas versões nativas quando existirem.</li>
+    <li><b>"Apagar a minha conta" em Conta.</b> A Apple só a exige quando a conta se cria dentro da app, o que não é o nosso caso, mas custa pouco e evita discussões na revisão.</li>
+    <li><b>Cliente "demo" para a Apple:</b> um Supabase próprio, sempre ligado, com a carteira de demonstração (<code>scripts/demo.ts</code>) e uma conta para o revisor. O projeto gratuito pausa ao fim de 7 dias sem uso, por isso não serve.</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro com o Claude</span><span><b>Entregável:</b> cockpit.acelabs.pt com escolha de cliente, testes todos a passar</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 2. Casca nativa com Capacitor</h3><span class="quando">Semanas 2 e 3</span></header>
+  <p class="obj">O projeto iOS em si, com as funções nativas que justificam a app na loja.</p>
+  <ul>
+    <li><b>Projeto Capacitor</b> (no repositório, ao lado da app web) com o identificador <code>pt.acelabs.cockpit</code>, ícone, ecrã de arranque, cores da marca e áreas seguras do ecrã.</li>
+    <li><b>Ecrãs embutidos na app,</b> que funcionam sem rede: primeiro arranque (escrever o código do cliente) e "sem rede" com a lista do dia, como a página offline atual.</li>
+    <li><b>Funções nativas:</b> Face ID para entrar; eventos postos diretamente no calendário do iPhone; "novo comprador a partir de um contacto do telemóvel"; folha de partilha do iOS para o relatório ao proprietário; vibração ligeira ao concluir uma tarefa.</li>
+    <li><b>Textos das permissões em português claro</b> (ex. "O Cockpit usa o calendário para pôr as visitas na tua agenda"). Cada permissão só é pedida quando a função é usada pela primeira vez.</li>
+    <li><b>Manifesto de privacidade</b> da app e declaração de cifra (só HTTPS normal, o que dá isenção nas regras de exportação).</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro com o Claude (código); Miguel no Mac (compilar, assinar, testar no iPhone)</span><span><b>Entregável:</b> app a correr num iPhone real a partir do Xcode</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 3. Notificações push</h3><span class="quando">Semana 4</span></header>
+  <p class="obj">O maior ganho da app nativa para o agente, e a função que melhor a distingue de um site.</p>
+  <ul>
+    <li><b>Registo do telemóvel:</b> tabela <code>dispositivos</code> em cada Supabase (migração nova) e permissão pedida depois do primeiro login, com explicação.</li>
+    <li><b>Envio:</b> Firebase Cloud Messaging, gratuito para este volume e que serve iPhone e Android, com a chave de notificações da conta Apple guardada como segredo na Vercel. Uma tarefa agendada na Vercel percorre os clientes e envia.</li>
+    <li><b>Primeiras notificações:</b> resumo às 8h30 ("Hoje tens 6 tarefas, 2 em atraso"), escritura daqui a 3 dias com documentos em falta, nova correspondência entre comprador e imóvel, e fim do contrato de angariação em menos de 30 dias.</li>
+    <li><b>Interruptores em Conta</b> para cada tipo de notificação. Tocar na notificação abre a ficha certa.</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro com o Claude; Miguel escolhe quais notificações e a que horas</span><span><b>Entregável:</b> notificações a chegar a um iPhone real</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 4. Testes no TestFlight</h3><span class="quando">Semanas 4 a 6</span></header>
+  <p class="obj">Usar a app a sério antes de a Apple a ver. O TestFlight é a app oficial da Apple para distribuir versões de teste.</p>
+  <ul>
+    <li><b>Testadores internos (Pedro e Miguel):</b> cada versão chega em minutos, sem revisão.</li>
+    <li><b>Testadores externos (3 a 5 agentes reais, durante 2 semanas):</b> entram por link. A primeira versão para externos passa por uma revisão curta da Apple.</li>
+    <li><b>Lista de verificação em iPhone real:</b> instalar, receber o convite e abrir na app, Face ID, ligar e enviar WhatsApp da ficha, pôr no calendário, notificação que abre a ficha, modo de avião com a lista do dia, puxar para atualizar, iPhone pequeno (SE) e grande (Pro Max).</li>
+    <li>Os <b>testes automáticos</b> que já temos continuam a correr contra a app web (<code>npm run testar</code>).</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Miguel coordena os agentes; Pedro corrige</span><span><b>Entregável:</b> zero erros graves em 2 semanas de uso real</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 5. Ficha da loja e revisão da Apple</h3><span class="quando">Semanas 6 e 7</span></header>
+  <p class="obj">Preparar tudo o que a Apple pede na submissão e passar à primeira, ou à segunda.</p>
+  <ul>
+    <li><b>Ficha em português:</b> nome, subtítulo, descrição, palavras-chave e capturas de ecrã no tamanho de iPhone exigido no momento. Feitas com a carteira de demonstração, sem dados reais. Para começar, só iPhone (com iPad seriam precisas capturas próprias).</li>
+    <li><b>Privacidade na ficha:</b> as "etiquetas" de que dados se recolhem (contactos de clientes, conteúdo do utilizador, identificadores), ligados ao utilizador e sem rastreio para publicidade. Questionário de classificação etária.</li>
+    <li><b>Notas para o revisor:</b> é uma ferramenta de trabalho para agentes imobiliários; as contas são criadas pela Ace Labs; aqui está a conta de demonstração com dados; esta é a lista das funções nativas e onde as encontrar; pedimos distribuição não listada. Um vídeo de 1 minuto ajuda.</li>
+    <li><b>Nada se compra dentro da app:</b> sem preços nem links para contratar. O serviço contrata-se fora da app, o que evita a obrigação de usar os pagamentos da Apple (regra 3.1).</li>
+    <li><b>Revisão:</b> a maioria fica decidida em 1 a 3 dias. Convém contar com 1 a 2 rejeições na primeira app. Responde-se no próprio App Store Connect, corrige-se e volta a submeter-se.</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro (submissão), Miguel (textos da ficha)</span><span><b>Entregável:</b> app aprovada</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 6. Distribuição não listada e lançamento</h3><span class="quando">Semana 8</span></header>
+  <p class="obj">Pôr a app nas mãos dos clientes e montar a rotina de manutenção.</p>
+  <ul>
+    <li><b>Pedido de distribuição não listada:</b> segundo a Apple, só se pede com a app pronta e submetida à revisão, nunca em beta, e indica-se essa intenção nas notas da revisão. Depois de aprovada, a regra aplica-se às versões seguintes.</li>
+    <li><b>Integração no onboarding:</b> o email de convite passa a ter o link da App Store e o link de convite que abre a app. A página <code>/instalar</code> passa a mandar o iPhone para a loja e o Android para a PWA, até haver Play Store.</li>
+    <li><b>Rotina:</b> correções web saem quando for preciso, pela Vercel. A versão nativa sai só quando houver funções nativas novas, no máximo uma vez por mês. Testar com a beta do novo iOS (julho e agosto) antes de cada lançamento de setembro.</li>
+    <li><b>Renovação anual automática</b> da conta Apple, paga com cartão da empresa. Se a conta caducar, a app sai da loja.</li>
+  </ul>
+  <div class="rodape-fase"><span><b>Quem:</b> Pedro e Miguel</span><span><b>Entregável:</b> primeiros clientes a instalar pela loja</span></div>
+</div>
+
+<div class="fase">
+  <header><h3>Fase 7 (opcional). Android na Google Play</h3><span class="quando">Semanas 8 e 9</span></header>
+  <p class="obj">O mesmo projeto Capacitor gera a app Android, que já tem as notificações por Firebase.</p>
+  <ul>
+    <li>Conta Google Play: 25 USD uma vez. As contas pessoais criadas desde novembro de 2023 têm de fazer um teste fechado com pelo menos 12 testadores durante 14 dias seguidos antes de publicar. Com conta de empresa, essa exigência pode não se aplicar (a confirmar na Google).</li>
+    <li>Até lá, no Android, a PWA continua a ser uma boa solução (instalação simples e notificações já funcionam no Chrome).</li>
+  </ul>
+</div>
+
+<h2>3. O que a Apple vai verificar, e como cumprimos</h2>
+<table>
+  <tr><th style="width:27%">Regra</th><th>O que pede</th><th style="width:38%">Como cumprimos</th></tr>
+  <tr><td class="rotulo">4.2 Funcionalidade mínima</td><td>Mais do que um site reembalado: funções, conteúdo e interface "de app".</td><td>Notificações, Face ID, calendário nativo, contactos, partilha, ecrã sem rede, universal links. Tudo explicado nas notas.</td></tr>
+  <tr><td class="rotulo">4.2.6 e 4.3 Apps de modelo e cópias</td><td>Não submeter uma app por cliente a partir do mesmo modelo.</td><td>Uma só app, com escolha de cliente no arranque (o modelo que a própria regra aceita).</td></tr>
+  <tr><td class="rotulo">2.1 App completa</td><td>Tudo tem de funcionar na revisão, com uma conta de teste se houver login.</td><td>Cliente "demo" sempre ligado, com dados realistas, testado antes de cada submissão.</td></tr>
+  <tr><td class="rotulo">3.1 Pagamentos</td><td>Conteúdo digital comprado dentro da app tem de usar os pagamentos da Apple.</td><td>Nada se vende dentro da app. O serviço contrata-se fora, sem preços nem links na app.</td></tr>
+  <tr><td class="rotulo">5.1.1 Privacidade</td><td>Política de privacidade com link, permissões explicadas e pedidas só quando necessárias, e apagar a conta se ela for criada na app.</td><td>Política publicada, textos de permissão em português, permissões pedidas na primeira utilização e "Apagar a minha conta" em Conta.</td></tr>
+  <tr><td class="rotulo">Ficha da loja</td><td>Etiquetas de privacidade, classificação etária, capturas de ecrã, apoio, comerciante UE e declaração de cifra.</td><td>Preparado na fase 5. Cifra: só HTTPS, isento.</td></tr>
+</table>
+<p class="nota">Os números das regras são os das App Review Guidelines publicadas pela Apple. Rever o texto atual antes de submeter, porque a Apple atualiza-o várias vezes por ano.</p>
+
+<h2>4. Custos</h2>
+<table>
+  <tr><th style="width:36%">Item</th><th style="width:28%">Valor</th><th>Nota</th></tr>
+  <tr><td class="rotulo">Apple Developer Program</td><td>cerca de 99 USD por ano</td><td>Obrigatório. Inclui TestFlight e certificados. Confirmar o valor em euros na inscrição.</td></tr>
+  <tr><td class="rotulo">Número D-U-N-S</td><td>0 EUR</td><td>Só para conta de empresa. Pede-se pela ferramenta da Apple.</td></tr>
+  <tr><td class="rotulo">Mac</td><td>0 EUR</td><td>Usamos o do Miguel. Xcode gratuito.</td></tr>
+  <tr><td class="rotulo">Supabase do cliente "demo"</td><td>cerca de 10 USD por mês</td><td>Projeto extra no plano Pro, para estar sempre ligado para a Apple e para demonstrações de venda.</td></tr>
+  <tr><td class="rotulo">Vercel Pro</td><td>cerca de 20 USD por mês</td><td>Já necessário para uso comercial. Com um só deploy, deixa de haver um projeto Vercel por cliente.</td></tr>
+  <tr><td class="rotulo">Firebase (notificações)</td><td>0 EUR</td><td>Gratuito para este volume.</td></tr>
+  <tr><td class="rotulo">Google Play (opcional)</td><td>25 USD, uma vez</td><td>Só na fase 7.</td></tr>
+</table>
+<p class="nota">Valores de memória ou estimativas, a confirmar nas páginas oficiais antes de pagar. Não incluem o nosso tempo.</p>
+
+<h2>5. Riscos e como os reduzimos</h2>
+<table>
+  <tr><th style="width:30%">Risco</th><th style="width:12%">Peso</th><th>O que fazemos</th></tr>
+  <tr><td class="rotulo">A Apple rejeita por "site embrulhado" (4.2)</td><td><span class="pilula p-med">Médio</span></td><td>Funções nativas reais, notas claras para o revisor e um vídeo. Se for rejeitada, responder com onde está cada função e acrescentar a que pedirem.</td></tr>
+  <tr><td class="rotulo">Atraso no D-U-N-S ou na verificação da empresa</td><td><span class="pilula p-med">Médio</span></td><td>Começar esta semana. As fases 1 e 2 avançam sem a conta. Em último caso, conta em nome do Pedro, transferindo a app para a empresa mais tarde (confirmar condições).</td></tr>
+  <tr><td class="rotulo">Política de privacidade parada à espera do RGPD</td><td><span class="pilula p-alto">Alto</span></td><td>É o único bloqueio sem alternativa: sem link não há submissão. Fechar o texto com quem trata do RGPD em paralelo com a fase 1.</td></tr>
+  <tr><td class="rotulo">A conta demo falha durante a revisão</td><td><span class="pilula p-med">Médio</span></td><td>Supabase próprio no plano Pro (não pausa), verificado com um script antes de cada submissão.</td></tr>
+  <tr><td class="rotulo">Pedido de não listada recusado</td><td><span class="pilula p-ok">Baixo</span></td><td>A app fica pública com login obrigatório. Quem a encontrar sem ser cliente só vê o ecrã de entrada.</td></tr>
+  <tr><td class="rotulo">Site em baixo = app em baixo</td><td><span class="pilula p-ok">Baixo</span></td><td>Ecrã sem rede embutido, com a lista do dia. A Vercel tem histórico de disponibilidade alto.</td></tr>
+  <tr><td class="rotulo">Só um Mac, e sem experiência em iOS</td><td><span class="pilula p-med">Médio</span></td><td>Cada versão nativa depende do Miguel estar disponível. Fixar um dia por semana para compilar e enviar. O Capacitor gera o projeto; o Xcode serve sobretudo para assinar, enviar e depurar. Se o Mac do Miguel não correr o Xcode atual, usar compilação na nuvem.</td></tr>
+  <tr><td class="rotulo">Novo iOS em setembro parte algo</td><td><span class="pilula p-ok">Baixo</span></td><td>Testar na beta do iOS em julho e agosto. As correções web saem sem revisão.</td></tr>
+  <tr><td class="rotulo">Esquecer a renovação anual</td><td><span class="pilula p-ok">Baixo</span></td><td>Renovação automática com o cartão da empresa e lembrete no calendário.</td></tr>
+</table>
+
+<h2>6. Decisões a tomar já</h2>
+<table>
+  <tr><th style="width:36%">Decisão</th><th>Recomendação</th></tr>
+  <tr><td class="rotulo">Titular da conta Apple</td><td><b>A Ace Labs como empresa</b>, se já estiver constituída (a loja mostra "Ace Labs" e não um nome pessoal). Se não estiver, conta do Pedro agora e transferência depois.</td></tr>
+  <tr><td class="rotulo">Quem paga e com que cartão</td><td>Cartão da empresa, com renovação automática.</td></tr>
+  <tr><td class="rotulo">Mac</td><td>Decidido: o do Miguel. Falta confirmar o modelo e a versão do macOS.</td></tr>
+  <tr><td class="rotulo">Um endereço para todos (cockpit.acelabs.pt)</td><td>Sim. Mantém um Supabase por cliente e passa a ter um só deploy na Vercel.</td></tr>
+  <tr><td class="rotulo">Nome na loja</td><td>Escolher 2 ou 3 nomes e reservar o primeiro que estiver livre.</td></tr>
+  <tr><td class="rotulo">Não listada ou pública</td><td>Não listada: só os clientes a encontram, e não há avaliações de quem não é cliente.</td></tr>
+  <tr><td class="rotulo">Quais notificações e a que horas</td><td>Miguel decide, como agente. Proposta inicial na fase 3.</td></tr>
+  <tr><td class="rotulo">Android na Play Store</td><td>Depois do iPhone. Até lá, a PWA.</td></tr>
+  <tr><td class="rotulo">Política de privacidade</td><td>Definir quem a fecha e até quando. É o caminho crítico.</td></tr>
+</table>
+
+<div class="caixa verde">
+  <h3>Para arrancar esta semana</h3>
+  <ol>
+    <li>Pedro pede o D-U-N-S (ou decide conta pessoal) e inicia a inscrição na Apple.</li>
+    <li>Miguel confirma o modelo do Mac e instala o Xcode. Decidir quem fecha a política de privacidade.</li>
+    <li>Eu começo a fase 1 (escolha do cliente no arranque e cockpit.acelabs.pt), que não depende da Apple.</li>
+  </ol>
+</div>
+
+<div class="rodape">
+  <p><b>Fontes consultadas a 25/10/2026:</b> Apple, App Review Guidelines (developer.apple.com/app-store/review/guidelines); Apple, Unlisted App Distribution (developer.apple.com/support/unlisted-app-distribution); Google, requisitos de teste para contas pessoais novas (support.google.com/googleplay/android-developer/answer/14151465).</p>
+  <p>Valores, prazos de verificação e revisão são estimativas ou de memória. Confirmar nas páginas oficiais antes de decidir ou pagar. As notificações push no iPhone, o calendário nativo e os contactos dependem de permissões que o utilizador pode recusar; a app tem de continuar a funcionar sem elas.</p>
+</div>
+
+</body>
+</html>
