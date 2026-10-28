@@ -424,6 +424,255 @@
   .process a:focus-visible,.process button:focus-visible,.ck a:focus-visible,.ck button:focus-visible{outline-color:#fff;}
   .btn-dark:active,.btn-outline:active,.nav-cta:active,.go-card:active,.service-card:active{transform:scale(.985);}
   .btn-dark,.btn-outline,.nav-cta{transition:background .15s ease,transform .15s ease,border-color .15s ease,color .15s ease;}
+
+  /* ===== controlos comuns (pausar/continuar) ===== */
+  .ctl-btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:8px 16px;border-radius:980px;border:1px solid rgba(0,0,0,.14);background:#fff;color:#1d1d1f;font:600 13.5px var(--font);cursor:pointer;transition:background .15s ease,border-color .15s ease;}
+  .ctl-btn:hover{border-color:rgba(0,0,0,.32);}
+  .ctl-btn svg{width:12px;height:12px;fill:currentColor;}
+  .ctl-note{font-size:13px;color:var(--ink-2);}
+  .sc-ai span{display:inline-block;transition:opacity .3s ease,transform .3s ease;}
+  .sc-ai span.is-out{opacity:0;transform:translateY(-4px);}
+
+  /* ===== faixa: a IA a trabalhar ===== */
+  .tk{padding:30px 0 34px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;overflow:hidden;}
+  .tk-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  .tk-title{display:flex;align-items:center;gap:10px;margin:0;font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
+  .tk-title i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(31,174,90,.5);animation:tk-ping 2s ease-out infinite;}
+  @keyframes tk-ping{to{box-shadow:0 0 0 8px rgba(31,174,90,0);}}
+  .tk-side{display:flex;align-items:center;gap:14px;}
+  .tk-rows{display:flex;flex-direction:column;gap:12px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);}
+  .tk-row{display:flex;gap:12px;width:max-content;padding-left:12px;}
+  .tk.is-live .tk-row{animation:tk-move 70s linear infinite;}
+  .tk.is-live .tk-row.rev{animation-direction:reverse;animation-duration:84s;}
+  .tk.is-paused .tk-row,.tk-rows:hover .tk-row{animation-play-state:paused;}
+  @keyframes tk-move{to{transform:translateX(-50%);}}
+  .tk-chip{display:inline-flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;border-radius:14px;background:var(--gray-bg);font-size:14px;line-height:1.3;color:var(--ink);white-space:nowrap;}
+  .tk-chip b{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+  .tk-ic{width:30px;height:30px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none;}
+  .tk-ic svg{width:15px;height:15px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .tk-cpcv svg{stroke:var(--blue);} .tk-ck svg{stroke:#168a46;} .tk-pn svg{stroke:#1d1d1f;}
+  .tk-chip.is-warn{background:var(--amber-soft);}
+  .tk-chip.is-warn b{color:var(--amber-ink);}
+  @media (prefers-reduced-motion:reduce){.tk-title i{animation:none;}.tk-row{flex-wrap:wrap;width:auto;}.tk-row.rev{display:none;}.tk-pause{display:none;}}
+
+  /* ===== fluxos: a IA prepara, tu decides ===== */
+  .fl{position:relative;overflow:hidden;background:var(--night);color:#fff;padding:112px 0 100px;}
+  .fl::before{content:"";position:absolute;inset:-20% -10% auto auto;width:900px;height:700px;background:radial-gradient(closest-side,rgba(0,113,227,.28),rgba(0,113,227,0));pointer-events:none;}
+  .fl .wrap{position:relative;}
+  .fl h2{font-size:clamp(36px,5vw,64px);line-height:1.02;letter-spacing:-.045em;max-width:15ch;}
+  .fl-lead{margin-top:18px;font-size:18.5px;line-height:1.55;color:rgba(255,255,255,.7);max-width:54ch;}
+  .fl-tabs{margin-top:40px;display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:22px;background:rgba(255,255,255,.08);}
+  .fl-tab{position:relative;overflow:hidden;border:0;background:none;color:rgba(255,255,255,.74);font:600 14.5px var(--font);padding:11px 20px;border-radius:980px;cursor:pointer;transition:background .2s ease,color .2s ease;}
+  .fl-tab:hover{color:#fff;}
+  .fl-tab[aria-selected="true"]{background:#fff;color:#1d1d1f;}
+  .fl-tab i{position:absolute;left:16px;right:16px;bottom:5px;height:2px;border-radius:2px;background:var(--blue);transform-origin:left;transform:scaleX(0);opacity:0;transition:transform .9s cubic-bezier(.2,.8,.2,1);}
+  .fl-tab[aria-selected="true"] i{opacity:1;transform:scaleX(var(--tp,0));}
+  .fl-board{margin-top:22px;border-radius:30px;padding:40px 36px 30px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);}
+  .fl-pipe{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;margin:0;padding:0;}
+  .fl-line{position:absolute;left:10%;right:10%;top:29px;height:2px;border-radius:2px;background:rgba(255,255,255,.12);}
+  .fl-line b{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,#0071e3,#4aa3ff);transform-origin:left;transform:scaleX(var(--p,0));transition:transform .9s cubic-bezier(.2,.8,.2,1);}
+  .fl-line i{position:absolute;top:50%;left:calc(var(--p,0) * 100%);width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.14);transition:left .9s cubic-bezier(.2,.8,.2,1);}
+  .fl-node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;padding:0 4px;border:0;background:none;color:inherit;font:inherit;text-align:center;cursor:pointer;}
+  .fl-dot{width:60px;height:60px;border-radius:19px;display:flex;align-items:center;justify-content:center;background:#0f2232;border:1px solid rgba(255,255,255,.14);transition:background .35s ease,border-color .35s ease,transform .35s cubic-bezier(.3,1.5,.5,1);}
+  .fl-dot svg{width:25px;height:25px;fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .35s ease;}
+  .fl-node.is-done .fl-dot{background:#0071e3;border-color:#0071e3;}
+  .fl-node.is-done .fl-dot svg{stroke:#fff;}
+  .fl-node.is-on .fl-dot{background:#fff;border-color:#fff;transform:scale(1.08);animation:fl-ring 1.8s ease-out infinite;}
+  .fl-node.is-on .fl-dot svg{stroke:#0071e3;}
+  @keyframes fl-ring{0%{box-shadow:0 0 0 0 rgba(255,255,255,.45);}100%{box-shadow:0 0 0 16px rgba(255,255,255,0);}}
+  .fl-name{font-size:15.5px;font-weight:600;letter-spacing:-.01em;color:rgba(255,255,255,.62);transition:color .3s ease;}
+  .fl-node.is-on .fl-name,.fl-node.is-done .fl-name{color:#fff;}
+  .fl-who{font-size:12px;font-weight:600;padding:3px 9px;border-radius:7px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.78);}
+  .fl-who.ia{background:rgba(0,113,227,.3);color:#b5d8ff;}
+  .fl-who.tu{background:rgba(31,174,90,.24);color:#8fe6b2;}
+  .fl-desc{margin:30px auto 0;max-width:60ch;min-height:3.1em;text-align:center;font-size:17.5px;line-height:1.55;color:rgba(255,255,255,.88);}
+  .fl-desc.is-swap{animation:fl-in .45s ease both;}
+  .fl-panes{margin-top:26px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;align-items:stretch;}
+  .fl-log{position:relative;display:flex;flex-direction:column;border-radius:22px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);padding:20px 22px;height:296px;}
+  .fl-log-t{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);}
+  .fl-log-t i{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:tk-ping 2s ease-out infinite;}
+  .fl-log ol{flex:1;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:flex-end;gap:11px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,transparent,#000 30%);mask-image:linear-gradient(180deg,transparent,#000 30%);}
+  .fl-log li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start;font-size:14.5px;line-height:1.45;color:rgba(255,255,255,.9);}
+  .fl-log li.is-new{animation:fl-in .5s ease both;}
+  .fl-log li u{text-decoration:none;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-top:-1px;background:rgba(255,255,255,.1);}
+  .fl-log li u svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+  .fl-log li.k-ia u{background:rgba(0,113,227,.45);}
+  .fl-log li.k-ok u{background:rgba(31,174,90,.55);}
+  .fl-log li.k-warn u{background:rgba(255,159,10,.4);}
+  .fl-log li.k-tu u{background:rgba(255,255,255,.18);}
+  .fl-log li small{display:block;font-size:12.5px;color:rgba(255,255,255,.5);}
+  @keyframes fl-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .fl-card{border-radius:22px;background:#fff;color:#1d1d1f;padding:22px 22px 14px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);}
+  .fl-card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .fl-card-k{font-size:12.5px;font-weight:600;color:#6e6e73;}
+  .fl-state{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;background:var(--amber-soft);color:var(--amber-ink);transition:background .3s ease,color .3s ease;}
+  .fl-state.ok{background:var(--green-soft);color:#13703a;}
+  .fl-state.info{background:var(--blue-soft-bg);color:#0059b3;}
+  .fl-card h3{margin:6px 0 10px;font-size:19px;letter-spacing:-.015em;}
+  .fl-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07);font-size:14px;}
+  .fl-row span{color:#6e6e73;flex:none;}
+  .fl-row b{font-weight:600;text-align:right;min-width:0;border-radius:6px;padding:1px 4px;margin-right:-4px;}
+  .fl-row b:empty{display:block;width:44%;height:12px;background:linear-gradient(90deg,#eef0f3 0%,#f6f7f9 50%,#eef0f3 100%);background-size:200% 100%;animation:fl-skel 1.4s linear infinite;}
+  .fl-row.is-fill b{animation:fl-flash 1.2s ease;}
+  @keyframes fl-skel{to{background-position:-200% 0;}}
+  @keyframes fl-flash{0%{background:#cfe4fb;}100%{background:transparent;}}
+  .fl-ctrl{margin-top:22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .fl .ctl-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;}
+  .fl .ctl-btn:hover{border-color:rgba(255,255,255,.4);}
+  .fl .ctl-note{color:rgba(255,255,255,.55);}
+  .fl-rule{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:rgba(255,255,255,.8);}
+  .fl-rule svg{width:18px;height:18px;flex:none;fill:none;stroke:#8fe6b2;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .fl a:focus-visible,.fl button:focus-visible{outline-color:#fff;}
+  @media (max-width:900px){
+    .fl{padding:84px 0 76px;}
+    .fl-board{padding:28px 16px 22px;border-radius:24px;}
+    .fl-panes{grid-template-columns:1fr;}
+    .fl-log{height:250px;}
+    .fl-dot{width:48px;height:48px;border-radius:15px;}
+    .fl-dot svg{width:21px;height:21px;}
+    .fl-line{top:23px;}
+    .fl-name{font-size:13px;}
+    .fl-who{display:none;}
+    .fl-desc{font-size:16px;margin-top:22px;}
+  }
+  @media (max-width:520px){.fl-tabs{display:flex;width:100%;}.fl-tab{flex:1 1 auto;padding:10px 8px;font-size:13.5px;}.fl-tab i{left:10px;right:10px;}}
+  @media (max-width:420px){.fl-dot{width:42px;height:42px;}.fl-line{top:20px;}}
+  @media (prefers-reduced-motion:reduce){.fl-line b,.fl-line i,.fl-dot,.fl-tab i{transition:none;}.fl-node.is-on .fl-dot,.fl-log-t i,.fl-row b:empty{animation:none;}.fl-log li.is-new,.fl-desc.is-swap,.fl-row.is-fill b{animation:none;}}
+
+  /* ===== produtos: o que inclui ===== */
+  .go-pts{list-style:none;margin:2px 0 4px;padding:0;display:flex;flex-direction:column;gap:7px;align-self:stretch;}
+  .go-pts li{display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.45;color:#1d1d1f;}
+  .go-pts li::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;background:#eaf2fd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230071e3' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/10px no-repeat;}
+  .go-card p.go-desc{flex:0 0 auto;}
+  .go-card .go-more{margin-top:auto;padding-top:6px;}
+
+  /* ===== um dia com a IA ao lado ===== */
+  .dy{padding:120px 0 110px;background:var(--gray-bg);}
+  .dy h2{font-size:clamp(34px,4.6vw,58px);line-height:1.03;letter-spacing:-.04em;max-width:17ch;}
+  .dy-lead{margin-top:16px;font-size:18px;line-height:1.55;color:var(--ink-2);max-width:52ch;}
+  .dy-grid{margin-top:56px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:64px;}
+  .dy-clock{position:sticky;top:110px;align-self:start;}
+  .dy-time{display:block;font-size:clamp(84px,11vw,156px);font-weight:700;line-height:.86;letter-spacing:-.065em;font-variant-numeric:tabular-nums;color:#0e0e10;}
+  .dy-time.is-swap{animation:dy-roll .5s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes dy-roll{from{opacity:.15;transform:translateY(14px);filter:blur(4px);}to{opacity:1;transform:none;filter:none;}}
+  .dy-day{margin-top:26px;position:relative;height:4px;border-radius:4px;background:rgba(0,0,0,.08);max-width:360px;}
+  .dy-day b{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--blue);width:calc(var(--d,0) * 100%);transition:width .6s cubic-bezier(.2,.8,.2,1);}
+  .dy-day i{position:absolute;top:50%;left:calc(var(--d,0) * 100%);width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;border:3px solid var(--blue);transition:left .6s cubic-bezier(.2,.8,.2,1);}
+  .dy-ends{max-width:360px;display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+  .dy-now{margin-top:22px;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#1d1d1f;}
+  .dy-list{list-style:none;margin:0;padding:0 0 0 34px;position:relative;}
+  .dy-list::before{content:"";position:absolute;left:6px;top:10px;bottom:10px;width:2px;border-radius:2px;background:rgba(0,0,0,.08);}
+  .dy-list::after{content:"";position:absolute;left:6px;top:10px;width:2px;border-radius:2px;background:var(--blue);height:calc(var(--pr,0) * (100% - 20px));}
+  .dy-item{position:relative;padding:26px 0 30px;opacity:.38;transition:opacity .45s ease;}
+  .dy-item::before{content:"";position:absolute;left:-34px;top:32px;width:14px;height:14px;border-radius:50%;background:#f5f5f7;border:2px solid rgba(0,0,0,.18);transition:background .3s ease,border-color .3s ease,transform .3s ease;}
+  .dy-item.is-past{opacity:.62;}
+  .dy-item.is-on{opacity:1;}
+  .dy-item.is-on::before,.dy-item.is-past::before{background:var(--blue);border-color:var(--blue);}
+  .dy-item.is-on::before{transform:scale(1.25);box-shadow:0 0 0 6px rgba(0,113,227,.15);}
+  .dy-meta{display:flex;align-items:center;gap:10px;}
+  .dy-meta time{font-size:14px;font-weight:600;color:var(--blue);font-variant-numeric:tabular-nums;}
+  .dy-tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:7px;background:#fff;color:#55555a;border:1px solid rgba(0,0,0,.07);}
+  .dy-item h3{margin-top:8px;font-size:22px;line-height:1.25;letter-spacing:-.02em;}
+  .dy-item > p{margin-top:8px;font-size:16px;line-height:1.55;color:var(--ink-2);max-width:50ch;}
+  .dy-m{margin-top:18px;max-width:430px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:18px;padding:14px 16px;box-shadow:0 18px 36px -28px rgba(20,30,50,.4);}
+  .dy-m > *{opacity:0;transform:translateY(6px);transition:opacity .45s ease,transform .45s ease;transition-delay:calc(var(--k,0) * .35s + .15s);}
+  .dy-item.is-on .dy-m > *,.dy-item.is-past .dy-m > *{opacity:1;transform:none;}
+  .dy-m{transition:background .4s ease,box-shadow .4s ease,border-color .4s ease;}
+  .dy-item:not(.is-on):not(.is-past) .dy-m{background:transparent;box-shadow:none;border:1.5px dashed rgba(0,0,0,.14);}
+  .dy-m-row{display:flex;align-items:center;gap:12px;font-size:14px;}
+  .dy-m-row + .dy-m-row{margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.06);}
+  .dy-m-row strong{font-weight:600;}
+  .dy-m-row small{display:block;font-size:12.5px;color:var(--ink-2);margin-top:1px;}
+  .dy-m-row .grow{flex:1;min-width:0;}
+  .dy-ic{width:34px;height:34px;border-radius:11px;background:var(--blue-soft-bg);display:flex;align-items:center;justify-content:center;flex:none;}
+  .dy-ic svg{width:17px;height:17px;fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .dy-ic.amber{background:var(--amber-soft);} .dy-ic.amber svg{stroke:var(--amber-ink);}
+  .dy-ic.green{background:var(--green-soft);} .dy-ic.green svg{stroke:#168a46;}
+  .dy-ic.gray{background:#f0f0f2;} .dy-ic.gray svg{stroke:#6e6e73;}
+  .dy-call{width:40px;height:40px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex:none;}
+  .dy-call svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .dy-item.is-on .dy-call{animation:dy-pulse 1.8s ease-out infinite;}
+  @keyframes dy-pulse{0%{box-shadow:0 0 0 0 rgba(31,174,90,.45);}100%{box-shadow:0 0 0 12px rgba(31,174,90,0);}}
+  .dy-av{display:flex;}
+  .dy-av i{width:28px;height:28px;border-radius:50%;border:2px solid #fff;margin-left:-5px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;letter-spacing:-.02em;font-weight:700;color:#fff;background:#0059b3;}
+  .dy-av i:nth-child(2){background:#1fae5a;} .dy-av i:nth-child(3){background:#1d1d1f;}
+  .dy-av i:first-child{margin-left:0;}
+  .dy-swap{position:relative;display:inline-grid;margin-top:12px;}
+  .dy-swap > span{grid-area:1/1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:980px;font-size:13.5px;font-weight:600;transition:opacity .35s ease,transform .35s ease;}
+  .dy-swap .a{background:var(--green);color:#fff;}
+  .dy-swap .b{background:var(--green-soft);color:#13703a;opacity:0;transform:scale(.92);}
+  .dy-swap svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+  .dy-item.is-on .dy-swap .a,.dy-item.is-past .dy-swap .a{animation:dy-press 3.2s ease forwards;}
+  .dy-item.is-on .dy-swap .b,.dy-item.is-past .dy-swap .b{animation:dy-done 3.2s ease forwards;}
+  @keyframes dy-press{0%,40%{opacity:1;transform:none;}46%{transform:scale(.94);}56%,100%{opacity:0;transform:scale(.94);}}
+  @keyframes dy-done{0%,52%{opacity:0;transform:scale(.92);}64%,100%{opacity:1;transform:none;}}
+  .dy-bar{display:block;height:5px;border-radius:5px;background:#eef0f3;margin-top:7px;overflow:hidden;}
+  .dy-bar b{display:block;height:100%;width:100%;border-radius:5px;background:var(--blue);transform-origin:left;transform:scaleX(0);}
+  .dy-item.is-on .dy-bar b,.dy-item.is-past .dy-bar b{transform:scaleX(1);transition:transform 1.3s cubic-bezier(.4,0,.2,1);transition-delay:calc(var(--k,0) * .35s + .3s);}
+  .dy-ok{font-size:12px;font-weight:600;padding:4px 9px;border-radius:7px;background:var(--green-soft);color:#13703a;white-space:nowrap;opacity:0;transform:scale(.8);transition:opacity .3s ease,transform .3s cubic-bezier(.3,1.6,.5,1);transition-delay:calc(var(--k,0) * .35s + 1.6s);}
+  .dy-item.is-on .dy-ok,.dy-item.is-past .dy-ok{opacity:1;transform:none;}
+  .dy-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .dy-chips span{font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:9px;background:#f0f0f2;color:#1d1d1f;}
+  .dy-chips span.blue{background:var(--blue-soft-bg);color:#0059b3;}
+  .dy-off{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#55555a;background:#f0f0f2;padding:5px 10px;border-radius:8px;}
+  .dy-off svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .dy-sum{font-size:15px;line-height:1.5;color:#1d1d1f;}
+  .dy-sum strong{font-weight:600;}
+  .dy-note{margin-top:30px;font-size:13px;color:var(--ink-2);}
+  @media (max-width:900px){
+    .dy{padding:84px 0 76px;}
+    .dy-grid{grid-template-columns:1fr;gap:8px;margin-top:36px;}
+    .dy-clock{position:sticky;top:0;z-index:3;margin:0 -24px;padding:14px 24px 14px;background:rgba(245,245,247,.97);border-bottom:1px solid rgba(0,0,0,.06);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);display:flex;align-items:center;gap:16px;}
+    .dy-time{font-size:44px;letter-spacing:-.05em;}
+    .dy-day{flex:1;margin-top:0;}
+    .dy-ends,.dy-now{display:none;}
+    .dy-item h3{font-size:20px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .dy-item{opacity:1;transition:none;}
+    .dy-m > *{opacity:1;transform:none;transition:none;}
+    .dy-time.is-swap,.dy-item.is-on .dy-call{animation:none;}
+    .dy-swap .a{display:none;} .dy-swap .b{opacity:1;transform:none;animation:none!important;}
+    .dy-bar b{transform:scaleX(1);transition:none!important;}
+    .dy-ok{opacity:1;transform:none;transition:none;}
+    .dy-day b,.dy-day i{transition:none;}
+  }
+
+  /* ===== novidades ===== */
+  .nv{padding:112px 0 104px;}
+  .nv h2{font-size:clamp(34px,4.6vw,58px);line-height:1.03;letter-spacing:-.04em;max-width:16ch;}
+  .nv-lead{margin-top:16px;font-size:18px;line-height:1.55;color:var(--ink-2);max-width:54ch;}
+  .nv-filter{margin-top:34px;display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:22px;background:var(--gray-bg);}
+  .nv-filter button{border:0;background:none;font:600 14px var(--font);color:#55555a;padding:10px 18px;border-radius:980px;cursor:pointer;transition:background .2s ease,color .2s ease,box-shadow .2s ease;}
+  .nv-filter button:hover{color:#1d1d1f;}
+  .nv-filter button[aria-pressed="true"]{background:#fff;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .nv-filter button span{font-weight:500;color:#6e6e73;margin-left:4px;font-variant-numeric:tabular-nums;}
+  .nv-list{list-style:none;margin:40px 0 0;padding:0;position:relative;}
+  .nv-day{display:grid;grid-template-columns:150px minmax(0,1fr);gap:28px;position:relative;}
+  .nv-day + .nv-day{margin-top:8px;}
+  .nv-day > time{position:relative;padding-top:20px;font-size:22px;font-weight:700;letter-spacing:-.02em;color:#1d1d1f;font-variant-numeric:tabular-nums;}
+  .nv-day > time small{display:block;margin-top:2px;font-size:13px;font-weight:500;letter-spacing:0;color:var(--ink-2);}
+  .nv-day > ul{list-style:none;margin:0;padding:0;border-top:2px solid #1d1d1f;}
+  .nv-it{display:grid;grid-template-columns:118px minmax(0,1fr);gap:18px;padding:18px 0 20px;border-bottom:1px solid var(--line);}
+  .nv-it[hidden]{display:none;}
+  .nv-tag{align-self:start;justify-self:start;margin-top:2px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+  .nv-tag.cpcv{background:var(--blue-soft-bg);color:#0059b3;}
+  .nv-tag.ck{background:var(--green-soft);color:#13703a;}
+  .nv-it h3{font-size:17px;letter-spacing:-.012em;line-height:1.35;}
+  .nv-it p{margin-top:4px;font-size:15px;line-height:1.55;color:var(--ink-2);max-width:62ch;}
+  .nv-it.is-new{animation:fl-in .45s ease both;}
+  .nv-more{margin-top:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .nv-day.is-empty{display:none;}
+  .nv-day.is-folded{display:none;}
+  @media (max-width:760px){
+    .nv{padding:80px 0 72px;}
+    .nv-day{grid-template-columns:1fr;gap:6px;}
+    .nv-day > time{padding-top:18px;font-size:18px;}
+    .nv-day > time small{display:inline;margin-left:8px;}
+    .nv-it{grid-template-columns:1fr;gap:8px;}
+  }
+  @media (max-width:520px){.nv-filter{display:flex;width:100%;}.nv-filter button{flex:1 1 auto;padding:10px 8px;font-size:13.5px;}}
+  @media (prefers-reduced-motion:reduce){.nv-it.is-new{animation:none;}}
 </style>
 </head>
 <body>
@@ -547,12 +796,42 @@
         <span><strong>CPCV pronto</strong><small>PDF e Word</small></span>
       </div></div>
 
-      <div class="sc-ai"><i></i>IA a extrair dados</div>
+      <div class="sc-ai"><i></i><span>IA a extrair dados</span></div>
     </div>
   </div>
 </div>
     </div>
   </header>
+
+  <section class="tk" id="tk" aria-labelledby="tk-title">
+    <div class="wrap tk-head">
+      <h2 class="tk-title" id="tk-title"><i aria-hidden="true"></i>O que a IA faz por ti num dia normal</h2>
+      <div class="tk-side">
+        <span class="ctl-note">Exemplos ilustrativos, com dados fictícios.</span>
+        <button type="button" class="ctl-btn tk-pause" id="tk-pause"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.6" height="9" rx="1"/><rect x="7.4" y="1.5" width="2.6" height="9" rx="1"/></svg><span>Pausar</span></button>
+      </div>
+    </div>
+    <div class="tk-rows">
+      <ul class="tk-row" role="list">
+        <li class="tk-chip"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2M14 10h4M14 13h3"/></svg></span><b>CPCV</b>Cartão de Cidadão lido, o nome confere</li>
+        <li class="tk-chip"><span class="tk-ic tk-ck"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg></span><b>Cockpit</b>T2 em Gualtar bate com 3 compradores</li>
+        <li class="tk-chip"><span class="tk-ic tk-pn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><b>Painel</b>Fatura da luz encontrada no email</li>
+        <li class="tk-chip is-warn"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span><b>CPCV</b>Falta o código postal do comprador</li>
+        <li class="tk-chip"><span class="tk-ic tk-ck"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><b>Cockpit</b>Visita amanhã às 15h, no calendário do telemóvel</li>
+        <li class="tk-chip"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.9L19 10l-5.2 2.1L12 17l-1.8-4.9L5 10l5.2-2.1z"/><path d="M19 17l.7 1.8 1.8.7-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/></svg></span><b>CPCV</b>Contrato lido de ponta a ponta pela IA</li>
+        <li class="tk-chip"><span class="tk-ic tk-pn"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><b>Painel</b>Yield líquida da carteira atualizada</li>
+      </ul>
+      <ul class="tk-row rev" role="list">
+        <li class="tk-chip"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span><b>CPCV</b>O comprador entregou 3 documentos pelo link</li>
+        <li class="tk-chip"><span class="tk-ic tk-ck"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></span><b>Cockpit</b>240 compradores importados do Excel</li>
+        <li class="tk-chip is-warn"><span class="tk-ic tk-ck"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><b>Cockpit</b>Comprador parado na fase de visita há 7 dias</li>
+        <li class="tk-chip"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><b>CPCV</b>Aprovado pela gestora, PDF e Word prontos</li>
+        <li class="tk-chip"><span class="tk-ic tk-pn"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></span><b>Painel</b>Condomínio associado à Moradia T4, Braga</li>
+        <li class="tk-chip"><span class="tk-ic tk-ck"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><b>Cockpit</b>Relatório da semana pronto para o proprietário</li>
+        <li class="tk-chip"><span class="tk-ic tk-cpcv"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2M14 10h4M14 13h3"/></svg></span><b>CPCV</b>Passaporte entregue pela página em inglês</li>
+      </ul>
+    </div>
+  </section>
 
   <section class="go" aria-labelledby="home-go">
     <div class="wrap">
@@ -564,7 +843,12 @@
           <span class="go-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg></span>
           <span class="go-tag">Para agências</span>
           <h3>CPCV com IA</h3>
-          <p>Contratos-promessa gerados a partir dos documentos, com aprovação da gestora.</p>
+          <p class="go-desc">Contratos-promessa gerados a partir dos documentos, com aprovação da gestora.</p>
+          <ul class="go-pts">
+            <li>O cliente entrega os documentos por link privado</li>
+            <li>A IA lê, preenche e pergunta o que falta</li>
+            <li>Revisão final do contrato pela IA</li>
+          </ul>
           <span class="go-more">Experimentar <span aria-hidden="true">&rarr;</span></span>
         </a>
         <a class="go-card" data-tilt href="servicos/cockpit.html#simulador">
@@ -572,7 +856,12 @@
           <span class="go-ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span>
           <span class="go-tag">Para agentes</span>
           <h3>Cockpit</h3>
-          <p>O CRM de bolso: funil, WhatsApp e chamada, agenda e alertas.</p>
+          <p class="go-desc">O CRM de bolso: funil, WhatsApp e chamada, agenda e alertas.</p>
+          <ul class="go-pts">
+            <li>Avisa quando um imóvel bate com um comprador</li>
+            <li>Importa as listas que já tens em Excel</li>
+            <li>Instala-se no telemóvel, iPhone ou Android</li>
+          </ul>
           <span class="go-more">Experimentar <span aria-hidden="true">&rarr;</span></span>
         </a>
         <a class="go-card" data-tilt href="servicos/painel-de-gestao.html">
@@ -580,7 +869,12 @@
           <span class="go-ic"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="17" y="9" width="4" height="11" rx="1"/></svg></span>
           <span class="go-tag">Para investidores</span>
           <h3>Painel de Gestão</h3>
-          <p>Os números da carteira ou da agência num só ecrã.</p>
+          <p class="go-desc">Os números da carteira ou da agência num só ecrã.</p>
+          <ul class="go-pts">
+            <li>Faturas por upload ou buscadas ao email</li>
+            <li>Yield de cada imóvel, calculada como quiseres</li>
+            <li>Parte da folha de cálculo que já usas</li>
+          </ul>
           <span class="go-more">Ver o painel <span aria-hidden="true">&rarr;</span></span>
         </a>
       </div>
@@ -588,6 +882,176 @@
         <a href="servicos/servicos-personalizados.html">Precisas de algo à medida? <span aria-hidden="true">&rarr;</span></a>
         <a href="empresa.html">Como trabalhamos <span aria-hidden="true">&rarr;</span></a>
       </p>
+    </div>
+  </section>
+
+  <section class="fl" id="fluxos" aria-labelledby="fl-title">
+    <div class="wrap">
+      <h2 id="fl-title" data-reveal>A IA prepara. Tu decides.</h2>
+      <p class="fl-lead" data-reveal style="--n:1">Em cada serviço, o trabalho repetitivo corre sozinho: ler documentos, cruzar listas, pedir o que falta. As decisões que contam ficam contigo.</p>
+      <div class="fl-tabs" role="tablist" aria-label="Escolhe um serviço" data-reveal style="--n:2">
+        <button type="button" class="fl-tab" role="tab" id="fl-t-cpcv" data-k="cpcv" aria-selected="true" aria-controls="fl-panel">CPCV com IA<i aria-hidden="true"></i></button>
+        <button type="button" class="fl-tab" role="tab" id="fl-t-ck" data-k="ck" aria-selected="false" aria-controls="fl-panel" tabindex="-1">Cockpit<i aria-hidden="true"></i></button>
+        <button type="button" class="fl-tab" role="tab" id="fl-t-pn" data-k="pn" aria-selected="false" aria-controls="fl-panel" tabindex="-1">Painel de Gestão<i aria-hidden="true"></i></button>
+      </div>
+      <div class="fl-board" id="fl-panel" role="tabpanel" aria-labelledby="fl-t-cpcv" data-reveal style="--n:3">
+        <div class="fl-pipe-w" style="position:relative">
+          <span class="fl-line" aria-hidden="true"><b></b><i></i></span>
+          <ol class="fl-pipe" aria-label="Passos"></ol>
+        </div>
+        <p class="fl-desc"></p>
+        <div class="fl-panes">
+          <div class="fl-log">
+            <p class="fl-log-t"><i aria-hidden="true"></i>Registo</p>
+            <ol></ol>
+          </div>
+          <div class="fl-card">
+            <div class="fl-card-h"><span class="fl-card-k"></span><span class="fl-state"></span></div>
+            <h3></h3>
+            <div class="fl-rows"></div>
+          </div>
+        </div>
+        <div class="fl-ctrl">
+          <p class="fl-rule"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>Nos passos que contam, quem decide é sempre uma pessoa.</p>
+          <div class="tk-side">
+            <span class="ctl-note">Exemplo ilustrativo, com dados fictícios.</span>
+            <button type="button" class="ctl-btn" id="fl-pause"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.6" height="9" rx="1"/><rect x="7.4" y="1.5" width="2.6" height="9" rx="1"/></svg><span>Pausar</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dy" id="dia" aria-labelledby="dy-title">
+    <div class="wrap">
+      <h2 id="dy-title" data-reveal>Um dia de agente, com a IA ao lado.</h2>
+      <p class="dy-lead" data-reveal style="--n:1">Do primeiro café ao relatório da noite. Desce a página e vê o dia a passar, com o Cockpit e o CPCV com IA a tratar do que é repetitivo.</p>
+      <div class="dy-grid">
+        <div class="dy-clock" aria-hidden="true">
+          <span class="dy-time" id="dy-time">08:30</span>
+          <div class="dy-day" id="dy-day"><b></b><i></i></div>
+          <div class="dy-ends"><span>08:00</span><span>20:00</span></div>
+          <p class="dy-now"><span class="dy-tag" id="dy-tag">Cockpit</span><span id="dy-what">O dia resumido numa frase</span></p>
+        </div>
+        <ol class="dy-list" id="dy-list">
+          <li class="dy-item" data-t="08:30" data-tag="Cockpit">
+            <div class="dy-meta"><time>08:30</time><span class="dy-tag">Cockpit</span></div>
+            <h3>O dia resumido numa frase.</h3>
+            <p>Abres o Cockpit e sabes logo o que te espera, com as tarefas de cada secção por ordem.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div class="dy-m-row" style="--k:0"><span class="dy-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><p class="dy-sum"><strong>Bom dia.</strong> Hoje tens 6 tarefas, 2 visitas e 1 reunião de angariação.</p></div>
+            </div>
+          </li>
+          <li class="dy-item" data-t="10:15" data-tag="Cockpit">
+            <div class="dy-meta"><time>10:15</time><span class="dy-tag">Cockpit</span></div>
+            <h3>Sem rede no prédio? Ligas na mesma.</h3>
+            <p>A lista de hoje fica guardada no telemóvel, com o botão de ligar ao cliente à mão.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div style="--k:0"><span class="dy-off"><svg viewBox="0 0 24 24"><path d="M2 2l20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2-1.5"/><path d="M12 20h.01"/></svg>Sem rede</span></div>
+              <div class="dy-m-row" style="--k:1;margin-top:10px"><span class="grow"><strong>Ana Costa</strong><small>Visita às 10:30, Rua Nova, 14</small></span><span class="dy-call"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span></div>
+            </div>
+          </li>
+          <li class="dy-item" data-t="12:40" data-tag="Cockpit">
+            <div class="dy-meta"><time>12:40</time><span class="dy-tag">Cockpit</span></div>
+            <h3>Entra uma angariação. Bate com 3 compradores.</h3>
+            <p>O Cockpit cruza a zona e o preço com quem procura casa. Envias o imóvel por WhatsApp num toque e o funil avança sozinho.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div class="dy-m-row" style="--k:0"><span class="dy-ic amber"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><span class="grow"><strong>T2, Rua Nova, 14, Gualtar</strong><small>Bate com 3 compradores</small></span><span class="dy-av"><i>RM</i><i>AC</i><i>JS</i></span></div>
+              <div style="--k:1"><span class="dy-swap"><span class="a"><svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar por WhatsApp</span><span class="b"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Enviado ao Rui Martins</span></span></div>
+            </div>
+          </li>
+          <li class="dy-item" data-t="15:00" data-tag="CPCV com IA">
+            <div class="dy-meta"><time>15:00</time><span class="dy-tag">CPCV com IA</span></div>
+            <h3>O comprador entrega os documentos pelo telemóvel.</h3>
+            <p>Recebe um link privado, larga o Cartão de Cidadão e a IA lê os dados. Ninguém transcreve nada à mão.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div class="dy-m-row" style="--k:0"><span class="dy-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2M14 10h4M14 13h3"/></svg></span><span class="grow"><strong>cc-frente.jpg</strong><span class="dy-bar"><b></b></span></span><span class="dy-ok">Lido pela IA</span></div>
+              <div class="dy-m-row" style="--k:1"><span class="dy-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h10M7 11h6"/></svg></span><span class="grow"><strong>cc-verso.jpg</strong><span class="dy-bar"><b></b></span></span><span class="dy-ok">Lido pela IA</span></div>
+            </div>
+          </li>
+          <li class="dy-item" data-t="17:30" data-tag="CPCV com IA">
+            <div class="dy-meta"><time>17:30</time><span class="dy-tag">CPCV com IA</span></div>
+            <h3>A gestora aprova. O contrato sai pronto.</h3>
+            <p>Em PDF e Word, no modelo da agência. Depois de gerado, a IA lê-o de ponta a ponta e aponta o que merece atenção.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div class="dy-m-row" style="--k:0"><span class="dy-ic green"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="grow"><strong>CPCV aprovado pela gestora</strong><small>Revisão final: sem campos em branco</small></span></div>
+              <div class="dy-chips" style="--k:1;margin-top:12px"><span class="blue">PDF</span><span class="blue">Word</span><span>Cópia no Google Drive</span></div>
+            </div>
+          </li>
+          <li class="dy-item" data-t="19:00" data-tag="Cockpit">
+            <div class="dy-meta"><time>19:00</time><span class="dy-tag">Cockpit</span></div>
+            <h3>O proprietário recebe o ponto da semana.</h3>
+            <p>O relatório junta o que foi feito pelo imóvel. Copias, mandas por WhatsApp ou guardas em PDF.</p>
+            <div class="dy-m" aria-hidden="true">
+              <div class="dy-m-row" style="--k:0"><span class="dy-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><span class="grow"><strong>Relatório da semana</strong><small>Rua das Flores, 24</small></span></div>
+              <div class="dy-chips" style="--k:1;margin-top:12px"><span>4 visitas</span><span>2 propostas</span><span>Anúncio renovado</span></div>
+              <div style="--k:2"><span class="dy-swap"><span class="a"><svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar por WhatsApp</span><span class="b"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Enviado ao proprietário</span></span></div>
+            </div>
+          </li>
+        </ol>
+      </div>
+      <p class="dy-note">Exemplo ilustrativo, com dados fictícios.</p>
+    </div>
+  </section>
+
+  <section class="nv" id="novidades" aria-labelledby="nv-title">
+    <div class="wrap">
+      <h2 id="nv-title" data-reveal>O que mudou nos serviços em outubro.</h2>
+      <p class="nv-lead" data-reveal style="--n:1">Construímos todas as semanas. Muitas destas novidades vieram do que nos pediram nas agências onde testamos.</p>
+      <div class="nv-filter" role="group" aria-label="Filtrar novidades" data-reveal style="--n:2">
+        <button type="button" data-f="all" aria-pressed="true">Tudo<span></span></button>
+        <button type="button" data-f="cpcv" aria-pressed="false">CPCV com IA<span></span></button>
+        <button type="button" data-f="ck" aria-pressed="false">Cockpit<span></span></button>
+      </div>
+      <ol class="nv-list" id="nv-list">
+        <li class="nv-day">
+          <time datetime="2026-10-25">25 out<small></small></time>
+          <ul>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Revisão final do contrato</h3><p>Depois de gerado, a IA lê o contrato de ponta a ponta e aponta campos em branco, numeração e valores que não batem com o processo.</p></div></li>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Identificação conferida duas vezes</h3><p>O nome lido no Cartão de Cidadão é comparado com a banda de leitura automática do documento. Se o ficheiro tiver mais do que uma pessoa, a IA avisa.</p></div></li>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Página de entrega em inglês</h3><p>Para clientes estrangeiros, com passaporte e título de residência.</p></div></li>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Casais e várias partes do mesmo lado</h3><p>Os casais ligam-se no formulário e o contrato numera as partes como na minuta da agência.</p></div></li>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Redação revista com uma solicitadora</h3><p>Negritos, fim de cada ponto trancado, estado civil, hipotecas e reserva, como nos contratos assinados.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Relatório A4 por períodos</h3><p>O relatório para o proprietário escolhe o período e sai pronto a imprimir.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Várias zonas por comprador, com freguesias</h3><p>Os alertas de correspondência cruzam todas as zonas que cada comprador procura.</p></div></li>
+          </ul>
+        </li>
+        <li class="nv-day">
+          <time datetime="2026-10-24">24 out<small></small></time>
+          <ul>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Enviar o imóvel por WhatsApp a partir do alerta</h3><p>Quando uma angariação bate com um comprador, envias num toque. O envio fica registado e o funil avança.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Pôr no calendário do telemóvel</h3><p>Visitas, tarefas e reuniões de angariação vão para o calendário do telemóvel, com alarme 30 minutos antes.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Relatório para o proprietário</h3><p>O que foi feito pelo imóvel, agrupado, para copiar, mandar por WhatsApp ou guardar em PDF.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Sem rede, o dia continua</h3><p>A lista de hoje e o botão de ligar ficam guardados no telemóvel, para os sítios sem sinal.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Próximos passos na ficha do comprador</h3><p>Marcar visita a um imóvel enviado, ver o que está por fazer e dar como feito, com desfazer.</p></div></li>
+          </ul>
+        </li>
+        <li class="nv-day">
+          <time datetime="2026-10-23">23 out<small></small></time>
+          <ul>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Importar do Excel</h3><p>Compradores, proprietários e angariações entram a partir de Excel ou CSV, com validação e duplicados assinalados.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Dashboard com metas</h3><p>Anéis de metas, faturação contra o objetivo, comissões previstas e funis com taxa de passagem e tempo parado.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Gestos no telemóvel</h3><p>Deslizar uma tarefa para a dar como feita ou adiar, puxar para atualizar e um botão + com ações rápidas.</p></div></li>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Registo de chamadas</h3><p>Ligar com um gesto regista a chamada, e cada comprador mostra quando foi o último contacto.</p></div></li>
+          </ul>
+        </li>
+        <li class="nv-day">
+          <time datetime="2026-10-20">20 out<small></small></time>
+          <ul>
+            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Nova versão do Cockpit</h3><p>CRM de compradores e proprietários, angariações, calendário e dashboard, numa app que se instala no telemóvel.</p></div></li>
+          </ul>
+        </li>
+        <li class="nv-day">
+          <time datetime="2026-10-19">19 out<small></small></time>
+          <ul>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Documentos entregues pelo cliente</h3><p>Um link privado por comprador ou vendedor, válido 14 dias e revogável. O cliente não cria conta e o agente aceita ou rejeita cada ficheiro.</p></div></li>
+            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Contrato testado em 11 cenários</h3><p>Cada alteração é verificada em PDF e Word, de pessoas singulares a empresas com representante, com e sem hipoteca.</p></div></li>
+          </ul>
+        </li>
+      </ol>
+      <div class="nv-more">
+        <button type="button" class="ctl-btn" id="nv-more" aria-expanded="false" aria-controls="nv-list">Ver mais novidades</button>
+      </div>
     </div>
   </section>
 
@@ -630,6 +1094,7 @@
           <p class="footer-col-title">Produtos</p>
           <a href="servicos/cpcv-ia.html">CPCV com IA</a>
           <a href="servicos/cockpit.html">Cockpit</a>
+          <a href="servicos/painel-de-gestao.html">Painel de Gestão</a>
         </div>
         <div class="footer-col">
           <p class="footer-col-title">Empresa</p>
@@ -742,6 +1207,307 @@
     document.addEventListener('click', function(e){ if(!mobile.contains(e.target)) setOpen(false); });
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setOpen(false); });
     window.addEventListener('resize', function(){ if(window.innerWidth > 640) setOpen(false); });
+  })();
+</script>
+<script>
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var PAUSE = '<rect x="2" y="1.5" width="2.6" height="9" rx="1"/><rect x="7.4" y="1.5" width="2.6" height="9" rx="1"/>';
+    var PLAY = '<path d="M3 1.5v9l7.5-4.5z"/>';
+    function setBtn(b, paused){
+      b.querySelector('span').textContent = paused ? 'Continuar' : 'Pausar';
+      b.querySelector('svg').innerHTML = paused ? PLAY : PAUSE;
+    }
+
+    /* rotulo da cena 3D: o que a IA esta a fazer */
+    (function(){
+      var s = document.querySelector('.sc-ai span');
+      if(!s || reduce) return;
+      var t = ['IA a extrair dados', 'IA a rever o contrato', 'IA a ler o Cartão de Cidadão', 'IA a pedir o que falta'], i = 0;
+      setInterval(function(){
+        if(document.hidden) return;
+        s.classList.add('is-out');
+        setTimeout(function(){ i = (i + 1) % t.length; s.textContent = t[i]; s.classList.remove('is-out'); }, 300);
+      }, 3200);
+    })();
+
+    /* faixa de eventos */
+    (function(){
+      var tk = document.getElementById('tk');
+      if(!tk || reduce) return;
+      tk.querySelectorAll('.tk-row').forEach(function(r){
+        Array.prototype.slice.call(r.children).forEach(function(c){
+          var k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); r.appendChild(k);
+        });
+      });
+      tk.classList.add('is-live');
+      var b = document.getElementById('tk-pause');
+      b.addEventListener('click', function(){ setBtn(b, tk.classList.toggle('is-paused')); });
+    })();
+
+    /* fluxos: a IA prepara, tu decides */
+    (function(){
+      var root = document.getElementById('fluxos');
+      if(!root) return;
+      var I = {
+        doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+        docok:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/>',
+        spark:'<path d="M12 3l1.8 4.9L19 10l-5.2 2.1L12 17l-1.8-4.9L5 10l5.2-2.1z"/><path d="M19 17l.7 1.8 1.8.7-1.8.7L19 22l-.7-1.8-1.8-.7 1.8-.7z"/>',
+        chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+        ucheck:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a7 7 0 0 1 14 0v1"/><path d="M16 11l2 2 4-4"/>',
+        uplus:'<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a7 7 0 0 1 11-5.7"/><path d="M19 14v6M16 17h6"/>',
+        match:'<path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>',
+        bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+        send:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+        list:'<path d="M10 6h11M10 12h11M10 18h11"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>',
+        table:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/>',
+        mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+        link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+        calc:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+        chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+        check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+        warn:'<path d="M12 9v4M12 16.5h.01"/><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>'
+      };
+      var F = {
+        cpcv:{
+          k:'Processo CPCV', h:'Rua das Flores, 24',
+          st:[['Em preenchimento',''],['Em preenchimento',''],['Em preenchimento',''],['Aprovado','ok'],['Contrato gerado','ok']],
+          rows:[['Comprador','Ana Costa',1],['NIF','●●●●●●223',1],['Imóvel','Artigo 4821, Braga',1],['Preço','240 000 €',1],['Escritura','15 de dezembro',2],['Documento','PDF e Word',4]],
+          s:[
+            {n:'Entra', w:'Agente ou cliente', c:'tu', i:'doc', d:'Os documentos entram no processo: o agente larga-os, ou o cliente entrega-os por um link privado.',
+              l:[['tu','doc','Link do comprador: 3 ficheiros recebidos','Cartão de Cidadão e certidão permanente'],['tu','doc','O agente juntou a caderneta predial']]},
+            {n:'Lê', w:'IA', c:'ia', i:'spark', d:'A IA lê o Cartão de Cidadão, a caderneta e a certidão, e preenche os dados do processo.',
+              l:[['ia','spark','Cartão de Cidadão lido: Ana Costa','O nome confere com a banda de leitura do documento'],['ia','spark','Caderneta predial: artigo 4821, Braga'],['ia','spark','Preço e sinal encontrados na conversa']]},
+            {n:'Pergunta', w:'IA', c:'ia', i:'chat', d:'Pergunta só o que não encontrou, na conversa do processo. O resto já está preenchido.',
+              l:[['warn','chat','Falta a data da escritura. Perguntei ao agente.'],['tu','chat','Agente: 15 de dezembro']]},
+            {n:'Decides', w:'Gestora', c:'tu', i:'ucheck', d:'A gestora vê os avisos e aprova, ou pede alterações. A IA sugere, nunca aprova.',
+              l:[['warn','warn','Aviso para a gestora: hipoteca por confirmar'],['ok','ucheck','Aprovado pela gestora']]},
+            {n:'Pronto', w:'Plataforma', c:'', i:'docok', d:'O CPCV sai em PDF e Word, no modelo da agência, e a IA lê-o de ponta a ponta.',
+              l:[['ok','docok','CPCV gerado em PDF e Word'],['ia','spark','Revisão final: sem campos em branco','Valores e datas conferidos com o processo']]}
+          ]},
+        ck:{
+          k:'Comprador', h:'Rui Martins',
+          st:[['Lead',''],['Lead',''],['Alerta','info'],['Imóveis enviados','ok'],['Imóveis enviados','ok']],
+          rows:[['Procura','T2 em Gualtar',0],['Até','220 000 €',0],['Correspondências','3 imóveis',1],['Enviado','T2, Rua Nova, 14',3],['Próximo passo','Marcar visita',4]],
+          s:[
+            {n:'Entra', w:'Tu ou Excel', c:'tu', i:'uplus', d:'Um lead novo entra no Cockpit, ou chega a lista inteira de compradores importada do Excel.',
+              l:[['tu','uplus','Novo comprador: Rui Martins','Procura T2 em Gualtar, até 220 000 €'],['tu','table','Lista importada: 240 compradores','3 duplicados assinalados para rever']]},
+            {n:'Cruza', w:'Automático', c:'', i:'match', d:'O Cockpit cruza o que cada comprador procura com as angariações da mesma zona e preço.',
+              l:[['auto','doc','Angariação nova: T2, Rua Nova, 14, Gualtar'],['auto','match','Bate com 3 compradores, entre eles o Rui Martins']]},
+            {n:'Avisa', w:'Automático', c:'', i:'bell', d:'O alerta aparece no Dashboard, com o comprador e o imóvel lado a lado.',
+              l:[['warn','bell','Alerta no Dashboard: imóvel compatível com o Rui Martins']]},
+            {n:'Decides', w:'Agente', c:'tu', i:'send', d:'Decides tu: envias o imóvel por WhatsApp num toque, ou deixas passar.',
+              l:[['tu','send','Imóvel enviado por WhatsApp ao Rui Martins']]},
+            {n:'Registado', w:'Automático', c:'', i:'list', d:'O envio fica registado, o funil avança e a ficha mostra o próximo passo.',
+              l:[['ok','check','Funil: Imóveis enviados'],['ok','check','Próximo passo na ficha: marcar visita']]}
+          ]},
+        pn:{
+          k:'Imóvel', h:'Apartamento T2, Porto',
+          st:[['Fatura nova',''],['Associada','info'],['Associada','info'],['1 por rever',''],['Tudo associado','ok']],
+          rows:[['Fatura','Eletricidade, 64,20 €',0],['Origem','Email',0],['Despesas do mês','212,40 €',2],['Yield líquida','5,8%',2],['Contabilista','Pronto a enviar',4]],
+          s:[
+            {n:'Chega', w:'Agente de email', c:'ia', i:'mail', d:'Um agente vai buscar a fatura ao teu email, ou carregas tu o ficheiro.',
+              l:[['ia','mail','Fatura da eletricidade encontrada no email']]},
+            {n:'Associa', w:'Automático', c:'', i:'link', d:'A fatura fica associada ao imóvel certo, com o valor e a data.',
+              l:[['auto','link','Associada ao Apartamento T2, Porto']]},
+            {n:'Recalcula', w:'Automático', c:'', i:'calc', d:'Rendas, despesas e yields recalculam sozinhos sempre que algo muda.',
+              l:[['auto','calc','Despesas de outubro: 212,40 €'],['auto','chart','Yield do imóvel recalculada']]},
+            {n:'Confirmas', w:'Tu', c:'tu', i:'ucheck', d:'O que ficou em dúvida espera por ti, num só sítio.',
+              l:[['warn','warn','1 fatura por associar: seguro sem morada'],['tu','ucheck','Associaste o seguro à Loja, Guimarães']]},
+            {n:'Pronto', w:'Automático', c:'', i:'chart', d:'Yield de cada imóvel e da carteira, calculada como preferires, e tudo pronto para o contabilista.',
+              l:[['ok','chart','Yield líquida da carteira: 5,1%'],['ok','check','Tudo associado. Pronto para o contabilista.']]}
+          ]}
+      };
+      var KEYS = Object.keys(F), STEP = 3000, HOLD = 4200;
+      var tabs = Array.prototype.slice.call(root.querySelectorAll('.fl-tab'));
+      var panel = document.getElementById('fl-panel');
+      var pipe = root.querySelector('.fl-pipe'), line = root.querySelector('.fl-line');
+      var desc = root.querySelector('.fl-desc'), log = root.querySelector('.fl-log ol');
+      var cardK = root.querySelector('.fl-card-k'), state = root.querySelector('.fl-state');
+      var cardH = root.querySelector('.fl-card h3'), rows = root.querySelector('.fl-rows');
+      var pause = document.getElementById('fl-pause');
+      var key = 'cpcv', step = -1, timer = null, playing = !reduce, vis = false;
+
+      function svg(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + I[n] + '</svg>'; }
+      function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+      function build(k){
+        key = k; step = -1;
+        var f = F[k];
+        pipe.innerHTML = f.s.map(function(s, i){
+          return '<li><button type="button" class="fl-node" data-i="' + i + '" aria-label="Passo ' + (i + 1) + ': ' + s.n + '">' +
+            '<span class="fl-dot">' + svg(s.i) + '</span><span class="fl-name">' + s.n + '</span>' +
+            '<span class="fl-who ' + s.c + '">' + s.w + '</span></button></li>';
+        }).join('');
+        cardK.textContent = f.k; cardH.textContent = f.h;
+        rows.innerHTML = f.rows.map(function(r){ return '<div class="fl-row"><span>' + r[0] + '</span><b></b></div>'; }).join('');
+        log.innerHTML = '';
+        tabs.forEach(function(t){
+          var on = t.getAttribute('data-k') === k;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+          if(!on) t.style.setProperty('--tp', 0);
+        });
+        panel.setAttribute('aria-labelledby', 'fl-t-' + k);
+      }
+      function go(i, animate){
+        var f = F[key]; step = i;
+        pipe.querySelectorAll('.fl-node').forEach(function(n, j){
+          n.classList.toggle('is-done', j < i);
+          n.classList.toggle('is-on', j === i);
+          if(j === i) n.setAttribute('aria-current', 'step'); else n.removeAttribute('aria-current');
+        });
+        line.style.setProperty('--p', (i / (f.s.length - 1)).toFixed(3));
+        root.querySelector('.fl-tab[data-k="' + key + '"]').style.setProperty('--tp', ((i + 1) / f.s.length).toFixed(3));
+        desc.textContent = f.s[i].d;
+        if(animate) restart(desc, 'is-swap');
+        var html = '';
+        for(var j = 0; j <= i; j++){
+          f.s[j].l.forEach(function(l, m){
+            var fresh = animate && j === i;
+            html += '<li class="k-' + l[0] + (fresh ? ' is-new' : '') + '"' + (fresh ? ' style="animation-delay:' + (m * 0.6).toFixed(1) + 's"' : '') + '>' +
+              '<u>' + svg(l[1]) + '</u><span>' + l[2] + (l[3] ? '<small>' + l[3] + '</small>' : '') + '</span></li>';
+          });
+        }
+        log.innerHTML = html;
+        var s = f.st[i];
+        state.textContent = s[0];
+        state.className = 'fl-state' + (s[1] ? ' ' + s[1] : '');
+        Array.prototype.forEach.call(rows.children, function(r, j){
+          var d = f.rows[j], b = r.querySelector('b'), on = d[2] <= i;
+          if(on && !b.textContent){ b.textContent = d[1]; if(animate) restart(r, 'is-fill'); }
+          else if(!on && b.textContent){ b.textContent = ''; r.classList.remove('is-fill'); }
+        });
+      }
+      function schedule(ms){
+        clearTimeout(timer); timer = null;
+        if(playing && vis) timer = setTimeout(advance, ms);
+      }
+      function advance(){
+        var f = F[key];
+        if(step < f.s.length - 1){
+          go(step + 1, true);
+          schedule(step === f.s.length - 1 ? HOLD : STEP);
+        } else {
+          build(KEYS[(KEYS.indexOf(key) + 1) % KEYS.length]);
+          go(0, true);
+          schedule(STEP);
+        }
+      }
+      function stop(){ playing = false; setBtn(pause, true); clearTimeout(timer); timer = null; }
+
+      tabs.forEach(function(t, idx){
+        t.addEventListener('click', function(){
+          build(t.getAttribute('data-k'));
+          go(reduce ? F[key].s.length - 1 : 0, !reduce);
+          schedule(STEP);
+        });
+        t.addEventListener('keydown', function(e){
+          var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if(!d) return;
+          e.preventDefault();
+          var n = tabs[(idx + d + tabs.length) % tabs.length];
+          n.focus(); n.click();
+        });
+      });
+      pipe.addEventListener('click', function(e){
+        var n = e.target.closest('.fl-node');
+        if(!n) return;
+        stop();
+        go(+n.getAttribute('data-i'), !reduce);
+      });
+      pause.addEventListener('click', function(){
+        if(playing){ stop(); return; }
+        playing = true; setBtn(pause, false); schedule(600);
+      });
+
+      build('cpcv');
+      if(reduce){ go(F.cpcv.s.length - 1, false); setBtn(pause, true); }
+      else go(0, false);
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){
+          vis = en[0].isIntersecting;
+          if(vis){ if(playing && !timer) schedule(1400); }
+          else { clearTimeout(timer); timer = null; }
+        }, { threshold: 0.35 }).observe(panel);
+      } else { vis = true; schedule(STEP); }
+    })();
+
+    /* um dia com a IA ao lado: o relogio segue o scroll */
+    (function(){
+      var list = document.getElementById('dy-list');
+      if(!list) return;
+      var items = Array.prototype.slice.call(list.querySelectorAll('.dy-item'));
+      var tEl = document.getElementById('dy-time'), day = document.getElementById('dy-day');
+      var tag = document.getElementById('dy-tag'), what = document.getElementById('dy-what');
+      var cur = -1, ticking = false;
+      function mins(t){ var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); }
+      function set(i){
+        if(i === cur) return;
+        cur = i;
+        items.forEach(function(it, j){ it.classList.toggle('is-on', j === i); it.classList.toggle('is-past', j < i); });
+        var it = items[i];
+        tEl.textContent = it.getAttribute('data-t');
+        if(!reduce){ tEl.classList.remove('is-swap'); void tEl.offsetWidth; tEl.classList.add('is-swap'); }
+        day.style.setProperty('--d', ((mins(it.getAttribute('data-t')) - 480) / 720).toFixed(3));
+        tag.textContent = it.getAttribute('data-tag');
+        what.textContent = it.querySelector('h3').textContent.replace(/\.$/, '');
+      }
+      function onScroll(){
+        ticking = false;
+        var mid = window.innerHeight * 0.55, best = 0;
+        items.forEach(function(it, j){ if(it.getBoundingClientRect().top < mid) best = j; });
+        set(best);
+        var r = list.getBoundingClientRect();
+        list.style.setProperty('--pr', Math.max(0, Math.min(1, (mid - r.top) / r.height)).toFixed(3));
+      }
+      window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+
+    /* novidades: filtro e mostrar mais */
+    (function(){
+      var list = document.getElementById('nv-list');
+      if(!list) return;
+      var btns = Array.prototype.slice.call(document.querySelectorAll('.nv-filter button'));
+      var more = document.getElementById('nv-more');
+      var its = Array.prototype.slice.call(list.querySelectorAll('.nv-it'));
+      var days = Array.prototype.slice.call(list.querySelectorAll('.nv-day'));
+      var f = 'all', open = false, LIMIT = 6;
+      function match(it){ return f === 'all' || it.getAttribute('data-p') === f; }
+      function plural(n){ return n + (n === 1 ? ' novidade' : ' novidades'); }
+      btns.forEach(function(b){
+        var k = b.getAttribute('data-f');
+        b.querySelector('span').textContent = its.filter(function(it){ return k === 'all' || it.getAttribute('data-p') === k; }).length;
+      });
+      function apply(animate){
+        var m = its.filter(match), fold = m.length > LIMIT + 2;
+        its.forEach(function(it){
+          var idx = m.indexOf(it), show = idx > -1 && (open || !fold || idx < LIMIT), was = !it.hidden;
+          it.hidden = !show;
+          if(show && animate && !was && !reduce){ it.classList.remove('is-new'); void it.offsetWidth; it.classList.add('is-new'); }
+        });
+        days.forEach(function(d){
+          var all = Array.prototype.filter.call(d.querySelectorAll('.nv-it'), match).length;
+          var shown = d.querySelectorAll('.nv-it:not([hidden])').length;
+          d.classList.toggle('is-empty', shown === 0);
+          d.querySelector('time small').textContent = plural(all);
+        });
+        var rest = m.length - LIMIT;
+        more.hidden = !fold;
+        more.textContent = open ? 'Mostrar menos' : 'Ver mais ' + plural(rest);
+        more.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      btns.forEach(function(b){
+        b.addEventListener('click', function(){
+          f = b.getAttribute('data-f'); open = false;
+          btns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+          apply(true);
+        });
+      });
+      more.addEventListener('click', function(){ open = !open; apply(true); });
+      apply(false);
+    })();
   })();
 </script>
 
