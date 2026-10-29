@@ -1,5 +1,6 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { estaInstalada } from "@/components/EstadoInstalacao";
+import { desligarPushNativo, estadoPushNativo, ligarPushNativo, naApp } from "@/lib/nativo";
 
 // Notificações push do lado do telemóvel. No iPhone (iOS 16.4 ou mais recente) só funcionam com o
 // Cockpit instalado no ecrã inicial e aberto pelo ícone; o pedido de autorização tem de nascer de
@@ -23,6 +24,7 @@ function chavePublica(): ArrayBuffer {
 
 export async function estadoPush(): Promise<EstadoPush> {
   if (typeof window === "undefined") return "nao-suportado";
+  if (naApp()) return estadoPushNativo(); // app da App Store: notificações nativas (APNs)
   // No iPhone, fora da app instalada, o Safari nem expõe a API de push - explicar que é preciso instalar.
   if (eIphone() && !estaInstalada()) return "instalar-primeiro";
   if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return "nao-suportado";
@@ -35,6 +37,7 @@ export async function estadoPush(): Promise<EstadoPush> {
 
 /** Pede autorização, subscreve este aparelho e guarda-o no Supabase. Devolve uma mensagem de erro ou null. */
 export async function ligarPush(): Promise<string | null> {
+  if (naApp()) return ligarPushNativo();
   const permissao = await Notification.requestPermission();
   if (permissao !== "granted") return "Sem autorização para notificações. Podes ativá-las nas definições do telemóvel.";
   const reg = await navigator.serviceWorker.ready;
@@ -53,6 +56,7 @@ export async function ligarPush(): Promise<string | null> {
 }
 
 export async function desligarPush(): Promise<void> {
+  if (naApp()) return desligarPushNativo();
   const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.getSubscription();
   if (!sub) return;

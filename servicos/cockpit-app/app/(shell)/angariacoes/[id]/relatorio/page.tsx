@@ -2,6 +2,7 @@
 
 import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useState } from "react";
+import { naApp, partilhar } from "@/lib/nativo";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
@@ -52,6 +53,8 @@ export default function Relatorio() {
   const [ang, setAng] = useState<AngComContacto | null>(null);
   const [acoes, setAcoes] = useState<Acao[]>([]);
   const [copiado, setCopiado] = useState(false);
+  const [nativa, setNativa] = useState(false);
+  useEffect(() => setNativa(naApp()), []);
 
   useEffect(() => {
     (async () => {
@@ -133,6 +136,11 @@ export default function Relatorio() {
           <button onClick={copiar} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
             {copiado ? "Copiado" : "Copiar resumo"}
           </button>
+          {nativa && (
+            <button onClick={() => void partilhar({ titulo: ang.titulo, texto: resumo })} className="rounded-full bg-azul px-4 py-2 text-sm font-semibold text-white">
+              Partilhar
+            </button>
+          )}
           {tel && (
             <a href={linkWhatsapp(tel, resumo)} target="_blank" rel="noreferrer" className="rounded-full bg-verde px-4 py-2 text-sm font-semibold text-tinta">
               Enviar por WhatsApp

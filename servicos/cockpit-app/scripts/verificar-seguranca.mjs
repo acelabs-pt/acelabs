@@ -64,5 +64,11 @@ linha(m.status !== 404, "Lista de membros criada (só convidados veem dados)", "
 // Notificações push (migracao_notificacoes.sql): opcional, mas o botão "Ativar notificações" precisa dela.
 linha(await existe("push_subscricoes?select=id&limit=1"), "Tabela das notificações push", "Corre migracao_notificacoes.sql (sem ela, ligar as notificações dá erro).");
 
+// Registo do iPhone nas notificações (migracao_notificacoes.sql). Sem sessão a chamada é recusada, não 404.
+linha(await existe("rpc/registar_push_ios", { method: "POST", body: JSON.stringify({ p_token: "x" }) }), "Registo de aparelhos iOS (migracao_notificacoes.sql, versão recente)", "Volta a correr migracao_notificacoes.sql (a parte de cima): acrescenta o suporte a iPhone.");
+
+// Apagar a conta dentro da app (migracao_apagar_conta.sql): obrigatório para a App Store. Sem sessão a chamada é recusada (401/403), não 404.
+linha(await existe("rpc/apagar_minha_conta", { method: "POST", body: "{}" }), "Apagar a própria conta (migracao_apagar_conta.sql)", "Corre migracao_apagar_conta.sql (a Apple exige que se possa apagar a conta dentro da app).");
+
 console.log(problemas ? `\n${problemas} ${problemas === 1 ? "problema" : "problemas"} a resolver.` : "\nTudo em ordem.");
 process.exit(problemas ? 2 : 0);

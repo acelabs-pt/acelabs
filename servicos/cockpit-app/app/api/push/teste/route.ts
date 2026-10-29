@@ -20,7 +20,7 @@ export async function POST() {
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sessão inválida." }, { status: 401 });
 
-  const { data: subs } = await sb.from("push_subscricoes").select("id, endpoint, p256dh, auth");
+  const { data: subs } = await sb.from("push_subscricoes").select("id, endpoint, p256dh, auth").eq("tipo", "web");
   if (!subs || subs.length === 0) {
     return NextResponse.json({ error: "Este telemóvel ainda não tem as notificações ligadas." }, { status: 400 });
   }

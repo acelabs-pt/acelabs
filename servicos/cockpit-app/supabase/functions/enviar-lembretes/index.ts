@@ -10,7 +10,7 @@
 // Segredos:  supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:... CRON_SECRET=...
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import webpush from "npm:web-push@3.6.7";
+import { enviarParaAparelho, type Aparelho } from "../_shared/push.ts";
 
 const FUSO = "Europe/Lisbon";
 
@@ -32,10 +32,9 @@ Deno.serve(async (req) => {
   if (req.headers.get("x-cron-secret") !== Deno.env.get("CRON_SECRET")) {
     return new Response("não autorizado", { status: 401 });
   }
-  webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") ?? "mailto:geral@acelabs.pt", Deno.env.get("VAPID_PUBLIC_KEY")!, Deno.env.get("VAPID_PRIVATE_KEY")!);
   const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  const { data: subs } = await sb.from("push_subscricoes").select("id, endpoint, p256dh, auth");
+  const { data: subs } = await sb.from("push_subscricoes").select("id, tipo, endpoint, p256dh, auth, token");
   if (!subs || subs.length === 0) return Response.json({ enviados: 0, motivo: "sem aparelhos" });
 
   // Cada instalação é de um cliente (um consultor ou uma pequena equipa): os lembretes vão para
@@ -44,15 +43,21 @@ Deno.serve(async (req) => {
     // Reserva a chave primeiro: se já existir, outro ciclo já enviou este lembrete.
     const { error } = await sb.from("notificacoes_enviadas").insert({ chave });
     if (error) return false;
-    const payload = JSON.stringify({ titulo, corpo, url, tag: chave });
-    for (const s of subs!) {
-      try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 1800 });
-      } catch (e) {
-        const status = (e as { statusCode?: number }).statusCode;
-        if (status === 404 || status === 410) await sb.from("push_subscricoes").delete().eq("id", s.id);
-        else console.error("push falhou", status);
+    let correu = false;
+    let falhou = false;
+    for (const s of subs as Aparelho[]) {
+      const r = await enviarParaAparelho(s, { titulo, corpo, url, tag: chave });
+      if (r === "ok") correu = true;
+      else if (r === "removido") await sb.from("push_subscricoes").delete().eq("id", s.id);
+      else {
+        falhou = true;
+        console.error("push falhou para", s.tipo);
       }
+    }
+    // Se nenhum aparelho recebeu e houve erro (falha transitória), liberta a chave para o próximo ciclo tentar outra vez.
+    if (!correu && falhou) {
+      await sb.from("notificacoes_enviadas").delete().eq("chave", chave);
+      return false;
     }
     return true;
   }

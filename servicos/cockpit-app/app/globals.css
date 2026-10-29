@@ -151,3 +151,12 @@ input[type="search"]::-webkit-search-decoration {
     font-size: max(16px, 1em) !important;
   }
 }
+
+/* Dentro da app da App Store (PonteNativa marca o <html>), esconde o que só faz sentido no browser. */
+html[data-app="nativa"] [data-so-web] {
+  display: none;
+}
+
+/* Face ID: enquanto a app nativa está bloqueada, só o ecrã de bloqueio se vê (marcado em app/layout.tsx e BloqueioFaceId). */
+html[data-bloqueado="1"] body { background: #f5f5f7; }
+html[data-bloqueado="1"] body > *:not([data-bloqueio]) { visibility: hidden; }

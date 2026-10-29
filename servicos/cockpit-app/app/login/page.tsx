@@ -12,9 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [aEnviar, setAEnviar] = useState(false);
+  const [varios, setVarios] = useState(false);
 
   // quem chega ao login já não tem sessão: a lista do dia guardada para sem rede deixa de fazer sentido
   useEffect(() => apagarDia(), []);
+  useEffect(() => setVarios(!!(window as unknown as { __COCKPIT_VARIOS?: boolean }).__COCKPIT_VARIOS), []);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
@@ -84,6 +86,11 @@ export default function LoginPage() {
           <Link href="/recuperar" className="block pt-1 text-center text-sm text-azul">
             Esqueci a password
           </Link>
+          {varios && (
+            <Link href="/cliente" className="block text-center text-sm text-secundario">
+              Mudar de empresa
+            </Link>
+          )}
         </div>
       </form>
     </main>

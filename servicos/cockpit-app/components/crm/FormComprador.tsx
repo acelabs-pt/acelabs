@@ -37,6 +37,13 @@ export type ValoresComprador = {
   precisa_vender: string; // "", "sim", "nao"
 };
 
+/** Preenche nome, telemóvel e email a partir de um contacto escolhido no telemóvel (o prefixo separa-se do número). */
+export function comContacto(v: ValoresComprador, c: { nome: string; telemovel: string; email: string }): ValoresComprador {
+  const tel = c.telemovel.replace(/[\s().-]/g, "");
+  const prefixo = PREFIXOS.find((p) => tel.startsWith(p)) ?? v.prefixo;
+  return { ...v, nome: c.nome || v.nome, prefixo, numero: tel.startsWith(prefixo) ? tel.slice(prefixo.length) : tel, email: c.email || v.email };
+}
+
 export function valoresIniciais(c?: Comprador, zonas?: Localizacao[]): ValoresComprador {
   const tel = c?.contactos.telemovel ?? "";
   const prefixo = PREFIXOS.find((p) => tel.startsWith(p)) ?? "+351";

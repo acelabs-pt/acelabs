@@ -8,6 +8,7 @@ import { marcarTarefa } from "@/lib/tarefas";
 import { formatarDia, formatarHora, localParaISO } from "@/lib/datas";
 import type { ImovelComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
+import { pontoNoCalendario } from "@/lib/nativo";
 
 const campo = "w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base";
 
@@ -109,7 +110,7 @@ export default function AgendaDoComprador({
     setImovel("");
     setQuando(amanhaAs10());
     const ics = `/api/tarefas/${data.id}/calendario`;
-    avisar(tipo === "visita" ? "Visita marcada." : "Tarefa marcada.", { rotulo: "Pôr no telemóvel", onAcao: () => window.location.assign(ics) });
+    avisar(tipo === "visita" ? "Visita marcada." : "Tarefa marcada.", { rotulo: "Pôr no telemóvel", onAcao: () => void pontoNoCalendario(ics) });
     await carregar();
   }
 

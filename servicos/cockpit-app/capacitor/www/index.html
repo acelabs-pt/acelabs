@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cockpit</title>
+<style>body{margin:0;background:#f5f5f7}</style>
+</head>
+<body>
+<!-- A app abre o endereço definido em capacitor.config.ts (server.url). Esta página só existe porque o Capacitor
+     exige uma pasta web; se por alguma razão for mostrada, volta ao endereço da app. -->
+<script src="servidor.js"></script>
+<script>window.location.replace(window.COCKPIT_URL);</script>
+</body>
+</html>

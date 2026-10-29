@@ -1,6 +1,14 @@
 // Cabeçalhos de segurança. A app só fala com o Supabase do cliente e com o Google Fonts.
 // Ao acrescentar um serviço externo, permiti-lo aqui na CSP (connect-src, img-src, ...).
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
+// Vários clientes num deploy: o Supabase de cada um (COCKPIT_CLIENTES) entra na CSP. Mudar a lista pede novo deploy.
+let origensClientes = [];
+try {
+  origensClientes = (JSON.parse(process.env.COCKPIT_CLIENTES || "[]") || []).map((c) => new URL(c.url)).filter((u) => u.protocol === "https:");
+} catch {
+  origensClientes = [];
+}
+const varios = origensClientes.length > 0;
 const dev = process.env.NODE_ENV !== "production";
 
 const csp = [
@@ -10,7 +18,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob:",
-  `connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com${supabase ? ` ${supabase.origin} wss://${supabase.host}` : ""}${dev ? " ws:" : ""}`,
+  `connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com${varios ? origensClientes.map((u) => ` ${u.origin} wss://${u.host}`).join("") : supabase ? ` ${supabase.origin} wss://${supabase.host}` : ""}${dev ? " ws:" : ""}`,
   "worker-src 'self'",
   "manifest-src 'self'",
   "frame-ancestors 'none'",
@@ -27,6 +35,11 @@ const nextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      // A Apple pede este ficheiro sem extensão e espera JSON (links universais: convites a abrir na app).
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
       {
         source: "/:path*",
         headers: [

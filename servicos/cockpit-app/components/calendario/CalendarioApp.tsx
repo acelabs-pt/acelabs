@@ -18,6 +18,7 @@ import Mes from "@/components/calendario/Mes";
 import Tempo from "@/components/calendario/Tempo";
 import DetalheItem from "@/components/calendario/DetalheItem";
 import NovoItem, { type NovoValores } from "@/components/calendario/NovoItem";
+import { pontoNoCalendario } from "@/lib/nativo";
 
 type Vista = "tarefas" | "dia" | "semana" | "mes";
 
@@ -148,7 +149,7 @@ export default function CalendarioApp() {
     if (v.inicio && criada) {
       // o calendário do telemóvel avisa com notificação própria
       const ics = `/api/tarefas/${criada.id}/calendario`;
-      avisar(v.tipo === "evento" ? "Marcação criada." : "Tarefa criada.", { rotulo: "Pôr no telemóvel", onAcao: () => window.location.assign(ics) });
+      avisar(v.tipo === "evento" ? "Marcação criada." : "Tarefa criada.", { rotulo: "Pôr no telemóvel", onAcao: () => void pontoNoCalendario(ics) });
     }
     if (vista !== "tarefas" && v.inicio) {
       const r = inicioDoDia(new Date(v.inicio));

@@ -11,6 +11,9 @@ Cada cliente tem o seu endereço, a sua base de dados e os seus utilizadores. Fa
    2. `migracao_zonas_correspondencias.sql`
    3. `migracao_escala.sql`
    4. `migracao_seguranca.sql` (só membros convidados veem dados; ler o topo do ficheiro antes)
+   5. `migracao_notificacoes.sql` (só a parte de cima; ver a secção das notificações)
+   6. `migracao_apagar_conta.sql` ("Apagar a minha conta" em Conta; a Apple exige-o na App Store)
+   Atalho para um projeto novo e vazio: `npm run sql` junta os seis ficheiros, pela ordem certa, em `instalar_tudo.sql` (fora do git), para colar de uma vez.
 3. **Segurança, antes de ligar o SMTP:** em Authentication (Sign In / Providers), **desligar "Allow new users to sign up"**.
    Vem ligado por defeito e, com o SMTP a funcionar, qualquer pessoa com a chave pública (que está no browser) podia criar
    conta. Os convites continuam a funcionar com o registo desligado. Confirmar: `GET <Project URL>/auth/v1/settings`
@@ -75,7 +78,7 @@ Não passa pelas lojas.
 - Criar um comprador com zona e uma angariação na mesma zona: aparece o alerta no Dashboard.
 - Marcar uma tarefa como feita e adiá-la com o gesto de deslizar.
 
-## 5. Notificações no telemóvel (push)
+## 8. Notificações no telemóvel (push)
 
 Funcionam no Android e no iPhone (iOS 16.4 ou mais recente). No iPhone **só com o Cockpit instalado no ecrã principal e
 aberto pelo ícone**, e só num endereço com HTTPS (a Vercel já dá). O consultor liga-as em Conta, "Ativar notificações".
@@ -91,6 +94,62 @@ aberto pelo ícone**, e só num endereço com HTTPS (a Vercel já dá). O consul
    `PROJECT_REF` e o `CRON_SECRET` deste cliente.
 
 Trocar as chaves VAPID obriga cada telemóvel a voltar a ligar as notificações. `npm run seguranca` confirma se a tabela existe.
+
+## 9. App para o iPhone (Capacitor)
+
+A app da App Store é uma casca nativa (`ios/`) que abre o endereço publicado (`cockpit.acelabs.pt`), por isso as
+correções de ecrã chegam pela Vercel, sem nova revisão da Apple. A parte nativa está em `lib/nativo.ts` (push, Face ID,
+agenda, contactos, partilha, vibração) e `components/PonteNativa.tsx`; configuração em `capacitor.config.ts`.
+Dentro da app a página fica marcada `<html data-app="nativa">` e o que tem `data-so-web` (instruções de instalar) esconde-se.
+
+**No Mac (do Miguel), uma vez:**
+1. `git pull`, depois em `servicos/cockpit-app`: `npm install`.
+2. `npm run cap:sync` (copia a configuração para o projeto iOS). Para testar contra o computador em vez da produção:
+   `CAP_SERVER_URL=http://<ip do PC>:3001 npm run cap:sync`.
+3. `npm run cap:abrir` abre o Xcode. Em **Signing & Capabilities**: escolher a equipa Apple; confirmar que aparecem
+   **Push Notifications** e **Associated Domains** (vêm do `App.entitlements`). Correr num iPhone ou no simulador.
+4. Cada vez que se acrescentar um plugin ou mudar `capacitor.config.ts`: `npm run cap:sync`.
+5. Se se mexer nas permissões ou entitlements: editar `scripts/configurar-ios.mjs` e correr `node scripts/configurar-ios.mjs`.
+
+**Antes de publicar (a fazer):** trocar `TEAMID` em `public/.well-known/apple-app-site-association` pelo Team ID da conta
+Apple; pôr o ícone de 1024x1024 em `ios/App/App/Assets.xcassets/AppIcon.appiconset`; chave APNs (.p8) da conta Apple.
+
+**Notificações nativas:** `migracao_notificacoes.sql` já aceita aparelhos `ios`. Publicar as funções `enviar-teste` e
+`enviar-lembretes` (usam `supabase/functions/_shared/push.ts`) e acrescentar aos segredos da função: `APNS_KEY_ID`,
+`APNS_TEAM_ID`, `APNS_KEY_P8` (conteúdo do .p8), `APNS_TOPIC=pt.acelabs.cockpit`, `APNS_ENV=sandbox` (ou `production` na loja).
+
+**Estado:** escrito e a compilar em TypeScript; a web comporta-se bem dentro do invólucro (`npm run testar -- nativo`, que
+simula o WebView do iOS). **Ainda não testado num iPhone nem no simulador:** Face ID, agenda, contactos, partilha, push
+nativo e o envio à Apple, e a navegação para o endereço remoto com a ponte nativa. Convém confirmar tudo isto no primeiro dia com o Mac.
+Ligado na interface: Face ID ao abrir a app e ao voltar depois de 1 minuto (opção em Conta, `components/BloqueioFaceId.tsx`),
+"Escolher do telemóvel" no novo comprador, "Partilhar" no relatório do proprietário, "Pôr no telemóvel" na agenda do iPhone, vibração
+ao concluir tarefas e notificações. **Se um plugin nativo faltar no projeto iOS** (esquecido o `npm run cap:sync`), o Face ID
+deixa de bloquear em vez de congelar a app (o Capacitor entra num ciclo infinito ao chamar um plugin que não existe).
+
+## 10. Um só deploy para vários clientes (escolha do cliente por código)
+
+Para a app da App Store (e para um único `cockpit.acelabs.pt`), em vez de um deploy por cliente: na Vercel define-se UMA variável
+`COCKPIT_CLIENTES` com a lista, e cada pessoa escreve o código da sua empresa no primeiro arranque.
+
+```
+COCKPIT_CLIENTES=[{"codigo":"alvorada","nome":"Alvorada Imóveis","url":"https://xxx.supabase.co","anon":"<chave anon>"}]
+```
+
+- Só a chave pública (anon). **Nunca** a service_role. Cada cliente continua com o seu Supabase e os seus dados.
+- Sem `COCKPIT_CLIENTES` tudo funciona como antes, com `NEXT_PUBLIC_SUPABASE_URL` e `_ANON_KEY` fixos (um deploy por cliente).
+- O código escolhido fica num cookie (`cockpit-cliente`, 1 ano). Quem ainda não escolheu vai para `/cliente`; no login há "Mudar de empresa".
+- Convites: o link do email tem de abrir `https://cockpit.acelabs.pt/convite/<código>`, que escolhe o cliente e segue para escolher a password.
+  Acrescentar `https://cockpit.acelabs.pt/convite/*` aos Redirect URLs do Supabase desse cliente. A plataforma de controlo faz isto sozinha
+  se o cliente tiver o campo "código na app" preenchido (na função `admin`, o segredo `APP_CODIGO`).
+- As chaves VAPID das notificações web são as mesmas para todos os clientes do deploy.
+- A política de segurança de conteúdos passa a aceitar `*.supabase.co` quando `COCKPIT_CLIENTES` existe.
+- Teste: `npm run testar -- clientes` (arranca o seu próprio servidor na porta 3003).
+
+## 11. Apagar a conta
+
+Em Conta, "Apagar a minha conta" chama a função `apagar_minha_conta()` (`migracao_apagar_conta.sql`), que apaga o utilizador e, em cascata,
+o registo de membro e os aparelhos de notificações. Os contactos, compradores e angariações ficam na empresa (são dados dela, partilhados
+pelos membros). Não deixa apagar o último membro. Ainda por testar contra um Supabase com a migração corrida.
 
 ## O que ainda não existe
 

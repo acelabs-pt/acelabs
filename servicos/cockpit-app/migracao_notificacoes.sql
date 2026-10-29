@@ -2,23 +2,57 @@
 -- Correr uma vez no SQL Editor do Supabase de cada cliente, depois de migracao_seguranca.sql
 -- (usa a função e_membro()). Só acrescenta tabelas; não mexe em dados existentes.
 
--- 1. Um registo por telemóvel/browser que aceitou notificações. O endpoint é o endereço do
---    serviço de push da Apple/Google para esse aparelho; p256dh e auth são as chaves para cifrar.
+-- 1. Um registo por aparelho que aceitou notificações.
+--    tipo 'web': browser ou app instalada (PWA). O endpoint é o endereço do serviço de push desse aparelho;
+--    p256dh e auth são as chaves para cifrar.
+--    tipo 'ios': app da App Store. O token é o identificador do aparelho na Apple (APNs).
 create table if not exists push_subscricoes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  endpoint text not null unique,
-  p256dh text not null,
-  auth text not null,
+  tipo text not null default 'web' check (tipo in ('web', 'ios')),
+  endpoint text unique,
+  p256dh text,
+  auth text,
+  token text unique,
   aparelho text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  check ((tipo = 'web' and endpoint is not null and p256dh is not null and auth is not null)
+      or (tipo = 'ios' and token is not null))
 );
+-- Quem já correu a versão antiga (só web) passa a ter as colunas novas. Pode correr-se outra vez.
+alter table push_subscricoes add column if not exists tipo text not null default 'web';
+alter table push_subscricoes add column if not exists token text;
+alter table push_subscricoes alter column endpoint drop not null;
+alter table push_subscricoes alter column p256dh drop not null;
+alter table push_subscricoes alter column auth drop not null;
+create unique index if not exists push_subscricoes_token_key on push_subscricoes (token);
+alter table push_subscricoes drop constraint if exists push_subscricoes_tipo_check;
+alter table push_subscricoes add constraint push_subscricoes_tipo_check check (tipo in ('web', 'ios'));
+alter table push_subscricoes drop constraint if exists push_subscricoes_check;
+alter table push_subscricoes add constraint push_subscricoes_check check (
+  (tipo = 'web' and endpoint is not null and p256dh is not null and auth is not null) or (tipo = 'ios' and token is not null));
 alter table push_subscricoes enable row level security;
 drop policy if exists "o proprio aparelho" on push_subscricoes;
 -- Cada membro só vê e gere os seus próprios aparelhos.
 create policy "o proprio aparelho" on push_subscricoes for all to authenticated
   using (e_membro() and user_id = auth.uid())
   with check (e_membro() and user_id = auth.uid());
+
+-- Registo do aparelho iOS. O mesmo iPhone pode passar de um utilizador para outro (logout e login de outra pessoa):
+-- o token fica ligado a quem se registou por último. Uma função (security definer) porque as regras acima só deixam
+-- cada membro mexer nas suas linhas.
+create or replace function registar_push_ios(p_token text, p_aparelho text default null) returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if auth.uid() is null or not e_membro() then
+    raise exception 'sem permissão' using errcode = '42501';
+  end if;
+  insert into push_subscricoes (user_id, tipo, token, aparelho) values (auth.uid(), 'ios', p_token, p_aparelho)
+  on conflict (token) do update set user_id = auth.uid(), aparelho = excluded.aparelho;
+end $$;
+revoke all on function registar_push_ios(text, text) from public, anon;
+grant execute on function registar_push_ios(text, text) to authenticated;
 
 -- 2. O que já foi enviado, para o mesmo lembrete nunca sair duas vezes
 --    (ex.: "evento-<id da tarefa>", "resumo-2026-10-26"). Só a função de envio escreve aqui.

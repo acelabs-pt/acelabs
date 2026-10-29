@@ -10,6 +10,7 @@
 # next.js
 /.next/
 /.next-build/
+/.next-clientes/
 /out/
 
 # production
@@ -35,10 +36,10 @@ yarn-error.log*
 next-env.d.ts
 .env*
 
-# Capacitor - projetos nativos gerados localmente (npx cap add ios/android),
-# cada developer gera o seu, não vai para o repositório partilhado
-/ios
+# Capacitor: o projeto iOS (ios/) VAI para o repositório, para o Miguel só ter de fazer pull e abrir no Xcode
+# (permissões, entitlements e ícones ficam versionados). O que o Xcode e o sync geram está em ios/.gitignore.
 /android
 
 # screenshots e ficheiros dos testes
 /testes/resultados/
+/instalar_tudo.sql

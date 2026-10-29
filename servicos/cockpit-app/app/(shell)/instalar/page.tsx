@@ -24,11 +24,11 @@ export default function Instalar() {
         <p className="mt-1 text-base text-secundario">O Cockpit instala-se no ecrã inicial, como uma app. Não precisas da App Store nem da Google Play.</p>
       </div>
 
-      <EstadoInstalacao />
+      <div data-so-web><EstadoInstalacao /></div>
 
       <AtivarNotificacoes />
 
-      <section className={cartao}>
+      <section className={cartao} data-so-web>
         <h2 className="text-lg font-semibold text-tinta">iPhone</h2>
         <p className="text-sm text-secundario">Tem de ser no Safari.</p>
         <Passos
@@ -41,7 +41,7 @@ export default function Instalar() {
         />
       </section>
 
-      <section className={cartao}>
+      <section className={cartao} data-so-web>
         <h2 className="text-lg font-semibold text-tinta">Android</h2>
         <p className="text-sm text-secundario">No Chrome.</p>
         <Passos
@@ -53,7 +53,7 @@ export default function Instalar() {
         />
       </section>
 
-      <section className={cartao}>
+      <section className={cartao} data-so-web>
         <h2 className="text-lg font-semibold text-tinta">Bom saber</h2>
         <ul className="space-y-2 text-sm text-secundario">
           <li>Precisa de internet. Sem ligação aparece um aviso e volta ao normal quando ela voltar.</li>

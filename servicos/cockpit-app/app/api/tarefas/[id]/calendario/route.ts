@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sbUserServer } from "@/lib/supabase-server";
-import { gerarIcs, nomeFicheiroIcs } from "@/lib/ics";
+import { eDiaInteiro, gerarIcs, nomeFicheiroIcs } from "@/lib/ics";
 
 // Descarrega uma tarefa ou marcação como ficheiro de calendário (.ics), para o calendário do telemóvel
 // avisar na hora. Lê com a sessão do agente (RLS): pelo id, sem nomes de clientes no endereço.
@@ -27,6 +27,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   } else if (t.contacto_id) {
     const { data } = await sb.from("contactos").select("telemovel").eq("id", t.contacto_id).maybeSingle();
     telefone = data?.telemovel ?? null;
+  }
+
+  // A app do iPhone pede os dados em JSON para criar o evento direto na agenda (lib/nativo.ts).
+  if (req.nextUrl.searchParams.get("formato") === "json") {
+    return NextResponse.json(
+      { titulo: t.titulo, inicio: t.inicio, fim: t.fim, diaInteiro: eDiaInteiro(t.inicio), telefone, url },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   }
 
   const ics = gerarIcs({ id: t.id, titulo: t.titulo, tipo: t.tipo, inicio: t.inicio, fim: t.fim, telefone, url });
