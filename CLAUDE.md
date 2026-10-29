@@ -29,6 +29,9 @@ tentar registar).
   `/api/write`) extraído de um painel real construído para um cliente do setor imobiliário. Sem
   nomes, marca ou dados desse cliente - só a arquitectura e os padrões, com o contexto explicado
   no README.md dentro da pasta. Tem um CLAUDE.md próprio com a arquitectura detalhada.
+- `servicos/controlo/` - plataforma interna dos sócios para gerir os clientes: criar, suspender e apagar utilizadores do
+  Cockpit e do CPCV de cada cliente e ver o estado da instalação. **Corre só em localhost, nunca se publica.** Ver LEIAME.md
+  dentro da pasta. A lista de clientes e as chaves ficam fora do git.
 - `business-center/` - pasta local, no `.gitignore`, não deve ir para o GitHub (repositório
   público).
 
