@@ -93,7 +93,7 @@
   </div>
   <div class="footer">
     <span>Ace Labs &middot; acelabs.pt</span>
-    <span>Setembro de 2026</span>
+    <span>Outubro de 2026</span>
   </div>
 </div>
 
@@ -162,6 +162,10 @@
     <div class="feat"><span class="dot"></span><div><h4>Datas sempre exactas</h4><p>Se disser "para o verão" ou "daqui a uns meses", a IA pergunta a data concreta. Se só der dia e mês, assume o próximo ano em que essa data ainda esteja no futuro.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Pessoa singular ou empresa</h4><p>A IA reconhece automaticamente e, sendo empresa, formata a identificação com NIF, sede, representante e certidão permanente.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Casais reconhecidos</h4><p>Quando duas partes são um casal casado entre si, a IA junta a identificação deles numa frase só, como nas minutas reais da agência.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Casal ligado à mão</h4><p>Se a IA não reconhecer que duas partes são um casal, o agente escolhe, na ficha de cada parte, com quem forma casal. A identificação sai numa frase só.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Email e morada completa de cada parte</h4><p>Cada parte tem o seu email, que vai para o contrato. A morada precisa de código postal: sem ele a aplicação avisa antes de gerar o documento.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Certificado energético: emitido, isento ou em execução</h4><p>Escolhe-se o estado no imóvel. Se estiver emitido pede o número e a validade; se estiver isento, o número e a data da isenção; se estiver em execução, o contrato diz que será entregue até à escritura.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Entrega de documentos pelo cliente</h4><p>O agente gera um link privado para o comprador ou o vendedor enviarem os documentos, sem conta. A página está disponível em português e em inglês (acrescentar ?lang=en ao link).</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>"Não sei" é uma resposta válida</h4><p>Ou "deixa em branco para a gestora decidir". A IA aceita e não volta a fazer a mesma pergunta; o campo fica em branco, sem travar o processo.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Várias respostas de uma vez</h4><p>Pode responder a todas as perguntas pendentes numa única mensagem.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Sem perguntas fora do sítio</h4><p>A IA nunca pergunta por método de pagamento, reserva, condições suspensivas, comodato, IBAN do sinal ou emails de contacto. Esses campos preenchem-se à parte, em "Condições do negócio" (ver caixa abaixo).</p></div></div>
@@ -190,9 +194,10 @@
     <div class="feat"><span class="dot"></span><div><h4>Fila "Por aprovar"</h4><p>Em destaque, ordenada pelos processos mais antigos primeiro: os mais urgentes.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Rascunho a qualquer momento</h4><p>Gera um PDF ou Word de pré-visualização a qualquer momento, só para ver como está, sem gravar nada.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Segunda revisão por IA</h4><p>Antes de aprovar, verifica inconsistências óbvias: datas de documentos já caducadas, sinal maior ou igual ao preço total (isto é sempre verificado por cálculo directo, mesmo que a IA falhe), NIFs com o número errado de dígitos, ou vendedor e comprador com o mesmo nome. Mostra avisos antes de gerar, com a opção de gerar mesmo assim.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Leitura final do documento gerado</h4><p>Depois de gerar o Word, a aplicação lê o contrato como um revisor e aponta o que parece errado ou estranho (por exemplo, texto repetido, campos por preencher ou valores que não batem certo). O resultado aparece num painel ao lado dos botões de descarregar. É uma ajuda, a decisão continua a ser da gestora.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Pedir alterações</h4><p>Reabre a conversa com uma nota da gestora; o agente responde e o processo volta à fila de aprovação.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Aprovação gera o documento</h4><p>Ao aprovar, a plataforma cria automaticamente o CPCV em PDF e em Word, seguindo o texto legal e a estrutura das minutas reais da agência: identificação das partes, objecto, promessa, preço e condições de pagamento, escritura pública, condições suspensivas, encargos e despesas, incumprimento, estado do imóvel e licenciamento, alterações, notificações, protecção de dados, direito de preferência, lei aplicável e foro, reconhecimento de assinaturas, e cláusulas condicionais consoante o caso (condomínio, comodato, observações).</p></div></div>
-    <div class="feat"><span class="dot"></span><div><h4>Bloqueio obrigatório</h4><p>Não é possível gerar o documento final sem a licença de utilização e o certificado energético preenchidos.</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Bloqueio obrigatório</h4><p>Não é possível gerar o documento final sem a licença de utilização, sem o certificado energético tratado (emitido, isento ou em execução) e sem o código postal nas moradas das partes.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Cópia para o Google Drive</h4><p>Opcionalmente, os documentos gerados são copiados automaticamente para uma pasta no Drive da agência.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Concluir ou cancelar</h4><p>Pode marcar um processo aprovado como concluído, ou cancelá-lo com um motivo, em qualquer altura antes de estar concluído. Cancelar preserva o histórico; eliminar (só possível antes de aprovado) não.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Contas próprias</h4><p>Cada utilizador tem a sua conta, nunca uma password partilhada. As permissões de agente, gestora e administrador são verificadas tanto no que se vê como no servidor.</p></div></div>
@@ -229,7 +234,8 @@
   <p class="dek">Estas funcionalidades estão sempre presentes, seja o utilizador agente, gestora ou administrador.</p>
 
   <div class="two-col">
-    <div class="feat"><span class="dot"></span><div><h4>Lista de processos</h4><p>Filtros por estado (todos, em preenchimento, pronto para aprovação, aprovado, concluído, cancelado, com contagem em cada separador), pesquisa por morada (e por agente, para a gestora), e indicação de quantos campos ainda faltam preencher em cada processo, sem abrir. Paginada, 20 de cada vez, com "Carregar mais".</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Lista de processos</h4><p>Filtros por estado (todos, em preenchimento, pronto para aprovação, aprovado, concluído, cancelado, com contagem em cada separador), pesquisa por morada, por cliente ou pelo número do processo (e por agente, para a gestora), e indicação de quantos campos ainda faltam preencher em cada processo, sem abrir. Paginada, 20 de cada vez, com "Carregar mais".</p></div></div>
+    <div class="feat"><span class="dot"></span><div><h4>Conta e password</h4><p>No cabeçalho, "Conta" permite mudar a própria password. Quem recebeu uma password temporária da Ace Labs deve mudá-la logo no primeiro acesso.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Resumo para WhatsApp</h4><p>Um botão em cada processo gera um texto curto e pronto a copiar: partes envolvidas, preço, sinal, prazo da escritura e o que ainda falta confirmar (ou a confirmação de que já está aprovado). Não precisa de nenhuma app instalada, é só texto para colar.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Acesso e segurança</h4><p>Contas reais por utilizador, três perfis com permissões diferentes. Um agente nunca vê nem mexe nos processos de outro agente; gestora e administrador vêem tudo.</p></div></div>
     <div class="feat"><span class="dot"></span><div><h4>Compatível com telemóvel</h4><p>A aplicação funciona bem em ecrã de telemóvel, para os agentes poderem trabalhar no terreno, entre visitas.</p></div></div>
@@ -240,7 +246,7 @@
       <div class="box-title">Coisas a saber</div>
       <ul class="know-list">
         <li>A IA nunca inventa datas vagas: se disser "para o verão", vai perguntar a data exacta.</li>
-        <li>Documentos legalmente obrigatórios, como a licença de utilização e o certificado energético, têm de estar preenchidos antes de gerar o CPCV final. É um bloqueio, não um aviso.</li>
+        <li>Documentos legalmente obrigatórios, como a licença de utilização e o certificado energético (emitido, isento ou em execução), têm de estar tratados antes de gerar o CPCV final, e as moradas precisam de código postal. É um bloqueio, não um aviso.</li>
         <li>Antes de aprovar, há sempre uma segunda verificação de inconsistências (por IA e por cálculo directo), mas a decisão final é sempre da gestora.</li>
         <li>Um processo cancelado fica no histórico; um processo eliminado não. Depois de aprovado, um processo só se cancela.</li>
         <li>Responder "não sei" é uma resposta válida: o processo não fica bloqueado à espera de uma resposta que ainda não existe.</li>
