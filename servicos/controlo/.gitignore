@@ -1,0 +1,9 @@
+node_modules
+.next
+next-env.d.ts
+*.tsbuildinfo
+# Lista de clientes e segredos: ficam só no computador de cada sócio, nunca no repositório (público)
+.env*
+dados/clientes.json
+dados/*.local.json
+testes/resultados/
