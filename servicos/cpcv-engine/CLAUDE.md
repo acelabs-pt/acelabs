@@ -53,6 +53,7 @@ validação de tipos - já apanhou um bug real (`Buffer` não atribuível a `Bod
 - `app/cpcv/layout.tsx` esconde o cabeçalho/rodapé quando não há sessão, e redirecciona
   `/cpcv/login`/`/cpcv/registo` para `/cpcv` quando já existe sessão activa (evita mostrar o
   formulário de login por baixo do cabeçalho autenticado).
+- `/cpcv/conta`: cada utilizador muda a própria password (link "Conta" no cabeçalho). Serve a quem recebeu uma password temporária da plataforma de controlo (`servicos/controlo`).
 - Contas de teste: `agente.teste@acelabs.pt` / `gestora.teste@acelabs.pt`, password
   `TesteCpcv-2026!`.
 - `/cpcv/registo` nunca deixa escolher o papel livremente - vem sempre do código de convite.

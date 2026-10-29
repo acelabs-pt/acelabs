@@ -56,6 +56,9 @@ export default async function CpcvLayout({ children }: { children: React.ReactNo
               Administração
             </Link>
           )}
+          <Link href="/cpcv/conta" className="text-white/70 hover:text-white transition-colors">
+            Conta
+          </Link>
           <LogoutButton />
         </div>
       </header>
