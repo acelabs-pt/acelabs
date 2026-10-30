@@ -164,6 +164,30 @@ export async function esquecerAparelhoNativo(): Promise<void> {
   }
 }
 
+/**
+ * Lista do dia para o ecrã "sem ligação" da casca (capacitor/www/erro.html). Esse ecrã vive noutra origem, por isso não
+ * vê o localStorage da app: lê a mesma chave pelo armazenamento nativo (Preferences). Sem efeito fora da app.
+ */
+export async function guardarDiaNativo(json: string): Promise<void> {
+  if (!naApp()) return;
+  try {
+    const { Preferences } = await import("@capacitor/preferences");
+    await Preferences.set({ key: "cockpit-dia", value: json });
+  } catch {
+    // sem plugin: o ecrã sem ligação mostra só a mensagem
+  }
+}
+
+export async function apagarDiaNativo(): Promise<void> {
+  if (!naApp()) return;
+  try {
+    const { Preferences } = await import("@capacitor/preferences");
+    await Preferences.remove({ key: "cockpit-dia" });
+  } catch {
+    // nada a apagar
+  }
+}
+
 export async function desligarPushNativo(): Promise<void> {
   const { PushNotifications } = await import("@capacitor/push-notifications");
   const { Preferences } = await import("@capacitor/preferences");

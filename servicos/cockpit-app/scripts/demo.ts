@@ -5,8 +5,9 @@
 //   npx tsx --tsconfig tsconfig.json scripts/demo.ts            semear
 //   npx tsx --tsconfig tsconfig.json scripts/demo.ts --limpar   apagar tudo o que o script criou
 //
-// Precisa de NEXT_PUBLIC_SUPABASE_URL (.env.local), SUPABASE_SERVICE_ROLE_KEY e DEMO_PERMITIDO_EM (a referência
-// do projeto, a parte antes de .supabase.co), no ambiente ou no .env.testes. PROTEÇÃO: só corre nesse projeto.
+// Precisa de NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY e DEMO_PERMITIDO_EM (a referência
+// do projeto, a parte antes de .supabase.co), no ambiente, no .env.demo (o mais simples: ficheiro só do Demo, fora do git) ou no
+// .env.testes. PROTEÇÃO: só corre nesse projeto.
 // Usar um projeto próprio para demonstrações, nunca o de um cliente.
 //
 // Os contactos de demonstração têm todos email @exemplo.pt e telemóveis +351 900 000 xxx (não atribuídos a
@@ -21,7 +22,7 @@ import { concelhosDe, freguesiasDe } from "@/lib/localizacoes";
 // Ligação e proteção
 // ---------------------------------------------------------------------------
 const env: Record<string, string | undefined> = { ...process.env };
-for (const f of [".env.local", ".env.testes"]) {
+for (const f of [".env.demo", ".env.local", ".env.testes"]) {
   if (!existsSync(f)) continue;
   for (const l of readFileSync(f, "utf8").split(/\r?\n/)) {
     const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
@@ -44,12 +45,32 @@ async function rest(metodo: string, caminho: string, corpo?: unknown): Promise<L
   if (!r.ok) throw new Error(`${metodo} ${caminho.split("?")[0]}: ${r.status} ${t.slice(0, 200)}`);
   return t ? JSON.parse(t) : [];
 }
+// Projeto partilhado (migracao_multiempresa.sql): a demonstração vive numa empresa própria ("demo", ou DEMO_EMPRESA) e o
+// script só toca nas linhas dessa empresa. Base antiga, sem tabela empresas: não filtra nada.
+let EMPRESA: string | null = null;
+const daEmpresa = () => (EMPRESA ? `&empresa_id=eq.${EMPRESA}` : "");
+async function prepararEmpresa() {
+  const cod = (env.DEMO_EMPRESA || "demo").toLowerCase();
+  const r = await fetch(`${URL_SB}/rest/v1/empresas?select=id&codigo=eq.${cod}`, { headers: H });
+  if (r.status === 404) return;
+  if (!r.ok) throw new Error(`Não consegui ler as empresas (${r.status}).`);
+  const l = (await r.json()) as { id: string }[];
+  if (l.length) {
+    EMPRESA = l[0].id;
+    return;
+  }
+  const c = await fetch(`${URL_SB}/rest/v1/empresas`, { method: "POST", headers: { ...H, Prefer: "return=representation" }, body: JSON.stringify({ codigo: cod, nome: "Ace Labs Demo" }) });
+  if (!c.ok) throw new Error(`Não consegui criar a empresa "${cod}" (${c.status}).`);
+  EMPRESA = ((await c.json()) as { id: string }[])[0].id;
+  console.log(`Empresa "${cod}" criada.`);
+}
+
 /** Insere em lotes; todas as linhas de um lote têm de ter as mesmas chaves (o que falta vai a null). */
 async function inserir(tabela: string, linhas: Linha[]): Promise<Linha[]> {
   const chaves = [...new Set(linhas.flatMap((l) => Object.keys(l)))];
   const out: Linha[] = [];
   for (let i = 0; i < linhas.length; i += 300) {
-    const lote = linhas.slice(i, i + 300).map((l) => Object.fromEntries(chaves.map((k) => [k, l[k] ?? null])));
+    const lote = linhas.slice(i, i + 300).map((l) => ({ ...Object.fromEntries(chaves.map((k) => [k, l[k] ?? null])), ...(EMPRESA ? { empresa_id: EMPRESA } : {}) }));
     out.push(...(await rest("POST", tabela, lote)));
   }
   return out;
@@ -73,12 +94,13 @@ const dia = (n: number) => iso(dias(n));
 // Limpar
 // ---------------------------------------------------------------------------
 async function limpar() {
-  const props = await rest("GET", "proprietarios?select=id,contactos!inner(email)&contactos.email=like.*%40exemplo.pt");
+  await prepararEmpresa();
+  const props = await rest("GET", `proprietarios?select=id,contactos!inner(email)&contactos.email=like.*%40exemplo.pt${daEmpresa()}`);
   if (props.length) {
     // as angariações ficam sem proprietário ao apagar o contacto (set null): apagá-las primeiro (cascata: ações e tarefas)
-    await rest("DELETE", `angariacoes?proprietario_id=in.(${props.map((p) => p.id).join(",")})`);
+    await rest("DELETE", `angariacoes?proprietario_id=in.(${props.map((p) => p.id).join(",")})${daEmpresa()}`);
   }
-  const apagados = await rest("DELETE", "contactos?email=like.*%40exemplo.pt"); // cascata: fichas, zonas, imóveis, chamadas, tarefas, alertas
+  const apagados = await rest("DELETE", `contactos?email=like.*%40exemplo.pt${daEmpresa()}`); // cascata: fichas, zonas, imóveis, chamadas, tarefas, alertas
   console.log(`Demonstração apagada: ${apagados.length} contactos e tudo o que estava ligado a eles.`);
 }
 
@@ -176,9 +198,10 @@ function validarZona([d, c, f]: ZonaDemo) {
 // Semear
 // ---------------------------------------------------------------------------
 async function semear() {
+  await prepararEmpresa();
   for (const c of COMPRADORES) c.zonas.forEach(validarZona);
   for (const p of PROPRIETARIOS) validarZona(p.zona);
-  const ja = await rest("GET", "contactos?select=id&email=like.*%40exemplo.pt&limit=1");
+  const ja = await rest("GET", `contactos?select=id&email=like.*%40exemplo.pt&limit=1${daEmpresa()}`);
   if (ja.length) {
     console.error("Já há dados de demonstração neste projeto. Corre primeiro com --limpar.");
     process.exit(1);
@@ -392,7 +415,7 @@ async function semear() {
 
   // --- metas do ano, só se ainda não houver ---
   const ano = agora.getFullYear();
-  const metas = await rest("GET", `metas?select=id&ano=eq.${ano}&limit=1`);
+  const metas = await rest("GET", `metas?select=id&ano=eq.${ano}&limit=1${daEmpresa()}`);
   let metasCriadas = false;
   if (!metas.length) {
     await inserir("metas", [
@@ -401,7 +424,7 @@ async function semear() {
       { ano, metrica: "angariacoes", valor_anual: 24 },
       { ano, metrica: "transacoes", valor_anual: 14 },
     ]);
-    const cfg = await rest("GET", `metas_config?select=ano&ano=eq.${ano}`);
+    const cfg = await rest("GET", `metas_config?select=ano&ano=eq.${ano}${daEmpresa()}`);
     if (!cfg.length) await inserir("metas_config", [{ ano, semanas_uteis: 46, faturacao_anual: 75000 }]);
     metasCriadas = true;
   }

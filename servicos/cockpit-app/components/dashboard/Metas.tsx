@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
 import MetasForm from "@/components/dashboard/MetasForm";
+import { empresaAtual } from "@/lib/empresa";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
 import { faturacaoAcumulada, feitos, type Dados } from "@/lib/painel";
@@ -40,14 +41,17 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   async function guardar(novas: MetasT) {
     setErro(null);
     const sb = sbBrowser();
+    const empresa = await empresaAtual(sb);
+    if (!empresa) return setErro("Não foi possível guardar as metas. (sem empresa)");
     const linhas = METRICAS.map((x) => ({
+      empresa_id: empresa,
       ano: novas.ano,
       metrica: x.id,
       valor_anual: Math.round(novas.anual[x.id] ?? 0),
       taxa_conversao: x.id === "visitas" ? novas.visitasPorTransacao : x.id === "reunioes_angariacao" ? novas.reunioesPorAngariacao : null,
     }));
-    const r1 = await sb.from("metas").upsert(linhas, { onConflict: "ano,metrica" });
-    const r2 = await sb.from("metas_config").upsert({ ano: novas.ano, semanas_uteis: novas.semanasUteis, faturacao_anual: novas.faturacaoAnual });
+    const r1 = await sb.from("metas").upsert(linhas, { onConflict: "empresa_id,ano,metrica" });
+    const r2 = await sb.from("metas_config").upsert({ empresa_id: empresa, ano: novas.ano, semanas_uteis: novas.semanasUteis, faturacao_anual: novas.faturacaoAnual });
     if (r1.error || r2.error) return setErro(`Não foi possível guardar as metas. (${(r1.error ?? r2.error)?.message})`);
     setEditar(false);
     onAlterado();
@@ -57,6 +61,8 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   async function decidirSemana(poe: boolean) {
     setErro(null);
     const sb = sbBrowser();
+    const empresa = await empresaAtual(sb);
+    if (!empresa) return setErro("Não foi possível guardar a decisão. (sem empresa)");
     const semana = semanaISO(new Date());
     if (poe) {
       const v = Math.ceil(metaSemanal("visitas"));
@@ -71,7 +77,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
       });
       if (error) return setErro("Não foi possível pôr as metas no calendário.");
     }
-    const { error } = await sb.from("metas_semanas").upsert({ semana, decisao: poe ? "colocada" : "ignorada" });
+    const { error } = await sb.from("metas_semanas").upsert({ empresa_id: empresa, semana, decisao: poe ? "colocada" : "ignorada" });
     if (error) return setErro("Não foi possível guardar a decisão.");
     onAlterado();
   }

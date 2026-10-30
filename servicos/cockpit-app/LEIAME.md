@@ -114,9 +114,11 @@ Dentro da app a página fica marcada `<html data-app="nativa">` e o que tem `dat
 **Antes de publicar (a fazer):** trocar `TEAMID` em `public/.well-known/apple-app-site-association` pelo Team ID da conta
 Apple; pôr o ícone de 1024x1024 em `ios/App/App/Assets.xcassets/AppIcon.appiconset`; chave APNs (.p8) da conta Apple.
 
+**Piloto pelo TestFlight (antes da App Store):** plano, textos e lista de testes em `docs/cockpit-testflight-piloto.md`.
+
 **Notificações nativas:** `migracao_notificacoes.sql` já aceita aparelhos `ios`. Publicar as funções `enviar-teste` e
 `enviar-lembretes` (usam `supabase/functions/_shared/push.ts`) e acrescentar aos segredos da função: `APNS_KEY_ID`,
-`APNS_TEAM_ID`, `APNS_KEY_P8` (conteúdo do .p8), `APNS_TOPIC=pt.acelabs.cockpit`, `APNS_ENV=sandbox` (ou `production` na loja).
+`APNS_TEAM_ID`, `APNS_KEY_P8` (conteúdo do .p8), `APNS_TOPIC=pt.acelabs.cockpit`, `APNS_ENV=sandbox` (compilações a partir do Xcode no iPhone) ou `production` (TestFlight e loja).
 
 **Estado:** escrito e a compilar em TypeScript; a web comporta-se bem dentro do invólucro (`npm run testar -- nativo`, que
 simula o WebView do iOS). **Ainda não testado num iPhone nem no simulador:** Face ID, agenda, contactos, partilha, push
@@ -142,7 +144,9 @@ COCKPIT_CLIENTES=[{"codigo":"alvorada","nome":"Alvorada Imóveis","url":"https:/
   Acrescentar `https://cockpit.acelabs.pt/convite/*` aos Redirect URLs do Supabase desse cliente. A plataforma de controlo faz isto sozinha
   se o cliente tiver o campo "código na app" preenchido (na função `admin`, o segredo `APP_CODIGO`).
 - As chaves VAPID das notificações web são as mesmas para todos os clientes do deploy.
-- A política de segurança de conteúdos passa a aceitar `*.supabase.co` quando `COCKPIT_CLIENTES` existe.
+- A política de segurança de conteúdos aceita só o Supabase de cada cliente da lista (`next.config.mjs`): mudar a lista pede novo deploy.
+- Gerar o valor sem erros de JSON: `npm run clientes` lê `clientes-cockpit.json` (fora do git), confere cada entrada e imprime a
+  linha para colar na Vercel. Recusa a chave `service_role`, e a app também ignora uma entrada com essa chave (`eChaveSecreta` em `lib/clientes.ts`).
 - Teste: `npm run testar -- clientes` (arranca o seu próprio servidor na porta 3003).
 
 ## 11. Apagar a conta
@@ -150,6 +154,62 @@ COCKPIT_CLIENTES=[{"codigo":"alvorada","nome":"Alvorada Imóveis","url":"https:/
 Em Conta, "Apagar a minha conta" chama a função `apagar_minha_conta()` (`migracao_apagar_conta.sql`), que apaga o utilizador e, em cascata,
 o registo de membro e os aparelhos de notificações. Os contactos, compradores e angariações ficam na empresa (são dados dela, partilhados
 pelos membros). Não deixa apagar o último membro. Ainda por testar contra um Supabase com a migração corrida.
+
+## 13. Um projeto Supabase partilhado, com várias empresas (o modelo a usar)
+
+**Decisão (2026-10-30):** o Cockpit passa a correr num só projeto Supabase, com todos os clientes lá dentro, separados por
+`empresa_id`. É mais barato (sem custo fixo por cliente), um cliente novo demora minutos e as migrações correm uma só vez.
+Os projetos "um Supabase por cliente" das secções anteriores continuam a funcionar (uma base com uma só empresa
+comporta-se como antes). O CPCV mantém um projeto por cliente.
+
+- `migracao_multiempresa.sql` (a última de `npm run sql`): cria `empresas`, liga cada membro a UMA empresa (`membros.empresa_id`),
+  põe `empresa_id` em todas as 14 tabelas de dados e troca a regra de acesso para "da minha empresa". Os pedidos da app não
+  mudam: a base de dados filtra sozinha, e a empresa é preenchida sozinha em cada INSERT. Em bases que já tinham dados, tudo
+  passa para uma empresa chamada `padrao`.
+- **Isolamento:** `npm run testar -- unidade-multiempresa` corre as migrações reais num Postgres em memória e prova, nas 14 tabelas,
+  que uma empresa não vê, não altera, não apaga nem passa linhas para outra, que quem não é membro não vê nada, que uma empresa
+  suspensa perde o acesso, e que a migração de uma base antiga e duas corridas seguidas são seguras. **Nunca saltar este teste.**
+- Gerir empresas: `node scripts/empresa.mjs listar | criar <código> "<nome>" | suspender | reativar | apagar <código> --confirmo`
+  (`--env .env.xxx` para outro projeto). Convidar: `node scripts/convidar.mjs <email> <endereço da app> <código da empresa>`.
+- **Quem escreve com a chave de administrador** (scripts, testes, plataforma de controlo) tem de indicar a empresa quando existe
+  mais do que uma: sem `empresa_id` o INSERT falha de propósito, nunca escolhe uma ao acaso. Com uma só empresa usa essa.
+- **Plataforma de controlo:** cada cliente leva o campo "código da empresa". Com ele, só vê e só mexe em contas dessa empresa
+  (recusa agir sobre contas de outra), e o código vai dentro do pedido assinado à função `admin`.
+- Notificações: `enviar-lembretes` envia a cada empresa só os lembretes das suas tarefas, para os aparelhos dos seus membros.
+- Uma empresa **suspensa** (`suspensa = true`) deixa de ver dados; nada se apaga. Apagar uma empresa apaga os dados dela
+  (cascata) e o `apagar` do script apaga as contas de login dos membros.
+- A demonstração da Apple vive numa empresa própria (`demo`) dentro do mesmo projeto, com a conta de revisão como membro.
+- Como o projeto é único, **não se usa `COCKPIT_CLIENTES` nem o ecrã do código da empresa**: a Vercel só leva
+  `NEXT_PUBLIC_SUPABASE_URL` e `_ANON_KEY`. (A escolha por código continua no código para quem precisar de projetos separados.)
+- Limitações conhecidas: restaurar a cópia de segurança de UM cliente isoladamente é trabalhoso (a cópia é do projeto inteiro);
+  uma linha pode apontar para o id de uma linha de outra empresa (não lê nada, os ids não se adivinham), mas não há verificação
+  entre tabelas.
+
+**Para migrar um projeto que já existe:** correr `migracao_multiempresa.sql` no SQL Editor, `node scripts/empresa.mjs listar`
+para confirmar a empresa `padrao`, e `npm run seguranca` (tem de acabar em "Tudo em ordem.").
+
+## 12. Montar o projeto Demo (e a conta de revisão), passo a passo
+
+O Demo serve a Apple (TestFlight e App Store) e as demonstrações. Dados só fictícios. Sempre ligado, projeto Supabase próprio.
+
+1. Supabase, Project Settings, API: anotar o URL, a chave `anon` e a `service_role`.
+2. Criar `servicos/cockpit-app/.env.demo` (fora do git, nunca partilhar):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://<referência>.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon>
+   SUPABASE_SERVICE_ROLE_KEY=<service_role>
+   DEMO_PERMITIDO_EM=<referência, a parte antes de .supabase.co>
+   ```
+3. `npm run sql` e colar `instalar_tudo.sql` no SQL Editor do Demo (Run). Cria tabelas, segurança, notificações e apagar conta.
+4. Supabase, Authentication, Sign In / Providers: desligar "Allow new users to sign up".
+5. `node scripts/verificar-seguranca.mjs .env.demo` tem de acabar em "Tudo em ordem.".
+6. Semear a carteira fictícia: `npx tsx --tsconfig tsconfig.json scripts/demo.ts` (usa o `.env.demo`; `--limpar` apaga o que criou).
+7. Conta de revisão: `node scripts/revisao-apple.mjs` (email `revisao.apple@acelabs.pt`, ou outro como argumento). Imprime a
+   password uma vez e guarda-a em `.demo-revisao.txt` (fora do git). Ir para as notas de revisão do TestFlight e da App Store.
+8. No projeto partilhado (secção 13) não há lista de clientes: o `demo.ts` e o `revisao-apple.mjs` usam a empresa `demo` (criada
+   sozinha). Se o Demo foi montado ANTES da migração multiempresa, depois de a correr: `node scripts/empresa.mjs renomear padrao demo "Ace Labs Demo"`.
+   (`npm run clientes` e `COCKPIT_CLIENTES` só servem para o modo de projetos separados.)
+9. SMTP (Resend) e Redirect URLs do Demo: secções 2 e 10 acima.
 
 ## O que ainda não existe
 

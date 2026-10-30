@@ -43,3 +43,6 @@ next-env.d.ts
 # screenshots e ficheiros dos testes
 /testes/resultados/
 /instalar_tudo.sql
+
+/clientes-cockpit.json
+/.demo-revisao.txt

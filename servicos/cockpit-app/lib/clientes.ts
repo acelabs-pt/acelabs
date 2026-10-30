@@ -16,7 +16,23 @@ export function normalizarCodigo(c: string | null | undefined): string {
   return (c ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
 }
 
-/** Lista de clientes configurada, ou [] no modo de cliente único. Entradas inválidas são ignoradas. */
+/**
+ * Chave de administrador por engano (service_role, ou o formato novo sb_secret_)? Esta lista vai para o browser de quem
+ * entra, por isso uma chave destas seria uma fuga grave: a entrada é ignorada. Só olha para o conteúdo público do JWT.
+ */
+export function eChaveSecreta(chave: string): boolean {
+  if (chave.startsWith("sb_secret_")) return true;
+  try {
+    const p = chave.split(".")[1];
+    if (!p) return false;
+    const json = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/")));
+    return json?.role === "service_role";
+  } catch {
+    return false;
+  }
+}
+
+/** Lista de clientes configurada, ou [] no modo de cliente único. Entradas inválidas (ou com chave de administrador) são ignoradas. */
 export function listaClientes(): ClienteLista[] {
   const bruto = process.env.COCKPIT_CLIENTES;
   if (!bruto) return [];
@@ -25,7 +41,7 @@ export function listaClientes(): ClienteLista[] {
     if (!Array.isArray(a)) return [];
     return a
       .map((c) => ({ codigo: normalizarCodigo(c?.codigo), nome: String(c?.nome ?? ""), url: String(c?.url ?? ""), anon: String(c?.anon ?? "") }))
-      .filter((c) => c.codigo && /^https:\/\//.test(c.url) && c.anon);
+      .filter((c) => c.codigo && /^https:\/\//.test(c.url) && c.anon && !eChaveSecreta(c.anon));
   } catch {
     return [];
   }

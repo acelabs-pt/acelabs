@@ -3,12 +3,14 @@
 //   node scripts/verificar-seguranca.mjs
 //
 // Lê NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY do ambiente ou do .env.local desta pasta.
+// Para outro projeto (por exemplo o Demo): node scripts/verificar-seguranca.mjs .env.demo
 // Usa só a chave pública: não precisa da chave de administrador e não altera nada.
 import { existsSync, readFileSync } from "node:fs";
 
 const env = { ...process.env };
-if (existsSync(".env.local")) {
-  for (const l of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
+const ficheiroEnv = process.argv[2] || ".env.local";
+if (existsSync(ficheiroEnv)) {
+  for (const l of readFileSync(ficheiroEnv, "utf8").split(/\r?\n/)) {
     const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
     if (m && !env[m[1]]) env[m[1]] = m[2].trim().replace(/^"|"$/g, "");
   }
@@ -69,6 +71,14 @@ linha(await existe("rpc/registar_push_ios", { method: "POST", body: JSON.stringi
 
 // Apagar a conta dentro da app (migracao_apagar_conta.sql): obrigatório para a App Store. Sem sessão a chamada é recusada (401/403), não 404.
 linha(await existe("rpc/apagar_minha_conta", { method: "POST", body: "{}" }), "Apagar a própria conta (migracao_apagar_conta.sql)", "Corre migracao_apagar_conta.sql (a Apple exige que se possa apagar a conta dentro da app).");
+
+// Várias empresas no mesmo projeto (migracao_multiempresa.sql): cada cliente só vê os seus dados.
+linha(await existe("rpc/empresa_atual", { method: "POST", body: "{}" }), "Várias empresas no mesmo projeto (migracao_multiempresa.sql)", "Corre migracao_multiempresa.sql: sem ela os dados de clientes diferentes não ficam separados.");
+const empr = await fetch(`${url}/rest/v1/empresas?select=id&limit=1`, { headers: { ...h, "Content-Type": "application/json" } });
+if (empr.status !== 404) {
+  const j = await empr.json().catch(() => null);
+  linha(empr.status !== 200 || (Array.isArray(j) && j.length === 0), 'Sem sessão, "empresas" não devolve dados', "Confirma as regras de acesso da tabela empresas (migracao_multiempresa.sql).");
+}
 
 console.log(problemas ? `\n${problemas} ${problemas === 1 ? "problema" : "problemas"} a resolver.` : "\nTudo em ordem.");
 process.exit(problemas ? 2 : 0);

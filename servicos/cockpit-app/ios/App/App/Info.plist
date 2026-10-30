@@ -76,6 +76,8 @@
 	<string>O Cockpit põe as tuas visitas, tarefas e reuniões na agenda do telemóvel.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>O Cockpit importa o contacto que escolheres para criar um comprador ou proprietário.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

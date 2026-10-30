@@ -41,7 +41,7 @@ if (!env.TESTES_PERMITIDOS_EM || !env.NEXT_PUBLIC_SUPABASE_URL.includes(`//${env
 const TODOS = [
   "unidade-importacao.ts", "unidade-correspondencias.ts", "unidade-ics.ts", "conta.js", "dashboard.js", "gestos.js", "gestos-crm.js",
   "pesquisa.js", "chamadas.js", "proximos-comprador.js", "funis.js", "calendario.js", "calendario-telemovel.js", "exportar.js", "exportar-tudo.js", "whatsapp.js", "importar.js",
-  "documentos.js", "semrede.js", "nativo.js", "clientes.js", "acessibilidade.js",
+  "documentos.js", "semrede.js", "nativo.js", "erro-nativo.js", "clientes.js", "gerar-clientes.js", "unidade-multiempresa.mjs", "isolamento-empresas.js", "acessibilidade.js",
 ];
 const pedidos = process.argv.slice(2);
 const lista = pedidos.length ? pedidos.map((n) => TODOS.find((t) => t.startsWith(n + ".")) ?? (n === "publicado" ? "publicado.js" : n)) : TODOS;

@@ -2,6 +2,7 @@
 // Fica só no telemóvel do agente, só com o que o cartão "Hoje" mostra, e apaga-se ao sair
 // ou ao abrir o login (sessão terminada). A página sem rede só a mostra se for de hoje.
 import type { Tarefa } from "@/lib/types";
+import { apagarDiaNativo, guardarDiaNativo } from "@/lib/nativo";
 
 export const CHAVE_DIA = "cockpit-dia";
 
@@ -37,6 +38,7 @@ export function guardarDia(tarefas: Tarefa[], telefone: (t: Tarefa) => string | 
   } catch {
     // modo privado ou armazenamento cheio: a página sem rede mostra só a mensagem
   }
+  void guardarDiaNativo(JSON.stringify(dia)); // na casca iOS o ecrã sem ligação lê daqui
 }
 
 export function apagarDia() {
@@ -45,4 +47,5 @@ export function apagarDia() {
   } catch {
     // nada a apagar
   }
+  void apagarDiaNativo();
 }
