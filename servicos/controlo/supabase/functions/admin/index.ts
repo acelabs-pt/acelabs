@@ -7,18 +7,36 @@
 //   supabase functions deploy admin --no-verify-jwt
 //   supabase secrets set CONTROLO_CHAVE_PUBLICA="$(cat chave-publica.pem)" PRODUTO=cockpit APP_URL=https://cockpit.acelabs.pt
 // (PRODUTO é "cockpit" ou "cpcv". A chave pública vem de `npm run chaves` na plataforma de controlo.)
+// Com dois sócios, cada um tem o seu par de chaves e o seu segredo: CONTROLO_CHAVE_PUBLICA_PEDRO e CONTROLO_CHAVE_PUBLICA_MIGUEL.
+// O nome do segredo diz quem assinou o pedido, e é isso que fica no registo de ações (CONTROLO_CHAVE_PUBLICA sozinho = "socio").
 
-import { executar, verificar, type Produto } from "../_shared/nucleo.ts";
+import { executar, verificar, type Pedido, type Produto } from "../_shared/nucleo.ts";
+
+const PREFIXO = "CONTROLO_CHAVE_PUBLICA";
+
+/** Verifica o pedido contra cada chave pública configurada. Devolve o pedido e o nome de quem o assinou. */
+async function verificarSocio(ref: string, token: string): Promise<{ pedido: Pedido; quem: string }> {
+  const chaves = Object.entries(Deno.env.toObject()).filter(([k, v]) => k.startsWith(PREFIXO) && v);
+  for (const [nome, pem] of chaves) {
+    try {
+      return { pedido: await verificar(pem, ref, token), quem: nome.slice(PREFIXO.length).replace(/^_/, "").toLowerCase() || "socio" };
+    } catch (e) {
+      // pedido expirado ou para outro projeto: a mesma resposta com qualquer chave, não vale a pena tentar as outras
+      if (!/assinatura/i.test(e instanceof Error ? e.message : "")) throw e;
+    }
+  }
+  throw new Error("assinatura inválida");
+}
 
 Deno.serve(async (req) => {
   try {
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const url = Deno.env.get("SUPABASE_URL")!;
     const ref = new URL(url).host.split(".")[0];
-    const pedido = await verificar(Deno.env.get("CONTROLO_CHAVE_PUBLICA")!, ref, token);
+    const { pedido, quem } = await verificarSocio(ref, token);
     const produto = (Deno.env.get("PRODUTO") === "cpcv" ? "cpcv" : "cockpit") as Produto;
     const resultado = await executar(
-      { url, chave: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, produto, appUrl: Deno.env.get("APP_URL") ?? undefined, codigoApp: Deno.env.get("APP_CODIGO") ?? undefined },
+      { url, chave: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, produto, appUrl: Deno.env.get("APP_URL") ?? undefined, codigoApp: Deno.env.get("APP_CODIGO") ?? undefined, quem },
       pedido
     );
     return Response.json(resultado);

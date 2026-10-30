@@ -1,7 +1,7 @@
 // Cockpit partilhado (várias empresas no mesmo projeto Supabase): a plataforma de controlo só pode ver e tocar em contas
 // da empresa do cliente em causa. Usa um Supabase simulado em memória (fetch trocado), por isso corre sem rede.
 // Corre com: npx tsx testes/unidade-empresas.ts
-import { criarUtilizador, executar, listarUtilizadores, remover, suspender, type Ctx } from "../supabase/functions/_shared/nucleo";
+import { apagarEmpresa, atualizarEmpresa, criarEmpresa, criarUtilizador, definirEstadoEmpresa, executar, listarAuditoria, listarEmpresas, listarUtilizadores, remover, suspender, type Ctx } from "../supabase/functions/_shared/nucleo";
 
 let falhas = 0;
 const ok = (nome: string, cond: boolean, extra = "") => {
@@ -24,6 +24,9 @@ let empresas: Array<{ id: string; codigo: string; nome: string; suspensa: boolea
 let membros: Array<{ user_id: string; empresa_id: string }>;
 let users: U[];
 let temEmpresas = true;
+let temAdmin = true;
+let internos: Record<string, Record<string, unknown>>;
+let registos: Array<Record<string, unknown>>;
 let seq = 0;
 const novo = (email: string): U => ({ id: `u${++seq}`, email, created_at: new Date(2026, 9, seq).toISOString(), banned_until: null });
 
@@ -40,6 +43,9 @@ function reiniciar() {
     { user_id: users[2].id, empresa_id: "E-beta" },
   ];
   temEmpresas = true;
+  temAdmin = true;
+  internos = { "E-alfa": { estado: "piloto" }, "E-beta": { estado: "piloto" } };
+  registos = [];
 }
 const resp = (corpo: unknown, status = 200) => new Response(status === 204 ? null : JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json" } });
 const filtro = (q: URLSearchParams, k: string) => q.get(k)?.replace(/^eq\./, "") ?? null;
@@ -51,6 +57,47 @@ globalThis.fetch = (async (entrada: string | URL | Request, init?: RequestInit) 
   const m = init?.method ?? "GET";
   const corpo = init?.body ? JSON.parse(String(init.body)) : null;
   const p = u.pathname;
+  if (p === "/rest/v1/auditoria") {
+    if (!temAdmin) return resp({ message: "relation does not exist" }, 404);
+    if (m === "POST") {
+      registos.push({ id: registos.length + 1, quando: new Date().toISOString(), ...corpo });
+      return resp(null, 201);
+    }
+    const cod = filtro(q, "empresa_codigo");
+    return resp(registos.filter((x) => !cod || x.empresa_codigo === cod).reverse());
+  }
+  if (p === "/rest/v1/empresas_admin") {
+    if (!temAdmin) return resp({ message: "relation does not exist" }, 404);
+    const id = filtro(q, "empresa_id") ?? "";
+    internos[id] = { ...(internos[id] ?? {}), ...corpo };
+    return resp(null, 204);
+  }
+  if (p === "/rest/v1/rpc/resumo_empresas") {
+    if (!temAdmin) return resp({ message: "function does not exist" }, 404);
+    return resp(empresas.map((e) => ({ ...e, ...(internos[e.id] ?? {}), utilizadores: membros.filter((x) => x.empresa_id === e.id).length })));
+  }
+  if (p === "/rest/v1/empresas" && m !== "GET") {
+    if (!temEmpresas) return resp({ message: "relation does not exist" }, 404);
+    if (m === "POST") {
+      if (empresas.some((e) => e.codigo === corpo.codigo)) return resp({ message: "duplicate" }, 409);
+      const e = { id: "E-" + corpo.codigo, codigo: corpo.codigo, nome: corpo.nome, suspensa: false };
+      empresas.push(e);
+      internos[e.id] = { estado: "piloto" };
+      return resp([e], 201);
+    }
+    const id = filtro(q, "id");
+    if (m === "PATCH") {
+      const e = empresas.find((x) => x.id === id);
+      if (e) Object.assign(e, corpo);
+      return resp(null, 204);
+    }
+    if (m === "DELETE") {
+      empresas = empresas.filter((x) => x.id !== id);
+      membros = membros.filter((x) => x.empresa_id !== id);
+      delete internos[id ?? ""];
+      return resp(null, 204);
+    }
+  }
   if (p === "/rest/v1/empresas") {
     if (!temEmpresas) return resp({ message: "relation does not exist" }, 404);
     let l = empresas;
@@ -174,6 +221,61 @@ const beta: Ctx = { ...base, empresa: "beta" };
   const semEmpresa = (await executar(base, { acao: "listar" })) as unknown[];
   ok("pedido sem empresa mantém o comportamento antigo", semEmpresa.length === 4);
 
-  console.log(falhas ? `\n${falhas} falha(s).` : "\nTudo certo.");
+  // 7. Administração das empresas e registo de ações
+  reiniciar();
+  const adm: Ctx = { ...base, quem: "pedro" };
+  const painel = await listarEmpresas(adm);
+  ok("o painel lista as empresas com o número de utilizadores", painel.length === 2 && painel.find((x) => x.codigo === "alfa")?.utilizadores === 2);
+  await criarEmpresa(adm, "Gama", "Gama Imóveis", { contacto_email: "gama@x.pt", responsavel: "Miguel", notas: "ligar na segunda" });
+  ok("criar empresa normaliza o código e guarda os dados internos", empresas.some((e) => e.codigo === "gama") && internos["E-gama"]?.responsavel === "miguel" && internos["E-gama"]?.contacto_email === "gama@x.pt");
+  ok("criar empresa deixa rasto com quem fez", registos.at(-1)?.acao === "empresa.criar" && registos.at(-1)?.quem === "pedro" && registos.at(-1)?.empresa_codigo === "gama");
+  await falha("criar empresa com código repetido é recusado", () => criarEmpresa(adm, "gama", "Outra"), /Já existe/);
+  await falha("criar empresa com código inválido é recusado", () => criarEmpresa(adm, "Gama Lda", "x"), /código da empresa/);
+  await falha("email de contacto inválido é recusado", () => criarEmpresa(adm, "delta", "Delta", { contacto_email: "isto" }), /email de contacto/);
+  await falha("responsável desconhecido é recusado", () => criarEmpresa(adm, "delta", "Delta", { responsavel: "joao" }), /responsável/);
+  ok("e nada ficou criado por esses pedidos", !empresas.some((e) => e.codigo === "delta"));
+  await atualizarEmpresa(adm, "gama", { notas: "segredo das notas", nome: "Gama SA" });
+  ok("atualizar muda o nome e os dados internos", empresas.find((e) => e.codigo === "gama")?.nome === "Gama SA" && internos["E-gama"]?.notas === "segredo das notas");
+  ok("o registo diz que campos mudaram mas não copia as notas", JSON.stringify(registos.at(-1)).includes("notas") && !JSON.stringify(registos.at(-1)).includes("segredo das notas"));
+  await definirEstadoEmpresa(adm, "gama", "suspensa");
+  ok("suspensa corta o acesso (flag) e guarda o estado", empresas.find((e) => e.codigo === "gama")?.suspensa === true && internos["E-gama"]?.estado === "suspensa");
+  await definirEstadoEmpresa(adm, "gama", "ativa");
+  ok("ativa devolve o acesso", empresas.find((e) => e.codigo === "gama")?.suspensa === false && internos["E-gama"]?.estado === "ativa");
+  await definirEstadoEmpresa(adm, "gama", "terminada");
+  ok("terminada também corta o acesso", empresas.find((e) => e.codigo === "gama")?.suspensa === true && internos["E-gama"]?.estado === "terminada");
+  await falha("estado inventado é recusado", () => definirEstadoEmpresa(adm, "gama", "talvez"), /Estado inválido/);
+  await falha("empresa que não existe é recusada", () => atualizarEmpresa(adm, "zeta", { notas: "x" }), /Não existe a empresa/);
+  const antes = users.length;
+  await falha("apagar sem escrever o código é recusado", () => apagarEmpresa(adm, "alfa", "sim"), /escreve o código/);
+  ok("e não apagou nada", empresas.some((e) => e.codigo === "alfa") && users.length === antes);
+  const r2 = await apagarEmpresa(adm, "alfa", "ALFA");
+  ok("apagar com o código certo apaga a empresa e as contas dos membros", r2.contasApagadas === 2 && !empresas.some((e) => e.codigo === "alfa") && !users.some((x) => x.email.endsWith("@alfa.pt")));
+  ok("e não toca nas contas de beta", users.some((x) => x.email === "b1@beta.pt") && empresas.some((e) => e.codigo === "beta"));
+  ok("o rasto de apagar ficou escrito antes de apagar", registos.some((x) => x.acao === "empresa.apagar" && x.empresa_codigo === "alfa"));
+  // cada ação sobre utilizadores deixa rasto
+  reiniciar();
+  const nb: Ctx = { ...base, empresa: "beta", quem: "miguel" };
+  const nv = await criarUtilizador(nb, { email: "rasto@beta.pt", modo: "password" });
+  await suspender(nb, nv.id, true);
+  await suspender(nb, nv.id, false);
+  await remover(nb, nv.id);
+  const acoes = registos.map((x) => x.acao).join(",");
+  ok("criar, suspender, reativar e remover um utilizador ficam registados", acoes === "utilizador.criar,utilizador.suspender,utilizador.reativar,utilizador.remover", acoes);
+  ok("com quem fez, a empresa e o email", registos.every((x) => x.quem === "miguel" && x.empresa_codigo === "beta") && (registos[3].detalhe as { email: string }).email === "rasto@beta.pt");
+  const aud = await listarAuditoria(adm, "beta");
+  ok("o registo lê-se por empresa, o mais recente primeiro", aud.length === 4 && aud[0].acao === "utilizador.remover");
+  // pelo pedido assinado
+  const viaEmpresas = (await executar(adm, { acao: "empresas" })) as unknown[];
+  ok("pedido assinado: empresas", viaEmpresas.length === 2);
+  await executar(adm, { acao: "empresa_criar", codigo: "eta", nome: "Eta", dados: { responsavel: "pedro" } });
+  ok("pedido assinado: criar empresa", empresas.some((e) => e.codigo === "eta"));
+  // projeto sem a migração da administração
+  reiniciar();
+  temAdmin = false;
+  await falha("sem migracao_admin o painel explica o que falta", () => listarEmpresas(adm), /migracao_admin/);
+  await criarUtilizador({ ...base, empresa: "alfa" }, { email: "semadmin@alfa.pt", modo: "password" });
+  ok("sem a tabela de registo as ações antigas continuam a funcionar", users.some((x) => x.email === "semadmin@alfa.pt"));
+
+  console.log(falhas ?`\n${falhas} falha(s).` : "\nTudo certo.");
   process.exit(falhas ? 1 : 0);
 })();

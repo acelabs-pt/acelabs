@@ -42,6 +42,30 @@ e apaga-se utilizadores sem entrar no painel do Supabase.
   - **Apagar:** remove a conta (pede confirmação).
 - Se a conta é criada mas o perfil falha (por exemplo, falta uma migração), a conta é anulada: nunca fica uma conta a meio.
 
+## Painel do Cockpit partilhado (empresas)
+
+O Cockpit corre num só projeto Supabase com várias empresas (`cockpit-app/migracao_multiempresa.sql`). Esse projeto regista-se
+uma vez em "Novo cliente", escolhendo Cockpit e marcando a caixa do **projeto partilhado** (não é um cliente: não aparece na
+lista de clientes). A página inicial passa a ter o **Painel do Cockpit**:
+
+- **Painel:** uma linha por empresa com estado (piloto, ativa, suspensa, terminada), utilizadores, último acesso, telemóveis com
+  notificações, compradores, proprietários, angariações e novos registos dos últimos 7 dias. Avisos em linguagem simples: sem
+  utilizadores, convites por aceitar há mais de 3 dias, ninguém entra há 7 dias, nenhum telemóvel com notificações. Mostra também
+  as contas sem empresa (entram mas não veem dados).
+- **Empresa:** lista de arranque (calculada sozinha a partir dos dados), uso, utilizadores (convidar, suspender, apagar), dados
+  internos (contacto, quem acompanha, notas, início), estado, estado da instalação, últimas ações e a zona de perigo (apagar a
+  empresa e as contas, escrevendo o código para confirmar).
+- **Registo de ações:** cada ação sobre empresas e utilizadores guarda quem fez, quando e o quê (tabela `auditoria`). Sobrevive
+  à empresa apagada. As notas internas nunca são copiadas para o registo.
+
+Os dados internos (`empresas_admin`) e o registo (`auditoria`) estão em tabelas sem nenhuma regra de acesso: os utilizadores dos
+clientes não os leem nem os escrevem, só a chave de administrador. Precisa de `cockpit-app/migracao_admin.sql` aplicado ao
+projeto (já está no `instalar_tudo.sql`).
+
+**Quem fez a ação.** No modo função, cada sócio tem o seu par de chaves e a função `admin` tem um segredo por sócio:
+`CONTROLO_CHAVE_PUBLICA_PEDRO` e `CONTROLO_CHAVE_PUBLICA_MIGUEL`. O nome do segredo é o que fica no registo, por isso ninguém
+pode assinar em nome do outro. No modo chave (provisório), é o `CONTROLO_QUEM=pedro` (ou `miguel`) do `.env.local` de cada computador.
+
 ## Segurança
 
 - A lista de clientes (`dados/clientes.json`) e o `.env.local` estão no `.gitignore`. O repositório é público.

@@ -1,17 +1,27 @@
 import {
+  apagarEmpresa,
   assinar,
+  atualizarEmpresa,
+  contasSemEmpresa,
+  criarEmpresa,
   criarUtilizador,
+  definirEstadoEmpresa,
   estado,
+  listarAuditoria,
+  listarEmpresas,
   listarUtilizadores,
   remover,
   suspender,
+  type DadosEmpresa,
+  type EmpresaResumo,
+  type EntradaAuditoria,
   type Ctx,
   type NovoUtilizador,
   type Pedido,
   type Utilizador,
   type Verificacao,
 } from "../supabase/functions/_shared/nucleo";
-import { nomeVariavelChave, type Cliente } from "./clientes";
+import { lerClientes, nomeVariavelChave, type Cliente } from "./clientes";
 
 // Ponto único por onde a app executa ações sobre um cliente. Escolhe o modo do cliente:
 //  - "chave": chama o núcleo diretamente com a chave de administrador guardada neste computador (variável CHAVE_<ID>);
@@ -20,7 +30,8 @@ import { nomeVariavelChave, type Cliente } from "./clientes";
 function ctxChave(c: Cliente): Ctx {
   const chave = process.env[nomeVariavelChave(c.id)];
   if (!chave) throw new Error(`Falta a chave de administrador deste cliente. Define ${nomeVariavelChave(c.id)} no ficheiro .env.local, ou passa o cliente para o modo "função".`);
-  return { url: c.supabase_url, chave, produto: c.produto, appUrl: c.app_url, codigoApp: c.codigo_app, empresa: c.empresa };
+  // quem: no modo "chave" não há assinatura que diga quem é; fica o que está no .env.local deste computador (CONTROLO_QUEM=pedro ou miguel).
+  return { url: c.supabase_url, chave, produto: c.produto, appUrl: c.app_url, codigoApp: c.codigo_app, empresa: c.empresa, quem: (process.env.CONTROLO_QUEM || "socio").toLowerCase() };
 }
 
 function refProjeto(c: Cliente): string {
@@ -64,3 +75,34 @@ export async function estadoDe(c: Cliente): Promise<Verificacao[]> {
   if (c.modo === "funcao") return viaFuncao(c, { acao: "estado" });
   return estado(ctxChave(c));
 }
+
+// ---------------------------------------------------------------------------------------------
+// Administração das empresas do projeto Cockpit partilhado (Painel, empresa, registo de ações).
+// ---------------------------------------------------------------------------------------------
+
+/** O projeto partilhado registado nesta lista (o que tem partilhado: true). */
+export function projetoPartilhado(): Cliente | undefined {
+  return lerClientes().find((c) => c.partilhado);
+}
+
+/** Uma vista do projeto partilhado limitada a UMA empresa: é com ela que se listam, convidam e removem utilizadores. */
+export function daEmpresa(projeto: Cliente, codigo: string, nome: string): Cliente {
+  return { ...projeto, id: projeto.id, nome, empresa: codigo, partilhado: false };
+}
+
+async function correr<T>(c: Cliente, pedido: Pedido, direto: (x: Ctx) => Promise<T>): Promise<T> {
+  return c.modo === "funcao" ? viaFuncao<T>(c, pedido) : direto(ctxChave(c));
+}
+
+export const empresasDe = (c: Cliente): Promise<EmpresaResumo[]> => correr(c, { acao: "empresas" }, listarEmpresas);
+export const contasSoltasDe = (c: Cliente) => correr(c, { acao: "contas_sem_empresa" }, contasSemEmpresa);
+export const criarEmpresaEm = (c: Cliente, codigo: string, nome: string, dados?: DadosEmpresa) =>
+  correr(c, { acao: "empresa_criar", codigo, nome, dados }, (x) => criarEmpresa(x, codigo, nome, dados));
+export const atualizarEmpresaEm = (c: Cliente, codigo: string, dados: DadosEmpresa) =>
+  correr(c, { acao: "empresa_atualizar", codigo, dados }, (x) => atualizarEmpresa(x, codigo, dados));
+export const estadoDaEmpresaEm = (c: Cliente, codigo: string, novo: string) =>
+  correr(c, { acao: "empresa_estado", codigo, estado: novo }, (x) => definirEstadoEmpresa(x, codigo, novo));
+export const apagarEmpresaEm = (c: Cliente, codigo: string, confirmar: string) =>
+  correr(c, { acao: "empresa_apagar", codigo, confirmar }, (x) => apagarEmpresa(x, codigo, confirmar));
+export const auditoriaDe = (c: Cliente, empresa?: string, limite = 100): Promise<EntradaAuditoria[]> =>
+  correr(c, { acao: "auditoria", empresa, limite }, (x) => listarAuditoria(x, empresa, limite));
