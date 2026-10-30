@@ -44,15 +44,17 @@ export async function novoCliente(_: Resposta, f: FormData): Promise<Resposta> {
   const anon = String(f.get("anon_key") ?? "").trim();
   const appUrl = String(f.get("app_url") ?? "").trim().replace(/\/$/, "");
   const codigoApp = String(f.get("codigo_app") ?? "").trim().toLowerCase();
+  const empresa = String(f.get("empresa") ?? "").trim().toLowerCase();
   const modo = String(f.get("modo")) === "funcao" ? "funcao" : "chave";
   if (!nome) return { erro: "Indica o nome do cliente." };
+  if (empresa && !/^[a-z0-9-]+$/.test(empresa)) return { erro: "O código da empresa só pode ter letras minúsculas, números e hífens." };
   if (codigoApp && !/^[a-z0-9-]+$/.test(codigoApp)) return { erro: "O código da app só pode ter letras minúsculas, números e hífens." };
   if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(url)) return { erro: "O endereço do Supabase tem de ser https://<projeto>.supabase.co." };
   if (anon.length < 20) return { erro: "Falta a chave anon (pública) do projeto." };
   const id = slug(nome);
   if (!id) return { erro: "Nome inválido." };
   if (lerClientes().some((c) => c.id === id)) return { erro: "Já existe um cliente com este nome." };
-  const cliente: Cliente = { id, nome, produto, supabase_url: url, anon_key: anon, app_url: appUrl || undefined, codigo_app: codigoApp || undefined, modo };
+  const cliente: Cliente = { id, nome, produto, supabase_url: url, anon_key: anon, app_url: appUrl || undefined, codigo_app: codigoApp || undefined, empresa: empresa || undefined, modo };
   guardarCliente(cliente);
   revalidatePath("/");
   redirect(`/clientes/${id}`);

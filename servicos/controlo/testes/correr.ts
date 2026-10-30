@@ -38,6 +38,13 @@ if (!cpcv.SUPABASE_SERVICE_ROLE_KEY || !cpcv.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 // 1. unitário
+const tsxCli = path.join(SERVICOS, "cockpit-app/node_modules/tsx/dist/cli.mjs");
+const ue = spawnSync(process.execPath, [tsxCli, "testes/unidade-empresas.ts"], { cwd: RAIZ, encoding: "utf8" });
+console.log("empresas:", ue.stdout.trim().split("\n").slice(-1)[0]);
+if (ue.status !== 0) {
+  console.log(ue.stdout);
+  process.exit(1);
+}
 const u = spawnSync(process.execPath, [path.join(SERVICOS, "cockpit-app/node_modules/tsx/dist/cli.mjs"), "testes/unidade-assinatura.ts"], { cwd: RAIZ, encoding: "utf8" });
 console.log(u.stdout.trim().split("\n").slice(-1)[0]);
 if (u.status !== 0) {

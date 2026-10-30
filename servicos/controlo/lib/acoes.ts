@@ -20,7 +20,7 @@ import { nomeVariavelChave, type Cliente } from "./clientes";
 function ctxChave(c: Cliente): Ctx {
   const chave = process.env[nomeVariavelChave(c.id)];
   if (!chave) throw new Error(`Falta a chave de administrador deste cliente. Define ${nomeVariavelChave(c.id)} no ficheiro .env.local, ou passa o cliente para o modo "função".`);
-  return { url: c.supabase_url, chave, produto: c.produto, appUrl: c.app_url, codigoApp: c.codigo_app };
+  return { url: c.supabase_url, chave, produto: c.produto, appUrl: c.app_url, codigoApp: c.codigo_app, empresa: c.empresa };
 }
 
 function refProjeto(c: Cliente): string {
@@ -30,7 +30,7 @@ function refProjeto(c: Cliente): string {
 async function viaFuncao<T>(c: Cliente, pedido: Pedido): Promise<T> {
   const privada = process.env.CONTROLO_CHAVE_PRIVADA;
   if (!privada) throw new Error("Falta CONTROLO_CHAVE_PRIVADA no .env.local (gera o par de chaves com: npm run chaves).");
-  const token = await assinar(privada.replace(/\\n/g, "\n"), refProjeto(c), pedido);
+  const token = await assinar(privada.replace(/\\n/g, "\n"), refProjeto(c), c.empresa ? { ...pedido, empresa: c.empresa } : pedido);
   const r = await fetch(`${c.supabase_url.replace(/\/$/, "")}/functions/v1/admin`, {
     method: "POST",
     headers: { apikey: c.anon_key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

@@ -13,6 +13,8 @@ export type Cliente = {
   supabase_url: string;
   anon_key: string;
   app_url?: string;
+  /** Código da empresa no projeto Cockpit PARTILHADO (migracao_multiempresa.sql): várias empresas no mesmo Supabase. Com ele, a plataforma só vê e só toca em contas desta empresa. Sem ele, o projeto é de um só cliente. */
+  empresa?: string;
   /** Código do cliente na app Cockpit com vários clientes num deploy (COCKPIT_CLIENTES). Sem ele o convite abre /nova-password. */
   codigo_app?: string;
   /** "chave": usa CHAVE_<ID> deste computador. "funcao": pede à função `admin` do cliente, com pedido assinado. */

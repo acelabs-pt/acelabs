@@ -6,7 +6,9 @@
 
 export type Produto = "cockpit" | "cpcv";
 // codigoApp: código do cliente na app Cockpit com vários clientes num deploy; o convite abre /convite/<código>.
-export type Ctx = { url: string; chave: string; produto: Produto; appUrl?: string; codigoApp?: string };
+// empresa: código da empresa quando o Cockpit corre num projeto Supabase PARTILHADO (migracao_multiempresa.sql). Com ele, listar,
+// criar, suspender e remover só tocam em contas dessa empresa. Sem ele o projeto é de um só cliente (modo antigo).
+export type Ctx = { url: string; chave: string; produto: Produto; appUrl?: string; codigoApp?: string; empresa?: string };
 
 export const PAPEIS: Record<Produto, string[]> = {
   cockpit: ["membro"],
@@ -41,10 +43,39 @@ function mensagem(corpo: unknown, omissao: string): string {
   return omissao;
 }
 
+/** O id da empresa deste contexto, no Cockpit partilhado. Sem c.empresa devolve null (projeto de um só cliente). */
+async function empresaDe(c: Ctx): Promise<string | null> {
+  if (c.produto !== "cockpit" || !c.empresa) return null;
+  const r = await pedir(c, `/rest/v1/empresas?select=id&codigo=eq.${encodeURIComponent(c.empresa.toLowerCase())}`);
+  if (!r.ok) throw new Error("Este projeto ainda não tem várias empresas (corre migracao_multiempresa.sql em Estado).");
+  const id = (r.corpo as Array<{ id: string }>)[0]?.id;
+  if (!id) throw new Error(`Não existe a empresa "${c.empresa}" neste projeto. Cria-a primeiro (scripts/empresa.mjs no Cockpit).`);
+  return id;
+}
+
+/** Antes de agir sobre uma conta: tem de ser membro DESTA empresa (a plataforma nunca toca em contas de outra). */
+async function garantirDaEmpresa(c: Ctx, id: string): Promise<void> {
+  const emp = await empresaDe(c);
+  if (!emp) return;
+  const r = await pedir(c, `/rest/v1/membros?select=user_id&user_id=eq.${encodeURIComponent(id)}&empresa_id=eq.${emp}`);
+  if (!r.ok || !(r.corpo as unknown[])?.length) throw new Error("Esta conta não pertence a esta empresa.");
+}
+
 export async function listarUtilizadores(c: Ctx): Promise<Utilizador[]> {
-  const r = await pedir(c, "/auth/v1/admin/users?per_page=200");
-  if (!r.ok) throw new Error("Não foi possível listar os utilizadores. Confirma o endereço e a chave do cliente.");
-  const users = ((r.corpo as { users?: Array<Record<string, unknown>> })?.users ?? []) as Array<Record<string, string | null>>;
+  const emp = await empresaDe(c);
+  let users: Array<Record<string, string | null>>;
+  if (emp) {
+    // Projeto partilhado: vão buscar-se só as contas dos membros desta empresa (a lista global tem as de todos os clientes).
+    const m = await pedir(c, `/rest/v1/membros?select=user_id&empresa_id=eq.${emp}`);
+    if (!m.ok) throw new Error("Não foi possível listar os membros da empresa.");
+    const ids = (m.corpo as Array<{ user_id: string }>).map((x) => x.user_id);
+    const contas = await Promise.all(ids.map((id) => pedir(c, `/auth/v1/admin/users/${id}`)));
+    users = contas.filter((x) => x.ok && x.corpo).map((x) => x.corpo as Record<string, string | null>);
+  } else {
+    const r = await pedir(c, "/auth/v1/admin/users?per_page=200");
+    if (!r.ok) throw new Error("Não foi possível listar os utilizadores. Confirma o endereço e a chave do cliente.");
+    users = ((r.corpo as { users?: Array<Record<string, unknown>> })?.users ?? []) as Array<Record<string, string | null>>;
+  }
 
   let nomes = new Map<string, { nome: string; papel: string }>();
   let membros: Set<string> | null = null;
@@ -52,7 +83,7 @@ export async function listarUtilizadores(c: Ctx): Promise<Utilizador[]> {
     const p = await pedir(c, "/rest/v1/profiles?select=id,nome,role");
     if (p.ok) nomes = new Map((p.corpo as Array<{ id: string; nome: string; role: string }>).map((x) => [x.id, { nome: x.nome, papel: x.role }]));
   } else {
-    const m = await pedir(c, "/rest/v1/membros?select=user_id");
+    const m = await pedir(c, emp ? `/rest/v1/membros?select=user_id&empresa_id=eq.${emp}` : "/rest/v1/membros?select=user_id");
     if (m.ok) membros = new Set((m.corpo as Array<{ user_id: string }>).map((x) => x.user_id));
   }
 
@@ -91,6 +122,14 @@ export async function criarUtilizador(c: Ctx, n: NovoUtilizador): Promise<{ id: 
   if (!PAPEIS[c.produto].includes(papel)) throw new Error("Papel inválido para este produto.");
   if (c.produto === "cpcv" && !(n.nome ?? "").trim()) throw new Error("Indica o nome.");
 
+  // Cockpit partilhado: a empresa tem de ser conhecida ANTES de convidar (senão ficava um convite sem empresa).
+  let emp = await empresaDe(c);
+  if (c.produto === "cockpit" && !emp) {
+    const todas = await pedir(c, "/rest/v1/empresas?select=id");
+    if (todas.ok && (todas.corpo as unknown[]).length > 1) throw new Error("Este projeto tem várias empresas: indica o código da empresa deste cliente.");
+    emp = todas.ok ? ((todas.corpo as Array<{ id: string }>)[0]?.id ?? null) : null;
+  }
+
   let id: string;
   let pass: string | undefined;
   if (n.modo === "convite") {
@@ -110,7 +149,7 @@ export async function criarUtilizador(c: Ctx, n: NovoUtilizador): Promise<{ id: 
   const perfil =
     c.produto === "cpcv"
       ? await pedir(c, "/rest/v1/profiles", { method: "POST", body: JSON.stringify({ id, nome: (n.nome ?? "").trim(), role: papel }) })
-      : await pedir(c, "/rest/v1/membros", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify({ user_id: id }) });
+      : await pedir(c, "/rest/v1/membros", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates" }, body: JSON.stringify(emp ? { user_id: id, empresa_id: emp } : { user_id: id }) });
   if (!perfil.ok) {
     // não deixar uma conta a meio: apagar a conta acabada de criar e dizer porquê
     await pedir(c, `/auth/v1/admin/users/${id}`, { method: "DELETE" });
@@ -124,12 +163,14 @@ export async function criarUtilizador(c: Ctx, n: NovoUtilizador): Promise<{ id: 
 }
 
 export async function suspender(c: Ctx, id: string, suspenso: boolean): Promise<void> {
+  await garantirDaEmpresa(c, id);
   // "876000h" é um ban de 100 anos; "none" levanta-o. A conta e os dados ficam intactos.
   const r = await pedir(c, `/auth/v1/admin/users/${id}`, { method: "PUT", body: JSON.stringify({ ban_duration: suspenso ? "876000h" : "none" }) });
   if (!r.ok) throw new Error("Não foi possível alterar o estado da conta.");
 }
 
 export async function remover(c: Ctx, id: string): Promise<void> {
+  await garantirDaEmpresa(c, id);
   if (c.produto === "cpcv") await pedir(c, `/rest/v1/profiles?id=eq.${id}`, { method: "DELETE" });
   else await pedir(c, `/rest/v1/membros?user_id=eq.${id}`, { method: "DELETE" });
   const r = await pedir(c, `/auth/v1/admin/users/${id}`, { method: "DELETE" });
@@ -143,6 +184,7 @@ const TABELAS: Record<Produto, Array<[string, string, string]>> = {
     ["contactos", "Tabelas base", "create_tables.sql"],
     ["membros", "Lista de membros (só convidados veem dados)", "migracao_seguranca.sql"],
     ["push_subscricoes", "Notificações push", "migracao_notificacoes.sql"],
+    ["empresas", "Várias empresas no mesmo projeto (isolamento por cliente)", "migracao_multiempresa.sql"],
   ],
   cpcv: [
     ["profiles", "Perfis e papéis", "create_tables_cpcv.sql"],
@@ -167,6 +209,15 @@ export async function estado(c: Ctx): Promise<Verificacao[]> {
   for (const [caminho, texto, ficheiro] of COLUNAS[c.produto]) {
     const r = await pedir(c, `/rest/v1/${caminho}`);
     v.push({ ok: r.ok, texto, conselho: r.ok ? undefined : `Corre ${ficheiro} no SQL Editor deste projeto.` });
+  }
+  if (c.produto === "cockpit" && c.empresa) {
+    const e = await pedir(c, `/rest/v1/empresas?select=nome,suspensa&codigo=eq.${encodeURIComponent(c.empresa.toLowerCase())}`);
+    const linha = e.ok ? (e.corpo as Array<{ nome: string; suspensa: boolean }>)[0] : undefined;
+    v.push({
+      ok: !!linha && !linha.suspensa,
+      texto: linha ? `Empresa "${c.empresa}": ${linha.nome}${linha.suspensa ? " (SUSPENSA)" : ""}` : `Empresa "${c.empresa}"`,
+      conselho: !linha ? "Não existe: cria-a com scripts/empresa.mjs no Cockpit." : linha.suspensa ? "Os membros não veem dados enquanto estiver suspensa." : undefined,
+    });
   }
   if (c.produto === "cockpit") {
     // Chamada sem sessão: a função recusa (auth.uid() é nulo) e não apaga nada; só interessa se existe (404 = falta a migração).
@@ -240,7 +291,9 @@ export async function verificar(publicaPem: string, aud: string, token: string):
 }
 
 /** Executa um pedido já verificado (usado pela função `admin`). */
-export async function executar(c: Ctx, p: Pedido): Promise<unknown> {
+export async function executar(c0: Ctx, p: Pedido): Promise<unknown> {
+  // A empresa vai dentro do pedido assinado (um projeto partilhado serve várias empresas).
+  const c: Ctx = typeof p.empresa === "string" && p.empresa ? { ...c0, empresa: p.empresa.toLowerCase() } : c0;
   switch (p.acao) {
     case "listar":
       return await listarUtilizadores(c);

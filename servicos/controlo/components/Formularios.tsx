@@ -70,6 +70,10 @@ export function FormNovoCliente() {
         <input id="app_url" name="app_url" placeholder="https://cockpit.acelabs.pt" className={campo} />
       </div>
       <div>
+        <label htmlFor="empresa" className={rotulo}>Código da empresa (só no Cockpit com vários clientes no mesmo projeto Supabase)</label>
+        <input id="empresa" name="empresa" placeholder="alvorada" className={campo} autoCapitalize="none" />
+      </div>
+      <div>
         <label htmlFor="codigo_app" className={rotulo}>Código do cliente na app (só se a app tiver vários clientes)</label>
         <input id="codigo_app" name="codigo_app" placeholder="alvorada" className={campo} autoCapitalize="none" />
       </div>
