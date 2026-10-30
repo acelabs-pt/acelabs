@@ -1,14 +1,17 @@
-// Envio de notificações para os dois tipos de aparelho guardados em push_subscricoes:
+// Envio de notificações para os três tipos de aparelho guardados em push_subscricoes:
 //  - 'web': browser ou app instalada (PWA), por Web Push (chaves VAPID);
-//  - 'ios': app da App Store, diretamente à Apple (APNs, com o token do aparelho e a chave .p8 da conta Apple).
+//  - 'ios': app da App Store, diretamente à Apple (APNs, com o token do aparelho e a chave .p8 da conta Apple);
+//  - 'android': app Android (APK ou Google Play), pelo Firebase Cloud Messaging (FCM HTTP v1, com o token do aparelho e a
+//    conta de serviço do projeto Firebase).
 // Segredos da função: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (web) e APNS_KEY_ID, APNS_TEAM_ID,
-// APNS_KEY_P8 (o conteúdo do ficheiro .p8), APNS_TOPIC (pt.acelabs.cockpit) e APNS_ENV ("production" ou "sandbox").
+// APNS_KEY_P8 (o conteúdo do ficheiro .p8), APNS_TOPIC (pt.acelabs.cockpit) e APNS_ENV ("production" ou "sandbox");
+// FCM_SERVICE_ACCOUNT (o JSON da conta de serviço do Firebase, numa só variável).
 
 import webpush from "npm:web-push@3.6.7";
 
 export type Aparelho = {
   id: string;
-  tipo: "web" | "ios";
+  tipo: "web" | "ios" | "android";
   endpoint: string | null;
   p256dh: string | null;
   auth: string | null;
@@ -41,6 +44,31 @@ async function tokenApns(): Promise<string> {
   return jwtApns.valor;
 }
 
+// Token de acesso do Google para o FCM: troca-se um JWT RS256 (assinado com a chave da conta de serviço) por um token de 1 hora.
+type ContaFcm = { project_id: string; client_email: string; private_key: string };
+let tokenFcm: { valor: string; criado: number } | null = null;
+function contaFcm(): ContaFcm {
+  return JSON.parse(Deno.env.get("FCM_SERVICE_ACCOUNT")!) as ContaFcm;
+}
+async function acessoFcm(): Promise<string> {
+  if (tokenFcm && Date.now() - tokenFcm.criado < 50 * 60_000) return tokenFcm.valor;
+  const c = contaFcm();
+  const pem = c.private_key.replace(/-----(BEGIN|END) PRIVATE KEY-----/g, "").replace(/\s+/g, "");
+  const chave = await crypto.subtle.importKey("pkcs8", Uint8Array.from(atob(pem), (x) => x.charCodeAt(0)), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  const agora = Math.floor(Date.now() / 1000);
+  const cabecalho = base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const corpo = base64url(JSON.stringify({ iss: c.client_email, scope: "https://www.googleapis.com/auth/firebase.messaging", aud: "https://oauth2.googleapis.com/token", iat: agora, exp: agora + 3600 }));
+  const assinatura = new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", chave, new TextEncoder().encode(`${cabecalho}.${corpo}`)));
+  const r = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${cabecalho}.${corpo}.${base64url(assinatura)}` }),
+  });
+  if (!r.ok) throw new Error(`FCM: não foi possível obter o token de acesso (${r.status})`);
+  tokenFcm = { valor: (await r.json()).access_token as string, criado: Date.now() };
+  return tokenFcm.valor;
+}
+
 /** Devolve "ok", "removido" (o aparelho deixou de existir: apagar o registo) ou "erro". */
 export async function enviarParaAparelho(a: Aparelho, m: Mensagem): Promise<"ok" | "removido" | "erro"> {
   try {
@@ -63,6 +91,27 @@ export async function enviarParaAparelho(a: Aparelho, m: Mensagem): Promise<"ok"
       // (sandbox contra production) e apagar o aparelho esconderia o problema.
       if (motivo === "BadDeviceToken") console.error("APNs: BadDeviceToken (confirma APNS_ENV e o APNS_TOPIC)");
       return r.status === 410 || motivo === "Unregistered" ? "removido" : "erro";
+    }
+    if (a.tipo === "android") {
+      const r = await fetch(`https://fcm.googleapis.com/v1/projects/${contaFcm().project_id}/messages:send`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${await acessoFcm()}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          message: {
+            token: a.token,
+            notification: { title: m.titulo, body: m.corpo },
+            data: { url: m.url },
+            android: { priority: "HIGH", notification: { sound: "default", ...(m.tag ? { tag: m.tag.slice(0, 64) } : {}) } },
+          },
+        }),
+      });
+      if (r.ok) return "ok";
+      const detalhe = await r.json().catch(() => ({}));
+      const estado = detalhe?.error?.status as string | undefined;
+      // UNREGISTERED: a app foi desinstalada ou o token mudou. INVALID_ARGUMENT NÃO apaga: também aparece com um token mal formado
+      // ou um projeto Firebase trocado, e apagar o aparelho esconderia o problema.
+      if (estado === "INVALID_ARGUMENT") console.error("FCM: INVALID_ARGUMENT (confirma o FCM_SERVICE_ACCOUNT e o google-services.json)");
+      return estado === "UNREGISTERED" || r.status === 404 ? "removido" : "erro";
     }
     prepararWebPush();
     await webpush.sendNotification(

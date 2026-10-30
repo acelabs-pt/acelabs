@@ -38,7 +38,12 @@ next-env.d.ts
 
 # Capacitor: o projeto iOS (ios/) VAI para o repositório, para o Miguel só ter de fazer pull e abrir no Xcode
 # (permissões, entitlements e ícones ficam versionados). O que o Xcode e o sync geram está em ios/.gitignore.
-/android
+# O projeto Android (android/) também VAI para o repositório (manifest, ícones, versões). Ficam de fora a chave do
+# Firebase, as chaves de assinatura e o que o Gradle gera.
+/android/app/google-services.json
+/android/*.keystore
+/android/*.jks
+/android/keystore.properties
 
 # screenshots e ficheiros dos testes
 /testes/resultados/

@@ -10,6 +10,7 @@ const ORDEM = [
   "migracao_notificacoes.sql",
   "migracao_apagar_conta.sql",
   "migracao_multiempresa.sql",
+  "migracao_admin.sql",
 ];
 const partes = ORDEM.map((f) => `-- ============================================================\n-- ${f}\n-- ============================================================\n${readFileSync(f, "utf8").replace(/\r\n/g, "\n")}`);
 writeFileSync("instalar_tudo.sql", `-- Gerado por npm run sql. Para um projeto Supabase NOVO e vazio. Nao editar a mao.\n\n${partes.join("\n\n")}\n`);

@@ -22,7 +22,7 @@ const ok = (nome, cond, extra = "") => out.push(`${cond ? "OK   " : "FALHA"} ${n
 // Supabase simulado: auth.users, auth.uid() lido das "claims" da sessão, e os três papéis.
 const SHIM = `
 create schema auth;
-create table auth.users (id uuid primary key default gen_random_uuid(), email text);
+create table auth.users (id uuid primary key default gen_random_uuid(), email text, created_at timestamptz default now(), last_sign_in_at timestamptz);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 create role anon nologin;
 create role authenticated nologin;
@@ -84,7 +84,7 @@ async function semear(db, empresa, tag) {
 // ===========================================================================
 // 1. Base nova: todas as migrações por ordem, depois a multiempresa
 // ===========================================================================
-let db = await novaBase([...ORDEM, "migracao_multiempresa.sql"]);
+let db = await novaBase([...ORDEM, "migracao_multiempresa.sql", "migracao_admin.sql"]);
 ok("as migrações todas correm numa base nova", true);
 const ea = await uuid(db, "insert into empresas (codigo, nome) values ('alfa', 'Alfa') returning id");
 const ua = await uuid(db, "insert into auth.users (email) values ('a1@alfa.pt') returning id");
@@ -192,6 +192,14 @@ r = await como(db, "authenticated", ua, "select registar_push_ios('tok-a', 'iPho
 ok("membro regista aparelho iOS", !r.erro, r.erro);
 r = await como(db, "authenticated", nu, "select registar_push_ios('tok-x', 'iPhone')");
 ok("quem não é membro não regista aparelhos", !!r.erro);
+r = await como(db, "authenticated", ua, "select registar_push_nativo('tok-android', 'android', 'Android')");
+ok("membro regista aparelho Android", !r.erro, r.erro);
+r = await como(db, "authenticated", ua, "select registar_push_nativo('tok-web', 'web', 'x')");
+ok("tipo de aparelho inválido é recusado", !!r.erro);
+r = await como(db, "authenticated", nu, "select registar_push_nativo('tok-y', 'android', 'Android')");
+ok("quem não é membro não regista aparelhos Android", !!r.erro);
+r = await admin(db, "select tipo from push_subscricoes where token = 'tok-android'");
+ok("o aparelho Android fica guardado com tipo android", r.rows?.[0]?.tipo === "android", r.erro);
 
 // 1i. Apagar a minha conta: o último membro é o último da MINHA empresa
 r = await como(db, "authenticated", ub, "select apagar_minha_conta()");
@@ -215,6 +223,47 @@ await admin(db, "update empresas set suspensa = false where id = $1", [eb]);
 r = await como(db, "authenticated", ub, "select count(*)::int as n from contactos");
 ok("reativar a empresa devolve o acesso", r.rows?.[0]?.n >= 1, r.erro);
 
+// 1j2. Administração: dados internos, registo de ações e resumo (migracao_admin.sql)
+r = await admin(db, "select estado from empresas_admin where empresa_id = $1", [ea]);
+ok("cada empresa tem a sua linha de dados internos (estado piloto)", r.rows?.[0]?.estado === "piloto", r.erro);
+await admin(db, "update empresas_admin set notas = 'so para nos', contacto_email = 'dono@alfa.pt' where empresa_id = $1", [ea]);
+for (const t of ["empresas_admin", "auditoria"]) {
+  r = await como(db, "authenticated", ua, `select count(*)::int as n from ${t}`);
+  ok(`um membro não lê ${t}`, !!r.erro || r.rows?.[0]?.n === 0, r.erro);
+  r = await como(db, "anon", null, `select count(*)::int as n from ${t}`);
+  ok(`sem sessão não se lê ${t}`, !!r.erro || r.rows?.[0]?.n === 0, r.erro);
+}
+r = await como(db, "authenticated", ua, "update empresas_admin set estado = 'ativa'");
+ok("um membro não altera os dados internos da empresa", !!r.erro || r.afetadas === 0, r.erro);
+r = await como(db, "authenticated", ua, "select codigo, nome, suspensa from empresas");
+ok("um membro continua a ler só a sua empresa (sem campos internos)", r.rows?.length === 1 && r.rows[0].codigo === "alfa" && !("notas" in r.rows[0]), r.erro);
+r = await como(db, "authenticated", ua, "select * from resumo_empresas()");
+ok("um membro não chama resumo_empresas()", !!r.erro);
+r = await como(db, "anon", null, "select * from resumo_empresas()");
+ok("sem sessão não se chama resumo_empresas()", !!r.erro);
+r = await como(db, "authenticated", ua, "select * from contas_sem_empresa()");
+ok("um membro não chama contas_sem_empresa()", !!r.erro);
+const ua3 = await uuid(db, "insert into auth.users (email) values ('a3@alfa.pt') returning id");
+await admin(db, "insert into membros (user_id, empresa_id) values ($1, $2)", [ua3, ea]);
+await admin(db, "update auth.users set last_sign_in_at = now() where id = $1", [ua]);
+r = await admin(db, "select * from resumo_empresas() where codigo = 'alfa'");
+const ra = r.rows?.[0];
+ok("resumo: utilizadores, convites por aceitar e último acesso", ra?.utilizadores === 2 && ra?.convites_por_aceitar === 1 && !!ra?.ultimo_acesso, r.erro ?? JSON.stringify([ra?.utilizadores, ra?.convites_por_aceitar, ra?.ultimo_acesso]));
+ok("resumo: contagens e atividade dos últimos 7 dias", ra?.compradores >= 1 && ra?.atividade_7d >= 1 && ra?.aparelhos >= 1, JSON.stringify(ra));
+ok("resumo: traz os dados internos para a administração", ra?.notas === "so para nos" && ra?.contacto_email === "dono@alfa.pt");
+r = await admin(db, "select * from resumo_empresas() where codigo = 'beta'");
+ok("resumo: não mistura contagens entre empresas", r.rows?.[0]?.utilizadores === (await admin(db, "select count(*)::int as n from membros where empresa_id = $1", [eb])).rows[0].n, r.erro);
+const semE = await uuid(db, "insert into auth.users (email) values ('solta@x.pt') returning id");
+r = await admin(db, "select email from contas_sem_empresa()");
+ok("contas sem empresa: aparece a conta solta e não as de membros", r.rows?.some((x) => x.email === "solta@x.pt") && !r.rows?.some((x) => x.email === "a1@alfa.pt"), r.erro);
+await admin(db, "update empresas set suspensa = true where id = $1", [ea]);
+r = await admin(db, "select estado from empresas_admin where empresa_id = $1", [ea]);
+ok("suspender pelo script marca o estado 'suspensa'", r.rows?.[0]?.estado === "suspensa", r.erro);
+await admin(db, "update empresas set suspensa = false where id = $1", [ea]);
+r = await admin(db, "select estado from empresas_admin where empresa_id = $1", [ea]);
+ok("reativar pelo script volta a 'ativa'", r.rows?.[0]?.estado === "ativa", r.erro);
+await admin(db, "insert into auditoria (quem, empresa_id, empresa_codigo, acao, detalhe) values ('pedro', $1, 'beta', 'teste', '{\"x\":1}')", [eb]);
+
 // 1k. Apagar uma empresa apaga os seus dados e só os seus
 await admin(db, "delete from empresas where id = $1", [eb]);
 r = await admin(db, "select count(*)::int as n from contactos where empresa_id = $1", [eb]);
@@ -227,6 +276,10 @@ for (const t of TABELAS) {
 ok(`apagar a empresa B apaga os dados dela nas ${sobraB} tabelas`, tudoB);
 r = await admin(db, "select count(*)::int as n from contactos where empresa_id = $1", [ea]);
 ok("e não toca nos dados de A", r.rows?.[0]?.n >= 1);
+r = await admin(db, "select count(*)::int as n from empresas_admin where empresa_id = $1", [eb]);
+ok("apagar a empresa apaga os dados internos dela", r.rows?.[0]?.n === 0, r.erro);
+r = await admin(db, "select empresa_id, empresa_codigo, quem from auditoria where acao = 'teste'");
+ok("o registo de ações sobrevive à empresa (guarda o código, perde a ligação)", r.rows?.[0]?.empresa_codigo === "beta" && r.rows?.[0]?.empresa_id === null && r.rows?.[0]?.quem === "pedro", r.erro);
 await db.close();
 
 // ===========================================================================
@@ -241,6 +294,7 @@ await admin(db, "insert into metas (ano, metrica, valor_anual) values (2026, 'vi
 await admin(db, "insert into metas_config (ano) values (2026)");
 await admin(db, "insert into metas_semanas (semana, decisao) values ('2026-W40', 'colocada')");
 await db.exec(sql("migracao_multiempresa.sql"));
+await db.exec(sql("migracao_admin.sql"));
 r = await admin(db, "select codigo from empresas");
 ok("base antiga: cria a empresa 'padrao'", r.rows?.length === 1 && r.rows[0].codigo === "padrao", r.erro);
 let tudo = true;

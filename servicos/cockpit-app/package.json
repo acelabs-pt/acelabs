@@ -9,7 +9,7 @@
     "lint": "next lint",
     "testar": "node testes/correr.mjs",
     "seguranca": "node scripts/verificar-seguranca.mjs",
-    "cap:sync": "node scripts/capacitor-servidor.mjs && cap sync ios",
+    "cap:sync": "node scripts/capacitor-servidor.mjs && cap sync",
     "cap:abrir": "cap open ios",
     "sql": "node scripts/juntar-sql.mjs",
     "clientes": "node scripts/gerar-clientes.mjs"
@@ -17,6 +17,7 @@
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
     "@capacitor-community/contacts": "^8.0.0",
+    "@capacitor/android": "^8.6.0",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.0",
     "@capacitor/haptics": "^8.0.2",

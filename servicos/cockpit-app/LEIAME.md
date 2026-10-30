@@ -128,6 +128,34 @@ Ligado na interface: Face ID ao abrir a app e ao voltar depois de 1 minuto (opç
 ao concluir tarefas e notificações. **Se um plugin nativo faltar no projeto iOS** (esquecido o `npm run cap:sync`), o Face ID
 deixa de bloquear em vez de congelar a app (o Capacitor entra num ciclo infinito ao chamar um plugin que não existe).
 
+### 9b. App para Android (APK)
+
+A casca Android (`android/`, também no repositório) é a mesma ideia da do iPhone: abre `cockpit.acelabs.pt` num WebView, com as
+funções nativas pelos mesmos plugins (push, impressão digital ou rosto, agenda, contactos, partilha). `npm run cap:sync`
+atualiza as duas plataformas. Ícones e ecrã de arranque já são os do Cockpit; o `applicationId` é `pt.acelabs.cockpit`.
+
+**Compilar o APK (qualquer PC com Java 21 e o Android SDK 36; no do Pedro estão em `C:Userspedroandroid-tools`):**
+1. `npm run cap:sync`.
+2. Em `android/`, criar `local.properties` com `sdk.dir=C:/caminho/do/sdk` (não vai para o git) e correr
+   `./gradlew assembleDebug` (com `JAVA_HOME` no Java 21). O ficheiro sai em `android/app/build/outputs/apk/debug/app-debug.apk`.
+3. Instalar: copiar o APK para o telemóvel e abri-lo (aceitar "instalar apps desconhecidas"), ou `adb install -r app-debug.apk`.
+   Para testar contra o PC: `CAP_SERVER_URL=http://<ip do PC>:3001 npm run cap:sync` antes de compilar.
+
+**Notificações no Android (FCM)** precisam de um projeto Firebase (gratuito) da Ace Labs:
+1. console.firebase.google.com, criar o projeto, acrescentar uma app Android com o nome de pacote `pt.acelabs.cockpit`.
+2. Descarregar o `google-services.json` para `android/app/` (**fora do git**, já está no .gitignore) e voltar a compilar.
+3. Em Definições do projeto, Contas de serviço, gerar uma chave privada nova (JSON). Guardá-la como segredo da função:
+   `supabase secrets set FCM_SERVICE_ACCOUNT="$(cat chave.json)"` e publicar de novo `enviar-teste` e `enviar-lembretes`.
+4. No Supabase correr `migracao_notificacoes.sql` outra vez (acrescenta o tipo `android` e a função `registar_push_nativo`).
+Sem o `google-services.json` a app funciona na mesma, só não recebe notificações.
+
+**Antes de pôr na Google Play (a fazer):** conta de programador Google (25 USD, uma vez; para empresa pede também D-U-N-S),
+chave de assinatura própria (`keytool -genkey` e `android/keystore.properties`, nunca no git), `./gradlew bundleRelease`
+(ficheiro .aab) e a ficha da loja. Para o piloto chega distribuir o APK diretamente.
+
+**Estado:** o APK de debug compila e o manifesto está validado (permissões, nome, ícone). **Ainda não testado num telemóvel
+nem num emulador:** arranque, impressão digital, agenda, contactos, partilha e push.
+
 ## 10. Um só deploy para vários clientes (escolha do cliente por código)
 
 Para a app da App Store (e para um único `cockpit.acelabs.pt`), em vez de um deploy por cliente: na Vercel define-se UMA variável

@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { sbBrowser } from "@/lib/supabase-browser";
 
-// Ponte entre a app web e as funções nativas do iPhone (Capacitor). Dentro da app da App Store `naApp()` é true;
+// Ponte entre a app web e as funções nativas do iPhone e do Android (Capacitor). Dentro da app (App Store ou APK) `naApp()` é true;
 // no browser e na PWA é false e cada função devolve o comportamento web de sempre (ou não faz nada). Os plugins
 // carregam-se só quando se usam, para não pesarem no site.
 
@@ -102,7 +102,7 @@ export async function pontoNoCalendario(urlIcs: string): Promise<string | null> 
 }
 
 // ---------------------------------------------------------------------------------------------
-// Notificações push nativas (APNs). O token do aparelho guarda-se em push_subscricoes com tipo 'ios'.
+// Notificações push nativas (APNs no iPhone, FCM no Android). O token do aparelho guarda-se em push_subscricoes com tipo 'ios' ou 'android'.
 // ---------------------------------------------------------------------------------------------
 
 export type EstadoPushNativo = "ligado" | "desligado" | "bloqueado";
@@ -116,10 +116,11 @@ export async function estadoPushNativo(): Promise<EstadoPushNativo> {
   return (await Preferences.get({ key: "push-token" })).value ? "ligado" : "desligado";
 }
 
-/** Pede autorização, regista o aparelho na Apple e guarda o token no Supabase. Devolve uma mensagem de erro ou null. */
+/** Pede autorização, regista o aparelho na Apple (ou no Google) e guarda o token no Supabase. Devolve uma mensagem de erro ou null. */
 export async function ligarPushNativo(): Promise<string | null> {
   const { PushNotifications } = await import("@capacitor/push-notifications");
   const { Preferences } = await import("@capacitor/preferences");
+  const android = Capacitor.getPlatform() === "android";
   const p = await PushNotifications.requestPermissions();
   if (p.receive !== "granted") return "Sem autorização para notificações. Ativa-as em Definições, Notificações, Cockpit.";
 
@@ -134,12 +135,15 @@ export async function ligarPushNativo(): Promise<string | null> {
     };
     void PushNotifications.addListener("registration", async (t) => {
       if (terminou) return;
-      const { error } = await sbBrowser().rpc("registar_push_ios", { p_token: t.value, p_aparelho: "iPhone (app)" });
+      // O iPhone continua a usar registar_push_ios, para a app já distribuída não depender de a migração do Android estar corrida.
+      const { error } = android
+        ? await sbBrowser().rpc("registar_push_nativo", { p_token: t.value, p_tipo: "android", p_aparelho: "Android (app)" })
+        : await sbBrowser().rpc("registar_push_ios", { p_token: t.value, p_aparelho: "iPhone (app)" });
       if (error) return fim("Não foi possível guardar este telemóvel. Confirma que a migração das notificações está corrida.");
       await Preferences.set({ key: "push-token", value: t.value });
       fim(null);
     }).then((h) => ouvintes.push(h));
-    void PushNotifications.addListener("registrationError", () => fim("A Apple não conseguiu registar este telemóvel. Tenta outra vez.")).then((h) => ouvintes.push(h));
+    void PushNotifications.addListener("registrationError", () => fim(android ? "O Google não conseguiu registar este telemóvel. Tenta outra vez." : "A Apple não conseguiu registar este telemóvel. Tenta outra vez.")).then((h) => ouvintes.push(h));
     setTimeout(() => fim("Demorou demasiado. Tenta outra vez."), 15_000);
   });
   await PushNotifications.register();
@@ -197,7 +201,7 @@ export async function desligarPushNativo(): Promise<void> {
   await PushNotifications.unregister().catch(() => {});
 }
 
-/** Pede ao servidor uma notificação de teste para este utilizador (função do Supabase, que fala com a Apple). */
+/** Pede ao servidor uma notificação de teste para este utilizador (função do Supabase, que fala com a Apple ou o Google). */
 export async function enviarTesteNativo(): Promise<string | null> {
   const { error } = await sbBrowser().functions.invoke("enviar-teste", { body: {} });
   return error ? "Não foi possível enviar o teste. Confirma que a função está publicada." : null;

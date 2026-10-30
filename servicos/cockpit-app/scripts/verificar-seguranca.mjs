@@ -68,6 +68,7 @@ linha(await existe("push_subscricoes?select=id&limit=1"), "Tabela das notificaç
 
 // Registo do iPhone nas notificações (migracao_notificacoes.sql). Sem sessão a chamada é recusada, não 404.
 linha(await existe("rpc/registar_push_ios", { method: "POST", body: JSON.stringify({ p_token: "x" }) }), "Registo de aparelhos iOS (migracao_notificacoes.sql, versão recente)", "Volta a correr migracao_notificacoes.sql (a parte de cima): acrescenta o suporte a iPhone.");
+linha(await existe("rpc/registar_push_nativo", { method: "POST", body: JSON.stringify({ p_token: "x", p_tipo: "android" }) }), "Registo de aparelhos Android (migracao_notificacoes.sql, versão recente)", "Volta a correr migracao_notificacoes.sql (a parte de cima): acrescenta o suporte a Android.");
 
 // Apagar a conta dentro da app (migracao_apagar_conta.sql): obrigatório para a App Store. Sem sessão a chamada é recusada (401/403), não 404.
 linha(await existe("rpc/apagar_minha_conta", { method: "POST", body: "{}" }), "Apagar a própria conta (migracao_apagar_conta.sql)", "Corre migracao_apagar_conta.sql (a Apple exige que se possa apagar a conta dentro da app).");

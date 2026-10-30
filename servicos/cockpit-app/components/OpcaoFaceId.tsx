@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { naApp } from "@/lib/nativo";
 import { definirFaceId, faceIdLigado } from "@/components/BloqueioFaceId";
 
-// Em Conta, só dentro da app do iPhone: ligar ou desligar o pedido de Face ID ao abrir.
+// Em Conta, só dentro da app (iPhone ou Android): ligar ou desligar o pedido de Face ID (ou impressão digital) ao abrir.
 export default function OpcaoFaceId() {
   const [visivel, setVisivel] = useState(false);
   const [ligado, setLigado] = useState(true);
+  const [android, setAndroid] = useState(false);
   useEffect(() => {
     if (!naApp()) return;
+    setAndroid(Capacitor.getPlatform() === "android");
     setVisivel(true);
     setLigado(faceIdLigado());
   }, []);
   if (!visivel) return null;
   return (
     <section className="space-y-3 rounded-3xl border border-linha bg-white p-5">
-      <h2 className="text-sm font-semibold text-tinta">Face ID</h2>
+      <h2 className="text-sm font-semibold text-tinta">{android ? "Desbloqueio" : "Face ID"}</h2>
       <label className="flex min-h-[44px] items-center justify-between gap-4 text-base text-tinta">
-        Pedir Face ID ao abrir a app
+        {android ? "Pedir impressão digital ou rosto ao abrir a app" : "Pedir Face ID ao abrir a app"}
         <input
           type="checkbox"
           checked={ligado}
