@@ -32,14 +32,16 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.waitForSelector('text=Nada por fazer com ZZ', { timeout: 10000 }).catch(() => {});
     ok('sem tarefas, convida a marcar a próxima visita', await sec.locator('text=Nada por fazer com ZZ').isVisible());
 
-    // visita ao imóvel enviado, quinta às 15h
+    // visita ao imóvel enviado, amanhã às 15h (sempre no futuro, senão a visita já passou e deixa de aparecer nos próximos passos)
+    const amanha = new Date(); amanha.setDate(amanha.getDate() + 1);
+    const quando = `${amanha.getFullYear()}-${String(amanha.getMonth() + 1).padStart(2, '0')}-${String(amanha.getDate()).padStart(2, '0')}T15:00`;
     await sec.locator('select[aria-label="Imóvel a visitar"]').selectOption({ label: 'T2 Rua de Camões' });
-    await sec.locator('input[aria-label="Dia e hora"]').fill('2026-10-29T15:00');
+    await sec.locator('input[aria-label="Dia e hora"]').fill(quando);
     await sec.getByRole('button', { name: 'Marcar', exact: true }).click();
     await sec.locator('li', { hasText: 'Visita a T2 Rua de Camões com ZZ Proximos Comprador' }).waitFor({ timeout: 10000 }).catch(() => {});
     const [v] = await rest('GET', `tarefas?comprador_id=eq.${cp.id}&tipo=eq.evento&select=id,titulo,inicio,contacto_id,origem`);
     ok('a visita fica gravada, ligada ao comprador', !!v && v.titulo === 'Visita a T2 Rua de Camões com ZZ Proximos Comprador' && v.contacto_id === ct.id && v.origem === 'comprador', JSON.stringify(v));
-    ok('à hora escolhida', !!v && new Date(v.inicio).getTime() === new Date('2026-10-29T15:00').getTime(), v && v.inicio);
+    ok('à hora escolhida', !!v && new Date(v.inicio).getTime() === new Date(quando).getTime(), v && v.inicio);
     ok('aparece nos próximos passos', await sec.locator('li', { hasText: 'Visita a T2 Rua de Camões' }).isVisible());
     ok('o aviso oferece "Pôr no telemóvel"', await page.getByRole('button', { name: 'Pôr no telemóvel' }).isVisible());
     ok('a linha tem o botão do calendário do telemóvel', (await sec.locator('li', { hasText: 'Visita a T2' }).locator('a').getAttribute('href')) === `/api/tarefas/${v && v.id}/calendario`);

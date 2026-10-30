@@ -87,6 +87,24 @@ em `servicos/cpcv-engine/node_modules`. Regras a manter:
 - Nunca despejar HTML, logs de consola em bruto ou listagens completas para o contexto.
 - Para ver o aspeto de uma página, tirar screenshot para ficheiro e ler o ficheiro.
 
+## Abrir páginas e sessões no browser do Pedro
+
+Instrução do Pedro (2026-10-30): quando for preciso abrir uma página (Supabase, Vercel, Resend, GitHub, Apple, etc.), abrir
+eu, sem pedir ao Pedro que o faça, e fazer sozinho tudo o que der antes e depois ("sem stress").
+
+- **Preferir o Brave normal do Pedro**, que está sempre aberto, com as sessões dele já iniciadas. Abrir com
+  `"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" <url>` (sem `--user-data-dir` nem porta de depuração:
+  assim abre um separador na janela que ele já tem). Se o Brave não existir, usar o browser por omissão.
+- Antes de abrir, deixar o trabalho preparado: o SQL juntado e copiado para a área de transferência (`Set-Clipboard`), o ficheiro
+  aberto no VS Code, o URL direto da página certa (por exemplo `https://supabase.com/dashboard/project/<ref>/sql/new`). Depois
+  dizer em poucas linhas o que ele tem de fazer lá (colar, carregar em Run).
+- **Não consigo controlar o Brave normal.** Quando for mesmo preciso automatizar (ler chaves, correr SQL, criar uma chave de API),
+  abrir uma janela SEPARADA do Brave, com perfil numa pasta temporária e `--remote-debugging-port`, onde o Pedro inicia sessão ele
+  próprio (nunca ver nem guardar as credenciais), ligar com Playwright por CDP, e apagar o perfil no fim. Seguir a secção
+  "Verificação no browser": sem MCP, scripts descartáveis, imprimir pouco.
+- Nunca carregar em pagamentos, planos pagos ("Upgrade"), eliminações nem envios sem confirmação do Pedro. Chaves e passwords
+  nunca vão para o chat nem para o repositório: gravam-se direto em ficheiros fora do git (`.env.*`).
+
 ## Conteúdo do site
 
 Secção "Como trabalhamos": Diagnóstico Estratégico -> Mapeamento de Oportunidades -> Desenho da
