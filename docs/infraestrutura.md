@@ -18,7 +18,8 @@
 
 ## Aplicações, bases de dados e pastas (revisto em 2026-10-28)
 
-Regra: **um projeto Supabase por cliente**; a Ace Labs tem os seus próprios para teste e demonstração. Só se
+Regra (revista em 2026-10-30): **CPCV: um projeto Supabase por cliente. Cockpit: um projeto Supabase partilhado, com várias
+empresas isoladas por `empresa_id`** (`servicos/cockpit-app/migracao_multiempresa.sql`); a Ace Labs tem ainda um projeto de teste. Só se
 escrevem aqui nomes e endereços públicos, nunca chaves.
 
 | Aplicação | Pasta | Supabase (ref) | Vercel | Estado |
@@ -66,7 +67,7 @@ Se parar de funcionar: ver "Incidentes".
 | Supabase (URL e chaves) | Vercel `cpcv-engine` e `.env.local` | Base de dados do CPCV |
 | `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel `cockpit` (Production, tipo "config") e `servicos/cockpit-app/.env.local` | Ligação do Cockpit ao Supabase. A chave anon é pública por desenho. A `service_role` nunca vai para a Vercel |
 
-Um projeto Supabase por cliente. Nunca reutilizar chaves entre projetos.
+CPCV: um projeto Supabase por cliente. Cockpit: um projeto partilhado com várias empresas. Nunca reutilizar chaves entre projetos diferentes.
 
 ## DNS (registos relevantes)
 

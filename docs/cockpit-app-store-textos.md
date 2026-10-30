@@ -31,7 +31,7 @@ visitas, sem formação.
 - Proteger a app com Face ID.
 
 **Como se entra**
-O Cockpit é fornecido pela Ace Labs a empresas e consultores. Para entrar precisas do código da tua empresa e do convite que
+O Cockpit é fornecido pela Ace Labs a empresas e consultores. Para entrar precisas do convite que
 recebeste por email. Se ainda não tens, fala com a Ace Labs em acelabs.pt.
 
 **Os teus dados**
@@ -68,10 +68,9 @@ Confirmar cada categoria no formulário da Apple com a versão final da polític
 > Cockpit is a business tool provided by Ace Labs (Portugal) to real estate agencies and consultants. It is not open to the
 > public: each customer company has its own private database and users are invited by the company.
 >
-> On first launch the app asks for a company code. This is how a single app serves several customer companies (guideline
-> 4.2.6: one app with a client chooser, not one app per client). Review account:
+> The app is signed in with email and password. All customer companies share one app and one backend, and each user only sees
+> the data of their own company. Review account (a fictional demo company):
 >
-> - Company code: **[código do Demo]**
 > - Email: **[email da conta de revisão]**
 > - Password: **[password da conta de revisão]**
 >

@@ -162,8 +162,12 @@ Nunca afirmar tempos fixos nem ganhos garantidos (ex. "CPCV em 4 minutos").
 
 Supabase é a base de dados/backend do projeto. O schema em uso está nos ficheiros SQL dentro de
 `servicos/cpcv-engine/` (`create_tables_base.sql`, `create_tables_cpcv.sql`,
-`migration_fase2.sql`) e as tabelas do CPCV estão explicadas no CLAUDE.md dessa pasta. Um projeto
-Supabase por cliente, nunca reutilizar o mesmo entre projetos.
+`migration_fase2.sql`) e as tabelas do CPCV estão explicadas no CLAUDE.md dessa pasta.
+
+**Modelo de dados (decisão do Pedro, 2026-10-30):** o **CPCV** mantém um projeto Supabase por cliente (guarda documentos de
+identificação), nunca reutilizar o mesmo entre clientes. O **Cockpit** corre num só projeto Supabase partilhado, com todos os
+clientes separados por `empresa_id` e regras de acesso por empresa (`servicos/cockpit-app/migracao_multiempresa.sql`, ver
+LEIAME secção 13). O teste `npm run testar -- unidade-multiempresa` (isolamento entre empresas) nunca se salta nem se desliga.
 
 ## Email do formulário de diagnóstico (Resend)
 
