@@ -23,10 +23,10 @@ export default function DashboardApp() {
   }, [carregar]);
 
   return (
-    <div className="space-y-4">
+    <div className="relevo space-y-4">
       <div>
         <h1 className="text-2xl font-semibold text-tinta">Dashboard</h1>
-        <p className="text-sm capitalize text-secundario">
+        <p className="text-sm text-secundario first-letter:uppercase">
           {new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -34,11 +34,11 @@ export default function DashboardApp() {
       {!dados ? (
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
-        <div className="grid items-start gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
+        <div className="grid items-start gap-8 md:grid-cols-2">
+          <div className="mx-auto w-full min-w-0 max-w-xl md:col-span-2">
             <Metas dados={dados} onAlterado={carregar} />
           </div>
-          <div className="md:col-span-2">
+          <div className="mx-auto w-full min-w-0 max-w-xl md:col-span-2">
             <Seguimentos dados={dados} />
           </div>
         </div>

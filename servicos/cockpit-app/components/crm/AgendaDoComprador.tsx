@@ -5,12 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { useToast } from "@/components/Toast";
 import { marcarTarefa } from "@/lib/tarefas";
-import { formatarDia, formatarHora, localParaISO } from "@/lib/datas";
+import { formatarDia, formatarHora } from "@/lib/datas";
 import type { ImovelComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
-import { pontoNoCalendario } from "@/lib/nativo";
-
-const campo = "w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base";
 
 /** Nome curto de um imóvel enviado: a descrição, ou o endereço do anúncio sem o "https://www.". */
 export function nomeImovel(i: Pick<ImovelComprador, "descricao" | "link">): string {
@@ -24,33 +21,10 @@ export function nomeImovel(i: Pick<ImovelComprador, "descricao" | "link">): stri
   }
 }
 
-/** Amanhã às 10h, no formato do campo datetime-local. */
-function amanhaAs10(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T10:00`;
-}
-
-// Próximos passos do comprador: o que está por fazer com ele e marcar uma visita ou uma tarefa sem sair da ficha.
-export default function AgendaDoComprador({
-  compradorId,
-  contactoId,
-  nome,
-  imoveis,
-}: {
-  compradorId: string;
-  contactoId: string;
-  nome: string;
-  imoveis: ImovelComprador[];
-}) {
+// Próximos passos do comprador: o que está por fazer com ele.
+export default function AgendaDoComprador({ compradorId, nome }: { compradorId: string; nome: string }) {
   const { avisar } = useToast();
   const [tarefas, setTarefas] = useState<Tarefa[] | null>(null);
-  const [tipo, setTipo] = useState<"visita" | "tarefa">("visita");
-  const [quando, setQuando] = useState(amanhaAs10);
-  const [imovel, setImovel] = useState("");
-  const [texto, setTexto] = useState("");
-  const [aGuardar, setAGuardar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
@@ -84,36 +58,6 @@ export default function AgendaDoComprador({
     });
   }
 
-  async function marcar(e: React.FormEvent) {
-    e.preventDefault();
-    setErro(null);
-    if (!quando) return setErro("Escolhe o dia e a hora.");
-    if (tipo === "tarefa" && !texto.trim()) return setErro("Escreve o que há para fazer.");
-    const escolhido = imoveis.find((i) => i.id === imovel);
-    const titulo = tipo === "visita" ? `Visita${escolhido ? ` a ${nomeImovel(escolhido)}` : ""} com ${nome}` : `${texto.trim()} (${nome})`;
-    setAGuardar(true);
-    const { data, error } = await sbBrowser()
-      .from("tarefas")
-      .insert({
-        titulo,
-        tipo: tipo === "visita" ? "evento" : "tarefa",
-        inicio: localParaISO(quando),
-        origem: "comprador",
-        comprador_id: compradorId,
-        contacto_id: contactoId,
-      })
-      .select("id")
-      .single();
-    setAGuardar(false);
-    if (error || !data) return setErro("Não foi possível marcar. Tenta outra vez.");
-    setTexto("");
-    setImovel("");
-    setQuando(amanhaAs10());
-    const ics = `/api/tarefas/${data.id}/calendario`;
-    avisar(tipo === "visita" ? "Visita marcada." : "Tarefa marcada.", { rotulo: "Pôr no telemóvel", onAcao: () => void pontoNoCalendario(ics) });
-    await carregar();
-  }
-
   const agora = new Date();
   return (
     <section className="space-y-3 rounded-3xl border border-linha bg-white p-5" aria-labelledby="proximos-comprador">
@@ -126,10 +70,16 @@ export default function AgendaDoComprador({
         </Link>
       </div>
 
+      {erro && (
+        <p role="alert" className="text-sm text-red-700">
+          {erro}
+        </p>
+      )}
+
       {tarefas === null ? (
         <p className="text-sm text-secundario">A carregar...</p>
       ) : tarefas.length === 0 ? (
-        <p className="text-sm text-secundario">Nada por fazer com {nome.split(" ")[0]}. Marca a próxima visita aqui em baixo.</p>
+        <p className="text-sm text-secundario">Nada por fazer com {nome.split(" ")[0]}.</p>
       ) : (
         <ul className="space-y-1">
           {tarefas.map((t) => {
@@ -168,52 +118,6 @@ export default function AgendaDoComprador({
           })}
         </ul>
       )}
-
-      <form onSubmit={marcar} className="space-y-2 border-t border-linha pt-3">
-        <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium" role="group" aria-label="O que marcar">
-          {(
-            [
-              ["visita", "Visita"],
-              ["tarefa", "Tarefa"],
-            ] as const
-          ).map(([v, r]) => (
-            <button
-              key={v}
-              type="button"
-              aria-pressed={tipo === v}
-              onClick={() => setTipo(v)}
-              className={`flex-1 rounded-lg py-1.5 ${tipo === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-        {tipo === "visita" ? (
-          imoveis.length > 0 && (
-            <select aria-label="Imóvel a visitar" value={imovel} onChange={(e) => setImovel(e.target.value)} className={campo}>
-              <option value="">Imóvel (opcional)</option>
-              {imoveis.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {nomeImovel(i)}
-                </option>
-              ))}
-            </select>
-          )
-        ) : (
-          <input aria-label="O que há para fazer" placeholder="Ex.: enviar simulação do crédito" value={texto} onChange={(e) => setTexto(e.target.value)} className={campo} />
-        )}
-        <div className="flex gap-2">
-          <input type="datetime-local" aria-label="Dia e hora" value={quando} onChange={(e) => setQuando(e.target.value)} className={`${campo} min-w-0 flex-1`} />
-          <button type="submit" disabled={aGuardar} className="shrink-0 rounded-xl bg-azul px-4 text-sm font-semibold text-white disabled:opacity-50">
-            {aGuardar ? "A marcar..." : "Marcar"}
-          </button>
-        </div>
-        {erro && (
-          <p role="alert" className="text-sm text-red-700">
-            {erro}
-          </p>
-        )}
-      </form>
     </section>
   );
 }

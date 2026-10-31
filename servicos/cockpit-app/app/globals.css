@@ -122,6 +122,9 @@ input[type="search"]::-webkit-search-decoration {
 
 /* Impressão (relatórios em PDF): fundo branco, sem o brilho azul do ecrã */
 @media print {
+  .relevo * {
+    box-shadow: none !important;
+  }
   body {
     background: #ffffff;
   }
@@ -140,6 +143,162 @@ input[type="search"]::-webkit-search-decoration {
       inset 0 -1px 0 rgba(0, 113, 227, 0.05),
       0 1px 3px rgba(0, 113, 227, 0.12);
   }
+}
+
+/* ---------- Estilo "relevo definido" (só onde houver a classe .relevo; por agora, o Dashboard). Reproduz a referência do
+   Miguel (disco branco sobre cinzento) medindo píxeis: crescente de luz na aresta de cima, linha escura na de baixo, uma
+   banda de brilho logo por baixo, sombra e um halo claro à volta. Nos cartões grandes o brilho é azul claro; nos discos e nos
+   cartões de indicadores é o âmbar da marca. ---------- */
+.relevo {
+  --n-superficie: linear-gradient(180deg, #f5f6f8 0%, #eeeff2 100%);
+  --n-campo: #e6e8ec;
+}
+
+/* Fundo cinzento-claro, mais claro em cima à esquerda e mais escuro em baixo à direita, como na referência. */
+body:has(.relevo),
+.bg-background:has(.relevo) {
+  background: linear-gradient(135deg, #dcdde1 0%, #d3d4d9 55%, #cdced3 100%) fixed;
+}
+body:has(.relevo)::before {
+  display: none;
+}
+
+/* Cartões e quadros (o .quadro-glossy passa a ser esta superfície). */
+.relevo .quadro-glossy,
+.relevo .bg-white.border-linha,
+.relevo .bg-white.shadow-sm {
+  background: var(--n-superficie);
+  border-color: transparent;
+  box-shadow:
+    inset 0 5px 2px -3px #ffffff,
+    inset 0 -2px 2px -1px #b2ada2,
+    0 2px 1px -0.5px #a7adb5,
+    0 6px 2px -2px #a8d6ff,
+    0 9px 6px -4px #7fbcf2,
+    0 22px 24px -12px rgba(90, 112, 140, 0.5),
+    0 0 8px 2px rgba(168, 214, 255, 0.5),
+    0 0 34px 8px rgba(214, 233, 250, 0.6);
+}
+
+/* Disco (as metas principais): a receita medida na referência, tal e qual. */
+.relevo .disco {
+  background: linear-gradient(180deg, #f6f7f9 0%, #eff0f3 60%, #eaebee 100%);
+  box-shadow:
+    inset 0 5px 2px -3px #ffffff,
+    inset 0 -1.5px 2px -1px #b2ada2,
+    0 0 5px 1px rgba(240, 190, 135, 0.5),
+    0 2px 1px -1px #a9a396,
+    0 6px 2px -2px #f3c98d,
+    0 9px 5px -4px #dcab77,
+    0 20px 20px -10px rgba(125, 92, 72, 0.6),
+    0 0 8px 2px rgba(246, 212, 176, 0.5),
+    0 0 30px 9px rgba(242, 222, 208, 0.58);
+}
+
+/* Cartões dentro de cartões, botões cinzentos e separador ativo: a mesma peça, mais baixa. */
+.relevo .quadro-glossy .quadro-glossy,
+.relevo .bg-white.border-black\/10:not(input):not(select):not(textarea),
+.relevo button.bg-black\/5,
+.relevo a.bg-black\/5,
+.relevo .rounded-lg.bg-white.shadow-sm {
+  background: var(--n-superficie);
+  border-color: transparent;
+  box-shadow:
+    inset 0 3px 1.5px -2px #ffffff,
+    inset 0 -1.5px 1.5px -1px #b2ada2,
+    0 1.5px 1px -0.5px #b0aa9d,
+    0 4px 1.5px -1.5px #f3c98d,
+    0 9px 10px -6px rgba(125, 92, 72, 0.5);
+}
+.relevo button.bg-black\/5:active,
+.relevo a.bg-black\/5:active {
+  box-shadow: inset 3px 3px 7px rgba(104, 116, 140, 0.32), inset -3px -3px 6px #ffffff;
+}
+
+/* Cartões de indicadores (Reuniões, Visitas, Transações): relevo leve, com a aresta de luz, o fio laranja (o LED) e uma sombra curta. */
+.relevo .cartao-leve.quadro-glossy {
+  box-shadow:
+    inset 0 3px 1.5px -2px #ffffff,
+    inset 0 -1px 1.5px -1px rgba(150, 145, 135, 0.4),
+    0 0 0 1px rgba(104, 116, 140, 0.07),
+    0 2px 1px -1px #b0aa9d,
+    0 6px 2px -2px #f3c98d,
+    0 9px 4px -4px #e2b07c,
+    0 11px 8px -6px rgba(125, 92, 72, 0.3);
+}
+
+/* Campos de escrever e escolher, e a faixa dos separadores: afundados. */
+.relevo input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.relevo select,
+.relevo textarea,
+.relevo div.bg-black\/5.rounded-xl {
+  background: var(--n-campo);
+  border-color: transparent;
+  box-shadow: inset 3px 3px 7px rgba(104, 116, 140, 0.32), inset -3px -3px 6px #ffffff;
+}
+
+/* Botões de ação: o azul da marca com a mesma aresta de luz e uma sombra da mesma cor. */
+.relevo button.bg-azul,
+.relevo a.bg-azul {
+  box-shadow:
+    inset 0 3px 1.5px -2px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 2px -1px rgba(0, 50, 120, 0.45),
+    0 9px 12px -6px rgba(0, 89, 179, 0.55);
+}
+.relevo button.bg-verde,
+.relevo a.bg-verde,
+.relevo button.bg-tinta,
+.relevo a.bg-tinta {
+  box-shadow:
+    inset 0 3px 1.5px -2px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 2px -1px rgba(0, 0, 0, 0.35),
+    0 9px 12px -6px rgba(29, 29, 31, 0.5);
+}
+
+/* Botões finos e elegantes: menos altura, aresta fina de luz e uma sombra curta (sem a banda laranja dos cartões). */
+.relevo button.quadro-glossy,
+.relevo .quadro-glossy button.quadro-glossy,
+.relevo button.bg-black\/5,
+.relevo a.bg-black\/5,
+.relevo button.bg-azul\/10 {
+  padding-top: 0.32rem;
+  padding-bottom: 0.32rem;
+  font-weight: 500;
+  background: var(--n-superficie);
+  box-shadow:
+    inset 0 1px 0.5px #ffffff,
+    inset 0 -1px 1px rgba(150, 145, 135, 0.45),
+    0 1px 0 rgba(243, 201, 141, 0.85),
+    0 2px 2px -1.5px rgba(125, 92, 72, 0.38);
+}
+.relevo button.bg-azul,
+.relevo a.bg-azul {
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 1px rgba(0, 50, 120, 0.4),
+    0 2px 3px -2px rgba(0, 89, 179, 0.55);
+}
+.relevo a.bg-azul {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+/* O separador escolhido mantém o contorno azul (o anel do Tailwind usa a mesma propriedade das sombras). */
+.relevo button.ring-2,
+.relevo .quadro-glossy button.ring-2 {
+  box-shadow:
+    0 0 0 1.5px #0071e3,
+    inset 0 1px 0.5px #ffffff,
+    inset 0 -1px 1px rgba(150, 145, 135, 0.45),
+    0 2px 2px -1.5px rgba(0, 89, 179, 0.4);
+}
+
+/* Carris das barras de progresso: um sulco. */
+.relevo span.bg-black\/10,
+.relevo div.bg-black\/10 {
+  box-shadow: inset 1px 2px 3px rgba(104, 116, 140, 0.4);
 }
 
 /* iPhone: o Safari faz zoom ao tocar num campo com letra menor que 16px e a página fica desalinhada.

@@ -13,6 +13,7 @@ export default function ContactosRegistados({ contactoId }: { contactoId: string
   const [nota, setNota] = useState("");
   const [aGuardar, setAGuardar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [verHistorico, setVerHistorico] = useState(false);
   const { avisar } = useToast();
 
   const carregar = useCallback(async () => {
@@ -77,21 +78,44 @@ export default function ContactosRegistados({ contactoId }: { contactoId: string
         </p>
       )}
       {lista && lista.length === 0 && <p className="text-sm text-secundario">Ainda não há chamadas registadas.</p>}
-      <ul className="space-y-2">
-        {(lista ?? []).map((c) => (
-          <li key={c.id} className="flex items-start justify-between gap-2 rounded-xl bg-black/[0.035] p-3 text-sm">
-            <div className="min-w-0">
-              <p className="text-xs text-secundario">
-                {formatarDia(new Date(c.ocorreu_em))} {formatarHora(c.ocorreu_em)}
-              </p>
-              {c.observacoes && <p className="mt-0.5 text-tinta">{c.observacoes}</p>}
-            </div>
-            <button onClick={() => apagar(c)} aria-label="Apagar este registo" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none text-secundario hover:bg-black/5">
-              &times;
-            </button>
-          </li>
-        ))}
-      </ul>
+      {lista && lista.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setVerHistorico((v) => !v)}
+          aria-expanded={verHistorico}
+          className="flex w-full items-center justify-between gap-2 text-left text-sm font-medium text-secundario"
+        >
+          <span>Chamadas anteriores ({lista.length})</span>
+          <svg
+            viewBox="0 0 24 24"
+            className={`h-4 w-4 transition-transform ${verHistorico ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      )}
+      {verHistorico && (
+        <ul className="space-y-2">
+          {(lista ?? []).map((c) => (
+            <li key={c.id} className="flex items-start justify-between gap-2 rounded-xl bg-black/[0.035] p-3 text-sm">
+              <div className="min-w-0">
+                <p className="text-xs text-secundario">
+                  {formatarDia(new Date(c.ocorreu_em))} {formatarHora(c.ocorreu_em)}
+                </p>
+                {c.observacoes && <p className="mt-0.5 text-tinta">{c.observacoes}</p>}
+              </div>
+              <button onClick={() => apagar(c)} aria-label="Apagar este registo" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none text-secundario hover:bg-black/5">
+                &times;
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

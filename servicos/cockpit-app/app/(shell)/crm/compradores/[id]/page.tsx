@@ -328,23 +328,7 @@ export default function FichaComprador() {
         )}
       </section>
 
-      <AgendaDoComprador compradorId={c.id} contactoId={c.contacto_id} nome={c.contactos.nome} imoveis={imoveis} />
-
-      <ContactosRegistados contactoId={c.contacto_id} />
-
-      {corresp.length > 0 && (
-        <section className={cartao}>
-          <h3 className="text-sm font-semibold text-tinta">Imóveis que podem servir ({corresp.filter((x) => x.estado === "nova").length} por rever)</h3>
-          <ListaCorrespondencias
-            itens={corresp}
-            mostrar="imovel"
-            onResponder={async (x, estado) => {
-              await responder(x.id, estado);
-              await carregar();
-            }}
-          />
-        </section>
-      )}
+      <AgendaDoComprador compradorId={c.id} nome={c.contactos.nome} />
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -499,6 +483,22 @@ export default function FichaComprador() {
           </div>
         </form>
       </section>
+
+      <ContactosRegistados contactoId={c.contacto_id} />
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">Imóveis que podem servir ({corresp.filter((x) => x.estado === "nova").length} por rever)</h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="imovel"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">CPCV</h3>

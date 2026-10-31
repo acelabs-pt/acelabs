@@ -4,7 +4,7 @@ import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
 import MetasForm from "@/components/dashboard/MetasForm";
 import { sbBrowser } from "@/lib/supabase-browser";
-import BarraProgresso from "@/components/BarraProgresso";
+import BarraProgresso, { corDoProgresso } from "@/components/BarraProgresso";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
 import { feitos, type Dados } from "@/lib/painel";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
@@ -17,9 +17,6 @@ const PERIODOS: [Periodo, string][] = [
   ["trimestre", "Trimestre"],
   ["ano", "Ano"],
 ];
-
-// Indicadores secundários, por baixo das duas metas principais (angariações e faturação)
-const SECUNDARIAS: Metrica[] = ["visitas", "reunioes_angariacao", "transacoes"];
 
 export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado: () => void }) {
   const [periodo, setPeriodo] = useState<Periodo>("semana");
@@ -120,36 +117,52 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
           {(() => {
             const objFat = m.faturacaoAnual == null ? null : metaDoPeriodo(m.faturacaoAnual, periodo, m.semanasUteis);
             const objAng = m.anual.angariacoes == null ? null : metaDoPeriodo(m.anual.angariacoes, periodo, m.semanasUteis);
-            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => (
-              <div className="rounded-2xl quadro-glossy p-3 sm:p-4">
-                <p className="text-sm font-medium text-secundario">{rotulo}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">
-                  {rotulo === "Faturação" ? eur(valor) : valor}
-                </p>
-                {fechado != null && (
-                  <p className="text-xs text-secundario">
-                    negócios fechados <b className="text-tinta">{eur(fechado)}</b>
-                  </p>
-                )}
-                <p className="text-xs text-secundario sm:text-sm">{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
-                {objetivo != null && objetivo > 0 && <BarraProgresso valor={valor} objetivo={objetivo} className="mt-3 h-3" />}
-              </div>
-            );
-            return (
-              <div className="grid grid-cols-2 gap-3">
-                <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
-                <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} />
-              </div>
-            );
-          })()}
-
-          <ul className="grid grid-cols-2 gap-3">
-            {SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x) => {
+            // Um disco por meta principal: o número grande ao centro e o progresso num anel à volta.
+            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => {
+              const fracao = objetivo != null && objetivo > 0 ? Math.min(1, valor / objetivo) : 0;
+              const texto = rotulo === "Faturação" ? eur(valor) : String(valor);
+              // valores mais compridos descem de tamanho para ficarem dentro do anel
+              const tamanho = texto.length <= 5 ? "text-2xl sm:text-3xl" : texto.length <= 7 ? "text-xl sm:text-2xl" : "text-[19px] sm:text-[22px]";
+              return (
+                <div className="disco relative mx-auto flex aspect-square w-full max-w-[150px] items-center justify-center rounded-full">
+                  {objetivo != null && objetivo > 0 && (
+                    <svg viewBox="0 0 100 100" className="absolute inset-[5%] h-[90%] w-[90%] -rotate-90" aria-hidden="true">
+                      <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(104,116,140,0.16)" strokeWidth="3" />
+                      {fracao > 0 && (
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="46"
+                          fill="none"
+                          stroke={corDoProgresso(fracao)}
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeDasharray={`${fracao * 289} 289`}
+                        />
+                      )}
+                    </svg>
+                  )}
+                  <div className="px-3 text-center">
+                    <p className="text-[11px] font-medium text-secundario">{rotulo}</p>
+                    <p className={`mt-0.5 font-light leading-tight tracking-tight text-tinta ${tamanho}`}>{texto}</p>
+                    {fechado != null && (
+                      <p className="text-[10px] leading-tight text-secundario">
+                        fechados <b className="text-tinta">{eur(fechado)}</b>
+                      </p>
+                    )}
+                    <p className="text-[10px] leading-tight text-secundario">{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
+                  </div>
+                </div>
+              );
+            };
+            // Indicadores secundários, por baixo do disco da respetiva coluna.
+            const Secundaria = ({ id }: { id: Metrica }) => {
+              const x = METRICAS.find((y) => y.id === id)!;
               const feito = f[x.id];
               const anual = m.anual[x.id];
               const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
               return (
-                <li key={x.id} className="quadro-glossy rounded-xl px-3 py-2.5">
+                <div className="quadro-glossy cartao-leve rounded-xl px-3 py-2.5">
                   <div className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
                     <span className="text-[13px] leading-tight text-tinta sm:whitespace-nowrap">{x.label}</span>
                     <span className="shrink-0 text-secundario">
@@ -158,10 +171,24 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
                     </span>
                   </div>
                   {meta != null && meta > 0 && <BarraProgresso valor={feito} objetivo={meta} />}
-                </li>
+                </div>
               );
-            })}
-          </ul>
+            };
+            return (
+              <div className="grid grid-cols-2 items-center gap-3 pt-5">
+                <div className="flex min-w-0 flex-col gap-7">
+                  <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
+                  <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} />
+                </div>
+                <div className="flex min-w-0 flex-col gap-4">
+                  <Secundaria id="reunioes_angariacao" />
+                  <Secundaria id="visitas" />
+                  <Secundaria id="transacoes" />
+                </div>
+              </div>
+            );
+          })()}
+
           {!definidas && <p className="text-xs text-secundario">Ainda não definiste metas. Mostra só o que já fizeste.</p>}
         </>
       )}
