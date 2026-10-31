@@ -11,5 +11,6 @@ if (!password || password.length < 12) {
   process.exit(1);
 }
 const sal = randomBytes(16).toString("hex");
-console.log(`CONTROLO_PASSWORD_HASH=scrypt$${sal}$${scryptSync(password, sal, 32).toString("hex")}`);
+// Os $ vão escapados (\$): o Next lê o .env.local com expansão de variáveis e, sem a barra, "$<sal>" ficava vazio.
+console.log(`CONTROLO_PASSWORD_HASH=scrypt\\$${sal}\\$${scryptSync(password, sal, 32).toString("hex")}`);
 console.log(`CONTROLO_SEGREDO=${randomBytes(32).toString("hex")}`);
