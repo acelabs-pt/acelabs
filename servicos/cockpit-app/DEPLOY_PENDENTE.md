@@ -1,6 +1,9 @@
 # Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026, 2.ª entrega)
 
-> **Estado: por publicar.** A 1.ª entrega (018a93b) já foi publicada pelo Pedro. Esta é a seguinte. **Sem SQL novo**: só código e CSS.
+> **Estado: publicado a 31/10/2026 pelo Pedro** (commit 401f9c4; TypeScript e lint limpos, isolamento entre empresas com 164
+> verificações a passar). Confirmado no endereço publicado, em tamanho de iPhone: Dashboard com os dois discos e os três indicadores,
+> data "31 de outubro", sem deslizar de lado; `/crm` com os dois cartões; ficha do comprador com Próximos passos, Funil e Imóveis por
+> esta ordem e "Chamadas anteriores" com seta (também no proprietário); `.relevo` só no Dashboard. Nenhum erro da base de dados.
 
 Só o Pedro faz o deploy: `git pull`, `npm install`, `npx tsc --noEmit`, `npx next lint`, `node testes/unidade-multiempresa.mjs`,
 `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado (tamanho de iPhone).
