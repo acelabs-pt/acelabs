@@ -242,9 +242,16 @@ export default function ListaProprietarios() {
       ) : vista === "funil" ? (
         <Funil props={base} proximas={proximas} atrasado={atrasado} />
       ) : lista.length === 0 ? (
-        <p className="py-8 text-center text-sm text-secundario">
-          {props.length === 0 ? "Ainda não há proprietários. Cria o primeiro." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum proprietário com estes filtros."}
-        </p>
+        <div className="space-y-3 py-8 text-center">
+          <p className="text-sm text-secundario">
+            {props.length === 0 ? "Ainda não há proprietários. Cria o primeiro ou traz a tua lista." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum proprietário com estes filtros."}
+          </p>
+          {props.length === 0 && (
+            <Link href="/importar" className="inline-block rounded-full bg-tinta px-5 py-2.5 text-sm font-semibold text-white">
+              Importar do Excel
+            </Link>
+          )}
+        </div>
       ) : (
         <>
         <ul className="space-y-2">

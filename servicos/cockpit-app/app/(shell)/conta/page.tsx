@@ -113,6 +113,14 @@ export default function Conta() {
       <OpcaoFaceId />
 
       <section className={cartao}>
+        <h2 className="text-sm font-semibold text-tinta">Ajuda</h2>
+        <p className="text-sm text-secundario">Guia rápido: importar, criar um comprador, uma angariação e usar o calendário.</p>
+        <Link href="/ajuda" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
+          Abrir a ajuda
+        </Link>
+      </section>
+
+      <section className={cartao}>
         <h2 className="text-sm font-semibold text-tinta">Importar contactos</h2>
         <p className="text-sm text-secundario">Traz as tuas listas do Excel ou do Google Sheets.</p>
         <Link href="/importar" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">

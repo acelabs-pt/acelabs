@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { estaInstalada } from "@/components/EstadoInstalacao";
+import { estadoPush } from "@/lib/push";
+import { naApp } from "@/lib/nativo";
 import type { Dados } from "@/lib/painel";
 
 const CHAVE = "cockpit-primeiros-passos-escondido";
@@ -12,6 +14,7 @@ const CHAVE = "cockpit-primeiros-passos-escondido";
 export default function PrimeirosPassos({ dados }: { dados: Dados }) {
   const [escondido, setEscondido] = useState(true); // escondido até se saber (evita um clarão ao carregar)
   const [instalada, setInstalada] = useState(false);
+  const [avisos, setAvisos] = useState(false);
 
   useEffect(() => {
     try {
@@ -19,7 +22,8 @@ export default function PrimeirosPassos({ dados }: { dados: Dados }) {
     } catch {
       setEscondido(false);
     }
-    setInstalada(estaInstalada());
+    setInstalada(estaInstalada() || naApp());
+    estadoPush().then((e) => setAvisos(e === "ligado")).catch(() => {});
   }, []);
 
   const m = dados.metas;
@@ -51,6 +55,13 @@ export default function PrimeirosPassos({ dados }: { dados: Dados }) {
       feito: instalada,
       href: "/instalar",
       rotulo: "Ver como",
+    },
+    {
+      titulo: "Ativar as notificações",
+      ajuda: "Um lembrete antes de cada visita ou reunião e o resumo das tarefas do dia.",
+      feito: avisos,
+      href: "/conta",
+      rotulo: "Ativar",
     },
   ];
   const feitos = passos.filter((p) => p.feito).length;
@@ -114,6 +125,9 @@ export default function PrimeirosPassos({ dados }: { dados: Dados }) {
           </li>
         ))}
       </ul>
+      <Link href="/ajuda" className="block text-center text-sm font-medium text-azul">
+        Precisas de ajuda? Vê o guia rápido
+      </Link>
     </section>
   );
 }

@@ -276,9 +276,16 @@ export default function ListaCompradores() {
       ) : vista === "funil" ? (
         <Funil compradores={filtradosBase} contagens={contagens} novas={novas} />
       ) : filtrados.length === 0 ? (
-        <p className="py-8 text-center text-sm text-secundario">
-          {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum comprador com estes filtros."}
-        </p>
+        <div className="space-y-3 py-8 text-center">
+          <p className="text-sm text-secundario">
+            {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro ou traz a tua lista." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum comprador com estes filtros."}
+          </p>
+          {compradores.length === 0 && (
+            <Link href="/importar" className="inline-block rounded-full bg-tinta px-5 py-2.5 text-sm font-semibold text-white">
+              Importar do Excel
+            </Link>
+          )}
+        </div>
       ) : (
         <>
         <ul className="space-y-2">

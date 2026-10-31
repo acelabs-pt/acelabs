@@ -65,7 +65,7 @@ podem ir para a base).
 | D+30 | Balanço: quantas pessoas usam, volume de dados, ganhos que o cliente nota; decidir continuidade e faturação | Pedro e Miguel | Balanço feito |
 | Fim | Descarregar a cópia dos dados, suspender e apagar no prazo acordado | Pedro e Miguel | Registo de ações |
 
-### Dentro do Cockpit (a construir)
+### Dentro do Cockpit (feito em 2026-10-30: passo das notificações, página Ajuda em `/ajuda`, botão de importar nos ecrãs vazios; a lista de arranque e o modelo de Excel já existiam)
 - **Lista de arranque no Dashboard** de cada empresa nova, com progresso e possível de fechar: importar contactos, definir as
   metas do ano, ativar notificações, ativar o Face ID (na app), criar o primeiro comprador, convidar a equipa (para o gestor,
   quando existirem papéis). Cada passo vai a ecrã certo e marca-se sozinho quando se cumpre.

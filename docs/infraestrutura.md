@@ -14,7 +14,7 @@
 | Email da equipa | Google Workspace (MX `smtp.google.com`) | Ambos | Caixas `miguel@` e `pedro@acelabs.pt` |
 | DNS | Registo do domínio `acelabs.pt` | Pedro | Ver "DNS" abaixo |
 | CPCV com IA | Vercel `cpcv-engine` (equipa `acelabs1`) + Supabase | Pedro | Chave Anthropic na Vercel |
-| Cockpit (ensaio) | Vercel `cockpit` (equipa `acelabs1`), `https://cockpit-gamma-one.vercel.app`; Supabase de teste "Cockpit" | Pedro | Publicado por CLI (`vercel deploy --prod` em `servicos/cockpit-app`), com o Git **desligado** de propósito: um push não atualiza nenhum cliente. Um projeto Vercel e um Supabase por cliente. Passos em `servicos/cockpit-app/LEIAME.md` |
+| Cockpit (ensaio) | Vercel `cockpit` (equipa `acelabs1`), `https://cockpit-gamma-one.vercel.app`; Supabase Demo (desde 2026-10-30; antes o de teste "Cockpit") | Pedro | Publicado por CLI (`vercel deploy --prod` em `servicos/cockpit-app`), com o Git **desligado** de propósito: um push não atualiza nenhum cliente. Um projeto Vercel e um Supabase por cliente. Passos em `servicos/cockpit-app/LEIAME.md` |
 
 ## Aplicações, bases de dados e pastas (revisto em 2026-10-28)
 
@@ -25,7 +25,8 @@ escrevem aqui nomes e endereços públicos, nunca chaves.
 | Aplicação | Pasta | Supabase (ref) | Vercel | Estado |
 |---|---|---|---|---|
 | CPCV com IA (e painel genérico) | `servicos/cpcv-engine` | `txlrzhltxrjkopjwrdsd` | projeto `cpcv-engine`, equipa `acelabs1`, deploy automático do `main` | Em uso para testes com a solicitadora; migrações até `migration_fase15.sql` corridas em 2026-10-28 |
-| Cockpit (a que fica) | `servicos/cockpit-app` | `erxnqdadqbmfeyuwaybi` ("Cockpit", teste, tem a carteira de demonstração) | projeto `cockpit`, equipa `acelabs1`, `https://cockpit-gamma-one.vercel.app` (ensaio, deploy por CLI) | Ainda sem cliente real. Falta migração de segurança e de notificações neste projeto |
+| Cockpit (a que fica) | `servicos/cockpit-app` | `gebqaxhwebsmoeqpzzzg` ("Demo", projeto partilhado de ensaio, com várias empresas, notificações e administração aplicadas; desde 2026-10-30 é o que a Vercel usa). O antigo `erxnqdadqbmfeyuwaybi` (carteira de demonstração) ficou sem uso na Vercel e sem as migrações novas | projeto `cockpit`, equipa `acelabs1`, `https://cockpit-gamma-one.vercel.app` (ensaio, deploy por CLI) | Ainda sem cliente real. Falta migração de segurança e de notificações neste projeto |
+| Notificações Android | Firebase, projeto `ace-labs-cockpit` (plano Spark, conta Google do Pedro; falta acrescentar o Miguel como proprietário) | Pedro | App Android `pt.acelabs.cockpit`. `google-services.json` em `servicos/cockpit-app/android/app/` e chave de conta de serviço em `.env.fcm-chave.json`, ambos fora do git. A chave está também como segredo `FCM_SERVICE_ACCOUNT` no Supabase Demo, onde estão publicadas as funções `enviar-teste`, `enviar-lembretes` e `admin` (2026-10-30). Token de acesso da CLI do Supabase (`acelabs-cli-permanente`, sem expiração, só Demo: funções e segredos) em `servicos/cockpit-app/.env.supabase-cli`, fora do git |
 | Controlo (interno) | `servicos/controlo` | nenhum próprio (administra o de cada cliente) | **nunca publicado**: corre em `localhost:3002` no computador de cada sócio | Convidar, suspender e apagar utilizadores do Cockpit e do CPCV de cada cliente e ver o estado da instalação. Ver `servicos/controlo/LEIAME.md` |
 | Cockpit antigo | `servicos/cockpit` | o mesmo de teste | nenhum | A eliminar quando o Pedro confirmar |
 | Site | `site/` | nenhum | projeto `ace-labs`, conta do Miguel | `main` publica em produção |
