@@ -129,165 +129,6 @@ export default function PlanoAngariacao() {
 
       <ResumoAngariacao ang={ang} versao={versaoRegistos} />
 
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            {aRenomear ? (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  setErro(null);
-                  const e1 = await renomearAngariacao(ang, novoNome);
-                  if (e1) return setErro(e1);
-                  setARenomear(false);
-                  await carregar();
-                }}
-                className="flex items-center gap-2"
-              >
-                <input
-                  autoFocus
-                  value={novoNome}
-                  onChange={(e) => setNovoNome(e.target.value)}
-                  aria-label="Nome da angariação"
-                  className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2 text-base text-tinta"
-                />
-                <button type="submit" disabled={!novoNome.trim()} className="rounded-xl bg-azul px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                  Guardar
-                </button>
-                <button type="button" onClick={() => setARenomear(false)} className="px-1 text-sm text-secundario">
-                  Cancelar
-                </button>
-              </form>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <h1 className="min-w-0 truncate text-xl font-semibold text-tinta">{ang.titulo}</h1>
-                <button
-                  onClick={() => {
-                    setNovoNome(ang.titulo);
-                    setARenomear(true);
-                  }}
-                  aria-label="Mudar o nome da angariação"
-                  title="Mudar o nome"
-                  className="shrink-0 rounded-lg p-1.5 text-secundario hover:bg-black/5"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z" />
-                    <path d="M14.5 7.5l3 3" />
-                  </svg>
-                </button>
-              </div>
-            )}
-            {ang.referencia && <p className="text-xs text-secundario">ID {ang.referencia}</p>}
-            <p className="text-sm text-secundario">
-              {ang.proprietarios?.id ? (
-                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="font-medium text-azul-escuro">
-                  {ang.proprietarios.contactos.nome}
-                </Link>
-              ) : (
-                ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"
-              )}
-              {ang.regime ? ` · ${REGIME[ang.regime]}` : ""}
-            </p>
-            {ang.proprietarios && (
-              <p className="text-sm text-secundario">
-                {[
-                  ang.proprietarios.tipo_imovel,
-                  ang.proprietarios.tipologia,
-                  ang.proprietarios.freguesia || ang.proprietarios.concelho || ang.proprietarios.distrito,
-                  ang.proprietarios.valor != null ? `${ang.proprietarios.valor.toLocaleString("pt-PT")} EUR` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            )}
-            <p className="text-sm text-secundario">
-              Início {formatarDia(dataDoDia(ang.inicio, 0))} · fim {formatarDia(dataDoDia(ang.inicio, ang.duracao_dias - 1))} ·{" "}
-              {ang.vendido_em ? "vendido" : dia < 1 ? "ainda não começou" : dia > ang.duracao_dias ? "contrato terminado" : `dia ${dia} de ${ang.duracao_dias}`}
-            </p>
-          </div>
-          {acoes.length > 0 && (
-            <Link href={`/angariacoes/${ang.id}/relatorio`} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
-              Relatório
-            </Link>
-          )}
-        </div>
-        {ang.proprietarios?.contactos.telemovel && (
-          // falar com o proprietário sem sair da angariação (feedback das visitas, relatório)
-          <div className="flex gap-2">
-            <a href={`tel:${ang.proprietarios.contactos.telemovel}`} className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white">
-              Ligar ao proprietário
-            </a>
-            <a
-              href={linkWhatsapp(ang.proprietarios.contactos.telemovel)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-full bg-verde py-2.5 text-center text-sm font-semibold text-tinta"
-            >
-              WhatsApp
-            </a>
-          </div>
-        )}
-      </section>
-
-      {!ang.proprietario_id && <AssociarProprietario angariacaoId={ang.id} onAssociado={carregar} />}
-
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-sm font-semibold text-tinta">Imóvel</h2>
-          {!editarImovel && (
-            <button
-              onClick={() => {
-                setImovelForm(imovelDe(ang));
-                setEditarImovel(true);
-              }}
-              className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium"
-            >
-              Editar
-            </button>
-          )}
-        </div>
-        {editarImovel && imovelForm ? (
-          <>
-            <DadosImovel valor={imovelForm} onChange={setImovelForm} />
-            <button
-              onClick={async () => {
-                const { error } = await sbBrowser().from("angariacoes").update(imovelParaBd(imovelForm)).eq("id", ang.id);
-                if (error) return setErro("Não foi possível guardar o imóvel.");
-                await atualizarPorAngariacao(ang.id);
-                setEditarImovel(false);
-                await carregar();
-              }}
-              className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white"
-            >
-              Guardar imóvel
-            </button>
-          </>
-        ) : (
-          <p className="text-sm text-secundario">
-            {resumoImovel(ang) || "Sem dados do imóvel. Preenche para encontrarmos compradores com interesse."}
-          </p>
-        )}
-      </section>
-
-      {corresp.length > 0 && (
-        <section className={cartao}>
-          <h2 className="text-sm font-semibold text-tinta">
-            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
-          </h2>
-          <ListaCorrespondencias
-            itens={corresp}
-            mostrar="comprador"
-            onResponder={async (x, estado) => {
-              await responder(x.id, estado);
-              await carregar();
-            }}
-          />
-        </section>
-      )}
-
-      <Registos ang={ang} tipo="visita" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
-      <Registos ang={ang} tipo="proposta" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
-
       {acoes.length === 0 ? (
         <section className={cartao}>
           <h2 className="text-sm font-semibold text-tinta">Montar o plano</h2>
@@ -542,6 +383,164 @@ export default function PlanoAngariacao() {
           </section>
         </>
       )}
+
+      <section className={cartao}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            {aRenomear ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErro(null);
+                  const e1 = await renomearAngariacao(ang, novoNome);
+                  if (e1) return setErro(e1);
+                  setARenomear(false);
+                  await carregar();
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  autoFocus
+                  value={novoNome}
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  aria-label="Nome da angariação"
+                  className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2 text-base text-tinta"
+                />
+                <button type="submit" disabled={!novoNome.trim()} className="rounded-xl bg-azul px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                  Guardar
+                </button>
+                <button type="button" onClick={() => setARenomear(false)} className="px-1 text-sm text-secundario">
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <h1 className="min-w-0 truncate text-xl font-semibold text-tinta">{ang.titulo}</h1>
+                <button
+                  onClick={() => {
+                    setNovoNome(ang.titulo);
+                    setARenomear(true);
+                  }}
+                  aria-label="Mudar o nome da angariação"
+                  title="Mudar o nome"
+                  className="shrink-0 rounded-lg p-1.5 text-secundario hover:bg-black/5"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z" />
+                    <path d="M14.5 7.5l3 3" />
+                  </svg>
+                </button>
+              </div>
+            )}
+            {ang.referencia && <p className="text-xs text-secundario">ID {ang.referencia}</p>}
+            <p className="text-sm text-secundario">
+              {ang.proprietarios?.id ? (
+                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="font-medium text-azul-escuro">
+                  {ang.proprietarios.contactos.nome}
+                </Link>
+              ) : (
+                ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"
+              )}
+              {ang.regime ? ` · ${REGIME[ang.regime]}` : ""}
+            </p>
+            {ang.proprietarios && (
+              <p className="text-sm text-secundario">
+                {[
+                  ang.proprietarios.tipo_imovel,
+                  ang.proprietarios.tipologia,
+                  ang.proprietarios.freguesia || ang.proprietarios.concelho || ang.proprietarios.distrito,
+                  ang.proprietarios.valor != null ? `${ang.proprietarios.valor.toLocaleString("pt-PT")} EUR` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
+            <p className="text-sm text-secundario">
+              Início {formatarDia(dataDoDia(ang.inicio, 0))} · fim {formatarDia(dataDoDia(ang.inicio, ang.duracao_dias - 1))} ·{" "}
+              {ang.vendido_em ? "vendido" : dia < 1 ? "ainda não começou" : dia > ang.duracao_dias ? "contrato terminado" : `dia ${dia} de ${ang.duracao_dias}`}
+            </p>
+          </div>
+          {acoes.length > 0 && (
+            <Link href={`/angariacoes/${ang.id}/relatorio`} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
+              Relatório
+            </Link>
+          )}
+        </div>
+        {ang.proprietarios?.contactos.telemovel && (
+          // falar com o proprietário sem sair da angariação (feedback das visitas, relatório)
+          <div className="flex gap-2">
+            <a href={`tel:${ang.proprietarios.contactos.telemovel}`} className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white">
+              Ligar ao proprietário
+            </a>
+            <a
+              href={linkWhatsapp(ang.proprietarios.contactos.telemovel)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 rounded-full bg-verde py-2.5 text-center text-sm font-semibold text-tinta"
+            >
+              WhatsApp
+            </a>
+          </div>
+        )}
+      </section>
+
+      {!ang.proprietario_id && <AssociarProprietario angariacaoId={ang.id} onAssociado={carregar} />}
+
+      <section className={cartao}>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-sm font-semibold text-tinta">Imóvel</h2>
+          {!editarImovel && (
+            <button
+              onClick={() => {
+                setImovelForm(imovelDe(ang));
+                setEditarImovel(true);
+              }}
+              className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium"
+            >
+              Editar
+            </button>
+          )}
+        </div>
+        {editarImovel && imovelForm ? (
+          <>
+            <DadosImovel valor={imovelForm} onChange={setImovelForm} />
+            <button
+              onClick={async () => {
+                const { error } = await sbBrowser().from("angariacoes").update(imovelParaBd(imovelForm)).eq("id", ang.id);
+                if (error) return setErro("Não foi possível guardar o imóvel.");
+                await atualizarPorAngariacao(ang.id);
+                setEditarImovel(false);
+                await carregar();
+              }}
+              className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white"
+            >
+              Guardar imóvel
+            </button>
+          </>
+        ) : (
+          <p className="text-sm text-secundario">
+            {resumoImovel(ang) || "Sem dados do imóvel. Preenche para encontrarmos compradores com interesse."}
+          </p>
+        )}
+      </section>
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h2 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h2>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
+
+      <Registos ang={ang} onAlterado={() => setVersaoRegistos((v) => v + 1)} />
 
       {aberta && (
         <FolhaAcao

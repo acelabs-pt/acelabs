@@ -51,7 +51,19 @@ const campo = "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 tex
 
 // Visitas ou propostas a esta angariação. As de clientes meus são as mesmas que aparecem na ficha de cada
 // comprador (é o mesmo registo). As de clientes de outro consultor guardam só o nome do consultor.
-export default function Registos({ ang, tipo, onAlterado }: { ang: Angariacao; tipo: Tipo; onAlterado?: () => void }) {
+function Registos({
+  ang,
+  tipo,
+  aberto,
+  onFechar,
+  onAlterado,
+}: {
+  ang: Angariacao;
+  tipo: Tipo;
+  aberto: boolean;
+  onFechar: () => void;
+  onAlterado?: () => void;
+}) {
   const cfg = CFG[tipo];
   const [minhas, setMinhas] = useState<RegistoMeu[]>([]);
   const [externas, setExternas] = useState<RegistoExterno[]>([]);
@@ -147,12 +159,15 @@ export default function Registos({ ang, tipo, onAlterado }: { ang: Angariacao; t
     setData(hojeISO());
     await carregar();
     onAlterado?.();
+    onFechar();
   }
 
   const itens = [
     ...minhas.map((v) => ({ chave: v.id, data: (v as unknown as Record<string, string>)[cfg.campoData], v, x: null })),
     ...externas.map((x) => ({ chave: x.id, data: x.data, v: null, x })),
   ].sort((a, b) => b.data.localeCompare(a.data));
+
+  if (itens.length === 0 && !aberto) return null;
 
   return (
     <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
@@ -161,9 +176,7 @@ export default function Registos({ ang, tipo, onAlterado }: { ang: Angariacao; t
       </h2>
       {erro && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
 
-      {itens.length === 0 ? (
-        <p className="text-sm text-secundario">{cfg.vazio}</p>
-      ) : (
+      {itens.length > 0 && (
         <ul className="space-y-2">
           {itens.map(({ chave, data: d, v, x }) => (
             <li key={chave} className="space-y-2 rounded-xl border border-black/10 p-3">
@@ -212,8 +225,14 @@ export default function Registos({ ang, tipo, onAlterado }: { ang: Angariacao; t
         </ul>
       )}
 
-      <form onSubmit={registar} className="space-y-2 border-t border-black/10 pt-3">
-        <h3 className="text-xs font-semibold text-secundario">Registar {cfg.nome}</h3>
+      {aberto && (
+      <form onSubmit={registar} className={`space-y-2 ${itens.length > 0 ? "border-t border-black/10 pt-3" : ""}`}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-secundario">Registar {cfg.nome}</h3>
+          <button type="button" onClick={onFechar} className="text-xs font-medium text-secundario">
+            Fechar
+          </button>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {MODOS.map(([m, rotulo]) => (
             <button
@@ -269,6 +288,36 @@ export default function Registos({ ang, tipo, onAlterado }: { ang: Angariacao; t
           {aGuardar ? "A guardar..." : `Registar ${cfg.nome}`}
         </button>
       </form>
+      )}
     </section>
+  );
+}
+
+// Dois botões pequenos ("Visita +" e "Proposta +"); o formulário só abre ao carregar no +.
+export default function RegistosAngariacao({ ang, onAlterado }: { ang: Angariacao; onAlterado?: () => void }) {
+  const [aberto, setAberto] = useState<Tipo | null>(null);
+  const botao = (t: Tipo, rotulo: string) => (
+    <button
+      type="button"
+      onClick={() => setAberto((a) => (a === t ? null : t))}
+      aria-expanded={aberto === t}
+      aria-label={`Adicionar ${rotulo.toLowerCase()}`}
+      className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold ${
+        aberto === t ? "bg-azul text-white" : "bg-azul/10 text-azul-escuro"
+      }`}
+    >
+      {rotulo}
+      <span aria-hidden className="text-base leading-none">{aberto === t ? "\u2212" : "+"}</span>
+    </button>
+  );
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        {botao("visita", "Visita")}
+        {botao("proposta", "Proposta")}
+      </div>
+      <Registos ang={ang} tipo="visita" aberto={aberto === "visita"} onFechar={() => setAberto(null)} onAlterado={onAlterado} />
+      <Registos ang={ang} tipo="proposta" aberto={aberto === "proposta"} onFechar={() => setAberto(null)} onAlterado={onAlterado} />
+    </div>
   );
 }

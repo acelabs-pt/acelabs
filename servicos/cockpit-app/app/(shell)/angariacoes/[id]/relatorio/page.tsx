@@ -13,6 +13,8 @@ import { linkWhatsapp } from "@/lib/whatsapp";
 const REGIME = { exclusivo: "em exclusivo", nao_exclusivo: "não exclusivo" } as const;
 const DIAS_PERIODO = 30;
 
+type Registo = { chave: string; data: string; quem: string; obs: string | null };
+
 type AngComContacto = Angariacao & { proprietarios: { contactos: { nome: string; telemovel: string | null } } | null };
 
 // Agrupa as ações por finalidade, para dar um fio condutor ao texto de cada período.
@@ -52,6 +54,8 @@ export default function Relatorio() {
   const { id } = useParams<{ id: string }>();
   const [ang, setAng] = useState<AngComContacto | null>(null);
   const [acoes, setAcoes] = useState<Acao[]>([]);
+  const [visitas, setVisitas] = useState<Registo[]>([]);
+  const [propostas, setPropostas] = useState<Registo[]>([]);
   const [copiado, setCopiado] = useState(false);
   const [nativa, setNativa] = useState(false);
   useEffect(() => setNativa(naApp()), []);
@@ -59,12 +63,31 @@ export default function Relatorio() {
   useEffect(() => {
     (async () => {
       const sb = sbBrowser();
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3, r4, r5] = await Promise.all([
         sb.from("angariacoes").select("*, proprietarios(contactos(nome, telemovel))").eq("id", id).single(),
         sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
+        sb.from("comprador_imoveis").select("id, visitado_em, visita_obs, proposta_em, proposta_obs, compradores(contactos(nome))").eq("angariacao_id", id),
+        sb.from("visitas_externas").select("*").eq("angariacao_id", id),
+        sb.from("propostas_externas").select("*").eq("angariacao_id", id),
       ]);
       if (r1.data) setAng(r1.data as unknown as AngComContacto);
       setAcoes((r2.data ?? []) as Acao[]);
+      type Linha = { id: string; visitado_em: string | null; visita_obs: string | null; proposta_em: string | null; proposta_obs: string | null; compradores: { contactos: { nome: string } } | null };
+      type Externa = { id: string; consultor: string; data: string; obs: string | null };
+      const meus = (r3.data ?? []) as unknown as Linha[];
+      const ordem = (l: Registo[]) => l.sort((a, b) => a.data.localeCompare(b.data));
+      setVisitas(
+        ordem([
+          ...meus.filter((l) => l.visitado_em).map((l) => ({ chave: l.id, data: l.visitado_em!, quem: l.compradores?.contactos.nome ?? "Cliente", obs: l.visita_obs })),
+          ...((r4.data ?? []) as Externa[]).map((x) => ({ chave: x.id, data: x.data, quem: `Cliente de ${x.consultor}`, obs: x.obs })),
+        ])
+      );
+      setPropostas(
+        ordem([
+          ...meus.filter((l) => l.proposta_em).map((l) => ({ chave: l.id, data: l.proposta_em!, quem: l.compradores?.contactos.nome ?? "Cliente", obs: l.proposta_obs })),
+          ...((r5.data ?? []) as Externa[]).map((x) => ({ chave: x.id, data: x.data, quem: `Cliente de ${x.consultor}`, obs: x.obs })),
+        ])
+      );
     })();
   }, [id]);
 
@@ -105,6 +128,8 @@ export default function Relatorio() {
       : "",
     feitas.length ? `Já fizemos ${feitas.length} ${feitas.length === 1 ? "ação" : "ações"} pelo seu imóvel:` : "Ainda não há ações realizadas para apresentar.",
     ...[...porNome.entries()].map(([nome, g]) => `- ${nome}${g.vezes > 1 ? ` (${g.vezes} vezes, a última a ${curta(g.ultima)})` : ` (${curta(g.ultima)})`}`),
+    visitas.length ? `Visitas realizadas: ${visitas.length}.` : "",
+    propostas.length ? `Propostas recebidas: ${propostas.length}.` : "",
     "",
     "Qualquer dúvida, estou ao dispor.",
   ]
@@ -203,6 +228,30 @@ export default function Relatorio() {
             </section>
           );
         })}
+
+        {[
+          { titulo: "Visitas realizadas", lista: visitas },
+          { titulo: "Propostas recebidas", lista: propostas },
+        ].map(
+          ({ titulo, lista }) =>
+            lista.length > 0 && (
+              <section key={titulo} className="break-inside-avoid border-t border-black/10 py-5">
+                <h2 className="text-lg font-semibold">
+                  {titulo}
+                  <span className="ml-2 text-sm font-normal text-secundario">{lista.length}</span>
+                </h2>
+                <ul className="mt-3 space-y-3">
+                  {lista.map((r) => (
+                    <li key={r.chave} className="break-inside-avoid border-l-2 border-azul pl-3">
+                      <p className="text-[15px] font-medium">{r.quem}</p>
+                      <p className="text-xs text-secundario">{dataCurta(new Date(r.data + "T00:00:00"))}</p>
+                      {r.obs && <p className="mt-1 text-sm leading-relaxed">{r.obs}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+        )}
 
         {feitas.length > 0 && <p className="border-t border-black/10 pt-5 text-sm text-secundario">Ficamos ao dispor para qualquer esclarecimento.</p>}
       </article>

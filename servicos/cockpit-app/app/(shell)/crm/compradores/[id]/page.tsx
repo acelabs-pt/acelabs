@@ -47,6 +47,7 @@ export default function FichaComprador() {
   const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
+  const [fichaAberta, setFichaAberta] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
   const [novoImovel, setNovoImovel] = useState("");
   const [angs, setAngs] = useState<AngMinha[]>([]);
@@ -256,10 +257,34 @@ export default function FichaComprador() {
               {alerta && <span className="rounded-full bg-ambar-fundo px-2.5 py-1 text-xs font-semibold text-ambar-texto">{alerta}</span>}
             </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
-            Editar
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button onClick={() => setEditar(true)} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setFichaAberta((v) => !v)}
+              aria-expanded={fichaAberta}
+              aria-label="Ver mais informação"
+              className="rounded-full p-2 text-secundario"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className={`h-5 w-5 transition-transform ${fichaAberta ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {fichaAberta && (
+        <>
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
           {(
@@ -298,6 +323,8 @@ export default function FichaComprador() {
               WhatsApp
             </a>
           </div>
+        )}
+        </>
         )}
       </section>
 

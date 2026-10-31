@@ -285,35 +285,62 @@ export default function ListaProprietarios() {
 }
 
 function Cartao({ p, proxima, atrasado, compacto, ultimo }: { p: Proprietario; proxima?: ProximaAcao; atrasado: boolean; compacto?: boolean; ultimo?: string }) {
+  // Na lista aparecem o nome, o último contacto, o imóvel e a fase; a próxima ação abre na seta (no funil, cartão compacto, vai tudo à vista).
+  const [aberto, setAberto] = useState(false);
+  const linhaImovel =
+    [p.tipo_imovel, p.tipologia, p.concelho || p.distrito, p.valor != null ? `${p.valor.toLocaleString("pt-PT")} EUR` : null]
+      .filter(Boolean)
+      .join(" · ") || "Sem qualificação";
+  const detalhes = proxima && (
+    <p className={`truncate rounded-lg px-2.5 py-1.5 text-xs font-medium ${atrasado ? "bg-ambar-fundo text-ambar-texto" : "bg-black/5 text-secundario"}`}>
+      {atrasado ? "Em atraso: " : ""}
+      {proxima.titulo} · {formatarDia(new Date(proxima.inicio))} {formatarHora(proxima.inicio)}
+    </p>
+  );
   return (
     <Link href={`/crm/proprietarios/${p.id}`} className={`block rounded-2xl border border-linha bg-white ${compacto ? "rounded-xl p-3" : "p-4"}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className={`truncate font-semibold text-tinta ${compacto ? "text-sm" : "text-base"}`}>{p.contactos.nome}</p>
-          <p className="truncate text-xs text-secundario">
-            {[p.tipo_imovel, p.tipologia, p.concelho || p.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
-          </p>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <p className={`min-w-0 truncate font-semibold text-tinta ${compacto ? "text-sm" : "text-base"}`}>{p.contactos.nome}</p>
+            {!compacto && (
+              <span className={`shrink-0 text-xs ${ultimo && Date.now() - new Date(ultimo).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
+                {ultimo ? `Último contacto ${haQuanto(ultimo)}` : "Ainda sem chamadas registadas"}
+              </span>
+            )}
+          </div>
+          <p className="truncate text-xs text-secundario">{linhaImovel}</p>
         </div>
         {!compacto && (
-          <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
-            {labelEstadoProp(p.estado)}
-          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">{labelEstadoProp(p.estado)}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setAberto((v) => !v);
+              }}
+              aria-expanded={aberto}
+              aria-label="Ver mais informação"
+              className="rounded-full p-1 text-secundario"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className={`h-4 w-4 transition-transform ${aberto ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          </div>
         )}
       </div>
-      {p.valor != null && (
-        <p className="mt-1 text-xs text-secundario">{p.valor.toLocaleString("pt-PT")} EUR</p>
-      )}
-      {!compacto && (
-        <p className={`mt-1 text-xs ${ultimo && Date.now() - new Date(ultimo).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
-          {ultimo ? `Último contacto ${haQuanto(ultimo)}` : "Ainda sem chamadas registadas"}
-        </p>
-      )}
-      {proxima && (
-        <p className={`mt-2 truncate rounded-lg px-2.5 py-1.5 text-xs font-medium ${atrasado ? "bg-ambar-fundo text-ambar-texto" : "bg-black/5 text-secundario"}`}>
-          {atrasado ? "Em atraso: " : ""}
-          {proxima.titulo} · {formatarDia(new Date(proxima.inicio))} {formatarHora(proxima.inicio)}
-        </p>
-      )}
+      {detalhes && (compacto || aberto) && <div className="mt-2">{detalhes}</div>}
     </Link>
   );
 }

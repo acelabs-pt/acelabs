@@ -51,3 +51,7 @@ next-env.d.ts
 
 /clientes-cockpit.json
 /.demo-revisao.txt
+
+# simulação de uso (dados fictícios gerados, só para colar no Supabase)
+/simulacao_3_meses.sql
+/limpar_para_simulacao.sql

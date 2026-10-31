@@ -77,6 +77,7 @@ export default function ListaCompradores() {
   const [painel, setPainel] = useState(false);
   const [ultimos, setUltimos] = useState<Record<string, string>>({});
   const [ordem, setOrdem] = useState<"recentes" | "motivacao" | "parados" | "nome">("recentes");
+  const [abertos, setAbertos] = useState<Set<string>>(new Set());
   const { avisar } = useToast();
   // Fase vinda de um toque no Dashboard (?fase=cpcv): mostra só essa fase, concluídos incluídos.
   const [fase, setFase] = useState("");
@@ -314,18 +315,49 @@ export default function ListaCompradores() {
                         {[c.tipo_imovel, c.tipologia_minima, resumoLocais(zonas[c.id]) || c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
-                      {labelEstado(c.estado)}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span className="rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">{labelEstado(c.estado)}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAbertos((a) => {
+                            const x = new Set(a);
+                            if (!x.delete(c.id)) x.add(c.id);
+                            return x;
+                          });
+                        }}
+                        aria-expanded={abertos.has(c.id)}
+                        aria-label="Ver mais informação"
+                        className="rounded-full p-1 text-secundario"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className={`h-4 w-4 transition-transform ${abertos.has(c.id) ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <p className="mt-2 text-xs text-secundario">
-                    {n.enviados}/{OBJETIVOS.enviados} enviados · {n.visitas}/{OBJETIVOS.visitas} visitas · {n.propostas}/{OBJETIVOS.propostas} propostas
-                  </p>
-                  <p className={`mt-1.5 text-xs ${ultimos[c.contacto_id] && Date.now() - new Date(ultimos[c.contacto_id]).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
-                    {ultimos[c.contacto_id] ? `Último contacto ${haQuanto(ultimos[c.contacto_id])}` : "Ainda sem chamadas registadas"}
-                  </p>
-                  {alerta && (
-                    <p className="mt-2 rounded-lg bg-ambar-fundo px-2.5 py-1.5 text-xs font-medium text-ambar-texto">{alerta}</p>
+                  {abertos.has(c.id) && (
+                    <>
+                      <p className="mt-2 text-xs text-secundario">
+                        {n.enviados}/{OBJETIVOS.enviados} enviados · {n.visitas}/{OBJETIVOS.visitas} visitas · {n.propostas}/{OBJETIVOS.propostas} propostas
+                      </p>
+                      <p className={`mt-1.5 text-xs ${ultimos[c.contacto_id] && Date.now() - new Date(ultimos[c.contacto_id]).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
+                        {ultimos[c.contacto_id] ? `Último contacto ${haQuanto(ultimos[c.contacto_id])}` : "Ainda sem chamadas registadas"}
+                      </p>
+                      {alerta && (
+                        <p className="mt-2 rounded-lg bg-ambar-fundo px-2.5 py-1.5 text-xs font-medium text-ambar-texto">{alerta}</p>
+                      )}
+                    </>
                   )}
                 </Link>
                 </SwipeLinha>
