@@ -146,7 +146,7 @@ export default function Grelha({
                       aria-label={`${a.nome}, bloco ${b}${a.feita ? ", feita" : ""}`}
                       className={`flex h-9 w-9 items-center justify-center rounded-lg ${
                         a.feita
-                          ? "bg-verde text-white"
+                          ? "bg-verde text-tinta"
                           : atrasada
                           ? "bg-ambar-fundo ring-1 ring-ambar"
                           : a.follow_up

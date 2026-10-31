@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cockpit</title>
+<style>
+  :root { --tinta: #1d1d1f; --sec: #6e6e73; --azul: #0071e3; --fundo: #f5f5f7; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+    background: var(--fundo); color: var(--tinta);
+    padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 520px; margin: 0 auto; }
+  main.so-mensagem { min-height: calc(100vh - 48px); display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  h1 { font-size: 28px; letter-spacing: -0.02em; margin: 24px 0 8px; }
+  p { font-size: 17px; line-height: 1.4; color: var(--sec); margin: 0 0 24px; }
+  button {
+    min-height: 48px; padding: 0 28px; border: 0; border-radius: 999px; width: 100%;
+    background: var(--azul); color: #fff; font: inherit; font-size: 17px; font-weight: 600;
+  }
+  button:active { opacity: 0.85; }
+  .cartao { background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 24px; padding: 16px 16px 8px; margin: 0 0 16px; }
+  .cartao h2 { font-size: 15px; margin: 0 0 4px; font-weight: 600; }
+  .cartao .nota { font-size: 13px; margin: 0 0 8px; }
+  .seguir { background: #eaf2fd; color: #0059b3; border-radius: 12px; padding: 8px 12px; font-size: 14px; margin: 0 0 8px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(0,0,0,.06); }
+  li:first-child { border-top: 0; }
+  .texto { min-width: 0; flex: 1; }
+  .titulo { font-size: 14px; color: var(--tinta); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .quando { font-size: 12px; color: var(--sec); margin: 2px 0 0; }
+  .atraso { color: #9a5b00; }
+  a.ligar { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 999px; background: #eaf2fd; color: #0059b3; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main id="principal" class="so-mensagem">
+  <h1>Sem ligação</h1>
+  <p id="msg">O Cockpit precisa de internet para abrir. Liga o wifi ou os dados móveis e tenta outra vez.</p>
+  <section id="dia" class="cartao" hidden>
+    <h2>Hoje</h2>
+    <p class="nota" id="guardado"></p>
+    <p class="seguir" id="seguir" hidden></p>
+    <ul id="lista"></ul>
+  </section>
+  <button id="de-novo" type="button">Tentar outra vez</button>
+</main>
+<script src="servidor.js"></script>
+<script>
+  // O Capacitor trouxe-nos aqui porque o endereço da app não respondeu: voltar a tentar.
+  function tentar() { window.location.href = window.COCKPIT_URL; }
+  document.getElementById("de-novo").addEventListener("click", tentar);
+  window.addEventListener("online", tentar);
+
+  // Lista do dia guardada pela app no armazenamento nativo (lib/semRede.ts + lib/nativo.ts). Só se mostra se for de hoje.
+  // Este ecrã vive noutra origem, por isso não vê o localStorage da app: lê pela ponte do Capacitor.
+  function mostrarDia(d) {
+    var agora = new Date();
+    var hoje = agora.getFullYear() + "-" + String(agora.getMonth() + 1).padStart(2, "0") + "-" + String(agora.getDate()).padStart(2, "0");
+    if (!d || d.dia !== hoje || !Array.isArray(d.tarefas)) return;
+    var hora = function (iso) { return new Date(iso).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }); };
+    var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    var diaCurto = function (iso) { var x = new Date(iso); return x.getDate() + " " + MESES[x.getMonth()]; };
+    document.getElementById("principal").className = "";
+    document.getElementById("msg").textContent = "Mostramos a tua lista de hoje tal como estava. Para marcar tarefas como feitas, volta a ligar.";
+    document.getElementById("guardado").textContent = "Atualizada às " + hora(d.guardado_em);
+    if (d.proxima) {
+      var s = document.getElementById("seguir");
+      s.textContent = "A seguir: " + d.proxima.titulo + ", " + diaCurto(d.proxima.inicio) + " " + hora(d.proxima.inicio);
+      s.hidden = false;
+    }
+    var ul = document.getElementById("lista");
+    if (!d.tarefas.length) {
+      var vazio = document.createElement("li");
+      vazio.textContent = "Nada em atraso nem para hoje.";
+      vazio.className = "quando";
+      ul.appendChild(vazio);
+    }
+    d.tarefas.forEach(function (t) {
+      var li = document.createElement("li");
+      var tx = document.createElement("div");
+      tx.className = "texto";
+      var ti = document.createElement("p");
+      ti.className = "titulo";
+      ti.textContent = t.titulo;
+      var q = document.createElement("p");
+      q.className = "quando" + (t.atrasada ? " atraso" : "");
+      q.textContent = t.atrasada ? diaCurto(t.inicio) + ", em atraso" : hora(t.inicio);
+      tx.appendChild(ti);
+      tx.appendChild(q);
+      li.appendChild(tx);
+      if (t.tel && /^[+0-9 ()-]{3,25}$/.test(t.tel)) {
+        var a = document.createElement("a");
+        a.className = "ligar";
+        a.href = "tel:" + t.tel;
+        a.setAttribute("aria-label", "Ligar");
+        a.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    document.getElementById("dia").hidden = false;
+  }
+
+  (function () {
+    try {
+      var p = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Preferences;
+      if (!p) return;
+      p.get({ key: "cockpit-dia" }).then(function (r) {
+        var d = null;
+        try { d = JSON.parse((r && r.value) || "null"); } catch (e) { d = null; }
+        mostrarDia(d);
+      }).catch(function () {});
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>

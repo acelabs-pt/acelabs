@@ -74,7 +74,7 @@ export default function Comissao({
       {dados.comissao_recebida && (
         <CampoData label="Recebida em" value={dados.comissao_recebida_em} onCommit={(v) => onChange({ comissao_recebida_em: v })} />
       )}
-      {dados.comissao_recebida && <p className="text-xs text-verde">Conta para a faturação.</p>}
+      {dados.comissao_recebida && <p className="text-xs text-tinta">Conta para a faturação.</p>}
     </div>
   );
 }

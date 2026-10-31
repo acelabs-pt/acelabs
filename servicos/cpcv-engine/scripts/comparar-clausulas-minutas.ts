@@ -10,7 +10,7 @@
 
 import type { Helpers, Hipoteca, Parte, Processo } from "../lib/cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "../lib/cpcv-types";
-import { euroPorExtenso } from "../lib/cpcv-clausulas";
+import { euroPorExtenso, semMarcas } from "../lib/cpcv-clausulas";
 import { montarContrato, type Contrato } from "../lib/cpcv-contrato";
 
 const h: Helpers = {
@@ -24,7 +24,7 @@ const h: Helpers = {
 };
 
 function normalizar(texto: string): string {
-  return texto
+  return semMarcas(texto)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -286,6 +286,13 @@ const ADAPTACOES_APROVADAS: [string, string][] = [
     "financiamento/ avaliação que os segundos outorgantes estão a recorrer junto de uma instituição bancária.",
     "financiamento/avaliação que os segundos outorgantes estão a recorrer junto de uma instituição bancária, após o que transferirá o sinal ao primeiro outorgante, podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.",
   ],
+  // Feedback da solicitadora (25/10/2026): notificações também por email convencionado
+  ["com aviso de receção com pelo menos 15", "com aviso de receção ou através dos emails convencionados, com pelo menos 15"],
+  // Feedback da solicitadora: pedir o distrate/protocolo APB, não "o cancelamento" da hipoteca
+  [
+    "e cancelamento da referida hipoteca e o custo a esta associado",
+    "e distrate/protocolo APB para o cancelamento da referida hipoteca e o custo a esta associado",
+  ],
   // Gralha do original ("compra de venda") e mês em minúscula
   ["compra de venda", "compra e venda"],
   ["15 de Outubro de 2026", "15 de outubro de 2026"],
@@ -314,8 +321,18 @@ const contratoRef = montarContrato(h, processoBase, [vendedorRef, compradoraRef,
 
 verificar("16 cláusulas, pela ordem do modelo", contratoRef.clausulas.length === 16 && contratoRef.clausulas[15].ordinal === "Décima Sexta");
 
+// Feedback da solicitadora: segundo ponto de fiel depositária ("Os segundos outorgantes nomeiam ...",
+// artigo 18.º da Lei n.º 15/2013) - não existe no PDF assinado, por isso sai da comparação e os
+// pontos seguintes voltam à numeração do original.
+function pontosSemFielDepositariaExtra(pontos: string[]): string[] {
+  return pontos
+    .filter((p) => !/^\d+ – Os segundos outorgantes nomeiam a Agência/.test(p))
+    .map((p, k) => p.replace(/^\d+ – /, `${k + 1} – `));
+}
+
 REFERENCIA.forEach((ref, i) => {
-  const gerada = contratoRef.clausulas[i];
+  const gerada0 = contratoRef.clausulas[i];
+  const gerada = gerada0 && { ...gerada0, pontos: pontosSemFielDepositariaExtra(gerada0.pontos) };
   if (!gerada) {
     verificar(`Cláusula ${i + 1} (${ref.titulo}) existe`, false);
     return;
@@ -352,10 +369,10 @@ verificar(
     contratoRef.assinaturas.linhasCompradores === 2
 );
 verificar(
-  "Identificação: nomes em maiúsculas, A)/B) nos compradores",
-  contratoRef.outorgantes.identificacoesVendedores[0].startsWith("PEDRO MANUEL GONÇALVES ROQUE, NIF 275 146 499, solteiro, maior, titular do cartão de cidadão n.º 15664140 2ZV5, válido até 28-03-2036, emitido pela República Portuguesa") &&
-    contratoRef.outorgantes.identificacoesCompradores[0].startsWith("A) ANA CATARINA PINTO MELO") &&
-    contratoRef.outorgantes.identificacoesCompradores[1].startsWith("B) RENATO COELHO DIAS"),
+  "Identificação: nomes em maiúsculas, 1)/2) nos compradores",
+  semMarcas(contratoRef.outorgantes.identificacoesVendedores[0]).startsWith("PEDRO MANUEL GONÇALVES ROQUE, NIF 275 146 499, solteiro, maior, titular do cartão de cidadão n.º 15664140 2ZV5, válido até 28-03-2036, emitido pela República Portuguesa") &&
+    semMarcas(contratoRef.outorgantes.identificacoesCompradores[0]).startsWith("1) ANA CATARINA PINTO MELO") &&
+    semMarcas(contratoRef.outorgantes.identificacoesCompradores[1]).startsWith("2) RENATO COELHO DIAS"),
   contratoRef.outorgantes.identificacoesVendedores[0]
 );
 
@@ -376,7 +393,7 @@ const partes1x1 = [vendedorRef, compradoraRef];
 // A - completo: hipoteca, financiamento, avaliação, bens móveis, condomínio
 const A = contratoRef;
 verificar("A: Objeto com 5 pontos (hipoteca incluída)", clausula(A, "Objeto")!.pontos.length === 5);
-verificar("A: Preço com 5 pontos e fiel depositária", clausula(A, "Preço e Condições de Pagamento")!.pontos.length === 5 && textoTodo(A).includes("fiel depositária"));
+verificar("A: Preço com 6 pontos (dois de fiel depositária)", clausula(A, "Preço e Condições de Pagamento")!.pontos.length === 6 && textoTodo(A).includes("fiel depositária"));
 verificar("A: Avaliação Bancária é a Quarta com 5 pontos", clausula(A, "Avaliação Bancária")!.ordinal === "Quarta" && clausula(A, "Avaliação Bancária")!.pontos.length === 5);
 verificar("A: Bens Móveis é a Quinta", clausula(A, "Bens Móveis")!.ordinal === "Quinta");
 verificar("A: Encargos menciona a hipoteca", clausula(A, "Encargos e Despesas")!.pontos[0].includes("cancelamento da referida hipoteca"));
@@ -438,7 +455,7 @@ verificar("H: euroPorExtenso 1000000", euroPorExtenso(1_000_000) === "Um Milhão
 verificar("H: euroPorExtenso 187500", euroPorExtenso(187500) === "Cento e Oitenta e Sete Mil e Quinhentos Euros", euroPorExtenso(187500));
 verificar("H: data longa 2026-10-15", formatarDataLonga("2026-10-15") === "15 de outubro de 2026");
 verificar("H: data curta 2027-02-10", formatarDataCurta("2027-02-10") === "10-02-2027");
-verificar("H: Braga fixo mesmo com concelho diferente", montarContrato(h, { ...processoBase, imovel_concelho: "Guimarães" }, partes1x1, []).localData.startsWith("Braga, "));
+verificar("H: local de assinatura é o concelho do imóvel", montarContrato(h, { ...processoBase, imovel_concelho: "GUIMARÃES" }, partes1x1, []).localData.startsWith("Guimarães, "));
 
 console.log(`\n${falhas === 0 ? "Tudo coincide com o contrato de referência e com os cenários do pedido." : `${falhas} verificação(ões) falhada(s).`}\n`);
 process.exit(falhas === 0 ? 0 : 1);

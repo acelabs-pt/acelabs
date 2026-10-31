@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
-import type { Dados } from "@/lib/painel";
-import type { Tarefa } from "@/lib/types";
+import type { Dados, TarefaSeguimento } from "@/lib/painel";
 import { formatarDia, formatarHora, inicioDaSemana, somarDias } from "@/lib/datas";
 
 const VISIVEIS = 8;
@@ -12,19 +11,19 @@ const VISIVEIS = 8;
 type Ficha = { href: string; tipo: "comprador" | "proprietario" };
 
 const ETIQUETA = {
-  comprador: { texto: "Comprador", classe: "bg-azul/10 text-azul" },
-  proprietario: { texto: "Proprietário", classe: "bg-verde/15 text-verde" },
+  comprador: { texto: "Comprador", classe: "bg-azul-suave text-azul-escuro" },
+  proprietario: { texto: "Proprietário", classe: "bg-verde-suave text-tinta" },
 } as const;
 
 // Ficha do cliente a que o seguimento diz respeito (comprador ou proprietário). Sem ficha, não é um seguimento.
-function fichaDe(t: Tarefa, d: Dados): Ficha | null {
+function fichaDe(t: TarefaSeguimento): Ficha | null {
   if (t.comprador_id) return { href: `/crm/compradores/${t.comprador_id}`, tipo: "comprador" };
   if (t.proprietario_id) return { href: `/crm/proprietarios/${t.proprietario_id}`, tipo: "proprietario" };
   if (t.angariacao_acao_id) {
-    const acao = d.acoes.find((a) => a.id === t.angariacao_acao_id);
-    if (!acao?.follow_up) return null; // só os follow ups ao proprietário, não as outras ações do plano
-    const ang = d.angariacoes.find((a) => a.id === acao.angariacao_id);
-    return ang?.proprietario_id ? { href: `/crm/proprietarios/${ang.proprietario_id}`, tipo: "proprietario" } : null;
+    // só os follow ups ao proprietário, não as outras ações do plano
+    if (!t.angariacao_acoes?.follow_up) return null;
+    const prop = t.angariacao_acoes.angariacoes?.proprietario_id;
+    return prop ? { href: `/crm/proprietarios/${prop}`, tipo: "proprietario" } : null;
   }
   return null;
 }
@@ -36,10 +35,10 @@ export default function Seguimentos({ dados }: { dados: Dados }) {
   const inicioSemana = inicioDaSemana(new Date());
   const fimSemana = somarDias(inicioSemana, 7);
 
-  const lista = dados.tarefas
+  const lista = dados.seguimentos
     .filter((t) => t.tipo === "tarefa" && !t.feita && t.inicio && new Date(t.inicio) < fimSemana)
-    .map((t) => ({ t, ficha: fichaDe(t, dados) }))
-    .filter((x): x is { t: Tarefa; ficha: Ficha } => x.ficha !== null)
+    .map((t) => ({ t, ficha: fichaDe(t) }))
+    .filter((x): x is { t: TarefaSeguimento; ficha: Ficha } => x.ficha !== null)
     .sort((a, b) => a.t.inicio!.localeCompare(b.t.inicio!));
   const mostradas = todos ? lista : lista.slice(0, VISIVEIS);
 

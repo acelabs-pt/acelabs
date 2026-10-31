@@ -1,0 +1,14 @@
+<!-- Texto do email "Reset password" do Supabase (Authentication, Emails, Templates).
+     Assunto: Recuperar a password do Cockpit
+     Colar este HTML no corpo. {{ .ConfirmationURL }} é preenchido pelo Supabase. -->
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1d1d1f;line-height:1.5">
+  <h2 style="font-size:26px;line-height:1.15;letter-spacing:-0.02em;margin:0 0 16px">Recuperar a password.</h2>
+  <p style="margin:0 0 12px">Pediste para recuperar a password do teu Cockpit.</p>
+  <p style="margin:0 0 20px">Carrega no botão para escolher uma nova:</p>
+  <p style="margin:0 0 24px">
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#1d1d1f;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 28px;border-radius:999px">Escolher uma nova password</a>
+  </p>
+  <p style="margin:0 0 8px;color:#6e6e73;font-size:14px">Abre o link no mesmo telemóvel ou computador em que fizeste o pedido. Só funciona uma vez e dura pouco tempo.</p>
+  <p style="margin:0 0 24px;color:#6e6e73;font-size:14px">Se não foste tu, ignora este email: a tua password não muda.</p>
+  <p style="margin:0;color:#6e6e73;font-size:14px">Ace Labs</p>
+</div>

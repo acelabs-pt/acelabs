@@ -1,9 +1,14 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { atualizarPorProprietario, carregarDoProprietario, responder, type Correspondencia } from "@/lib/oportunidades";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import BotaoExportar from "@/components/crm/BotaoExportar";
+import ContactosRegistados from "@/components/crm/ContactosRegistados";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import {
   FUNIL_PROP,
@@ -13,36 +18,32 @@ import {
   indiceFunilProp,
   labelEstadoProp,
   tipoDaTarefa,
-  type Chamada,
   type EstadoProprietario,
   type Proprietario,
 } from "@/lib/proprietario";
 import { formatarDia, formatarHora, hojeISO, isoParaLocal, localParaISO } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
-import { useMatches } from "@/lib/match";
-import ListaMatches from "@/components/crm/ListaMatches";
+import { linkWhatsapp } from "@/lib/whatsapp";
+import { eur } from "@/lib/graficos";
 
 export default function FichaProprietario() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [p, setP] = useState<Proprietario | null>(null);
-  const [chamadas, setChamadas] = useState<Chamada[]>([]);
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [temAngariacao, setTemAngariacao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
 
   const [reuniao, setReuniao] = useState("");
-  const [chamadaQuando, setChamadaQuando] = useState(() => isoParaLocal(new Date().toISOString()));
-  const [chamadaObs, setChamadaObs] = useState("");
   const [fechar, setFechar] = useState(false);
   const [angTitulo, setAngTitulo] = useState("");
   const [angDuracao, setAngDuracao] = useState<120 | 180>(180);
   const [angInicio, setAngInicio] = useState(hojeISO());
   const [angRegime, setAngRegime] = useState<"" | "exclusivo" | "nao_exclusivo">("");
   const [regimeGuardado, setRegimeGuardado] = useState<string | null>(null);
-  const { matches, recarregar: recarregarMatches } = useMatches();
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -52,13 +53,13 @@ export default function FichaProprietario() {
       return;
     }
     const prop = r1.data as unknown as Proprietario;
-    const [r2, r3, r4] = await Promise.all([
-      sb.from("chamadas").select("id, ocorreu_em, observacoes").eq("contacto_id", prop.contacto_id).order("ocorreu_em", { ascending: false }),
+    const [r3, r4, cs] = await Promise.all([
       sb.from("tarefas").select("*").eq("proprietario_id", id).order("inicio", { ascending: true }),
       sb.from("angariacoes").select("id, regime").eq("proprietario_id", id),
+      carregarDoProprietario(id),
     ]);
+    setCorresp(cs);
     setP(prop);
-    setChamadas((r2.data ?? []) as Chamada[]);
     setTarefas((r3.data ?? []) as Tarefa[]);
     setTemAngariacao((r4.data ?? []).length > 0);
     setRegimeGuardado(r4.data?.[0]?.regime ?? null);
@@ -91,6 +92,8 @@ export default function FichaProprietario() {
     }
   }
 
+  const tReuniao = p ? tarefas.find((t) => t.chave_automacao === `proprietario:${p.id}:reuniao` && !t.feita) : undefined;
+
   async function marcarReuniao(e: React.FormEvent) {
     e.preventDefault();
     if (!p || !reuniao) return;
@@ -102,20 +105,6 @@ export default function FichaProprietario() {
     }
     await atualizar(campos);
     await agendarFollowUps({ id: p.id, contacto_id: p.contacto_id, nome: p.contactos.nome }, quando);
-    await carregar();
-  }
-
-  async function registarChamada(e: React.FormEvent) {
-    e.preventDefault();
-    if (!p || !chamadaQuando) return;
-    const { error } = await sbBrowser().from("chamadas").insert({
-      contacto_id: p.contacto_id,
-      ocorreu_em: localParaISO(chamadaQuando),
-      observacoes: chamadaObs.trim() || null,
-    });
-    if (error) return setErro("Não foi possível registar a chamada.");
-    setChamadaObs("");
-    setChamadaQuando(isoParaLocal(new Date().toISOString()));
     await carregar();
   }
 
@@ -185,16 +174,16 @@ export default function FichaProprietario() {
   }
 
   if (erro && !p) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!p) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!p) return <EsqueletoLista n={3} />;
 
   const tel = p.contactos.telemovel;
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
   const campo = "w-full rounded-xl border border-black/10 px-3 py-2.5 text-base";
 
   if (editar) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditar(false)} className="text-sm text-azul">&larr; Cancelar</button>
+        <button onClick={() => setEditar(false)} className="text-sm font-medium text-azul-escuro">&larr; Cancelar</button>
         <FormProprietario
           inicial={valoresIniciaisProp(p)}
           textoBotao="Guardar alterações"
@@ -204,6 +193,7 @@ export default function FichaProprietario() {
             const sb = sbBrowser();
             const r1 = await sb.from("contactos").update(paraContactoProp(v)).eq("id", p.contacto_id);
             const r2 = await sb.from("proprietarios").update(paraProprietario(v)).eq("id", p.id);
+            if (!r1.error && !r2.error) await atualizarPorProprietario(p.id);
             setAGuardar(false);
             if (r1.error || r2.error) return setErro("Não foi possível guardar.");
             setEditar(false);
@@ -216,41 +206,84 @@ export default function FichaProprietario() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/proprietarios" className="text-sm text-azul">&larr; Proprietários</Link>
+      <Link href="/crm/proprietarios" className="text-sm font-medium text-azul-escuro">&larr; Proprietários</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
+      <section className="space-y-4 rounded-3xl border border-linha bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold text-tinta">{p.contactos.nome}</h2>
-            <p className="text-sm text-secundario">
-              {[p.tipo_imovel, p.tipologia, p.freguesia || p.concelho || p.distrito].filter(Boolean).join(" · ")}
-            </p>
-            {p.valor != null && <p className="text-sm text-secundario">{p.valor.toLocaleString("pt-PT")} EUR</p>}
-            {p.estado === "angariado" && regimeGuardado && (
-              <span className="mt-1 inline-block rounded-full bg-verde/15 px-2.5 py-0.5 text-xs font-medium text-verde">
-                {regimeGuardado === "exclusivo" ? "Em exclusivo" : "Não exclusivo"}
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-tinta">{p.contactos.nome}</h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.estado === "perdido" ? "bg-black/5 text-secundario" : "bg-azul-suave text-azul-escuro"}`}>
+                {labelEstadoProp(p.estado)}
               </span>
-            )}
-            {p.link_imovel && /^https?:\/\//i.test(p.link_imovel) && (
-              <a href={p.link_imovel} target="_blank" rel="noreferrer" className="block truncate text-sm text-azul">{p.link_imovel}</a>
-            )}
+              {p.estado === "angariado" && regimeGuardado && (
+                <span className="rounded-full bg-verde-suave px-2.5 py-1 text-xs font-semibold text-tinta">
+                  {regimeGuardado === "exclusivo" ? "Em exclusivo" : "Não exclusivo"}
+                </span>
+              )}
+            </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">Editar</button>
+          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+            Editar
+          </button>
         </div>
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          {(
+            [
+              ["Imóvel", [p.tipo_imovel, p.tipologia].filter(Boolean).join(", ")],
+              ["Preço pedido", p.valor != null ? eur(Number(p.valor)) : ""],
+              ["Zona", [p.freguesia, p.concelho, p.distrito].filter(Boolean).join(", ")],
+              ["Origem", p.contactos.canal_origem ?? ""],
+              ["Telemóvel", p.contactos.telemovel ?? ""],
+              ["Email", p.contactos.email ?? ""],
+              ["Notas", p.contactos.observacoes ?? ""],
+            ] as [string, string][]
+          )
+            .filter(([, v]) => v)
+            .map(([k, v]) => (
+              <div key={k} className={k === "Zona" || k === "Email" || k === "Notas" ? "col-span-2" : ""}>
+                <dt className="text-xs text-secundario">{k}</dt>
+                <dd className="break-words font-medium text-tinta">{v}</dd>
+              </div>
+            ))}
+        </dl>
+        {p.link_imovel && /^https?:\/\//i.test(p.link_imovel) && (
+          <a href={p.link_imovel} target="_blank" rel="noreferrer" className="inline-block text-sm font-medium text-azul-escuro">
+            Ver o anúncio
+          </a>
+        )}
+
         {tel && (
           <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
-            <a href={`https://wa.me/${tel.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-white">WhatsApp</a>
+            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
+              Ligar
+            </a>
+            <a href={linkWhatsapp(tel)} target="_blank" rel="noreferrer" className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta">
+              WhatsApp
+            </a>
           </div>
         )}
       </section>
 
-      <ListaMatches
-        matches={matches.filter((m) => m.proprietario.id === p.id)}
-        vista="imovel"
-        onAlterado={recarregarMatches}
-      />
+      {/* compradores cujo perfil serve este imóvel (ideia do Miguel, sobre os alertas de correspondência) */}
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
+
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -263,7 +296,7 @@ export default function FichaProprietario() {
                 key={f.id}
                 onClick={() => mudarEstado(f.id)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${
-                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul" : "bg-black/5 text-secundario"
+                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul-escuro" : "bg-black/5 text-secundario"
                 }`}
               >
                 {f.label}
@@ -310,7 +343,7 @@ export default function FichaProprietario() {
                   key={v}
                   type="button"
                   onClick={() => setAngRegime(v)}
-                  className={`flex-1 rounded-lg py-2 ${angRegime === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                  className={`flex-1 rounded-lg py-2 ${angRegime === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
                 >
                   {rotulo}
                 </button>
@@ -325,7 +358,7 @@ export default function FichaProprietario() {
             >
               Não angariado
             </button>
-            <button type="submit" disabled={!angRegime} className="flex-1 rounded-xl bg-verde py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+            <button type="submit" disabled={!angRegime} className="flex-1 rounded-xl bg-verde py-2.5 text-sm font-semibold text-tinta disabled:opacity-50">
               Angariado
             </button>
           </div>
@@ -339,12 +372,20 @@ export default function FichaProprietario() {
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Reunião de angariação</h3>
         {p.reuniao_em && (
-          <p className="text-sm text-tinta">
-            {formatarDia(new Date(p.reuniao_em))} às {formatarHora(p.reuniao_em) || "00:00"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-tinta">
+              {formatarDia(new Date(p.reuniao_em))} às {formatarHora(p.reuniao_em) || "00:00"}
+            </p>
+            {tReuniao && (
+              // o telemóvel avisa 30 minutos antes, com notificação própria
+              <a href={`/api/tarefas/${tReuniao.id}/calendario`} className="rounded-full bg-azul-suave px-3 py-1.5 text-xs font-semibold text-azul-escuro">
+                Pôr no calendário do telemóvel
+              </a>
+            )}
+          </div>
         )}
         <form onSubmit={marcarReuniao} className="flex flex-wrap gap-2">
-          <input type="datetime-local" value={reuniao} onChange={(e) => setReuniao(e.target.value)} className={`${campo} min-w-0 flex-1`} />
+          <input type="datetime-local" aria-label="Data e hora da reunião" value={reuniao} onChange={(e) => setReuniao(e.target.value)} className={`${campo} min-w-0 flex-1`} />
           <button type="submit" disabled={!reuniao} className="rounded-xl bg-azul px-4 text-sm font-semibold text-white disabled:opacity-50">
             {p.reuniao_em ? "Reagendar" : "Marcar reunião"}
           </button>
@@ -379,26 +420,11 @@ export default function FichaProprietario() {
         )}
       </section>
 
-      <section className={cartao}>
-        <h3 className="text-sm font-semibold text-tinta">Chamadas</h3>
-        <form onSubmit={registarChamada} className="space-y-2">
-          <input type="datetime-local" value={chamadaQuando} onChange={(e) => setChamadaQuando(e.target.value)} className={campo} />
-          <textarea value={chamadaObs} onChange={(e) => setChamadaObs(e.target.value)} rows={2} placeholder="Observações da chamada" className={campo} />
-          <button type="submit" disabled={!chamadaQuando} className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-            Registar chamada realizada
-          </button>
-        </form>
-        <ul className="space-y-2">
-          {chamadas.map((c) => (
-            <li key={c.id} className="rounded-xl border border-black/10 p-3 text-sm">
-              <p className="text-xs text-secundario">{formatarDia(new Date(c.ocorreu_em))} {formatarHora(c.ocorreu_em)}</p>
-              {c.observacoes && <p className="text-tinta">{c.observacoes}</p>}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ContactosRegistados contactoId={p.contacto_id} />
 
-      <button onClick={apagar} className="w-full py-2 text-sm text-red-600">Apagar proprietário</button>
+      <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
+
+      <button onClick={apagar} className="w-full py-2 text-sm font-medium text-red-700">Apagar proprietário</button>
     </div>
   );
 }

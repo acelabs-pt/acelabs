@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Cockpit no iPhone: opções, oportunidades e riscos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --fundo: #ffffff;
+    --cinza: #f5f5f7;
+    --bege: #edebe5;
+    --tinta: #1d1d1f;
+    --sec: #6e6e73;
+    --azul: #0071e3;
+    --azul-escuro: #0059b3;
+    --azul-suave: #eaf2fd;
+    --verde-suave: #e6f6ec;
+    --verde-texto: #126b37;
+    --ambar-suave: #fff4e5;
+    --ambar-texto: #9a5b00;
+    --vermelho-suave: #fdecea;
+    --vermelho-texto: #a1261b;
+    --linha: rgba(0, 0, 0, 0.1);
+    --letra: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  }
+  @page { size: A4; margin: 15mm 15mm 17mm 15mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: var(--letra); font-size: 10.5pt; line-height: 1.45; color: var(--tinta); background: var(--fundo); }
+  h1, h2, h3 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+  h1 { font-size: 25pt; line-height: 1.05; font-weight: 800; letter-spacing: -0.035em; }
+  h2 { font-size: 15.5pt; font-weight: 700; margin-top: 6mm; margin-bottom: 2.5mm; break-after: avoid; }
+  h3 { font-size: 12.5pt; font-weight: 700; break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul { margin: 0 0 2.5mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  .sec { color: var(--sec); }
+  .capa { background: var(--azul-suave); border-radius: 5mm; padding: 6.5mm 8mm 6mm; margin-bottom: 4mm; }
+  .capa .marca { font-size: 10pt; font-weight: 600; color: var(--azul-escuro); margin-bottom: 2.5mm; }
+  .capa .sub { font-size: 11pt; color: var(--sec); margin-top: 2.5mm; max-width: 150mm; }
+  .capa .meta { font-size: 9pt; color: var(--sec); margin-top: 3mm; margin-bottom: 0; }
+  .caixa { border-radius: 4mm; padding: 3.8mm 4.6mm; margin: 0 0 3mm; break-inside: avoid; }
+  .caixa.azul { background: var(--azul-suave); }
+  .caixa.verde { background: var(--verde-suave); }
+  .caixa.ambar { background: var(--ambar-suave); }
+  .caixa.cinza { background: var(--cinza); }
+  .caixa h3 { margin-bottom: 1.5mm; }
+  .caixa p:last-child, .caixa ul:last-child { margin-bottom: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin-bottom: 3mm; }
+  th, td { text-align: left; vertical-align: top; padding: 1.7mm 2.2mm; border-bottom: 1px solid var(--linha); }
+  th { background: var(--cinza); font-weight: 600; font-size: 8.8pt; }
+  td.rotulo { font-weight: 600; width: 29%; }
+  tr { break-inside: avoid; }
+  .pilula { display: inline-block; border-radius: 99px; padding: 0.4mm 2.4mm; font-size: 8.4pt; font-weight: 600; white-space: nowrap; }
+  .p-ok { background: var(--verde-suave); color: var(--verde-texto); }
+  .p-med { background: var(--ambar-suave); color: var(--ambar-texto); }
+  .p-alto { background: var(--vermelho-suave); color: var(--vermelho-texto); }
+  .p-neutro { background: var(--cinza); color: var(--sec); }
+  .opcao { border: 1px solid var(--linha); border-radius: 4.5mm; padding: 4.2mm 5mm 3mm; margin-bottom: 4mm; }
+  .opcao header { break-after: avoid; display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 2mm; }
+  .opcao .num { font-size: 9pt; color: var(--sec); font-weight: 600; white-space: nowrap; }
+  .opcao .o-que { color: var(--sec); margin-bottom: 3mm; }
+  .colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-bottom: 2mm; break-inside: avoid; }
+  .col { border-radius: 3mm; padding: 3mm 3.5mm 1.5mm; }
+  .col h4, .col h3 { margin: 0 0 1.5mm; font-size: 9.5pt; font-weight: 700; letter-spacing: normal; }
+  .col.op { background: var(--verde-suave); }
+  .col.ri { background: var(--ambar-suave); }
+  .col ul { padding-left: 4mm; font-size: 9.6pt; }
+  .factos { display: flex; flex-wrap: wrap; gap: 1.5mm 6mm; font-size: 9.4pt; margin-bottom: 3mm; }
+  .factos b { font-weight: 600; }
+  .quando { font-size: 9.6pt; margin: 1mm 0 2mm; }
+  .opcao .o-que, .opcao > ul { break-after: avoid; }
+  .opcao > ul li { break-inside: avoid; }
+  .quebra { break-before: page; }
+  .fase { display: grid; grid-template-columns: 24mm 1fr; gap: 4mm; padding: 3mm 0; border-bottom: 1px solid var(--linha); break-inside: avoid; }
+  .fase .quando-f { font-weight: 700; color: var(--azul-escuro); font-size: 10pt; }
+  .rodape { margin-top: 8mm; font-size: 8.8pt; color: var(--sec); border-top: 1px solid var(--linha); padding-top: 3mm; }
+</style>
+</head>
+<body>
+
+<div class="capa">
+  <p class="marca">Ace Labs, Cockpit</p>
+  <h1>Cockpit no iPhone: opções, oportunidades e riscos</h1>
+  <p class="sub">Como pôr a app instalável e a funcionar nos iPhones dos clientes, e o que cada caminho nos custa, nos dá e nos arrisca.</p>
+  <p class="meta">Documento de decisão para o Pedro e o Miguel. 25 de outubro de 2026.</p>
+</div>
+
+<h2 style="margin-top:0">Em resumo</h2>
+
+<div class="caixa verde">
+  <h3>O que recomendamos</h3>
+  <p><b>Ficar na PWA agora</b> (a app instalada pelo próprio utilizador, a partir do Safari, sem App Store), fazer uns acertos de 1 a 2 dias, e correr um <b>piloto de 2 semanas com iPhones reais</b>. Só avançar para a App Store se acontecer um de três gatilhos: um cliente exigir estar na loja, precisarmos de notificações da própria app, ou o piloto mostrar problemas repetidos.</p>
+</div>
+
+<div class="caixa cinza">
+  <h3>Onde estamos hoje</h3>
+  <p>A app já corre no iPhone. Testámos as 11 páginas num iPhone 14 simulado com o motor do Safari: abrem, sem erros, sem deslizar de lado, login a funcionar. Corrigimos o zoom que o iPhone fazia ao tocar em alguns campos. <b>Ainda não foi testada num iPhone real</b>, e há 4 coisas que só um telemóvel a sério confirma (ver secção 2).</p>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Opção</th><th>Custo inicial</th><th>Tempo até ao 1.º cliente</th><th>Risco</th><th>Notificações da app</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="rotulo">1. PWA como está</td><td>0 EUR</td><td>Hoje</td><td><span class="pilula p-med">Médio</span></td><td>Não</td></tr>
+    <tr><td class="rotulo">2. PWA reforçada <b>(recomendada)</b></td><td>0 EUR</td><td>1 a 2 dias</td><td><span class="pilula p-ok">Baixo</span></td><td>Opcional</td></tr>
+    <tr><td class="rotulo">3. TestFlight (piloto nativo)</td><td>Cerca de 99 USD por ano</td><td>2 a 4 semanas</td><td><span class="pilula p-med">Médio</span></td><td>Sim</td></tr>
+    <tr><td class="rotulo">4. App Store "não listada"</td><td>Cerca de 99 USD por ano</td><td>3 a 6 semanas</td><td><span class="pilula p-med">Médio</span></td><td>Sim</td></tr>
+    <tr><td class="rotulo">5. App Store pública</td><td>Cerca de 99 USD por ano</td><td>4 a 8 semanas</td><td><span class="pilula p-alto">Alto</span></td><td>Sim</td></tr>
+    <tr><td class="rotulo">6. Reescrever em nativo</td><td>Meses de trabalho</td><td>3 meses ou mais</td><td><span class="pilula p-alto">Alto</span></td><td>Sim</td></tr>
+  </tbody>
+</table>
+<p class="sec" style="font-size:9pt">Prazos e valores são estimativas e variam com o volume de trabalho e a rapidez da Apple. Os valores da Apple estão de memória e têm de ser confirmados em developer.apple.com antes de decidir.</p>
+
+<h2>1. O que "correr no iPhone" quer dizer</h2>
+<p>Há duas maneiras de uma app estar num iPhone, e a escolha muda tudo o que vem a seguir.</p>
+<table>
+  <thead><tr><th></th><th>PWA (o que temos)</th><th>App da App Store</th></tr></thead>
+  <tbody>
+    <tr><td class="rotulo">Como se instala</td><td>A pessoa abre o endereço no Safari e toca em Partilhar, Adicionar ao ecrã principal</td><td>Descarrega da App Store, ou por um link</td></tr>
+    <tr><td class="rotulo">Quem a publica</td><td>Nós, a qualquer momento</td><td>Passa pela revisão da Apple</td></tr>
+    <tr><td class="rotulo">Atualizações</td><td>Imediatas, para todos</td><td>Páginas web imediatas; partes nativas só com nova versão aprovada</td></tr>
+    <tr><td class="rotulo">Custo</td><td>0 EUR</td><td>Conta de programador Apple, cerca de 99 USD por ano</td></tr>
+    <tr><td class="rotulo">O que a Apple controla</td><td>As regras do Safari, que mudam sem aviso</td><td>A aprovação de cada versão</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Onde estamos e o que falta confirmar</h2>
+<div class="colunas">
+  <div class="col op">
+    <h3>Já confirmado (motor do Safari simulado)</h3>
+    <ul>
+      <li>11 páginas abrem e o login funciona</li>
+      <li>Sem erros de página nem na consola</li>
+      <li>Nenhuma página desliza de lado</li>
+      <li>Campos com 16px ou mais, o iPhone já não faz zoom</li>
+      <li>Ícone, manifesto e ecrã "Sem ligação" a funcionar</li>
+      <li>Margens do ecrã do iPhone (notch e barra de baixo) tratadas</li>
+    </ul>
+  </div>
+  <div class="col ri">
+    <h3>Só um iPhone real confirma</h3>
+    <ul>
+      <li>Instalar pelo Partilhar e abrir em ecrã inteiro, sem a barra do Safari</li>
+      <li>"Pôr no calendário do telemóvel" dentro da app instalada</li>
+      <li>Ligar e WhatsApp a partir de uma ficha, na app instalada</li>
+      <li>Ecrã sem rede com a lista de hoje, em modo de avião</li>
+    </ul>
+  </div>
+</div>
+<div class="caixa ambar">
+  <h3>Três limites do iPhone que convém conhecer</h3>
+  <ul>
+    <li><b>O convite por email abre no Safari, não na app instalada.</b> A pessoa define a password no Safari, instala a app e entra uma vez lá dentro. Fica a sessão, mas o passo tem de estar explicado no email e na página "Instalar".</li>
+    <li><b>Não há botão "Instalar".</b> No Android o Chrome oferece; no iPhone é sempre manual. Sem guia, alguns clientes não vão conseguir.</li>
+    <li><b>Notificações push</b> só funcionam com a app instalada e com o sistema atualizado (iOS 16.4 ou mais). Hoje o calendário do telemóvel já dá lembretes, sem depender disto.</li>
+  </ul>
+</div>
+
+<h2>3. As opções, uma a uma</h2>
+
+<div class="opcao">
+  <header><h3>1. PWA como está</h3><span class="num">Hoje, 0 EUR</span></header>
+  <p class="o-que">O cliente instala a partir do Safari. É o que existe hoje, já publicado.</p>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>Custo zero e sem esperas</li>
+      <li>Corrigimos e publicamos no mesmo dia</li>
+      <li>Um só código para iPhone e Android</li>
+      <li>Combina com o nosso modelo: um projeto Vercel e um Supabase por cliente</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>Sem guia, a instalação no iPhone confunde</li>
+      <li>Sessão separada do Safari (o convite abre noutro sítio)</li>
+      <li>Sem notificações da app</li>
+      <li>Dependemos de regras do Safari que a Apple pode mudar</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> só para demonstrações. Para clientes pagantes, a opção 2.</p>
+</div>
+
+<div class="opcao">
+  <header><h3>2. PWA reforçada (recomendada)</h3><span class="num">1 a 2 dias, 0 EUR</span></header>
+  <p class="o-que">A mesma PWA, com o que falta para ser fácil a um agente que nunca a instalou.</p>
+  <ul>
+    <li>Guia de instalação para iPhone, com imagens, na página "Instalar" e no email de convite.</li>
+    <li>Fluxo do convite explicado: definir a password no Safari, instalar, entrar uma vez na app.</li>
+    <li>Teste num iPhone real e correção do que aparecer.</li>
+    <li>Opcional: notificações push da web, se um cliente as pedir (exige decisão, ver secção 6).</li>
+  </ul>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>Resolve quase tudo o que um cliente sente, sem a Apple no meio</li>
+      <li>Fica pronta para evoluir para a opção 4 sem deitar nada fora</li>
+      <li>Piloto rápido com 1 a 2 agentes</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>Continua sem a loja: quem pergunta "onde está na App Store?" vai ouvir "não está"</li>
+      <li>A Apple já tentou retirar as PWA na UE em 2024 e recuou; pode voltar a mexer</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> agora. É o caminho de menor custo e menor risco.</p>
+</div>
+
+<div class="opcao" style="break-inside:avoid">
+  <header><h3>3. TestFlight (piloto nativo privado)</h3><span class="num">2 a 4 semanas, cerca de 99 USD por ano</span></header>
+  <p class="o-que">Uma app nativa (a PWA embrulhada num contentor, com Capacitor) distribuída por convite, sem a App Store pública. Até 100 pessoas da nossa equipa sem revisão, e até 10 000 testadores externos com uma revisão leve da Apple. Cada versão deixa de funcionar ao fim de 90 dias.</p>
+  <ul>
+    <li>Precisa de conta de programador Apple e de um Mac, ou de um serviço de compilação na nuvem (por exemplo Codemagic ou GitHub Actions com macOS).</li>
+    <li>Já temos uma base de Capacitor no <code>servicos/cockpit</code> antigo.</li>
+  </ul>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>Testar notificações push a sério</li>
+      <li>Aprender o processo da Apple sem pressão comercial</li>
+      <li>Ícone na loja de testes com o nome do cliente</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>Versões que expiram: alguém tem de as renovar</li>
+      <li>O cliente tem de instalar o TestFlight primeiro, o que é mais confuso do que a PWA</li>
+      <li>Não é um produto final, é um passo de aprendizagem</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> se quisermos testar push ou a conta Apple antes de comprometer um cliente.</p>
+</div>
+
+<div class="opcao">
+  <header><h3>4. App Store "não listada"</h3><span class="num">3 a 6 semanas, cerca de 99 USD por ano</span></header>
+  <p class="o-que">A app nativa (Capacitor) publicada na App Store mas <b>sem aparecer nas pesquisas</b>: só quem tem o link a descarrega. A Apple chama-lhe distribuição não listada e pede-a por formulário. Serve apps para um público limitado, como a equipa de uma agência.</p>
+  <ul>
+    <li><b>Uma app por cliente</b>: nome, ícone e dados da agência, ligada ao Supabase dele. Mais bonito, mais trabalho.</li>
+    <li><b>Uma app única "Cockpit"</b>: o cliente escreve um código de agência e a app liga-se ao sítio certo. Menos trabalho, menos personalização.</li>
+    <li>Precisa de valor nativo para passar a revisão (por exemplo notificações push, partilhar para a app, abrir contactos). Um site simplesmente embrulhado pode ser recusado.</li>
+  </ul>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>"A app da vossa agência, na App Store": argumento comercial forte</li>
+      <li>Notificações push e instalação por link, como qualquer app</li>
+      <li>As páginas continuam a atualizar sem nova revisão</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>A Apple pode recusar a app por ser só um site embrulhado</li>
+      <li>Conta de empresa exige entidade legal e número D-U-N-S, o que pode demorar semanas</li>
+      <li>Uma app por cliente multiplica revisões, certificados e renovações</li>
+      <li>Passamos a depender da Apple para cada atualização nativa</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> quando um cliente pagar por isso, ou quando as notificações da app forem indispensáveis.</p>
+</div>
+
+<div class="opcao" style="break-inside:avoid">
+  <header><h3>5. App Store pública</h3><span class="num">4 a 8 semanas, cerca de 99 USD por ano</span></header>
+  <p class="o-que">Igual à 4, mas aparece nas pesquisas da loja, para qualquer pessoa.</p>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>Visibilidade e credibilidade da marca Ace Labs</li>
+      <li>Um canal de aquisição a mais, a prazo</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>Qualquer pessoa descarrega uma app que só funciona com um cliente: reviews negativas, suporte</li>
+      <li>Revisão mais exigente do que a não listada</li>
+      <li>Não faz sentido com o nosso modelo de um projeto por cliente</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> só se o Cockpit mudar para um produto aberto, com registo próprio.</p>
+</div>
+
+<div class="opcao" style="break-inside:avoid">
+  <header><h3>6. Reescrever em nativo (Swift ou React Native)</h3><span class="num">3 meses ou mais</span></header>
+  <p class="o-que">Refazer a app de raiz para iPhone.</p>
+  <div class="colunas">
+    <div class="col op"><h4>Oportunidades</h4><ul>
+      <li>Máximo de integração com o telemóvel</li>
+    </ul></div>
+    <div class="col ri"><h4>Riscos</h4><ul>
+      <li>Semanas de trabalho para refazer o que já funciona</li>
+      <li>Duas bases de código a manter, uma para iPhone e outra para o resto</li>
+      <li>Nenhum ganho que os clientes de hoje peçam</li>
+    </ul></div>
+  </div>
+  <p class="quando"><b>Quando escolher:</b> não recomendamos.</p>
+</div>
+
+<div class="caixa cinza">
+  <h3>Caminhos que não servem para clientes</h3>
+  <ul>
+    <li><b>Programa Enterprise da Apple:</b> só permite distribuir a funcionários da própria empresa, nunca a clientes.</li>
+    <li><b>Distribuição Ad Hoc:</b> limitada a 100 aparelhos por ano e exige registar o identificador de cada telemóvel.</li>
+    <li><b>Lojas alternativas na UE:</b> existem desde 2024, mas as condições e custos da Apple mudam e a complexidade é grande. Não vale a pena para a nossa dimensão.</li>
+  </ul>
+</div>
+
+<h2>4. Lado a lado</h2>
+<table>
+  <thead><tr><th></th><th>1. PWA</th><th>2. PWA reforçada</th><th>3. TestFlight</th><th>4. Não listada</th><th>5. Pública</th></tr></thead>
+  <tbody>
+    <tr><td class="rotulo">Custo anual</td><td>0</td><td>0</td><td>~99 USD</td><td>~99 USD</td><td>~99 USD</td></tr>
+    <tr><td class="rotulo">Instalação pelo cliente</td><td>Manual, 4 toques</td><td>Manual, com guia</td><td>2 passos (TestFlight)</td><td>Link da loja</td><td>Pesquisa na loja</td></tr>
+    <tr><td class="rotulo">Atualizar a app</td><td>Imediato</td><td>Imediato</td><td>Nova versão a cada 90 dias</td><td>Páginas imediatas; nativo com revisão</td><td>Igual à 4</td></tr>
+    <tr><td class="rotulo">Notificações push</td><td>Não</td><td>Opcional (iOS 16.4+)</td><td>Sim</td><td>Sim</td><td>Sim</td></tr>
+    <tr><td class="rotulo">Nome da agência no ícone e na loja</td><td>Só o ícone</td><td>Só o ícone</td><td>Sim</td><td>Sim (uma app por cliente)</td><td>Não</td></tr>
+    <tr><td class="rotulo">Risco de recusa da Apple</td><td>Nenhum</td><td>Nenhum</td><td>Baixo</td><td>Médio</td><td>Alto</td></tr>
+    <tr><td class="rotulo">Encaixa em "um Supabase por cliente"</td><td>Sim</td><td>Sim</td><td>Sim</td><td>Sim, com trabalho</td><td>Mal</td></tr>
+    <tr><td class="rotulo">Esforço de manutenção</td><td>Baixo</td><td>Baixo</td><td>Médio</td><td>Médio a alto</td><td>Alto</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Plano proposto, por fases e com gatilhos</h2>
+<div class="fase"><div class="quando-f">Esta semana</div><div>
+  <b>Pôr o que temos em condições.</b> Publicar os acertos de iPhone, testar no iPhone real do Pedro (6 pontos da lista), desligar o registo público no Supabase e correr a migração de segurança.
+</div></div>
+<div class="fase"><div class="quando-f">Semanas 1 e 2</div><div>
+  <b>Opção 2 e piloto.</b> Guia de instalação e do convite, e 1 a 2 agentes reais a usar a app em iPhones durante 2 semanas. Medimos três coisas: conseguiram instalar sozinhos, entram sem perder a sessão, voltam a abrir no dia seguinte.
+</div></div>
+<div class="fase"><div class="quando-f">Depois do piloto</div><div>
+  <b>Decidir com dados.</b> Se o piloto correu bem e nenhum gatilho se verificou, ficamos na PWA e vendemos assim. Se um gatilho se verificou, abrimos a opção 3 e depois a 4.
+</div></div>
+
+<div class="caixa azul" style="margin-top:4mm">
+  <h3>Gatilhos para avançar para a loja</h3>
+  <ul>
+    <li>Um cliente <b>exige</b> a app na App Store, ou está disposto a pagar por isso.</li>
+    <li>Precisamos de <b>notificações da própria app</b> que o calendário do telemóvel não cobre.</li>
+    <li>O piloto mostra <b>problemas repetidos</b> em iPhones reais: instalação falhada, sessão perdida, comportamentos esquisitos.</li>
+  </ul>
+</div>
+
+<h2>6. Decisões que precisamos de tomar</h2>
+<table>
+  <thead><tr><th>Decisão</th><th>Porque importa</th><th>Quem decide</th></tr></thead>
+  <tbody>
+    <tr><td class="rotulo">Conta de programador Apple: como pessoa ou como empresa?</td><td>Como pessoa, o nome do vendedor na loja é o pessoal. Como empresa é preciso entidade legal e número D-U-N-S, que pode levar semanas.</td><td>Pedro e Miguel</td></tr>
+    <tr><td class="rotulo">Quem paga a conta Apple: a Ace Labs ou cada cliente?</td><td>Na nossa conta, controlamos tudo mas todos os clientes ficam presos a nós. Na do cliente, ele é dono da app.</td><td>Pedro e Miguel</td></tr>
+    <tr><td class="rotulo">Uma app por cliente ou uma app única?</td><td>Personalização e argumento comercial contra esforço e número de revisões.</td><td>Pedro e Miguel</td></tr>
+    <tr><td class="rotulo">Queremos notificações da própria app?</td><td>O Pedro tem dito que as notificações push o preocupam. O calendário do telemóvel já dá lembretes, por isso só vale a pena se um cliente o pedir.</td><td>Pedro</td></tr>
+    <tr><td class="rotulo">Quem testa nos iPhones?</td><td>Sem um iPhone real, o piloto não começa.</td><td>Pedro e Miguel</td></tr>
+  </tbody>
+</table>
+
+<div class="rodape">
+  <p><b>Notas.</b> As regras e os valores da Apple (programa de programadores, revisão, distribuição não listada, TestFlight, Enterprise, Ad Hoc, lojas alternativas na UE) estão de memória em outubro de 2026 e mudam com frequência: confirmar em developer.apple.com antes de decidir. Os prazos são estimativas.</p>
+  <p>O que já foi testado no iPhone usou o motor do Safari (WebKit) simulado, o que apanha a maior parte dos problemas mas não substitui um iPhone real.</p>
+</div>
+
+</body>
+</html>

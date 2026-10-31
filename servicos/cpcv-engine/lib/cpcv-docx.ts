@@ -1,7 +1,7 @@
-import { AlignmentType, Document, Footer, Packer, PageNumber, Paragraph, SimpleField, TextRun } from "docx";
+import { AlignmentType, Document, Footer, LeaderType, Packer, PageNumber, Paragraph, SimpleField, Tab, TabStopType, TextRun } from "docx";
 import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "./cpcv-types";
-import { euroPorExtenso, paginasPorExtenso } from "./cpcv-clausulas";
+import { euroPorExtenso, paginasPorExtenso, neg, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
 import { montarContrato, TITULO_CONTRATO } from "./cpcv-contrato";
 
 function v(value: unknown, fallback = "____________"): string {
@@ -11,7 +11,7 @@ function v(value: unknown, fallback = "____________"): string {
 
 function euros(value: number | null): string {
   if (value === null || value === undefined) return "____________";
-  return `${formatarEuros(value)}€ (${euroPorExtenso(value)})`;
+  return `${neg(formatarEuros(value))}€ (${euroPorExtenso(value)})`;
 }
 
 function dataPT(iso: string | null): string {
@@ -35,14 +35,41 @@ type OpcoesParagrafo = {
   keepNext?: boolean;
   antes?: number;
   depois?: number;
+  // Traço até à margem direita no fim do parágrafo (tabulação com preenchimento sublinhado).
+  trancar?: boolean;
 };
+
+// Largura útil da página em twips (A4 11906 - margens de 1134 de cada lado).
+const LARGURA_UTIL = 9638;
+
+// Divide o texto nas marcas de negrito de cpcv-clausulas.ts (neg()) e devolve um run por pedaço.
+function runsComNegrito(texto: string, negritoBase?: boolean): TextRun[] {
+  const runs: TextRun[] = [];
+  let negrito = false;
+  let atual = "";
+  const fechar = () => {
+    if (atual) runs.push(new TextRun({ text: atual, bold: negrito || negritoBase, font: FONTE, size: 22, color: "000000" }));
+    atual = "";
+  };
+  for (const c of texto) {
+    if (c === NEG_ABRE) { fechar(); negrito = true; }
+    else if (c === NEG_FECHA) { fechar(); negrito = false; }
+    else atual += c;
+  }
+  fechar();
+  return runs;
+}
 
 function paragrafo(texto: string, opcoes: OpcoesParagrafo = {}): Paragraph {
   return new Paragraph({
     alignment: opcoes.alinhamento ?? AlignmentType.JUSTIFIED,
     keepNext: opcoes.keepNext,
     spacing: { ...ESPACAMENTO, before: opcoes.antes ?? 0, after: opcoes.depois ?? 120 },
-    children: [new TextRun({ text: texto, bold: opcoes.bold, font: FONTE, size: 22, color: "000000" })],
+    tabStops: opcoes.trancar ? [{ type: TabStopType.RIGHT, position: LARGURA_UTIL, leader: LeaderType.UNDERSCORE }] : undefined,
+    children: [
+      ...runsComNegrito(texto, opcoes.bold),
+      ...(opcoes.trancar ? [new TextRun({ children: [new Tab()], font: FONTE, size: 22, color: "000000" })] : []),
+    ],
   });
 }
 
@@ -77,7 +104,7 @@ export async function gerarDocxCpcv(
       paragrafo(`Cláusula ${c.ordinal}`, { bold: true, alinhamento: AlignmentType.CENTER, keepNext: true, antes: 300, depois: 0 }),
       paragrafo(`(${c.titulo})`, { bold: true, alinhamento: AlignmentType.CENTER, keepNext: true, depois: 80 })
     );
-    c.pontos.forEach((p) => children.push(paragrafo(p)));
+    c.pontos.forEach((p) => children.push(paragrafo(p, { trancar: true })));
   }
 
   // O estilo "TextoFinal" leva o negrito e a fonte ao nível do parágrafo, para o run interno do

@@ -14,6 +14,40 @@
 | Email da equipa | Google Workspace (MX `smtp.google.com`) | Ambos | Caixas `miguel@` e `pedro@acelabs.pt` |
 | DNS | Registo do domínio `acelabs.pt` | Pedro | Ver "DNS" abaixo |
 | CPCV com IA | Vercel `cpcv-engine` (equipa `acelabs1`) + Supabase | Pedro | Chave Anthropic na Vercel |
+| Cockpit (ensaio) | Vercel `cockpit` (equipa `acelabs1`), `https://cockpit-gamma-one.vercel.app`; Supabase de teste "Cockpit" | Pedro | Publicado por CLI (`vercel deploy --prod` em `servicos/cockpit-app`), com o Git **desligado** de propósito: um push não atualiza nenhum cliente. Um projeto Vercel e um Supabase por cliente. Passos em `servicos/cockpit-app/LEIAME.md` |
+
+## Aplicações, bases de dados e pastas (revisto em 2026-10-28)
+
+Regra (revista em 2026-10-30): **CPCV: um projeto Supabase por cliente. Cockpit: um projeto Supabase partilhado, com várias
+empresas isoladas por `empresa_id`** (`servicos/cockpit-app/migracao_multiempresa.sql`); a Ace Labs tem ainda um projeto de teste. Só se
+escrevem aqui nomes e endereços públicos, nunca chaves.
+
+| Aplicação | Pasta | Supabase (ref) | Vercel | Estado |
+|---|---|---|---|---|
+| CPCV com IA (e painel genérico) | `servicos/cpcv-engine` | `txlrzhltxrjkopjwrdsd` | projeto `cpcv-engine`, equipa `acelabs1`, deploy automático do `main` | Em uso para testes com a solicitadora; migrações até `migration_fase15.sql` corridas em 2026-10-28 |
+| Cockpit (a que fica) | `servicos/cockpit-app` | `erxnqdadqbmfeyuwaybi` ("Cockpit", teste, tem a carteira de demonstração) | projeto `cockpit`, equipa `acelabs1`, `https://cockpit-gamma-one.vercel.app` (ensaio, deploy por CLI) | Ainda sem cliente real. Falta migração de segurança e de notificações neste projeto |
+| Controlo (interno) | `servicos/controlo` | nenhum próprio (administra o de cada cliente) | **nunca publicado**: corre em `localhost:3002` no computador de cada sócio | Convidar, suspender e apagar utilizadores do Cockpit e do CPCV de cada cliente e ver o estado da instalação. Ver `servicos/controlo/LEIAME.md` |
+| Cockpit antigo | `servicos/cockpit` | o mesmo de teste | nenhum | A eliminar quando o Pedro confirmar |
+| Site | `site/` | nenhum | projeto `ace-labs`, conta do Miguel | `main` publica em produção |
+| API de contacto | `infra/acelabs-api/` | nenhum | `acelabs-api`, equipa `acelabs1` | Resend |
+
+**Ainda não existem (a criar):** Supabase "Ace Labs Demo" (sempre ligado, para a Apple e demonstrações), Supabase do
+primeiro cliente real do Cockpit, projeto Vercel Pro com `cockpit.acelabs.pt`, conta Apple Developer, chave de
+notificações da Apple, política de privacidade publicada.
+
+**Onde vive cada segredo** (nomes das variáveis):
+- CPCV: `.env.local` e Vercel `cpcv-engine`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `DASHBOARD_PASSWORD`, `AUTH_SECRET`, `CPCV_INVITE_ADMIN`,
+  `CPCV_AGENCIA_NOME`, `CPCV_AGENCIA_AMI`.
+- Cockpit: `.env.local` e Vercel `cockpit`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e, para as
+  notificações, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. A `service_role` do Cockpit
+  nunca vai para a Vercel (só para os testes locais, em `.env.testes`).
+  Com um só deploy para vários clientes (app da App Store): em vez do par `NEXT_PUBLIC_SUPABASE_*` fixo, `COCKPIT_CLIENTES`
+  (JSON com código, nome, endereço do Supabase e chave anon de cada cliente; só chaves públicas). Ver `servicos/cockpit-app/LEIAME.md`.
+- Os valores nunca vão para o git (`.env*` está no `.gitignore`).
+
+**Ficheiros locais que não vão para o git** (repositório público): `docs/PLATAFORMA CPCV.zip` e
+`docs/feedback_reuniao_*.docx` (dados reais de clientes), `servicos/cpcv-engine/minutas/`, `business-center/`.
 
 ## Fluxo do formulário de contacto
 
@@ -31,8 +65,9 @@ Se parar de funcionar: ver "Incidentes".
 | `RESEND_API_KEY` | Vercel `acelabs-api` (Production). Opcional também em `ace-labs`. | Enviar o email do formulário |
 | `ANTHROPIC_API_KEY` | Vercel `cpcv-engine` e `servicos/cpcv-engine/.env.local` | Extração de dados do CPCV |
 | Supabase (URL e chaves) | Vercel `cpcv-engine` e `.env.local` | Base de dados do CPCV |
+| `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel `cockpit` (Production, tipo "config") e `servicos/cockpit-app/.env.local` | Ligação do Cockpit ao Supabase. A chave anon é pública por desenho. A `service_role` nunca vai para a Vercel |
 
-Um projeto Supabase por cliente. Nunca reutilizar chaves entre projetos.
+CPCV: um projeto Supabase por cliente. Cockpit: um projeto partilhado com várias empresas. Nunca reutilizar chaves entre projetos diferentes.
 
 ## DNS (registos relevantes)
 

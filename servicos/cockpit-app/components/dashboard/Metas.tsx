@@ -3,12 +3,17 @@
 import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
 import MetasForm from "@/components/dashboard/MetasForm";
+import { empresaAtual } from "@/lib/empresa";
 import { sbBrowser } from "@/lib/supabase-browser";
-import BarraProgresso from "@/components/BarraProgresso";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
-import { feitos, type Dados } from "@/lib/painel";
+import { faturacaoAcumulada, feitos, type Dados } from "@/lib/painel";
+import AneisAtividade from "@/components/dashboard/graficos/AneisAtividade";
+import AreaFaturacao from "@/components/dashboard/graficos/AreaFaturacao";
+import BarraProgresso from "@/components/BarraProgresso";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
 
+// Azul, verde e âmbar: as cores da marca, sempre pela mesma ordem (visitas, reuniões, transações)
+const CORES_ANEL = ["#0071e3", "#1fae5a", "#ff9f0a", "#1d1d1f"];
 const eur = (n: number) => `${Math.round(n).toLocaleString("pt-PT")} €`;
 
 const PERIODOS: [Periodo, string][] = [
@@ -28,20 +33,25 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   const m = dados.metas;
   const definidas = Object.values(m.anual).some((v) => v != null) || m.faturacaoAnual != null;
   const f = feitos(dados, periodo);
+  const fAno = feitos(dados, "ano");
+  const fat = faturacaoAcumulada(dados, m.ano);
 
   const metaSemanal = (k: "visitas" | "reunioes_angariacao") => (m.anual[k] == null ? 0 : metaDoPeriodo(m.anual[k]!, "semana", m.semanasUteis));
 
   async function guardar(novas: MetasT) {
     setErro(null);
     const sb = sbBrowser();
+    const empresa = await empresaAtual(sb);
+    if (!empresa) return setErro("Não foi possível guardar as metas. (sem empresa)");
     const linhas = METRICAS.map((x) => ({
+      empresa_id: empresa,
       ano: novas.ano,
       metrica: x.id,
       valor_anual: Math.round(novas.anual[x.id] ?? 0),
       taxa_conversao: x.id === "visitas" ? novas.visitasPorTransacao : x.id === "reunioes_angariacao" ? novas.reunioesPorAngariacao : null,
     }));
-    const r1 = await sb.from("metas").upsert(linhas, { onConflict: "ano,metrica" });
-    const r2 = await sb.from("metas_config").upsert({ ano: novas.ano, semanas_uteis: novas.semanasUteis, faturacao_anual: novas.faturacaoAnual });
+    const r1 = await sb.from("metas").upsert(linhas, { onConflict: "empresa_id,ano,metrica" });
+    const r2 = await sb.from("metas_config").upsert({ empresa_id: empresa, ano: novas.ano, semanas_uteis: novas.semanasUteis, faturacao_anual: novas.faturacaoAnual });
     if (r1.error || r2.error) return setErro(`Não foi possível guardar as metas. (${(r1.error ?? r2.error)?.message})`);
     setEditar(false);
     onAlterado();
@@ -51,6 +61,8 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
   async function decidirSemana(poe: boolean) {
     setErro(null);
     const sb = sbBrowser();
+    const empresa = await empresaAtual(sb);
+    if (!empresa) return setErro("Não foi possível guardar a decisão. (sem empresa)");
     const semana = semanaISO(new Date());
     if (poe) {
       const v = Math.ceil(metaSemanal("visitas"));
@@ -65,7 +77,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
       });
       if (error) return setErro("Não foi possível pôr as metas no calendário.");
     }
-    const { error } = await sb.from("metas_semanas").upsert({ semana, decisao: poe ? "colocada" : "ignorada" });
+    const { error } = await sb.from("metas_semanas").upsert({ empresa_id: empresa, semana, decisao: poe ? "colocada" : "ignorada" });
     if (error) return setErro("Não foi possível guardar a decisão.");
     onAlterado();
   }
@@ -74,6 +86,7 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
 
   return (
     <Cartao
+      id="metas"
       titulo="Metas"
       acao={
         !editar && (
@@ -89,12 +102,13 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
         <MetasForm inicial={m} onGuardar={guardar} onCancelar={() => setEditar(false)} />
       ) : (
         <>
-          <div className="flex gap-2 text-sm font-medium">
+          <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium" role="group" aria-label="Período das metas">
             {PERIODOS.map(([v, r]) => (
               <button
                 key={v}
                 onClick={() => setPeriodo(v)}
-                className={`quadro-glossy flex-1 rounded-xl py-2 ${periodo === v ? "text-azul ring-2 ring-azul" : "text-secundario"}`}
+                aria-pressed={periodo === v}
+                className={`flex-1 rounded-lg py-1.5 ${periodo === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {r}
               </button>
@@ -117,15 +131,14 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
             </div>
           )}
 
+          {/* as duas metas principais de um agente (Miguel): angariações e faturação do período */}
           {(() => {
             const objFat = m.faturacaoAnual == null ? null : metaDoPeriodo(m.faturacaoAnual, periodo, m.semanasUteis);
             const objAng = m.anual.angariacoes == null ? null : metaDoPeriodo(m.anual.angariacoes, periodo, m.semanasUteis);
             const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => (
               <div className="rounded-2xl quadro-glossy p-3 sm:p-4">
                 <p className="text-sm font-medium text-secundario">{rotulo}</p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">
-                  {rotulo === "Faturação" ? eur(valor) : valor}
-                </p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">{rotulo === "Faturação" ? eur(valor) : valor}</p>
                 {fechado != null && (
                   <p className="text-xs text-secundario">
                     negócios fechados <b className="text-tinta">{eur(fechado)}</b>
@@ -143,25 +156,38 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
             );
           })()}
 
-          <ul className="grid grid-cols-2 gap-3">
-            {SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x) => {
-              const feito = f[x.id];
-              const anual = m.anual[x.id];
-              const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
-              return (
-                <li key={x.id} className="quadro-glossy rounded-xl px-3 py-2.5">
-                  <div className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
-                    <span className="text-[13px] leading-tight text-tinta sm:whitespace-nowrap">{x.label}</span>
-                    <span className="shrink-0 text-secundario">
-                      <b className="text-base text-tinta">{feito}</b>
-                      {meta != null ? ` / ${fmtNum(meta)}` : ""}
-                    </span>
-                  </div>
-                  {meta != null && meta > 0 && <BarraProgresso valor={feito} objetivo={meta} />}
-                </li>
-              );
-            })}
-          </ul>
+          {/* o resto da atividade em anéis (Pedro), só com os indicadores secundários */}
+          <AneisAtividade
+            metricas={SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x, i) => ({
+              rotulo: x.label,
+              feito: f[x.id],
+              meta: m.anual[x.id] == null ? null : metaDoPeriodo(m.anual[x.id]!, periodo, m.semanasUteis),
+              cor: CORES_ANEL[i],
+            }))}
+          />
+          {f.transacoes > 0 && (
+            <p className="text-[11px] text-secundario">
+              Transações: {f.transCompradores} do lado do comprador (CPCV) + {f.transAngariacoes} do lado da angariação vendida. Um negócio completo conta nas duas.
+            </p>
+          )}
+
+          {m.faturacaoAnual != null && (
+            <div className="space-y-3 border-t border-linha pt-5">
+              <div>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <p className="text-sm font-medium text-secundario">Faturação de {m.ano}: {eur(fAno.faturado)}</p>
+                  <span className="rounded-full bg-azul-suave px-2.5 py-1 text-xs font-semibold text-azul-escuro">
+                    {fAno.faturado > 0 && fAno.faturado / m.faturacaoAnual < 0.01 ? "menos de 1" : Math.round((fAno.faturado / m.faturacaoAnual) * 100)}% do objetivo
+                  </span>
+                </div>
+                <p className="text-xs text-secundario">
+                  de {eur(m.faturacaoAnual)} (objetivo do ano)
+                  {m.anual.transacoes != null && m.anual.transacoes > 0 ? `, ${eur(m.faturacaoAnual / m.anual.transacoes)} por transação em ${plural(m.anual.transacoes, "transação", "transações")}` : ""}
+                </p>
+              </div>
+              <AreaFaturacao meses={fat.meses} mesAtual={fat.mesAtual} objetivo={m.faturacaoAnual} />
+            </div>
+          )}
           {!definidas && <p className="text-xs text-secundario">Ainda não definiste metas. Mostra só o que já fizeste.</p>}
         </>
       )}

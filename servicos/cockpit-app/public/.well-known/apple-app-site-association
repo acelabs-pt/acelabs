@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.pt.acelabs.cockpit"],
+        "components": [
+          { "/": "/convite/*", "comment": "Convites: abrem diretamente na app" }
+        ]
+      }
+    ]
+  }
+}

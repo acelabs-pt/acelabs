@@ -6,7 +6,29 @@ type Doc = { value: string; label: string };
 type Estado = "a_enviar" | "ok" | "erro";
 type Item = { id: number; nome: string; estado: Estado; msg?: string };
 
-export default function EntregaForm({ token, documentos }: { token: string; documentos: Doc[] }) {
+const TEXTOS = {
+  pt: {
+    qual: "Que documento vai enviar?",
+    largue: "Largue os ficheiros aqui",
+    toque: "ou toque para escolher do telemóvel ou computador",
+    enviado: "Enviado",
+    aEnviar: "A enviar...",
+    erro: "Erro ao enviar.",
+    semLigacao: "Sem ligação. Tente outra vez.",
+  },
+  en: {
+    qual: "Which document are you sending?",
+    largue: "Drop your files here",
+    toque: "or tap to choose from your phone or computer",
+    enviado: "Sent",
+    aEnviar: "Sending...",
+    erro: "Upload failed.",
+    semLigacao: "No connection. Please try again.",
+  },
+};
+
+export default function EntregaForm({ token, documentos, lang = "pt" }: { token: string; documentos: Doc[]; lang?: "pt" | "en" }) {
+  const T = TEXTOS[lang];
   const [tipo, setTipo] = useState(documentos[0]?.value ?? "");
   const [itens, setItens] = useState<Item[]>([]);
   const [arrastar, setArrastar] = useState(false);
@@ -28,9 +50,9 @@ export default function EntregaForm({ token, documentos }: { token: string; docu
         const res = await fetch(`/api/cpcv/entrega/${token}`, { method: "POST", body: fd });
         const body = await res.json().catch(() => ({}));
         if (res.ok) atualizar(id, { estado: "ok" });
-        else atualizar(id, { estado: "erro", msg: body.error ?? "Erro ao enviar." });
+        else atualizar(id, { estado: "erro", msg: lang === "pt" ? (body.error ?? T.erro) : T.erro });
       } catch {
-        atualizar(id, { estado: "erro", msg: "Sem ligação. Tente outra vez." });
+        atualizar(id, { estado: "erro", msg: T.semLigacao });
       }
     }
   }
@@ -44,7 +66,7 @@ export default function EntregaForm({ token, documentos }: { token: string; docu
     <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 space-y-4">
       <div>
         <label htmlFor="tipo-doc" className="block text-xs font-semibold text-[#0F172A] mb-1">
-          Que documento vai enviar?
+          {T.qual}
         </label>
         <select
           id="tipo-doc"
@@ -79,8 +101,8 @@ export default function EntregaForm({ token, documentos }: { token: string; docu
           arrastar ? "border-[#0071e3] bg-[#EFF6FF]" : "border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9]"
         }`}
       >
-        <p className="text-sm font-semibold text-[#0F172A]">Largue os ficheiros aqui</p>
-        <p className="text-xs text-[#94A3B8] mt-1">ou toque para escolher do telemóvel ou computador</p>
+        <p className="text-sm font-semibold text-[#0F172A]">{T.largue}</p>
+        <p className="text-xs text-[#94A3B8] mt-1">{T.toque}</p>
         <input
           ref={inputRef}
           type="file"
@@ -108,7 +130,7 @@ export default function EntregaForm({ token, documentos }: { token: string; docu
                       : "text-[#94A3B8] shrink-0"
                 }
               >
-                {i.estado === "ok" ? "Enviado" : i.estado === "erro" ? i.msg : "A enviar..."}
+                {i.estado === "ok" ? T.enviado : i.estado === "erro" ? i.msg : T.aEnviar}
               </span>
             </li>
           ))}

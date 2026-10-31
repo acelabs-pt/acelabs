@@ -32,6 +32,8 @@ type LinhaParteDB = {
   representante_nome: string | null;
   representante_cargo: string | null;
   certidao_permanente: string | null;
+  email: string | null;
+  casal: number | null;
 };
 
 // Dados de vendedor/comprador já não vêm da IA (ver app/api/cpcv/extrair e lib/cpcv-partes-form.ts)

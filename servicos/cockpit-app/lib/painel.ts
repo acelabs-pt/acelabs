@@ -1,18 +1,29 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { alertaLaranja, type Comprador, type ImovelComprador } from "@/lib/comprador";
 import type { Proprietario } from "@/lib/proprietario";
-import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
+import { dataLocal, diaDeHoje, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
-import { diasAte, semanaISO } from "@/lib/datas";
+import { diasAte, diasDesde, inicioDaSemana, semanaISO } from "@/lib/datas";
+import { todas } from "@/lib/todas";
+import { carregarResumo, type ResumoAng } from "@/lib/resumoAngariacoes";
+
+/** Tarefa com o proprietário da angariação, quando é um follow up do plano (para abrir a ficha certa). */
+export type TarefaSeguimento = Tarefa & { angariacao_acoes?: { follow_up: boolean; angariacoes: { proprietario_id: string | null } | null } | null };
 
 export type Dados = {
   compradores: Comprador[];
   imoveis: ImovelComprador[];
   proprietarios: Proprietario[];
   angariacoes: Angariacao[];
-  acoes: Acao[];
+  /** Totais do plano de cada angariação (id da angariação -> totais). */
+  resumo: Record<string, ResumoAng>;
+  /** Só as tarefas que o dashboard mostra: as primeiras de hoje e em atraso, o próximo evento e os follow ups de proprietários. */
   tarefas: Tarefa[];
+  /** Quantas tarefas há para hoje ou em atraso (a lista só mostra as primeiras). */
+  nHoje: number;
+  /** Seguimentos a clientes até ao fim da semana (e os em atraso): tarefas de comprador ou proprietário e os follow ups das angariações. */
+  seguimentos: TarefaSeguimento[];
   metas: Metas;
   decisaoSemana: "colocada" | "ignorada" | null;
 };
@@ -30,18 +41,40 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   const sb = sbBrowser();
   const ano = agora.getFullYear();
   const semana = semanaISO(agora);
-  const [c, i, p, a, ac, t, m, cfg, sem] = await Promise.all([
-    sb.from("compradores").select("*, contactos(*)"),
-    sb.from("comprador_imoveis").select("*"),
-    sb.from("proprietarios").select("*, contactos(*)"),
-    sb.from("angariacoes").select("*, proprietarios(contactos(nome))"),
-    sb.from("angariacao_acoes").select("*"),
-    sb.from("tarefas").select("*"),
+  const amanha = new Date(agora);
+  amanha.setHours(24, 0, 0, 0);
+  const amanhaIso = amanha.toISOString();
+  const agoraIso = agora.toISOString();
+  const calendario = () => sb.from("tarefas").select("*").eq("no_calendario", true).eq("feita", false);
+  // fim da semana (segunda seguinte), para os seguimentos
+  const fimSemana = inicioDaSemana(agora);
+  fimSemana.setDate(fimSemana.getDate() + 7);
+  const [c, i, p, a, resumo, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem, seg] = await Promise.all([
+    todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("id").range(de, ate)),
+    todas((de, ate) => sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("id").range(de, ate)),
+    carregarResumo(),
+    calendario().lt("inicio", amanhaIso).order("inicio").limit(6),
+    sb.from("tarefas").select("id", { count: "exact", head: true }).eq("no_calendario", true).eq("feita", false).lt("inicio", amanhaIso),
+    calendario().eq("tipo", "evento").gte("inicio", agoraIso).order("inicio").limit(1),
+    todas<Tarefa>((de, ate) => calendario().not("proprietario_id", "is", null).lt("inicio", agoraIso).order("id").range(de, ate)),
     sb.from("metas").select("*").eq("ano", ano),
     sb.from("metas_config").select("*").eq("ano", ano),
     sb.from("metas_semanas").select("*").eq("semana", semana),
+    // só tarefas ligadas a um cliente, com limite: com planos de angariação há milhares de ações no total
+    sb
+      .from("tarefas")
+      .select("*, angariacao_acoes(follow_up, angariacoes(proprietario_id))")
+      .eq("no_calendario", true)
+      .eq("feita", false)
+      .eq("tipo", "tarefa")
+      .lt("inicio", fimSemana.toISOString())
+      .or("comprador_id.not.is.null,proprietario_id.not.is.null,titulo.like.Follow up com o proprietário*")
+      .order("inicio")
+      .limit(300),
   ]);
-  const falhou = [c, i, p, a, ac, t, m, cfg, sem].find((r) => r.error);
+  const falhou = [c, i, p, a, hoje6, nHojeQ, proxEvento, tProp, m, cfg, sem, seg].find((r) => r.error);
   if (falhou) return "Não foi possível carregar o Dashboard.";
 
   const metas = SEM_METAS(ano);
@@ -60,8 +93,10 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
     imoveis: (i.data ?? []) as ImovelComprador[],
     proprietarios: (p.data ?? []) as unknown as Proprietario[],
     angariacoes: (a.data ?? []) as unknown as Angariacao[],
-    acoes: (ac.data ?? []) as Acao[],
-    tarefas: ((t.data ?? []) as Tarefa[]).filter((x) => x.no_calendario),
+    resumo,
+    tarefas: [...new Map([...(hoje6.data ?? []), ...(proxEvento.data ?? []), ...tProp.data].map((x) => [(x as Tarefa).id, x as Tarefa])).values()],
+    nHoje: nHojeQ.count ?? 0,
+    seguimentos: (seg.data ?? []) as unknown as TarefaSeguimento[],
     metas,
     decisaoSemana: (sem.data?.[0]?.decisao as "colocada" | "ignorada") ?? null,
   };
@@ -152,11 +187,116 @@ export function avisos(d: Dados, agora: Date = new Date()): Aviso[] {
     if (a.vendido_em) continue;
     const dia = diaDeHoje(a.inicio);
     if (dia < 1) continue;
-    const acoes = d.acoes.filter((x) => x.angariacao_id === a.id);
     const restam = a.duracao_dias - dia + 1;
     if (restam >= 0 && restam <= 30) out.push({ id: `a-${a.id}`, texto: `${a.titulo}: contrato termina em ${restam} dias`, href: `/angariacoes/${a.id}`, grave: restam <= 10 });
-    const emAtraso = acoes.filter((x) => !x.feita && dataDoDia(a.inicio, blocoDeDia(x.dia) * 10) < agora).length;
+    const emAtraso = d.resumo[a.id]?.emAtraso ?? 0;
     if (emAtraso) out.push({ id: `aa-${a.id}`, texto: `${a.titulo}: ${emAtraso} ${emAtraso === 1 ? "ação do plano em atraso" : "ações do plano em atraso"}`, href: `/angariacoes/${a.id}`, grave: false });
   }
   return out.sort((x, y) => Number(y.grave) - Number(x.grave));
+}
+
+/** Comissões recebidas, acumuladas no fim de cada mês do ano. Meses futuros ficam a null. */
+export function faturacaoAcumulada(d: Dados, ano: number, agora: Date = new Date()): { meses: (number | null)[]; mesAtual: number } {
+  const mesAtual = agora.getFullYear() === ano ? agora.getMonth() : agora.getFullYear() > ano ? 11 : -1;
+  const porMes = Array<number>(12).fill(0);
+  for (const x of [...d.compradores, ...d.angariacoes]) {
+    if (!x.comissao_recebida || !x.comissao_recebida_em) continue;
+    const dt = dataLocal(x.comissao_recebida_em);
+    if (dt.getFullYear() === ano) porMes[dt.getMonth()] += Number(x.comissao_valor ?? 0);
+  }
+  let acc = 0;
+  return { meses: porMes.map((v, i) => ((acc += v), i <= mesAtual ? acc : null)), mesAtual };
+}
+
+export type FaixaComissao = { rot: string; valor: number; n: number };
+
+/**
+ * Comissões ainda por receber de compradores com CPCV ou escritura, por horizonte (dias até à escritura).
+ * Usa a data da escritura, ou o prazo se não houver data. Negócios sem valor de comissão contam à parte.
+ */
+export function comissaoPrevista(d: Dados): { faixas: FaixaComissao[]; total: number; semValor: number; semData: number } {
+  const faixas: FaixaComissao[] = [
+    { rot: "Até 30 dias", valor: 0, n: 0 },
+    { rot: "31 a 60 dias", valor: 0, n: 0 },
+    { rot: "61 a 90 dias", valor: 0, n: 0 },
+    { rot: "Mais tarde", valor: 0, n: 0 },
+  ];
+  let semValor = 0;
+  let semData = 0;
+  for (const c of d.compradores) {
+    if (!(c.estado === "cpcv" || c.estado === "escritura") || c.comissao_recebida) continue;
+    const valor = Number(c.comissao_valor ?? 0);
+    if (!(valor > 0)) {
+      semValor++;
+      continue;
+    }
+    const data = c.escritura_data ?? c.escritura_prazo;
+    if (!data) semData++;
+    const dias = data ? diasAte(data) : Infinity;
+    const f = dias <= 30 ? 0 : dias <= 60 ? 1 : dias <= 90 ? 2 : 3;
+    faixas[f].valor += valor;
+    faixas[f].n++;
+  }
+  return { faixas, total: faixas.reduce((s, f) => s + f.valor, 0), semValor, semData };
+}
+
+export type EtapaFunil = {
+  id: string;
+  label: string;
+  /** Quantos estão nesta fase agora. */
+  aqui: number;
+  /** Quantos chegaram pelo menos a esta fase (os perdidos não entram: não se sabe onde caíram). */
+  chegaram: number;
+  /** Percentagem dos que chegaram à fase anterior e passaram a esta. Null na primeira. */
+  passagem: number | null;
+  /** Média de dias parados na fase, de quem está nela agora. Null se ninguém. */
+  diasParados: number | null;
+};
+
+/** Funil com taxa de passagem entre fases e tempo parado. `ordem` é a ordem das fases, da primeira à última. */
+export function funilComConversao(
+  ordem: { id: string; label: string }[],
+  itens: { estado: string; estado_desde: string }[]
+): { etapas: EtapaFunil[]; perdidos: number } {
+  const indice = (e: string) => ordem.findIndex((o) => o.id === e);
+  const ativos = itens.filter((x) => x.estado !== "perdido" && indice(x.estado) >= 0);
+  const etapas: EtapaFunil[] = ordem.map((o, i) => {
+    const aqui = ativos.filter((x) => x.estado === o.id);
+    const chegaram = ativos.filter((x) => indice(x.estado) >= i).length;
+    return {
+      id: o.id,
+      label: o.label,
+      aqui: aqui.length,
+      chegaram,
+      passagem: null,
+      diasParados: aqui.length ? Math.round(aqui.reduce((s, x) => s + diasDesde(x.estado_desde), 0) / aqui.length) : null,
+    };
+  });
+  for (let i = 1; i < etapas.length; i++) {
+    etapas[i].passagem = etapas[i - 1].chegaram > 0 ? Math.round((etapas[i].chegaram / etapas[i - 1].chegaram) * 100) : null;
+  }
+  return { etapas, perdidos: itens.filter((x) => x.estado === "perdido").length };
+}
+
+export type Origem = { canal: string; contactos: number; fechados: number };
+
+/** Contactos por canal de origem e quantos chegaram a negócio (CPCV ou escritura do comprador, imóvel angariado do proprietário). */
+export function origens(d: Dados): Origem[] {
+  const por = new Map<string, Origem>();
+  const ponto = (canal: string | null) => {
+    const k = canal?.trim() || "Sem canal";
+    if (!por.has(k)) por.set(k, { canal: k, contactos: 0, fechados: 0 });
+    return por.get(k)!;
+  };
+  for (const c of d.compradores) {
+    const o = ponto(c.contactos.canal_origem);
+    o.contactos++;
+    if (c.cpcv_fechado || c.estado === "cpcv" || c.estado === "escritura" || c.estado === "negocio_concluido") o.fechados++;
+  }
+  for (const p of d.proprietarios) {
+    const o = ponto(p.contactos.canal_origem);
+    o.contactos++;
+    if (p.estado === "angariado") o.fechados++;
+  }
+  return [...por.values()].sort((a, b) => b.contactos - a.contactos);
 }

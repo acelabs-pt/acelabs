@@ -1,5 +1,6 @@
 "use client";
 
+import { useArrastarParaFechar } from "@/components/gestos/useGestos";
 import { useState } from "react";
 import { blocoDeDia, dataDoDia, dataLocal, DIAS_POR_BLOCO, type Acao, type Angariacao } from "@/lib/angariacao";
 import { formatarDia, inicioDoDia, isoDataLocal } from "@/lib/datas";
@@ -11,7 +12,7 @@ export default function FolhaAcao({
   onFechar,
   onAlternar,
   onFeedback,
-  onMudarDia,
+  onMover,
   onRetirar,
 }: {
   ang: Angariacao;
@@ -19,9 +20,10 @@ export default function FolhaAcao({
   onFechar: () => void;
   onAlternar: () => void;
   onFeedback: (texto: string) => void;
-  onMudarDia: (dia: number) => void;
+  onMover: (novoDia: number) => void;
   onRetirar: () => void;
 }) {
+  const arrasto = useArrastarParaFechar(onFechar);
   const [texto, setTexto] = useState(acao.feedback ?? "");
   const bloco = blocoDeDia(acao.dia);
   const de = dataDoDia(ang.inicio, (bloco - 1) * DIAS_POR_BLOCO);
@@ -34,9 +36,13 @@ export default function FolhaAcao({
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
       <div
+        {...arrasto.painel}
         className="w-full max-w-md space-y-3 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] md:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
+        <div {...arrasto.pega} className="-mt-2 flex justify-center py-2 md:hidden" aria-hidden="true">
+          <span className="h-1.5 w-10 rounded-full bg-black/15" />
+        </div>
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="text-lg font-semibold text-tinta">{acao.follow_up ? "Follow up com o proprietário" : acao.nome}</h3>
@@ -50,28 +56,10 @@ export default function FolhaAcao({
 
         <button
           onClick={onAlternar}
-          className={`w-full rounded-xl py-3 text-base font-semibold ${acao.feita ? "bg-black/5 text-tinta" : "bg-verde text-white"}`}
+          className={`w-full rounded-xl py-3 text-base font-semibold ${acao.feita ? "bg-black/5 text-tinta" : "bg-verde text-tinta"}`}
         >
           {acao.feita ? "Desmarcar (voltar a por fazer)" : "Marcar como feita"}
         </button>
-
-        {!acao.feita && (
-          <label className="block text-xs text-secundario">
-            Mudar para outro dia
-            <input
-              type="date"
-              value={isoDataLocal(prevista)}
-              min={isoDataLocal(minimo)}
-              max={isoDataLocal(maximo)}
-              onChange={(e) => {
-                if (!e.target.value) return;
-                const dia = Math.round((dataLocal(e.target.value).getTime() - primeiroDia.getTime()) / 86400000);
-                if (dia !== acao.dia && dia >= 0 && dia < ang.duracao_dias) onMudarDia(dia);
-              }}
-              className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2.5 text-base text-tinta"
-            />
-          </label>
-        )}
 
         <label className="block text-xs text-secundario">
           Feedback
@@ -84,6 +72,34 @@ export default function FolhaAcao({
             className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2.5 text-base text-tinta"
           />
         </label>
+
+        {!acao.feita && (
+          <div className="space-y-2 rounded-xl bg-black/[0.04] p-3">
+            <p className="text-xs font-medium text-secundario">Não deu para fazer a tempo? Muda para outro dia.</p>
+            <div className="flex gap-2">
+              <button onClick={() => onMover(acao.dia + 1)} className="flex-1 rounded-xl bg-white py-2 text-sm font-medium text-tinta">
+                +1 dia
+              </button>
+              <button onClick={() => onMover(acao.dia + 7)} className="flex-1 rounded-xl bg-white py-2 text-sm font-medium text-tinta">
+                +1 semana
+              </button>
+            </div>
+            {/* não se muda para um dia que já passou nem para fora do contrato */}
+            <input
+              type="date"
+              aria-label="Escolher o dia"
+              min={isoDataLocal(minimo)}
+              max={isoDataLocal(maximo)}
+              defaultValue={isoDataLocal(prevista)}
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const dia = Math.round((dataLocal(e.target.value).getTime() - primeiroDia.getTime()) / 86400000);
+                if (dia !== acao.dia && dia >= 0 && dia < ang.duracao_dias) onMover(dia);
+              }}
+              className="w-full rounded-xl border border-linha bg-white px-3 py-2 text-base text-tinta"
+            />
+          </div>
+        )}
 
         <button onClick={onRetirar} className="w-full py-1 text-sm text-red-600">
           Retirar do plano

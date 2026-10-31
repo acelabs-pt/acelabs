@@ -27,7 +27,7 @@ export default async function CpcvHomePage({
 
   const { data: processos } = await supabase
     .from("cpcv_processos")
-    .select("id, criado_por, estado, imovel_morada, criado_em, atualizado_em, campos_em_falta")
+    .select("id, criado_por, estado, imovel_morada, criado_em, atualizado_em, campos_em_falta, id_angariacao")
     .order("criado_em", { ascending: false });
 
   const lista = (processos ?? []) as Processo[];
@@ -42,6 +42,20 @@ export default async function CpcvHomePage({
     const ids = Array.from(new Set(lista.map((p) => p.criado_por)));
     const { data: perfis } = await supabase.from("profiles").select("id, nome").in("id", ids);
     nomesPorAgente = Object.fromEntries((perfis ?? []).map((p) => [p.id, p.nome]));
+  }
+
+  // Nomes dos outorgantes por processo, para a gestora encontrar um contrato pelo nome de um
+  // cliente (a solicitadora não conseguia localizar os processos já aprovados só pela morada).
+  const partesPorProcesso: Record<string, string> = {};
+  if (lista.length > 0) {
+    const { data: partesLista } = await supabase
+      .from("cpcv_partes")
+      .select("processo_id, nome")
+      .in("processo_id", lista.map((p) => p.id));
+    for (const pt of partesLista ?? []) {
+      if (!pt.nome) continue;
+      partesPorProcesso[pt.processo_id] = partesPorProcesso[pt.processo_id] ? `${partesPorProcesso[pt.processo_id]}, ${pt.nome}` : pt.nome;
+    }
   }
 
   let convites: Convite[] = [];
@@ -183,6 +197,7 @@ export default async function CpcvHomePage({
         lista={lista}
         isGestora={isGestora}
         nomesPorAgente={nomesPorAgente}
+        partesPorProcesso={partesPorProcesso}
         filtroInicial={estadoInicial}
       />
     </div>

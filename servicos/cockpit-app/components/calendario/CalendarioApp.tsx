@@ -1,17 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { EsqueletoLista } from "@/components/Esqueleto";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
+import Link from "next/link";
 import { tipoTarefaComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
-import { marcarTarefa } from "@/lib/tarefas";
+import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import AdiarFolha from "@/components/gestos/AdiarFolha";
+import { useSwipeNav } from "@/components/gestos/useGestos";
+import { useToast } from "@/components/Toast";
 import Mes from "@/components/calendario/Mes";
 import Tempo from "@/components/calendario/Tempo";
 import DetalheItem from "@/components/calendario/DetalheItem";
 import NovoItem, { type NovoValores } from "@/components/calendario/NovoItem";
+import { pontoNoCalendario } from "@/lib/nativo";
 
 type Vista = "tarefas" | "dia" | "semana" | "mes";
 
@@ -42,20 +49,70 @@ export default function CalendarioApp() {
   const [erro, setErro] = useState<string | null>(null);
   const [aberta, setAberta] = useState<string | null>(null);
   const [novo, setNovo] = useState<Date | null>(null);
+  const [adiar, setAdiar] = useState<Tarefa | null>(null);
+  const [tipoNovo, setTipoNovo] = useState<"tarefa" | "evento">("evento");
+  const { avisar } = useToast();
+  // Na lista de tarefas só vêm as mais recentes em atraso; este é o total real.
+  const [totalAtrasadas, setTotalAtrasadas] = useState(0);
 
-  const carregar = useCallback(async () => {
-    const { data, error } = await sbBrowser()
-      .from("tarefas")
-      .select("*")
-      .order("inicio", { ascending: true, nullsFirst: false });
-    if (error) setErro("Não foi possível carregar as tarefas.");
-    else setTarefas((data as Tarefa[]).filter((t) => t.no_calendario));
-    setACarregar(false);
+  // "Nova tarefa" do botão + vem com ?novo=tarefa
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("novo") === "tarefa") {
+      setVista("tarefas");
+      setTipoNovo("tarefa");
+      setNovo(inicioDoDia(new Date()));
+      window.history.replaceState(null, "", "/calendario");
+    }
   }, []);
 
+  // Só se carrega o que se está a ver: o período (dia, semana ou mês) ou, na lista, as tarefas mais relevantes.
+  // Com centenas de angariações em plano há dezenas de milhares de tarefas e carregá-las todas bloqueava a app.
+  const chaveJanela = vista === "tarefas" ? "tarefas" : `${vista}:${ref.getTime()}`;
+  const carregar = useCallback(
+    async (silencioso = false) => {
+      if (!silencioso) setACarregar(true);
+      const sb = sbBrowser();
+      const base = () => sb.from("tarefas").select("*", { count: "exact" }).eq("no_calendario", true);
+      if (vista === "tarefas") {
+        const hoje = inicioDoDia(new Date()).toISOString();
+        const [atrasadas, proximas, semData, feitas] = await Promise.all([
+          base().eq("feita", false).lt("inicio", hoje).order("inicio", { ascending: false }).limit(200),
+          base().eq("feita", false).gte("inicio", hoje).order("inicio").limit(300),
+          base().eq("feita", false).is("inicio", null).limit(100),
+          base().eq("feita", true).order("feita_em", { ascending: false }).limit(10),
+        ]);
+        if (atrasadas.error || proximas.error || semData.error || feitas.error) setErro("Não foi possível carregar as tarefas.");
+        else {
+          setTotalAtrasadas(atrasadas.count ?? 0);
+          // ordem que a lista espera: mais antigas primeiro
+          setTarefas([...(atrasadas.data as Tarefa[]).reverse(), ...(proximas.data as Tarefa[]), ...(semData.data as Tarefa[]), ...(feitas.data as Tarefa[]).reverse()]);
+        }
+      } else {
+        const d0 = inicioDoDia(ref);
+        const ini = vista === "dia" ? d0 : vista === "semana" ? inicioDaSemana(d0) : inicioDaSemana(new Date(d0.getFullYear(), d0.getMonth(), 1));
+        const fim = somarDias(ini, vista === "dia" ? 1 : vista === "semana" ? 7 : 42);
+        const { data, error } = await todas<Tarefa>((de, ate) =>
+          base().gte("inicio", ini.toISOString()).lt("inicio", fim.toISOString()).order("inicio").order("id").range(de, ate)
+        );
+        if (error) setErro("Não foi possível carregar as tarefas.");
+        else setTarefas(data);
+      }
+      setACarregar(false);
+    },
+    // a janela muda com a vista e com o dia escolhido
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chaveJanela]
+  );
+
+  // O spinner só aparece à primeira vez e ao trocar de vista; ao mudar de dia ou de mês recarrega sem piscar.
+  const jaCarregou = useRef(false);
+  const vistaAnterior = useRef(vista);
   useEffect(() => {
-    carregar();
-  }, [carregar]);
+    const mudouVista = vistaAnterior.current !== vista;
+    vistaAnterior.current = vista;
+    carregar(jaCarregou.current && !mudouVista);
+    jaCarregou.current = true;
+  }, [carregar, vista]);
 
   const ocs = useMemo(() => tarefas.map(ocorrencia).filter((o): o is Ocorrencia => o !== null), [tarefas]);
 
@@ -66,7 +123,9 @@ export default function CalendarioApp() {
     const e = await marcarTarefa(t, feita);
     if (e) {
       setErro(e);
-      carregar();
+      carregar(true);
+    } else if (feita) {
+      avisar("Tarefa feita.", { rotulo: "Desfazer", onAcao: () => alternarFeita({ ...t, feita: true }) });
     }
   }
 
@@ -77,29 +136,61 @@ export default function CalendarioApp() {
     const { error } = await sbBrowser().from("tarefas").delete().eq("id", t.id);
     if (error) {
       setErro("Não foi possível apagar.");
-      carregar();
+      carregar(true);
     }
   }
 
   async function criar(v: NovoValores) {
     setErro(null);
-    const { error } = await sbBrowser().from("tarefas").insert(v);
+    const { data: criada, error } = await sbBrowser().from("tarefas").insert(v).select("id").single();
     if (error) return setErro("Não foi possível criar.");
     setNovo(null);
-    if (v.inicio) setRef(inicioDoDia(new Date(v.inicio)));
-    await carregar();
+    setTipoNovo("evento");
+    if (v.inicio && criada) {
+      // o calendário do telemóvel avisa com notificação própria
+      const ics = `/api/tarefas/${criada.id}/calendario`;
+      avisar(v.tipo === "evento" ? "Marcação criada." : "Tarefa criada.", { rotulo: "Pôr no telemóvel", onAcao: () => void pontoNoCalendario(ics) });
+    }
+    if (vista !== "tarefas" && v.inicio) {
+      const r = inicioDoDia(new Date(v.inicio));
+      if (r.getTime() !== ref.getTime()) {
+        setRef(r); // muda a janela e o efeito recarrega
+        return;
+      }
+    }
+    await carregar(true);
   }
 
   function mover(sentido: -1 | 1) {
     setRef((r) => (vista === "mes" ? somarMeses(r, sentido) : somarDias(r, (vista === "semana" ? 7 : 1) * sentido)));
   }
 
+  async function adiarPara(dia: Date) {
+    const t = adiar;
+    setAdiar(null);
+    if (!t) return;
+    const e = await adiarTarefa(t, dia);
+    if (e) setErro(e);
+    else if (t.inicio) {
+      const antes = inicioDoDia(new Date(t.inicio));
+      avisar(`Adiada para ${formatarDia(dia)}.`, {
+        rotulo: "Desfazer",
+        onAcao: async () => {
+          await adiarTarefa(t, antes);
+          await carregar(true);
+        },
+      });
+    }
+    await carregar(true);
+  }
+
+  const nav = useSwipeNav(mover);
   const itemAberto = tarefas.find((t) => t.id === aberta) ?? null;
   const diaEscolhido = doDia(ocs, ref).sort((a, b) => a.ini.getTime() - b.ini.getTime());
   const botao = "rounded-lg bg-white px-3 py-1.5 text-sm font-medium shadow-sm";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" {...(vista !== "tarefas" ? nav : {})}>
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold text-tinta">Calendário</h1>
         <button
@@ -116,7 +207,7 @@ export default function CalendarioApp() {
           <button
             key={v}
             onClick={() => setVista(v)}
-            className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+            className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
           >
             {r}
           </button>
@@ -127,7 +218,7 @@ export default function CalendarioApp() {
 
       {vista !== "tarefas" && (
         <div className="flex items-center justify-between gap-2">
-          <h2 className="min-w-0 truncate text-lg font-semibold capitalize text-tinta">{titulo(vista, ref)}</h2>
+          <h2 className="min-w-0 truncate text-lg font-semibold text-tinta first-letter:uppercase">{titulo(vista, ref)}</h2>
           <div className="flex shrink-0 gap-1.5">
             <button onClick={() => mover(-1)} aria-label="Anterior" className={botao}>
               &lsaquo;
@@ -143,16 +234,16 @@ export default function CalendarioApp() {
       )}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : vista === "tarefas" ? (
-        <ListaTarefas tarefas={tarefas} onAlternar={alternarFeita} onApagar={apagar} />
+        <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} onAbrir={(t) => setAberta(t.id)} />
       ) : vista === "mes" ? (
         <>
           <Mes ref_={ref} ocs={ocs} onEscolher={setRef} />
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold capitalize text-tinta">{formatarDia(ref)}</h3>
-              <button onClick={() => setVista("dia")} className="text-sm font-medium text-azul">
+              <button onClick={() => setVista("dia")} className="text-sm font-medium text-azul-escuro">
                 Abrir dia
               </button>
             </div>
@@ -161,7 +252,7 @@ export default function CalendarioApp() {
             ) : (
               <ul className="space-y-2">
                 {diaEscolhido.map((o) => (
-                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAbrir={() => setAberta(o.t.id)} />
+                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAdiar={setAdiar} onAbrir={() => setAberta(o.t.id)} />
                 ))}
               </ul>
             )}
@@ -185,7 +276,8 @@ export default function CalendarioApp() {
           onApagar={() => apagar(itemAberto)}
         />
       )}
-      {novo && <NovoItem key={novo.getTime()} inicial={novo} onFechar={() => setNovo(null)} onCriar={criar} />}
+      {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}
+      {novo && <NovoItem key={novo.getTime()} inicial={novo} tipoInicial={tipoNovo} onFechar={() => { setNovo(null); setTipoNovo("evento"); }} onCriar={criar} />}
     </div>
   );
 }
@@ -194,24 +286,35 @@ function LinhaTarefa({
   t,
   onAlternar,
   onApagar,
+  onAdiar,
   onAbrir,
   atrasada,
 }: {
   t: Tarefa;
   onAlternar: (t: Tarefa) => void;
   onApagar?: (t: Tarefa) => void;
+  onAdiar?: (t: Tarefa) => void;
   onAbrir?: () => void;
   atrasada?: boolean;
 }) {
   const hora = t.inicio ? formatarHora(t.inicio) : "";
   const paraFicha = !t.feita && Boolean(t.comprador_id && tipoTarefaComprador(t));
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-white px-3 py-3 shadow-sm">
-      {!paraFicha && <button
+    <li>
+      <SwipeLinha
+        // tarefas semanais automáticas não se marcam à mão: fecham-se ao registar o envio ou a visita na ficha
+        direita={paraFicha ? undefined : { rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => onAlternar(t) }}
+        esquerda={onAdiar && !t.feita ? { rotulo: "Adiar", classe: "bg-azul text-white", onAcao: () => onAdiar(t) } : undefined}
+      >
+    <div className="flex items-center gap-3 rounded-2xl border border-linha bg-white px-3 py-3">
+      {paraFicha ? (
+        <span className="h-7 w-7 shrink-0" aria-hidden="true" />
+      ) : (
+      <button
         onClick={() => onAlternar(t)}
         aria-label={t.feita ? "Marcar como por fazer" : "Marcar como feita"}
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${
-          t.feita ? "border-verde bg-verde text-white" : "border-black/20"
+          t.feita ? "border-verde bg-verde text-tinta" : "border-black/20"
         }`}
       >
         {t.feita && (
@@ -219,7 +322,8 @@ function LinhaTarefa({
             <path d="M5 12l4 4 10-10" />
           </svg>
         )}
-      </button>}
+      </button>
+      )}
       <button onClick={onAbrir} disabled={!onAbrir} className="min-w-0 flex-1 text-left">
         <p className={`truncate text-base ${t.feita ? "text-secundario line-through" : "text-tinta"}`}>
           {t.tipo === "evento" && <span className="mr-1.5 text-azul">&#9679;</span>}
@@ -229,6 +333,11 @@ function LinhaTarefa({
           {[t.inicio ? formatarDia(new Date(t.inicio)) : "Sem data", hora, ORIGEM_LABEL[t.origem]].filter(Boolean).join(" · ")}
         </p>
       </button>
+      {onAdiar && !t.feita && (
+        <button onClick={() => onAdiar(t)} className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-secundario">
+          Adiar
+        </button>
+      )}
       {paraFicha && (
         <Link
           href={`/crm/compradores/${t.comprador_id}`}
@@ -244,6 +353,8 @@ function LinhaTarefa({
           </svg>
         </button>
       )}
+    </div>
+      </SwipeLinha>
     </li>
   );
 }
@@ -252,10 +363,16 @@ function ListaTarefas({
   tarefas,
   onAlternar,
   onApagar,
+  onAdiar,
+  onAbrir,
+  totalAtrasadas,
 }: {
   tarefas: Tarefa[];
   onAlternar: (t: Tarefa) => void;
   onApagar: (t: Tarefa) => void;
+  onAdiar: (t: Tarefa) => void;
+  onAbrir: (t: Tarefa) => void;
+  totalAtrasadas: number;
 }) {
   const grupos = useMemo(() => {
     const hoje = inicioDoDia(new Date());
@@ -275,6 +392,9 @@ function ListaTarefas({
     return g;
   }, [tarefas]);
 
+  const [mostrar, setMostrar] = useState<Record<string, number>>({});
+  const limite = (secao: string) => mostrar[secao] ?? (secao === "Hoje" ? 50 : 15);
+
   const secoes: [string, Tarefa[], boolean][] = [
     ["Em atraso", grupos.atrasadas, true],
     ["Hoje", grupos.hoje, false],
@@ -283,6 +403,7 @@ function ListaTarefas({
     ["Feitas (últimas 10)", grupos.feitas, false],
   ];
 
+  // Com planos de angariação há centenas de tarefas: cada secção mostra as primeiras e cresce a pedido.
   if (tarefas.length === 0) {
     return <p className="py-8 text-center text-sm text-secundario">Ainda não há tarefas. Toca no + para adicionar a primeira.</p>;
   }
@@ -294,13 +415,22 @@ function ListaTarefas({
           lista.length > 0 && (
             <section key={titulo}>
               <h2 className={`mb-2 text-sm font-semibold ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                {titulo} ({lista.length})
+                {titulo} ({lista.length}
+                {titulo === "Em atraso" && totalAtrasadas > lista.length ? ` de ${totalAtrasadas.toLocaleString("pt-PT")}, as mais recentes` : ""})
               </h2>
               <ul className="space-y-2">
-                {lista.map((t) => (
-                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} atrasada={atrasada} />
+                {lista.slice(0, limite(titulo)).map((t) => (
+                  <LinhaTarefa key={t.id} t={t} onAlternar={onAlternar} onApagar={onApagar} onAdiar={onAdiar} onAbrir={() => onAbrir(t)} atrasada={atrasada} />
                 ))}
               </ul>
+              {lista.length > limite(titulo) && (
+                <button
+                  onClick={() => setMostrar((m) => ({ ...m, [titulo]: limite(titulo) + 30 }))}
+                  className="mt-2 w-full rounded-full bg-black/5 py-2.5 text-sm font-medium text-tinta"
+                >
+                  Mostrar mais ({lista.length - limite(titulo)})
+                </button>
+              )}
             </section>
           )
       )}

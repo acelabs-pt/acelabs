@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { data: processo } = await supabase
     .from("cpcv_processos")
-    .select("pdf_path, docx_path")
+    .select("pdf_path, docx_path, id_angariacao")
     .eq("id", id)
     .single();
 
@@ -66,10 +66,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const buffer = Buffer.from(await blob.arrayBuffer());
 
+  // O nome do ficheiro leva o ID de angariação do imóvel (o que aparece no painel), para a gestora
+  // reconhecer o contrato sem o abrir. Só letras, números, hífen e underscore.
+  const idAngariacao = (processo.id_angariacao ?? "").toString().trim().replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  const nomeFicheiro = idAngariacao ? `CPCV-${idAngariacao}.${tipo}` : `cpcv.${tipo}`;
+
   return new NextResponse(buffer, {
     headers: {
       "Content-Type": CONTENT_TYPE[tipo],
-      "Content-Disposition": `attachment; filename="cpcv.${tipo}"`,
+      "Content-Disposition": `attachment; filename="${nomeFicheiro}"`,
       "Content-Length": String(buffer.length),
       "Cache-Control": "no-store, must-revalidate",
     },

@@ -1,5 +1,6 @@
 "use client";
 
+import { useArrastarParaFechar } from "@/components/gestos/useGestos";
 import Link from "next/link";
 import { formatarDia, formatarHora } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
@@ -30,6 +31,7 @@ export default function DetalheItem({
   onAlternar: () => void;
   onApagar: () => void;
 }) {
+  const arrasto = useArrastarParaFechar(onFechar);
   const l = ligacao(t);
   const ini = t.inicio ? new Date(t.inicio) : null;
   const hora = t.inicio ? formatarHora(t.inicio) : "";
@@ -37,9 +39,13 @@ export default function DetalheItem({
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
       <div
+        {...arrasto.painel}
         className="w-full max-w-md space-y-3 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] md:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
+        <div {...arrasto.pega} className="-mt-2 flex justify-center py-2 md:hidden" aria-hidden="true">
+          <span className="h-1.5 w-10 rounded-full bg-black/15" />
+        </div>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-xs font-medium text-secundario">
@@ -58,14 +64,23 @@ export default function DetalheItem({
         </div>
         <button
           onClick={onAlternar}
-          className={`w-full rounded-xl py-3 text-base font-semibold ${t.feita ? "bg-black/5 text-tinta" : "bg-verde text-white"}`}
+          className={`w-full rounded-xl py-3 text-base font-semibold ${t.feita ? "bg-black/5 text-tinta" : "bg-verde text-tinta"}`}
         >
           {t.feita ? "Desmarcar (voltar a por fazer)" : "Marcar como feita"}
         </button>
         {l && (
-          <Link href={l.href} className="block rounded-xl bg-azul/10 py-2.5 text-center text-sm font-semibold text-azul">
+          <Link href={l.href} className="block rounded-xl bg-azul/10 py-2.5 text-center text-sm font-semibold text-azul-escuro">
             {l.texto}
           </Link>
+        )}
+        {ini && !t.feita && (
+          // ficheiro de calendário: o telemóvel avisa com notificação própria (30 min antes nas marcações)
+          <a
+            href={`/api/tarefas/${t.id}/calendario`}
+            className="block rounded-xl border border-linha py-2.5 text-center text-sm font-semibold text-tinta"
+          >
+            Pôr no calendário do telemóvel
+          </a>
         )}
         <button onClick={onApagar} className="w-full py-1 text-sm text-red-600">
           Apagar

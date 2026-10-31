@@ -18,6 +18,7 @@ export type Processo = {
   atualizado_em: string;
   campos_em_falta: { campo: string; pergunta: string }[] | null;
   aprovado_por?: string | null;
+  id_angariacao?: string | null;
 };
 
 export function tempoMedioConclusao(processos: Processo[]): string {

@@ -36,6 +36,8 @@ export function Texto({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={BASE}
+        // o browser aceita "ana@exemplo" sem domínio; o importador não, por isso exigir o ponto aqui também
+        {...(type === "email" ? { pattern: "[^\\s@]+@[^\\s@]+\\.[^\\s@]+", title: "Email completo, por exemplo ana@exemplo.pt", autoComplete: "email" } : {})}
       />
     </Campo>
   );

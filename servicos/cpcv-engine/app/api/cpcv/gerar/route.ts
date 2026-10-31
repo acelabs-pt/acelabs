@@ -7,6 +7,7 @@ import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
 import { descricaoPredialValida } from "@/lib/cpcv-types";
 import { informacaoForaDoContrato } from "@/lib/cpcv-alertas";
+import { lerContrato, resumoDaLeitura, type Leitura } from "@/lib/cpcv-leitor";
 
 export async function POST(req: NextRequest) {
   const supabase = await sbUserServer();
@@ -59,9 +60,14 @@ export async function POST(req: NextRequest) {
   falta(!processo.imovel_licenca_utilizacao, "licença de utilização");
   falta(!processo.imovel_licenca_data_emissao, "data de emissão da licença de utilização");
   falta(!processo.imovel_licenca_entidade_emissora, "entidade emissora da licença de utilização");
-  falta(!processo.imovel_certificado_energetico, "certificado energético");
-  falta(!processo.imovel_certificado_validade, "validade do certificado energético");
-  falta(!processo.imovel_certificado_classe, "classe energética");
+  if (processo.imovel_certificado_estado === "isento") {
+    falta(!processo.imovel_certificado_isencao_numero, "número da isenção de certificado energético");
+    falta(!processo.imovel_certificado_data_emissao, "data de emissão da isenção de certificado energético");
+  } else if (processo.imovel_certificado_estado !== "em_execucao") {
+    falta(!processo.imovel_certificado_energetico, "certificado energético");
+    falta(!processo.imovel_certificado_validade, "validade do certificado energético");
+    falta(!processo.imovel_certificado_classe, "classe energética");
+  }
   if (processo.imovel_e_fracao_autonoma) {
     falta(!processo.imovel_fracao_letra, "letra da fracção");
     falta(!processo.imovel_andar_fracao, "andar/localização da fracção");
@@ -108,7 +114,7 @@ export async function POST(req: NextRequest) {
   const { data: partes } = await supabase
     .from("cpcv_partes")
     .select(
-      "papel, tipo_pessoa, nome, estado_civil, regime_bens, nacionalidade, naturalidade, nif, morada, documento_tipo, documento_numero, documento_validade, representante_nome, certidao_permanente"
+      "papel, tipo_pessoa, nome, estado_civil, regime_bens, nacionalidade, naturalidade, nif, morada, documento_tipo, documento_numero, documento_validade, representante_nome, certidao_permanente, email, casal"
     )
     .eq("processo_id", processo_id);
 
@@ -116,6 +122,17 @@ export async function POST(req: NextRequest) {
     .from("cpcv_hipotecas")
     .select("entidade_credora, natureza, numero_apresentacao, data_registo")
     .eq("processo_id", processo_id);
+
+  // Código postal na morada de cada parte é obrigatório (pedido da solicitadora).
+  const semCodigoPostal = (partes ?? []).filter((p) => !p.morada || !/\b\d{4}-\d{3}\b/.test(p.morada));
+  if (semCodigoPostal.length > 0) {
+    return NextResponse.json(
+      {
+        error: `Falta o código postal (0000-000) na morada de: ${semCodigoPostal.map((p) => p.nome ?? "parte sem nome").join(", ")}. Acrescenta-o em "Dados das partes" antes de gerar.`,
+      },
+      { status: 400 }
+    );
+  }
 
   if (!forcar) {
     // Verificações determinísticas primeiro - "sinal >= preço" é um cálculo exacto, não faz
@@ -180,6 +197,15 @@ export async function POST(req: NextRequest) {
       { error: `Erro ao gerar o Word: ${e instanceof Error ? e.message : String(e)}` },
       { status: 500 }
     );
+  }
+
+  // Leitura final: depois de o Word estar gerado, lê-o de ponta a ponta (regras + IA) a ver se faz
+  // sentido. Nunca bloqueia a geração - os pontos vão para a gestora (resposta e conversa do processo).
+  let leitura: Leitura | null = null;
+  try {
+    leitura = await lerContrato(docxBuffer, processo, (partes ?? []) as never, (hipotecas ?? []) as never);
+  } catch (e) {
+    console.error("Erro na leitura final do contrato:", e);
   }
 
   // Usa sempre a pasta do agente dono do processo, não de quem carregou no botão -
@@ -248,6 +274,9 @@ export async function POST(req: NextRequest) {
     autor: "ia",
     texto: "O CPCV foi gerado com sucesso. Já podes descarregar o PDF e o Word para revisão e assinatura.",
   });
+  if (leitura) {
+    await supabase.from("cpcv_mensagens").insert({ processo_id, autor: "ia", texto: resumoDaLeitura(leitura) });
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, leitura });
 }

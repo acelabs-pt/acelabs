@@ -13,6 +13,12 @@ export type Angariacao = {
   comissao_valor: number | null;
   comissao_recebida: boolean;
   comissao_recebida_em: string | null;
+  tipo_imovel: string | null;
+  tipologia: string | null;
+  distrito: string | null;
+  concelho: string | null;
+  freguesia: string | null;
+  valor: number | null;
   proprietarios: {
     id?: string;
     tipo_imovel?: string | null;
@@ -21,7 +27,7 @@ export type Angariacao = {
     concelho?: string | null;
     freguesia?: string | null;
     valor?: number | null;
-    contactos: { nome: string };
+    contactos: { nome: string; telemovel?: string | null };
   } | null;
 };
 
@@ -118,7 +124,7 @@ export function linhasDoPlano(
   return linhas;
 }
 
-function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">) {
+export function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">) {
   const quando = dataDoDia(ang.inicio, a.dia);
   quando.setHours(9, 0, 0, 0);
   return {
@@ -184,24 +190,6 @@ export async function marcarAcao(a: Acao, feita: boolean): Promise<string | null
   return null;
 }
 
-/** Muda a ação para outro dia do contrato e leva a tarefa do calendário atrás. */
-export async function mudarDiaAcao(
-  ang: Pick<Angariacao, "inicio">,
-  a: Acao,
-  novoDia: number
-): Promise<string | null> {
-  const sb = sbBrowser();
-  const { error } = await sb.from("angariacao_acoes").update({ dia: novoDia }).eq("id", a.id);
-  if (error) return "Não foi possível mudar a ação de dia.";
-  const quando = dataDoDia(ang.inicio, novoDia);
-  quando.setHours(9, 0, 0, 0);
-  const { error: e2 } = await sb
-    .from("tarefas")
-    .update({ inicio: quando.toISOString() })
-    .eq("angariacao_acao_id", a.id);
-  return e2 ? "Ação mudada de dia, mas a tarefa do calendário não foi atualizada." : null;
-}
-
 /** "Vendido" em qualquer ponto do plano: as tarefas por fazer saem do calendário (reversível). */
 export async function marcarVendido(ang: Angariacao, acoes: Acao[], vendidoEm: string | null): Promise<string | null> {
   const sb = sbBrowser();
@@ -247,4 +235,23 @@ export async function renomearAngariacao(ang: Pick<Angariacao, "id" | "titulo">,
   }
   await sb.from("comprador_imoveis").update({ descricao: titulo }).eq("angariacao_id", ang.id).eq("descricao", ang.titulo);
   return null;
+}
+
+/**
+ * Muda uma ação para outro dia do contrato (a tarefa do calendário acompanha).
+ * A grelha mostra uma ação por linha e bloco, por isso não deixa pôr duas no mesmo bloco.
+ */
+export async function moverAcao(ang: Angariacao, a: Acao, outras: Acao[], novoDia: number): Promise<string | null> {
+  if (novoDia < 0 || novoDia >= ang.duracao_dias) return `Escolhe um dia dentro do contrato (${ang.duracao_dias} dias).`;
+  const bloco = blocoDeDia(novoDia);
+  if (outras.some((x) => x.id !== a.id && x.nome === a.nome && blocoDeDia(x.dia) === bloco)) {
+    return `Já existe "${a.nome}" nesse bloco de 10 dias.`;
+  }
+  const sb = sbBrowser();
+  const { error } = await sb.from("angariacao_acoes").update({ dia: novoDia }).eq("id", a.id);
+  if (error) return "Não foi possível mover a ação.";
+  const quando = dataDoDia(ang.inicio, novoDia);
+  quando.setHours(9, 0, 0, 0);
+  const { error: e2 } = await sb.from("tarefas").update({ inicio: quando.toISOString() }).eq("angariacao_acao_id", a.id);
+  return e2 ? "Ação mudada de dia, mas a tarefa do calendário não foi atualizada." : null;
 }

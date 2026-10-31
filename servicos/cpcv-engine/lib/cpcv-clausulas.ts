@@ -31,6 +31,48 @@ function maiusculas(s: string | null): string | null {
   return s ? s.toLocaleUpperCase("pt-PT") : s;
 }
 
+// Negrito: o texto legal é construído como string simples e partilhado pelo PDF e pelo Word, por
+// isso o negrito vai marcado com dois caracteres privados (U+E000/U+E001) à volta do texto. O
+// PDF troca-os por <b>, o Word divide o parágrafo em runs (ver cpcv-template.ts e cpcv-docx.ts).
+export const NEG_ABRE = "";
+export const NEG_FECHA = "";
+export function neg(texto: string): string {
+  return `${NEG_ABRE}${texto}${NEG_FECHA}`;
+}
+export function semMarcas(texto: string): string {
+  return texto.split(NEG_ABRE).join("").split(NEG_FECHA).join("");
+}
+
+// "GUIMARÃES" -> "Guimarães", "VILA NOVA DE FAMALICÃO" -> "Vila Nova de Famalicão". Só mexe em
+// texto que veio todo em maiúsculas (extraído de documentos) - texto já bem escrito fica igual.
+const PALAVRAS_MINUSCULAS = new Set(["de", "da", "do", "das", "dos", "e", "em", "a", "o"]);
+export function capitalizarLocal(texto: string | null | undefined): string | null {
+  if (!texto) return texto ?? null;
+  const t = texto.trim();
+  if (!/[A-Za-zÀ-ÿ]/.test(t) || t !== t.toLocaleUpperCase("pt-PT")) return t;
+  return t
+    .toLocaleLowerCase("pt-PT")
+    .split(/(\s+|-)/)
+    .map((p, i) => (i > 0 && PALAVRAS_MINUSCULAS.has(p) ? p : p.charAt(0).toLocaleUpperCase("pt-PT") + p.slice(1)))
+    .join("");
+}
+
+// Divorciado/viúvo não levam "maior" (a solicitadora disse-o na reunião: só faz sentido no solteiro,
+// como no contrato de referência assinado); o estado civil escreve-se sempre em minúsculas no meio da frase.
+function estadoCivilTexto(estado: string | null): string | null {
+  return estado ? estado.trim().toLocaleLowerCase("pt-PT") : null;
+}
+function levaMaior(estado: string | null): boolean {
+  return !(estado && /^(divorciad|vi[úu]v)/i.test(estado.trim()));
+}
+
+function listaEmails(partes: Parte[]): string[] {
+  return partes.map((p) => (p.email ?? "").trim()).filter(Boolean);
+}
+function juntarE(itens: string[]): string {
+  return itens.length <= 1 ? (itens[0] ?? "") : `${itens.slice(0, -1).join(", ")} e ${itens[itens.length - 1]}`;
+}
+
 // "275146499" -> "275 146 499" - só quando o NIF tem os 9 dígitos esperados; um NIF
 // incompleto/malformado é devolvido tal como está, nunca cortado ou preenchido às cegas.
 export function formatarNif(nif: string | null): string | null {
@@ -143,6 +185,7 @@ export type Concordancia = {
   peloPrim: string;
   peloSeg: string;
   aquele: string;
+  nPrim: number;
   vp: (singular: string, plural: string) => string;
   vs: (singular: string, plural: string) => string;
 };
@@ -164,6 +207,7 @@ export function concordancia(nVendedores: number, nCompradores: number): Concord
     peloPrim: vp("pelo primeiro outorgante", "pelos primeiros outorgantes"),
     peloSeg: vs("pelo segundo outorgante", "pelos segundos outorgantes"),
     aquele: vp("àquele", "àqueles"),
+    nPrim: nVendedores,
     vp,
     vs,
   };
@@ -216,28 +260,41 @@ function termosImovel(ehFracao: boolean): TermosImovel {
 // Identificação dos outorgantes
 // ---------------------------------------------------------------------------------------------
 
+// ", com o email X" / ", com os emails X e Y, respetivamente" - só quando há email registado.
+function sufixoEmail(h: Helpers, partes: Parte[], respetivamente = false): string {
+  const emails = listaEmails(partes);
+  if (emails.length === 0) return "";
+  if (emails.length === 1) return `, com o email ${h.v(emails[0])}`;
+  return `, com os emails ${juntarE(emails.map((e) => h.v(e)))}${respetivamente ? ", respetivamente" : ""}`;
+}
+
 export function identificacaoParte(h: Helpers, p: Parte): string {
   if (p.tipo_pessoa === "coletiva") {
-    return `${h.v(maiusculas(p.nome))}, pessoa coletiva com o NIF ${h.v(formatarNif(p.nif))}, com sede em ${h.v(p.morada)}${
+    return `${neg(h.v(maiusculas(p.nome)))}, pessoa coletiva com o NIF ${h.v(formatarNif(p.nif))}, com sede em ${h.v(
+      capitalizarLocal(p.morada)
+    )}${
       p.certidao_permanente
         ? `, matriculada com o código de certidão permanente ${h.v(p.certidao_permanente)}`
         : ""
-    }, aqui representada por ${h.v(maiusculas(p.representante_nome ?? null), "representante com poderes para o ato")}${
-      p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""
-    }`;
+    }${sufixoEmail(h, [p])}, aqui representada por ${h.v(
+      maiusculas(p.representante_nome ?? null),
+      "representante com poderes para o ato"
+    )}${p.representante_cargo ? `, na qualidade de ${h.v(p.representante_cargo)}` : ""}`;
   }
   // "Emitido pela República Portuguesa" só é afirmado com confiança para o Cartão de Cidadão
   // (sempre emitido pelo Estado português) - para Passaporte/Título de Residência/Outro não
   // há dados para o garantir (pode ser estrangeiro), por isso fica omisso nesses casos.
   const emitidoPt = p.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
-  return `${h.v(maiusculas(p.nome))}, NIF ${h.v(formatarNif(p.nif))}${p.estado_civil ? `, ${h.v(p.estado_civil)}` : ""}${
-    regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""
-  }, maior, titular do ${h.v(
+  return `${neg(h.v(maiusculas(p.nome)))}, NIF ${h.v(formatarNif(p.nif))}${
+    p.estado_civil ? `, ${h.v(estadoCivilTexto(p.estado_civil))}` : ""
+  }${regimeBensValido(p.regime_bens) ? `, sob o regime de ${h.v(p.regime_bens)}` : ""}${
+    levaMaior(p.estado_civil) ? ", maior" : ""
+  }, titular do ${h.v(
     p.documento_tipo ? documentoEmMinusculas(p.documento_tipo) : null,
     "documento de identificação"
   )} n.º ${h.v(p.documento_numero)}, válido até ${h.dataPT(p.documento_validade)}${emitidoPt}, residente em ${h.v(
-    p.morada
-  )}`;
+    capitalizarLocal(p.morada)
+  )}${sufixoEmail(h, [p])}`;
 }
 
 // Um casal casado do mesmo papel (dois vendedores, ou dois compradores, casados um com o outro)
@@ -263,8 +320,8 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
   const ligacao = generoFeminino(b.estado_civil) ? "e mulher" : "e marido";
   const emitidoA = a.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
   const emitidoB = b.documento_tipo === "Cartão de Cidadão" ? ", emitido pela República Portuguesa" : "";
-  return `${h.v(maiusculas(a.nome))}, NIF ${h.v(formatarNif(a.nif))}, ${ligacao}, ${h.v(
-    maiusculas(b.nome)
+  return `${neg(h.v(maiusculas(a.nome)))}, NIF ${h.v(formatarNif(a.nif))}, ${ligacao}, ${neg(
+    h.v(maiusculas(b.nome))
   )}, NIF ${h.v(formatarNif(b.nif))}, casados sob o regime de ${h.v(
     a.regime_bens
   )}, ambos maiores, titulares, respetivamente, do ${h.v(
@@ -274,27 +331,51 @@ function identificacaoCasal(h: Helpers, a: Parte, b: Parte): string {
     b.documento_tipo ? documentoEmMinusculas(b.documento_tipo) : null,
     "documento de identificação"
   )} n.º ${h.v(b.documento_numero)}, válido até ${h.dataPT(b.documento_validade)}${emitidoB}, residentes em ${h.v(
-    a.morada
-  )}`;
+    capitalizarLocal(a.morada)
+  )}${sufixoEmail(h, [a, b], true)}`;
 }
 
 // Uma identificação por "unidade": um casal casado entre si conta como uma única unidade (uma
-// frase); qualquer outro caso devolve uma unidade por parte.
+// frase); qualquer outro caso devolve uma unidade por parte. Com 4 partes percorre-se a lista em
+// pares consecutivos (A+B, C+D), cada par que for casal junta-se numa frase.
 export function identificacoesGrupo(h: Helpers, partes: Parte[]): string[] {
-  if (partes.length === 2 && saoCasalEntreSi(partes[0], partes[1])) {
-    return [identificacaoCasal(h, partes[0], partes[1])];
+  // Casais ligados à mão no formulário (campo "casal") têm prioridade sobre a deteção automática:
+  // cada número com exactamente duas partes singulares vira uma frase de casal, na posição do primeiro.
+  if (partes.some((p) => p.casal)) {
+    const unidades: string[] = [];
+    const feitas = new Set<number>();
+    partes.forEach((p, i) => {
+      if (feitas.has(i)) return;
+      const par = p.casal ? partes.findIndex((q, j) => j !== i && !feitas.has(j) && q.casal === p.casal) : -1;
+      if (par >= 0 && p.tipo_pessoa !== "coletiva" && partes[par].tipo_pessoa !== "coletiva") {
+        feitas.add(i);
+        feitas.add(par);
+        // O casal usa o regime e a morada da primeira parte; se divergirem, vale o regime de quem aparece primeiro.
+        unidades.push(identificacaoCasal(h, p, partes[par]));
+      } else {
+        feitas.add(i);
+        unidades.push(identificacaoParte(h, p));
+      }
+    });
+    return unidades;
   }
-  return partes.map((p) => identificacaoParte(h, p));
+  const unidades: string[] = [];
+  for (let i = 0; i < partes.length; i++) {
+    if (i + 1 < partes.length && saoCasalEntreSi(partes[i], partes[i + 1])) {
+      unidades.push(identificacaoCasal(h, partes[i], partes[i + 1]));
+      i++;
+    } else {
+      unidades.push(identificacaoParte(h, partes[i]));
+    }
+  }
+  return unidades;
 }
 
-function letraOrdinal(i: number): string {
-  return String.fromCharCode(65 + i);
-}
-
-// A) / B) / C)... - só quando há mais do que uma unidade de identificação do mesmo lado.
+// 1) / 2) / 3)... - só quando há mais do que uma unidade de identificação do mesmo lado (a
+// solicitadora pediu números, não letras).
 function comLetras(identificacoes: string[]): string[] {
   if (identificacoes.length <= 1) return identificacoes;
-  return identificacoes.map((texto, i) => `${letraOrdinal(i)}) ${texto}`);
+  return identificacoes.map((texto, i) => `${i + 1}) ${texto}`);
 }
 
 function cabecalhoOutorgantes(
@@ -315,9 +396,25 @@ export type BlocoOutorgantes = {
   identificacoesCompradores: string[];
 };
 
-export function montarBlocoOutorgantes(h: Helpers, vendedores: Parte[], compradores: Parte[]): BlocoOutorgantes {
-  const identificacoesVendedores = identificacoesGrupo(h, vendedores);
-  const identificacoesCompradores = identificacoesGrupo(h, compradores);
+// Processos antigos guardam os emails só no processo (email_proprietario_contrato /
+// email_comprador_contrato, texto livre). Se nenhuma parte do lado tem email próprio, esse texto
+// entra no fim da última identificação do lado.
+function comEmailDoProcesso(h: Helpers, partes: Parte[], unidades: string[], emailProcesso: string | null | undefined): string[] {
+  const texto = (emailProcesso ?? "").trim();
+  if (!texto || listaEmails(partes).length > 0 || unidades.length === 0) return unidades;
+  const lista = texto.split(/[;,\s]+/).filter(Boolean);
+  const sufixo = lista.length === 1 ? `, com o email ${h.v(lista[0])}` : `, com os emails ${juntarE(lista.map((e) => h.v(e)))}`;
+  return [...unidades.slice(0, -1), unidades[unidades.length - 1] + sufixo];
+}
+
+export function montarBlocoOutorgantes(
+  h: Helpers,
+  vendedores: Parte[],
+  compradores: Parte[],
+  emailsProcesso: { vendedores?: string | null; compradores?: string | null } = {}
+): BlocoOutorgantes {
+  const identificacoesVendedores = comEmailDoProcesso(h, vendedores, identificacoesGrupo(h, vendedores), emailsProcesso.vendedores);
+  const identificacoesCompradores = comEmailDoProcesso(h, compradores, identificacoesGrupo(h, compradores), emailsProcesso.compradores);
   return {
     cabecalhoVendedores: cabecalhoOutorgantes("PRIMEIRO", "VENDEDOR", identificacoesVendedores.length),
     identificacoesVendedores: comLetras(identificacoesVendedores),
@@ -353,16 +450,38 @@ function aFavorDe(entidade: string): string {
 // Uma frase por hipoteca, seguida de uma única obrigação de cancelamento a cobrir todas.
 function textoHipotecas(h: Helpers, C: Concordancia, T: TermosImovel, hipotecas: Hipoteca[]): string {
   const frases = hipotecas.map((hip) => {
-    const natureza = hip.natureza || "hipoteca voluntária";
+    const natureza = (hip.natureza || "hipoteca voluntária").trim().toLocaleLowerCase("pt-PT");
+    const ehOnus = /^[óo]nus/.test(natureza);
+    // "voluntária" / "legal" / "judicial" sozinhos são hipotecas - o texto tem de dizer "hipoteca".
+    const descricao = ehOnus || /hipoteca|penhora|arresto/.test(natureza) ? natureza : `hipoteca ${natureza}`;
+    const masculino = ehOnus;
+    const registada = masculino ? "registado" : "registada";
     const detalhe = hip.numero_apresentacao
-      ? `, através da ${h.v(hip.numero_apresentacao)}${hip.data_registo ? ` de ${h.dataPT(hip.data_registo)}` : ""}`
+      ? ` através da ${h.v(hip.numero_apresentacao)}${hip.data_registo ? ` de ${h.dataPT(hip.data_registo)}` : ""}`
       : hip.data_registo
-        ? `, registada em ${h.dataPT(hip.data_registo)}`
+        ? ` em ${h.dataPT(hip.data_registo)}`
         : "";
-    return `uma ${h.v(natureza)} registada a favor ${aFavorDe(h.v(hip.entidade_credora))}${detalhe}`;
+    // Datas escritas à mão dentro do texto (2025/10/02, 2025-10-02) passam ao formato do contrato.
+    const entidade = hip.entidade_credora
+      .trim()
+      .replace(/\b(\d{4})[/-](\d{2})[/-](\d{2})\b/g, "$3-$2-$1");
+    const credor = h.v(entidade);
+    // Num ónus (ex.: inalienabilidade) o campo "entidade" costuma trazer a origem do ónus ("decorrente
+    // do mútuo garantido pela hipoteca ...") e não um banco. Só se escreve "a favor de" quando parece
+    // mesmo o nome de uma instituição; qualquer outro texto entra como descrição do ónus.
+    const pareceBanco = /\b(banco|caixa|s\.?\s?a\.?|cr[ée]dito|bpi|bcp|santander|montepio|abanca|bankinter|cetelem|unicre|millennium|uci|eurobic|activobank|novo banco)\b/i.test(entidade);
+    const origemDescritiva = ehOnus ? !pareceBanco : /^(decorrente|resultante|a favor|garantido|emergente)/i.test(entidade);
+    const artigo = masculino ? "um" : "uma";
+    if (origemDescritiva) {
+      return `${artigo} ${h.v(descricao)} ${registada}${detalhe}, ${h.v(entidade.charAt(0).toLocaleLowerCase("pt-PT") + entidade.slice(1))}`;
+    }
+    return `${artigo} ${h.v(descricao)} ${registada} a favor ${aFavorDe(credor)}${detalhe ? `,${detalhe}` : ""}`;
   });
   const verbo = frases.length === 1 ? "incide" : "incidem";
-  return `Sobre ${T.referida} ${verbo} ${frases.join("; ")}, cujo cancelamento terá de ser assegurado ${C.peloPrim} até à data da escritura definitiva de compra e venda.`;
+  // Duas ou mais inscrições: "uma hipoteca ...; e um ónus ..." e cancelamentos no plural.
+  const lista = frases.length > 1 ? `${frases.slice(0, -1).join("; ")}; e ${frases[frases.length - 1]}` : frases[0];
+  const cancelamento = frases.length === 1 ? "cujo cancelamento terá" : "cujos cancelamentos terão";
+  return `Sobre ${T.referida} ${verbo} ${lista}, ${cancelamento} de ser assegurado${frases.length === 1 ? "" : "s"} ${C.peloPrim} até à data da escritura definitiva de compra e venda.`;
 }
 
 // Cláusula Primeira (Objeto) - 5 pontos do modelo. O ponto 1 varia consoante o imóvel é fracção
@@ -378,23 +497,51 @@ export function pontosClausulaPrimeira(
   const T = termosImovel(ehFracao);
 
   const moradaCompleta = [
-    h.v(processo.imovel_morada),
-    [processo.imovel_codigo_postal, processo.imovel_localidade].filter(Boolean).join(" "),
+    h.v(capitalizarLocal(processo.imovel_morada)),
+    [processo.imovel_codigo_postal, capitalizarLocal(processo.imovel_localidade)].filter(Boolean).join(" "),
   ]
     .filter(Boolean)
     .join(", ");
-  const registoELicencas = `descrit${ehFracao ? "a" : "o"} na Conservatória do Registo Predial de ${h.v(
-    processo.imovel_conservatoria
-  )} sob o n.º ${h.v(processo.imovel_descricao_predial)}, inscrito na matriz sob o artigo ${h.v(
-    processo.imovel_artigo_matricial
-  )}, com a licença de utilização n.º ${h.v(processo.imovel_licenca_utilizacao)}, emitida em ${h.dataLongaPT(
+  // Quando a certidão predial traz "situado em ..." e a composição, é isso que se escreve (é a
+  // descrição registada do prédio), não a morada comercial do imóvel.
+  const situadoEm = (processo.imovel_situado_em ?? "").trim();
+  const composicao = (processo.imovel_composicao ?? "").trim().replace(/[.\s]+$/, "");
+  const localDoImovel = situadoEm ? h.v(capitalizarLocal(situadoEm)) : moradaCompleta;
+  const composto = composicao ? `, composto por ${h.v(composicao)}` : "";
+
+  // Certificado energético: válido (omissão), isento (entra a isenção, com número e data) ou em
+  // execução (fica a entregar até à escritura).
+  const estadoCert = processo.imovel_certificado_estado || "valido";
+  let certificado: string;
+  if (estadoCert === "isento") {
+    certificado = `, estando o imóvel isento de certificado de desempenho energético, nos termos da isenção n.º ${neg(
+      h.v(processo.imovel_certificado_isencao_numero)
+    )}, emitida em ${h.dataLongaPT(processo.imovel_certificado_data_emissao ?? null)}`;
+  } else if (estadoCert === "em_execucao") {
+    certificado = `, encontrando-se o certificado de desempenho energético em execução, a entregar ${C.aoSeg} e a quem realize a escritura até à data da mesma`;
+  } else {
+    certificado = `, com o certificado de desempenho energético n.º ${neg(
+      h.v(processo.imovel_certificado_energetico)
+    )}, válido até ${h.dataPT(processo.imovel_certificado_validade)}, com a classe energética ${h.v(
+      processo.imovel_certificado_classe
+    )}`;
+  }
+  // O campo pode trazer só a cidade ("Guimarães") ou o nome completo ("2.ª Conservatória do Registo
+  // Predial de Braga") - o prefixo só se acrescenta no primeiro caso.
+  const nomeConservatoria = capitalizarLocal(processo.imovel_conservatoria);
+  const conservatoria = h.v(
+    nomeConservatoria && /conservat[óo]ria/i.test(nomeConservatoria)
+      ? nomeConservatoria
+      : `Conservatória do Registo Predial de ${nomeConservatoria ?? ""}`.replace(/ de $/, " de ____________")
+  );
+  const registoELicencas = `descrit${ehFracao ? "a" : "o"} na ${conservatoria} sob o n.º ${neg(h.v(processo.imovel_descricao_predial))}, inscrito na matriz sob o artigo ${neg(
+    h.v(processo.imovel_artigo_matricial)
+  )}, com a licença de utilização n.º ${neg(h.v(processo.imovel_licenca_utilizacao))}, emitida em ${h.dataLongaPT(
     processo.imovel_licenca_data_emissao
-  )}, pela ${h.v(processo.imovel_licenca_entidade_emissora)}, com o certificado de desempenho energético n.º ${h.v(
-    processo.imovel_certificado_energetico
-  )}, válido até ${h.dataPT(processo.imovel_certificado_validade)}, com a classe energética ${h.v(
-    processo.imovel_certificado_classe
-  )}.`;
-  const localizacao = `freguesia de ${h.v(processo.imovel_freguesia)}, concelho de ${h.v(processo.imovel_concelho)}`;
+  )}, pela ${h.v(processo.imovel_licenca_entidade_emissora)}${certificado}.`;
+  const localizacao = `freguesia de ${h.v(capitalizarLocal(processo.imovel_freguesia))}, concelho de ${h.v(
+    capitalizarLocal(processo.imovel_concelho)
+  )}`;
   const declara = `${C.Prim}, ${C.vp("declara", "declaram")} para os devidos e legais efeitos, que ${C.vp(
     "é o único dono e legítimo proprietário",
     "são os únicos donos e legítimos proprietários"
@@ -409,9 +556,9 @@ export function pontosClausulaPrimeira(
       processo.imovel_andar_fracao
     )}${orientacao}, destinado a ${h.v(
       processo.imovel_finalidade
-    )}, integrada num prédio urbano em regime de propriedade horizontal, sita em ${moradaCompleta}, ${localizacao}, ${registoELicencas}`;
+    )}, integrada num prédio urbano em regime de propriedade horizontal, sita em ${localDoImovel}${composto}, ${localizacao}, ${registoELicencas}`;
   } else {
-    ponto1 = `${declara} do prédio urbano sito em ${moradaCompleta}, ${localizacao}, ${registoELicencas}`;
+    ponto1 = `${declara} do prédio urbano sito em ${localDoImovel}${composto}, ${localizacao}, ${registoELicencas}`;
   }
 
   const pontos: string[] = [ponto1];
@@ -479,6 +626,16 @@ export function pontosClausulaSegunda(h: Helpers, C: Concordancia, processo: Pro
     } ${C.vp("dará", "darão")} quitação após boa cobrança.`,
   ];
 
+  // Reserva (a solicitadora pediu que entre no contrato): fica a fazer parte do preço total.
+  if (processo.reserva === true && typeof processo.valor_reserva === "number") {
+    const ate = processo.reserva_ate_data ? `, paga até ao dia ${h.dataLongaPT(processo.reserva_ate_data)}` : "";
+    pontos.push(
+      `A título de reserva do imóvel, ${C.seg} ${C.vs("entrega", "entregam")} a quantia de ${h.euros(
+        processo.valor_reserva
+      )}${ate}, valor que conta para o sinal acima referido, sendo deduzido ao montante a entregar na presente data.`
+    );
+  }
+
   if (ehAgencia) {
     const temFinanciamento = recorreAFinanciamento(processo);
     const temAvaliacao = !!processo.condicionado_avaliacao;
@@ -496,7 +653,13 @@ export function pontosClausulaSegunda(h: Helpers, C: Concordancia, processo: Pro
     pontos.push(
       `${C.Prim} ${C.vp("nomeia", "nomeiam")} a ${AGENCIA_NOME} para ficar como fiel depositária, do valor acima mencionado, ${ate}, após o que transferirá o sinal ${
         C.aoPrim
-      }, podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`
+      }, podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.`,
+      `${C.Seg} ${C.vs("nomeia", "nomeiam")} a ${AGENCIA_NOME}, para ficar como fiel depositária, nos termos do artigo 18.º da Lei n.º 15/2013, de 8 de fevereiro, do valor acima mencionado, até que estejam reunidas todas as assinaturas do presente contrato de promessa, sendo posteriormente enviado, por transferência bancária, ${C.vp(
+        "para a conta do primeiro outorgante",
+        C.nPrim === 2
+          ? "na proporção de metade, para a conta de cada um dos primeiros outorgantes"
+          : "em partes iguais, para a conta de cada um dos primeiros outorgantes"
+      )}, depois de deduzido o valor da comissão devida.`
     );
   }
 
@@ -509,10 +672,23 @@ export function pontosClausulaSegunda(h: Helpers, C: Concordancia, processo: Pro
 }
 
 // Cláusula Terceira (Escritura Pública ou DPA) - 4 pontos do modelo; só a data é dinâmica.
-export function pontosClausulaTerceira(h: Helpers, C: Concordancia, processo: Processo): string[] {
+export type EmailsPartes = { vendedores: string[]; compradores: string[] };
+
+// "ou através dos emails convencionados (a@x.pt e b@y.pt)" - os emails são os da parte notificada,
+// os mesmos que constam da identificação dos outorgantes.
+function viaEmails(emails: string[]): string {
+  return `ou através dos emails convencionados${emails.length > 0 ? ` (${juntarE(emails)})` : ""}`;
+}
+
+export function pontosClausulaTerceira(
+  h: Helpers,
+  C: Concordancia,
+  processo: Processo,
+  emails: EmailsPartes = { vendedores: [], compradores: [] }
+): string[] {
   return numerar([
-    `A escritura definitiva de compra e venda, de que o presente contrato é promessa será outorgada até ao dia ${h.dataLongaPT(
-      processo.prazo_escritura
+    `A escritura definitiva de compra e venda, de que o presente contrato é promessa será outorgada até ao dia ${neg(
+      h.dataLongaPT(processo.prazo_escritura)
     )}, em cartório notarial, escritório de advogados, solicitadores ou casa pronta, a designar ${C.peloSeg}, devendo ${C.vs(
       "este",
       "estes"
@@ -520,14 +696,18 @@ export function pontosClausulaTerceira(h: Helpers, C: Concordancia, processo: Pr
     `Se a escritura não for realizada no prazo referido na cláusula anterior por facto imputável ${C.aoPrim}, ${C.seg} ${C.vs(
       "deverá",
       "deverão"
-    )} notificá-${C.vp("lo", "los")} de novo, em data posterior, por carta registada com aviso de receção com pelo menos 15 (quinze) dias de antecedência.`,
+    )} notificá-${C.vp("lo", "los")} de novo, em data posterior, por carta registada com aviso de receção ${viaEmails(
+      emails.vendedores
+    )}, com pelo menos 15 (quinze) dias de antecedência.`,
     `Decorrido que esteja o prazo referido no n.º 1 desta cláusula sem se ter realizado a Escritura Pública e Definitiva por facto imputável ${C.aoSeg}, ${C.prim} ${C.vp(
       "tem",
       "têm"
     )} a faculdade de reverter para si a obrigação de notificá-${C.vs(
       "lo",
       "los"
-    )}, em data posterior, por carta registada, com aviso de receção com pelo menos 15 (quinze) dias de antecedência, a comparecer no dia, hora e local determinado por ${C.vp(
+    )}, em data posterior, por carta registada, com aviso de receção ${viaEmails(
+      emails.compradores
+    )}, com pelo menos 15 (quinze) dias de antecedência, a comparecer no dia, hora e local determinado por ${C.vp(
       "este",
       "estes"
     )}, para a celebração do referido ato.`,
@@ -578,13 +758,22 @@ export function pontosClausulaQuinta(h: Helpers, C: Concordancia, processo: Proc
 
 // Cláusula Sexta (Encargos e Despesas) - a referência ao cancelamento da hipoteca só entra
 // quando existe hipoteca (mesma lista que decide o ponto 2 da Cláusula Primeira).
-export function pontosClausulaSexta(C: Concordancia, hipotecas: Hipoteca[]): string[] {
+export function pontosClausulaSexta(C: Concordancia, hipotecas: Hipoteca[], processo?: Processo): string[] {
+  // Imóvel isento de certificado energético: não há certificado a entregar.
+  const docs = processo?.imovel_certificado_estado === "isento" ? "licença de utilização" : "licença de utilização, certificado energético";
+  const ehOnus = (hip: Hipoteca) => /^[óo]nus/i.test((hip.natureza ?? "").trim());
+  const nOnus = hipotecas.filter(ehOnus).length;
+  const nHip = hipotecas.length - nOnus;
+  const partesCancelamento: string[] = [];
+  if (nHip === 1) partesCancelamento.push("distrate/protocolo APB para o cancelamento da referida hipoteca e o custo a esta associado");
+  if (nHip > 1) partesCancelamento.push("distrates/protocolos APB para o cancelamento das referidas hipotecas e os custos a estas associados");
+  if (nOnus > 0) {
+    partesCancelamento.push(
+      `${nHip > 0 ? "bem como o " : ""}cancelamento ${nOnus === 1 ? "do referido ónus" : "dos referidos ónus"}${nHip > 0 ? "" : " e o custo associado"}`
+    );
+  }
   const hipoteca =
-    hipotecas.length === 0
-      ? "licença de utilização e certificado energético"
-      : hipotecas.length === 1
-        ? "licença de utilização, certificado energético, e cancelamento da referida hipoteca e o custo a esta associado"
-        : "licença de utilização, certificado energético, e cancelamento das referidas hipotecas e os custos a estas associados";
+    hipotecas.length === 0 ? docs.replace(", ", " e ") : `${docs}, e ${partesCancelamento.join(", ")}`;
   return numerar([
     `Compete ${C.aoPrim} a organização e entrega ${C.aoSeg} de toda a documentação necessária à celebração da escritura de compra e venda, registo predial, caderneta predial, ${hipoteca}.`,
     `São por conta ${C.doSeg} todos os encargos notariais, registais e fiscais inerentes à qualidade de ${C.vs(

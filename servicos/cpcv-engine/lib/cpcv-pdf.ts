@@ -1,6 +1,6 @@
 import type { Hipoteca, Parte, Processo } from "./cpcv-types";
 import { launchChromium } from "./cpcv-browser";
-import { gerarHtmlCpcv, FONT_FACE_CSS } from "./cpcv-template";
+import { gerarHtmlCpcv, FONT_FACE_CSS, trancarFimDosPontos } from "./cpcv-template";
 
 // Margens iguais às do Word (lib/cpcv-docx.ts). Passadas aqui e não via @page porque o Chromium
 // só desenha o cabeçalho/rodapé quando as margens vêm nas opções de page.pdf().
@@ -44,6 +44,7 @@ export async function gerarPdfCpcv(
     let contadas = 0;
     for (let passagem = 0; passagem < 3; passagem++) {
       await page.setContent(gerarHtmlCpcv(processo, partes, hipotecas, paginas), { waitUntil: "networkidle" });
+      await trancarFimDosPontos(page);
       pdf = await page.pdf({
         format: "A4",
         printBackground: true,

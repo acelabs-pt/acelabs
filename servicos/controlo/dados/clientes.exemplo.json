@@ -1,0 +1,11 @@
+[
+  {
+    "id": "exemplo",
+    "nome": "Cliente de exemplo",
+    "produto": "cockpit",
+    "supabase_url": "https://xxxxxxxxxxxxxxxx.supabase.co",
+    "anon_key": "chave anon (pública) do projeto",
+    "app_url": "https://cockpit.acelabs.pt",
+    "modo": "chave"
+  }
+]

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { COOKIE_CLIENTE, configSb } from "@/lib/clientes";
 
 // Cliente ligado à sessão do utilizador autenticado (via cookies), para usar
 // em Server Components e API routes. Respeita Row Level Security - cada
@@ -7,10 +8,12 @@ import { cookies } from "next/headers";
 // das tabelas (ver create_tables_cockpit.sql), não por filtros no código.
 export async function sbUserServer() {
   const cookieStore = await cookies();
+  const cfg = configSb(cookieStore.get(COOKIE_CLIENTE)?.value);
+  if (!cfg) throw new Error("Sem cliente escolhido.");
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    cfg.url,
+    cfg.anon,
     {
       cookies: {
         getAll() {

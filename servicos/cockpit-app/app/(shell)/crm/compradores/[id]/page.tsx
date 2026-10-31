@@ -1,14 +1,20 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { resumoLocais } from "@/lib/localizacoes";
-import { useMatches } from "@/lib/match";
-import ListaMatches from "@/components/crm/ListaMatches";
-import FormComprador, { paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import FormComprador, { guardarZonas, nomeZona, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import ContactosRegistados from "@/components/crm/ContactosRegistados";
+import AgendaDoComprador from "@/components/crm/AgendaDoComprador";
+import BotaoExportar from "@/components/crm/BotaoExportar";
+import { atualizarPorComprador, carregarDoComprador, responder, type Correspondencia } from "@/lib/oportunidades";
 import {
+  DOCUMENTOS_ESCRITURA,
   FUNIL,
   OBJETIVOS,
   alertaLaranja,
@@ -25,6 +31,8 @@ import EditorVisita from "@/components/crm/EditorVisita";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
+import { eur } from "@/lib/graficos";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 type Documento = { id: string; nome: string; entregue: boolean };
 type AngMinha = { id: string; titulo: string; vendido_em: string | null };
@@ -35,6 +43,8 @@ export default function FichaComprador() {
   const [c, setC] = useState<Comprador | null>(null);
   const [imoveis, setImoveis] = useState<ImovelComprador[]>([]);
   const [docs, setDocs] = useState<Documento[]>([]);
+  const [zonas, setZonas] = useState<Localizacao[]>([]);
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
@@ -42,15 +52,17 @@ export default function FichaComprador() {
   const [angs, setAngs] = useState<AngMinha[]>([]);
   const [angSel, setAngSel] = useState("");
   const [novoDoc, setNovoDoc] = useState("");
-  const { matches, recarregar: recarregarMatches } = useMatches();
+  const [verTodosImoveis, setVerTodosImoveis] = useState(false);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
-    const [r1, r2, r3, r4] = await Promise.all([
+    const [r1, r2, r3, r4, r5, cs] = await Promise.all([
       sb.from("compradores").select("*, contactos(*)").eq("id", id).single(),
       sb.from("comprador_imoveis").select("*").eq("comprador_id", id).order("created_at"),
       sb.from("comprador_documentos").select("*").eq("comprador_id", id).order("created_at"),
       sb.from("angariacoes").select("id, titulo, vendido_em").order("created_at", { ascending: false }),
+      sb.from("comprador_zonas").select("distrito, concelho, freguesia").eq("comprador_id", id).order("created_at"),
+      carregarDoComprador(id),
     ]);
     if (r1.error || !r1.data) {
       setErro("Comprador não encontrado.");
@@ -60,6 +72,8 @@ export default function FichaComprador() {
     setImoveis((r2.data ?? []) as ImovelComprador[]);
     setDocs((r3.data ?? []) as Documento[]);
     setAngs((r4.data ?? []) as AngMinha[]);
+    setZonas(((r5.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
+    setCorresp(cs);
   }, [id]);
 
   useEffect(() => {
@@ -165,6 +179,16 @@ export default function FichaComprador() {
     await carregar();
   }
 
+  // Junta a lista habitual, sem repetir os que já existem (ignora maiúsculas)
+  async function usarListaPadrao() {
+    const existentes = new Set(docs.map((d) => d.nome.trim().toLowerCase()));
+    const novos = DOCUMENTOS_ESCRITURA.filter((n) => !existentes.has(n.toLowerCase()));
+    if (novos.length === 0) return;
+    const { error } = await sbBrowser().from("comprador_documentos").insert(novos.map((nome) => ({ comprador_id: id, nome })));
+    if (error) return setErro("Não foi possível juntar a lista de documentos.");
+    await carregar();
+  }
+
   async function alternarDoc(d: Documento) {
     setDocs((ds) => ds.map((x) => (x.id === d.id ? { ...x, entregue: !x.entregue } : x)));
     await sbBrowser().from("comprador_documentos").update({ entregue: !d.entregue }).eq("id", d.id);
@@ -178,20 +202,20 @@ export default function FichaComprador() {
   }
 
   if (erro && !c) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!c) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!c) return <EsqueletoLista n={3} />;
 
   const n = contar(imoveis);
   const alerta = alertaLaranja(c);
   const tel = c.contactos.telemovel;
   const diasEscritura = c.escritura_prazo ? diasAte(c.escritura_prazo) : null;
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
   if (editar) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditar(false)} className="text-sm text-azul">&larr; Cancelar</button>
+        <button onClick={() => setEditar(false)} className="text-sm font-medium text-azul-escuro">&larr; Cancelar</button>
         <FormComprador
-          inicial={valoresIniciais(c)}
+          inicial={valoresIniciais(c, zonas)}
           textoBotao="Guardar alterações"
           aGuardar={aGuardar}
           onSubmit={async (v) => {
@@ -199,8 +223,10 @@ export default function FichaComprador() {
             const sb = sbBrowser();
             const r1 = await sb.from("contactos").update(paraContacto(v)).eq("id", c.contacto_id);
             const r2 = await sb.from("compradores").update(paraComprador(v)).eq("id", c.id);
+            const eZonas = await guardarZonas(c.id, v);
+            if (!r1.error && !r2.error && !eZonas) await atualizarPorComprador(c.id);
             setAGuardar(false);
-            if (r1.error || r2.error) return setErro("Não foi possível guardar.");
+            if (r1.error || r2.error || eZonas) return setErro(eZonas ?? "Não foi possível guardar.");
             setEditar(false);
             await carregar();
           }}
@@ -211,42 +237,87 @@ export default function FichaComprador() {
 
   return (
     <div className="space-y-4">
-      <Link href="/crm/compradores" className="text-sm text-azul">&larr; Compradores</Link>
+      <Link href="/crm/compradores" className="text-sm font-medium text-azul-escuro">&larr; Compradores</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      <section className={cartao}>
-        <div className="flex items-start justify-between gap-2">
+      <section className="space-y-4 rounded-3xl border border-linha bg-white p-5">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold text-tinta">{c.contactos.nome}</h2>
-            <p className="text-sm text-secundario">
-              {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ")}
-            </p>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-tinta">{c.contactos.nome}</h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${c.estado === "perdido" ? "bg-black/5 text-secundario" : "bg-azul-suave text-azul-escuro"}`}>
+                {labelEstado(c.estado)}
+              </span>
+              {c.motivacao != null && (
+                <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${(c.motivacao / 10) * 120} 70% 42% / 0.12)`, color: `hsl(${(c.motivacao / 10) * 120} 70% 22%)` }}>
+                  Motivação {c.motivacao}/10
+                </span>
+              )}
+              {alerta && <span className="rounded-full bg-ambar-fundo px-2.5 py-1 text-xs font-semibold text-ambar-texto">{alerta}</span>}
+            </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium">
+          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
             Editar
           </button>
         </div>
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          {(
+            [
+              ["Procura", [c.tipo_imovel, c.tipologia_minima && `${c.tipologia_minima} ou mais`].filter(Boolean).join(", ")],
+              ["Orçamento", c.expectativa_valor != null ? eur(Number(c.expectativa_valor)) : ""],
+              ["Zonas", zonas.length > 0 ? zonas.map(nomeZona).join(" / ") : [c.freguesia, c.concelho, c.distrito].filter(Boolean).join(", ")],
+              ["Financiamento", [c.financiamento, c.simulacao_credito && `simulação ${c.simulacao_credito.toLowerCase()}`].filter(Boolean).join(", ")],
+              ["Precisa de vender", c.precisa_vender == null ? "" : c.precisa_vender ? "Sim" : "Não"],
+              ["Origem", c.contactos.canal_origem ?? ""],
+              ["Telemóvel", c.contactos.telemovel ?? ""],
+              ["Email", c.contactos.email ?? ""],
+              ["Notas", c.contactos.observacoes ?? ""],
+            ] as [string, string][]
+          )
+            .filter(([, v]) => v)
+            .map(([k, v]) => (
+              <div key={k} className={k === "Zonas" || k === "Email" || k === "Notas" ? "col-span-2" : ""}>
+                <dt className="text-xs text-secundario">{k}</dt>
+                <dd className="break-words font-medium text-tinta">{v}</dd>
+              </div>
+            ))}
+        </dl>
+
         {tel && (
           <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-xl bg-azul py-2.5 text-center text-sm font-semibold text-white">Ligar</a>
+            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
+              Ligar
+            </a>
             <a
-              href={`https://wa.me/${tel.replace(/\D/g, "")}`}
+              href={linkWhatsapp(tel)}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 rounded-xl bg-verde py-2.5 text-center text-sm font-semibold text-white"
+              className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta"
             >
               WhatsApp
             </a>
           </div>
         )}
-        {alerta && <p className="rounded-lg bg-ambar-fundo px-3 py-2 text-sm font-medium text-ambar-texto">{alerta}</p>}
       </section>
 
-      <ListaMatches
-        matches={matches.filter((m) => m.comprador.id === c.id)}
-        vista="comprador"
-        onAlterado={recarregarMatches}
-      />
+      <AgendaDoComprador compradorId={c.id} contactoId={c.contacto_id} nome={c.contactos.nome} imoveis={imoveis} />
+
+      <ContactosRegistados contactoId={c.contacto_id} />
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">Imóveis que podem servir ({corresp.filter((x) => x.estado === "nova").length} por rever)</h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="imovel"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -259,7 +330,7 @@ export default function FichaComprador() {
                 key={f.id}
                 onClick={() => mudarEstado(f.id)}
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ${
-                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul" : "bg-black/5 text-secundario"
+                  ativo ? "bg-azul text-white" : passado ? "bg-azul/15 text-azul-escuro" : "bg-black/5 text-secundario"
                 }`}
               >
                 {f.label}
@@ -294,8 +365,20 @@ export default function FichaComprador() {
         ))}
 
         <ul className="space-y-2 pt-1">
-          {imoveis.map((i) => (
-            <li key={i.id} className="rounded-xl border border-black/10 p-3">
+          {(verTodosImoveis ? imoveis : imoveis.slice(-3)).map((i) => (
+            <li key={i.id}>
+              <SwipeLinha
+                className="rounded-xl"
+                direita={
+                  !i.visitado_em
+                    ? { rotulo: "Visitado", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "visitado_em") }
+                    : !i.proposta_em
+                    ? { rotulo: "Proposta", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "proposta_em") }
+                    : undefined
+                }
+                esquerda={{ rotulo: "Remover", classe: "bg-red-600 text-white", onAcao: () => apagarImovel(i) }}
+              >
+              <div className="rounded-xl border border-black/10 bg-white p-3">
               <div className="flex items-start justify-between gap-2">
                 {i.link ? (
                   <a href={i.link} target="_blank" rel="noreferrer" className="min-w-0 truncate text-sm text-azul">{i.link}</a>
@@ -319,7 +402,7 @@ export default function FichaComprador() {
                   <button
                     key={campo}
                     onClick={() => alternarMarco(i, campo)}
-                    className={`flex-1 rounded-lg px-1 py-1.5 text-xs font-medium ${
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${
                       i[campo] ? (campo === "sem_interesse_em" ? "bg-red-600 text-white" : "bg-verde text-white") : "bg-black/5 text-secundario"
                     }`}
                   >
@@ -348,9 +431,16 @@ export default function FichaComprador() {
                   />
                 </div>
               )}
+              </div>
+              </SwipeLinha>
             </li>
           ))}
         </ul>
+        {imoveis.length > 3 && (
+          <button onClick={() => setVerTodosImoveis((v) => !v)} className="text-sm font-medium text-azul">
+            {verTodosImoveis ? "Mostrar só os 3 mais recentes" : `Ver os ${imoveis.length} imóveis`}
+          </button>
+        )}
         <form onSubmit={adicionarImovel} className="space-y-2">
           <select
             value={angSel}
@@ -444,13 +534,23 @@ export default function FichaComprador() {
           <ul className="space-y-1.5">
             {docs.map((d) => (
               <li key={d.id}>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
-                  <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
-                </label>
+                <SwipeLinha
+                  className="rounded-lg"
+                  direita={{ rotulo: d.entregue ? "Por entregar" : "Entregue", classe: d.entregue ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => alternarDoc(d) }}
+                >
+                  <label className="flex items-center gap-2 bg-white py-1 text-sm">
+                    <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
+                    <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
+                  </label>
+                </SwipeLinha>
               </li>
             ))}
           </ul>
+          {DOCUMENTOS_ESCRITURA.some((n) => !docs.some((d) => d.nome.trim().toLowerCase() === n.toLowerCase())) && (
+            <button type="button" onClick={usarListaPadrao} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+              {docs.length === 0 ? "Usar a lista habitual" : "Juntar os que faltam da lista habitual"}
+            </button>
+          )}
           <form onSubmit={adicionarDoc} className="flex gap-2">
             <input
               value={novoDoc}
@@ -464,14 +564,16 @@ export default function FichaComprador() {
           </form>
 
           {c.estado === "escritura" && (
-            <button onClick={concluir} className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-white">
+            <button onClick={concluir} className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-tinta">
               Escritura feita: concluir negócio
             </button>
           )}
         </section>
       )}
 
-      <button onClick={apagarComprador} className="w-full py-2 text-sm text-red-600">
+      <BotaoExportar contactoId={c.contacto_id} nome={c.contactos.nome} />
+
+      <button onClick={apagarComprador} className="w-full py-2 text-sm font-medium text-red-700">
         Apagar comprador
       </button>
     </div>

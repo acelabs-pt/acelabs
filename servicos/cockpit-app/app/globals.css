@@ -5,11 +5,129 @@
 :root {
   --background: #f5f5f7;
   --foreground: #1d1d1f;
+  --linha: rgba(0, 0, 0, 0.08);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Brilho azul suave no canto, como no topo do site. Fixo e sem interação. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60rem 36rem at 100% -6%, rgba(0, 113, 227, 0.1), rgba(0, 113, 227, 0) 70%);
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+/* Foco visível para teclado */
+:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+button,
+a {
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a {
+    transition: none;
+  }
+  button:not(:disabled):active {
+    transform: none;
+  }
+}
+
+/* ---------- Gráficos: uma só animação de entrada, a desenhar ---------- */
+@keyframes desenhar-anel {
+  from { stroke-dashoffset: var(--f); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes desenhar-linha {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes surgir {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes crescer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes pulso {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(3); opacity: 0; }
+}
+.anim-anel {
+  animation: desenhar-anel 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.anim-linha {
+  stroke-dasharray: 1;
+  animation: desenhar-linha 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.anim-surgir {
+  animation: surgir 0.9s ease-out 0.25s both;
+}
+.anim-barra {
+  transform-origin: left center;
+  animation: crescer 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.anim-pulso {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulso 2.2s ease-out 1.2s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-anel, .anim-linha, .anim-surgir, .anim-barra, .anim-pulso {
+    animation: none !important;
+  }
+}
+
+/* O campo de pesquisa tem o seu próprio botão de limpar */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* Aviso com "Desfazer" */
+@keyframes toast-entrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.anim-toast {
+  animation: toast-entrada 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-toast { animation: none !important; }
+}
+
+/* Impressão (relatórios em PDF): fundo branco, sem o brilho azul do ecrã */
+@media print {
+  body {
+    background: #ffffff;
+  }
+  body::before {
+    display: none;
+  }
 }
 
 /* Quadros com um toque glossy em azul suave (tons claros do azul da marca, #0071e3). */
@@ -23,3 +141,22 @@ body {
       0 1px 3px rgba(0, 113, 227, 0.12);
   }
 }
+
+/* iPhone: o Safari faz zoom ao tocar num campo com letra menor que 16px e a página fica desalinhada.
+   No toque, todos os campos de escrever e escolher têm pelo menos 16px, também os que vierem a ser criados. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
+/* Dentro da app da App Store (PonteNativa marca o <html>), esconde o que só faz sentido no browser. */
+html[data-app="nativa"] [data-so-web] {
+  display: none;
+}
+
+/* Face ID: enquanto a app nativa está bloqueada, só o ecrã de bloqueio se vê (marcado em app/layout.tsx e BloqueioFaceId). */
+html[data-bloqueado="1"] body { background: #f5f5f7; }
+html[data-bloqueado="1"] body > *:not([data-bloqueio]) { visibility: hidden; }

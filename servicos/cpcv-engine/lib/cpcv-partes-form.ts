@@ -38,6 +38,10 @@ export type ParteDraft = {
   representanteNome: string;
   representanteCargo: string;
   certidaoPermanente: string;
+  email: string;
+  // "" (nenhum) ou o número do casal ("1", "2", ...): duas partes do mesmo lado com o mesmo número
+  // são cônjuges e saem na mesma frase do contrato.
+  casal: string;
   // Só usado em /cpcv/novo, antes de o processo (e o Storage path) existirem - vários
   // documentos por pessoa (CC + comprovativo de morada + etc.), não só um.
   ficheiros: File[];
@@ -103,6 +107,8 @@ export function parteDraftVazia(): ParteDraft {
     representanteNome: "",
     representanteCargo: "",
     certidaoPermanente: "",
+    email: "",
+    casal: "",
     ficheiros: [],
   };
 }
@@ -123,6 +129,8 @@ type LinhaParte = {
   representante_nome: string | null;
   representante_cargo: string | null;
   certidao_permanente: string | null;
+  email?: string | null;
+  casal?: number | null;
 };
 
 export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
@@ -151,6 +159,8 @@ export function parteDraftDeLinha(p: LinhaParte): ParteDraft {
     representanteNome: p.representante_nome ?? "",
     representanteCargo: p.representante_cargo ?? "",
     certidaoPermanente: p.certidao_permanente ?? "",
+    email: p.email ?? "",
+    casal: p.casal ? String(p.casal) : "",
     ficheiros: [],
   };
 }
@@ -178,6 +188,8 @@ export function parteDraftParaLinha(papel: "vendedor" | "comprador", d: ParteDra
     representante_nome: !singular ? d.representanteNome || null : null,
     representante_cargo: !singular ? d.representanteCargo || null : null,
     certidao_permanente: !singular ? d.certidaoPermanente || null : null,
+    email: d.email.trim() || null,
+    casal: singular && d.casal ? Number(d.casal) : null,
   };
 }
 

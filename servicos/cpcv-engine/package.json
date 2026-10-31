@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "verificar:clausulas": "tsx --env-file=.env.local scripts/comparar-clausulas-minutas.ts",
-    "testar:contrato": "tsx scripts/testar-contrato.ts"
+    "testar:contrato": "tsx scripts/testar-contrato.ts",
+    "comparar:final": "tsx scripts/comparar-final.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -17,6 +18,7 @@
     "@supabase/supabase-js": "^2.106.2",
     "docx": "^9.7.1",
     "googleapis": "^181.0.0",
+    "jszip": "^3.10.1",
     "next": "14.2.35",
     "playwright-core": "^1.63.0",
     "plotly.js": "^3.5.1",

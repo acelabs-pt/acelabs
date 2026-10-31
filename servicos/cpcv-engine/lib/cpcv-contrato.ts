@@ -21,6 +21,7 @@ import {
   pontosClausulaDecimaQuarta,
   pontosClausulaDecimaQuinta,
   pontosClausulaDecimaSexta,
+  capitalizarLocal,
   textoFinal,
   type BlocoOutorgantes,
   type ClausulaTexto,
@@ -47,8 +48,8 @@ export type Contrato = {
 };
 
 export const TITULO_CONTRATO = "CONTRATO PROMESSA DE COMPRA E VENDA";
-// Local de assinatura fixo (decisão aprovada) - nunca um campo do formulário.
-const LOCAL_ASSINATURA = "Braga";
+// Local de assinatura: o concelho do imóvel (pedido da solicitadora); "Braga" só se o concelho faltar.
+const LOCAL_ASSINATURA_OMISSAO = "Braga";
 
 export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], hipotecas: Hipoteca[]): Contrato {
   const vendedores = partes.filter((p) => p.papel === "vendedor");
@@ -57,14 +58,21 @@ export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], 
   if (compradores.length === 0) compradores.push(PARTE_EM_BRANCO);
 
   const C = concordancia(vendedores.length, compradores.length);
+  const emails = {
+    vendedores: vendedores.map((p) => (p.email ?? "").trim()).filter(Boolean),
+    compradores: compradores.map((p) => (p.email ?? "").trim()).filter(Boolean),
+  };
+  const textoEmails = (s: string | null | undefined) => (s ?? "").split(/[;,s]+/).filter(Boolean);
+  if (emails.vendedores.length === 0) emails.vendedores = textoEmails(processo.email_proprietario_contrato);
+  if (emails.compradores.length === 0) emails.compradores = textoEmails(processo.email_comprador_contrato);
 
   const lista: (ClausulaTexto | null)[] = [
     { titulo: "Objeto", paragrafos: pontosClausulaPrimeira(h, C, processo, hipotecas) },
     { titulo: "Preço e Condições de Pagamento", paragrafos: pontosClausulaSegunda(h, C, processo) },
-    { titulo: "Escritura Pública ou DPA", paragrafos: pontosClausulaTerceira(h, C, processo) },
+    { titulo: "Escritura Pública ou DPA", paragrafos: pontosClausulaTerceira(h, C, processo, emails) },
     { titulo: "Avaliação Bancária", paragrafos: pontosClausulaQuarta(h, C, processo) },
     { titulo: "Bens Móveis", paragrafos: pontosClausulaQuinta(h, C, processo) },
-    { titulo: "Encargos e Despesas", paragrafos: pontosClausulaSexta(C, hipotecas) },
+    { titulo: "Encargos e Despesas", paragrafos: pontosClausulaSexta(C, hipotecas, processo) },
     { titulo: "Incumprimento do Contrato", paragrafos: pontosClausulaSetima(C) },
     { titulo: "Alterações", paragrafos: pontosClausulaOitava() },
     { titulo: "Notificações", paragrafos: pontosClausulaNona() },
@@ -87,11 +95,14 @@ export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], 
   const exemplares = vendedores.length + compradores.length;
 
   return {
-    outorgantes: montarBlocoOutorgantes(h, vendedores, compradores),
+    outorgantes: montarBlocoOutorgantes(h, vendedores, compradores, {
+      vendedores: processo.email_proprietario_contrato,
+      compradores: processo.email_comprador_contrato,
+    }),
     introBoaFe: INTRO_BOA_FE,
     clausulas,
     textoFinal: textoFinal(exemplares),
-    localData: `${LOCAL_ASSINATURA}, ${h.dataLongaPT(processo.data_assinatura_contrato)}`,
+    localData: `${h.v(capitalizarLocal(processo.imovel_concelho), LOCAL_ASSINATURA_OMISSAO)}, ${h.dataLongaPT(processo.data_assinatura_contrato)}`,
     assinaturas: {
       tituloVendedores: vendedores.length > 1 ? "OS PRIMEIROS OUTORGANTES:" : "O PRIMEIRO OUTORGANTE:",
       linhasVendedores: vendedores.length,

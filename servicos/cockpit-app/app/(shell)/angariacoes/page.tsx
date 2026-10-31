@@ -1,10 +1,17 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
 import { sbBrowser } from "@/lib/supabase-browser";
+import { todas } from "@/lib/todas";
 import BarraProgresso from "@/components/BarraProgresso";
-import { blocoAtual, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
+import DadosImovel, { IMOVEL_VAZIO, imovelParaBd, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
+import { atualizarPorAngariacao } from "@/lib/oportunidades";
+import { blocoAtual, diaDeHoje, type Angariacao } from "@/lib/angariacao";
+import { carregarResumo, type ResumoAng } from "@/lib/resumoAngariacoes";
 import { hojeISO } from "@/lib/datas";
 import { CampoTelemovel, Escolha, Texto } from "@/components/crm/Campos";
 import SeletorLocalizacao from "@/components/crm/SeletorLocalizacao";
@@ -15,28 +22,37 @@ import { concluirTarefasDaFase } from "@/lib/proprietario";
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 
 export default function Angariacoes() {
+  const router = useRouter();
   const [lista, setLista] = useState<Angariacao[]>([]);
-  const [acoes, setAcoes] = useState<Record<string, Acao[]>>({});
+  const [resumo, setResumo] = useState<Record<string, ResumoAng>>({});
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarVendidas, setMostrarVendidas] = useState(false);
   const [novo, setNovo] = useState(false);
 
+  // "Nova angariação" do botão + vem com ?novo=1
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("novo") === "1") {
+      setNovo(true);
+      window.history.replaceState(null, "", "/angariacoes");
+    }
+  }, []);
+
   async function carregar() {
     const sb = sbBrowser();
     const [r1, r2] = await Promise.all([
-      sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("created_at", { ascending: false }),
-      sb.from("angariacao_acoes").select("*"),
+      todas((de, ate) =>
+        sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("created_at", { ascending: false }).order("id").range(de, ate)
+      ),
+      carregarResumo(),
     ]);
-    if (r1.error || r2.error) {
+    if (r1.error) {
       setErro("Não foi possível carregar as angariações.");
       setACarregar(false);
       return;
     }
-    const por: Record<string, Acao[]> = {};
-    for (const a of (r2.data ?? []) as Acao[]) (por[a.angariacao_id] ??= []).push(a);
     setLista(r1.data as unknown as Angariacao[]);
-    setAcoes(por);
+    setResumo(r2);
     setACarregar(false);
   }
 
@@ -67,7 +83,7 @@ export default function Angariacoes() {
       )}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : visiveis.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
           Ainda não há angariações. Fecha uma no CRM de proprietários ou cria uma aqui.
@@ -75,16 +91,18 @@ export default function Angariacoes() {
       ) : (
         <ul className="space-y-2">
           {visiveis.map((a) => {
-            const as = acoes[a.id] ?? [];
-            const feitas = as.filter((x) => x.feita).length;
+            const r = resumo[a.id];
+            const total = r?.total ?? 0;
+            const feitas = r?.feitas ?? 0;
             const dia = diaDeHoje(a.inicio);
             const bloco = blocoAtual(a.inicio, a.duracao_dias);
-            const proxima = as
-              .filter((x) => !x.feita)
-              .sort((x, y) => x.dia - y.dia)[0];
+            const proxima = r?.proximaNome ? { nome: r.proximaNome, follow_up: r.proximaFollowUp } : null;
             return (
               <li key={a.id}>
-                <Link href={`/angariacoes/${a.id}`} className="block rounded-2xl bg-white p-4 shadow-sm">
+                <SwipeLinha
+                  esquerda={total > 0 ? { rotulo: "Relatório", classe: "bg-azul text-white", onAcao: () => router.push(`/angariacoes/${a.id}/relatorio`) } : undefined}
+                >
+                <Link href={`/angariacoes/${a.id}`} className="block rounded-2xl border border-linha bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-base font-semibold text-tinta">{a.titulo}</p>
@@ -94,18 +112,18 @@ export default function Angariacoes() {
                       </p>
                     </div>
                     {a.vendido_em ? (
-                      <span className="shrink-0 rounded-full bg-verde/15 px-2.5 py-1 text-xs font-medium text-verde">Vendido</span>
+                      <span className="shrink-0 rounded-full bg-verde/15 px-2.5 py-1 text-xs font-medium text-tinta">Vendido</span>
                     ) : (
-                      <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
+                      <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
                         {dia < 1 ? "Ainda não começou" : dia > a.duracao_dias ? "Contrato terminado" : `Dia ${dia} de ${a.duracao_dias}`}
                       </span>
                     )}
                   </div>
-                  {as.length > 0 ? (
+                  {total > 0 ? (
                     <>
-                      <BarraProgresso valor={feitas} objetivo={as.length} className="mt-3 h-2" />
+                      <BarraProgresso valor={feitas} objetivo={total} className="mt-3 h-2" />
                       <p className="mt-1.5 text-xs text-secundario">
-                        {feitas}/{as.length} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
+                        {feitas}/{total} ações feitas{bloco ? ` · bloco ${bloco} de ${a.duracao_dias / 10}` : ""}
                         {proxima && !a.vendido_em ? ` · a seguir: ${proxima.follow_up ? "Follow up" : proxima.nome}` : ""}
                       </p>
                     </>
@@ -115,6 +133,7 @@ export default function Angariacoes() {
                     </p>
                   )}
                 </Link>
+                </SwipeLinha>
               </li>
             );
           })}
@@ -148,6 +167,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
   const [duracao, setDuracao] = useState<120 | 180>(180);
   const [regime, setRegime] = useState<"" | "exclusivo" | "nao_exclusivo">("");
   const [inicio, setInicio] = useState(hojeISO());
+  const [imovel, setImovel] = useState<DadosImovelForm>(IMOVEL_VAZIO);
   const [aGuardar, setAGuardar] = useState(false);
   const [modo, setModo] = useState<ModoDono>("nenhum");
   const [donos, setDonos] = useState<Dono[]>([]);
@@ -203,15 +223,20 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
           proprietarioId = prop.id;
         }
 
-        const { error } = await sb.from("angariacoes").insert({
+        const { data, error } = await sb.from("angariacoes").insert({
           titulo: titulo.trim(),
           duracao_dias: duracao,
           regime: regime || null,
           inicio,
           proprietario_id: proprietarioId,
-        });
+          ...imovelParaBd(imovel),
+        }).select("id").single();
+        if (error || !data) {
+          setAGuardar(false);
+          return onErro("Não foi possível criar a angariação.");
+        }
+        await atualizarPorAngariacao(data.id);
         setAGuardar(false);
-        if (error) return onErro("Não foi possível criar a angariação.");
         onCriada();
       }}
       className="space-y-3 rounded-2xl bg-white p-4 shadow-sm"
@@ -233,6 +258,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
           <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} required className={`${campo} mt-1 text-tinta`} />
         </label>
       </div>
+      <DadosImovel valor={imovel} onChange={setImovel} />
       <label className="block text-xs text-secundario">
         Regime
         <select value={regime} onChange={(e) => setRegime(e.target.value as typeof regime)} className={`${campo} mt-1 text-tinta`}>

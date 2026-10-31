@@ -1,5 +1,6 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -15,9 +16,9 @@ import {
   diaDeHoje,
   diaPadraoDoBloco,
   marcarAcao,
-  mudarDiaAcao,
   marcarVendido,
   renomearAngariacao,
+  moverAcao,
   nBlocos,
   NOME_FOLLOW_UP,
   type Acao,
@@ -26,11 +27,13 @@ import {
 } from "@/lib/angariacao";
 import { formatarDia, hojeISO } from "@/lib/datas";
 import Comissao from "@/components/crm/Comissao";
-import ListaMatches from "@/components/crm/ListaMatches";
 import Registos from "@/components/angariacoes/Registos";
 import ResumoAngariacao from "@/components/angariacoes/ResumoAngariacao";
 import AssociarProprietario from "@/components/angariacoes/AssociarProprietario";
-import { useMatches } from "@/lib/match";
+import DadosImovel, { imovelDe, imovelParaBd, resumoImovel, type DadosImovelForm } from "@/components/angariacoes/DadosImovel";
+import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
+import { atualizarPorAngariacao, carregarDaAngariacao, responder, type Correspondencia } from "@/lib/oportunidades";
+import { linkWhatsapp } from "@/lib/whatsapp";
 
 const BLOCOS_POR_VISTA = { mes: 3, trimestre: 9 } as const;
 type Vista = "tudo" | "mes" | "trimestre";
@@ -49,7 +52,6 @@ export default function PlanoAngariacao() {
   const [novaBloco, setNovaBloco] = useState(1);
   const [vista, setVista] = useState<Vista>("tudo");
   const [periodo, setPeriodo] = useState(0);
-  const { matches, recarregar: recarregarMatches } = useMatches();
   const [versaoRegistos, setVersaoRegistos] = useState(0);
   const [aRenomear, setARenomear] = useState(false);
   const [novoNome, setNovoNome] = useState("");
@@ -59,20 +61,25 @@ export default function PlanoAngariacao() {
   const [escolhidas, setEscolhidas] = useState<string[]>(ACOES_PADRAO.map((a) => a.nome));
   const [followUps, setFollowUps] = useState(true);
   const [aCriar, setACriar] = useState(false);
+  const [corresp, setCorresp] = useState<Correspondencia[]>([]);
+  const [editarImovel, setEditarImovel] = useState(false);
+  const [imovelForm, setImovelForm] = useState<DadosImovelForm | null>(null);
   const [extras, setExtras] = useState<AcaoExtra[]>([]);
   const [extraNome, setExtraNome] = useState("");
   const [extraBloco, setExtraBloco] = useState(1);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, cs] = await Promise.all([
       sb
         .from("angariacoes")
-        .select("*, proprietarios(id, tipo_imovel, tipologia, distrito, concelho, freguesia, valor, contactos(nome))")
+        .select("*, proprietarios(id, tipo_imovel, tipologia, distrito, concelho, freguesia, valor, contactos(nome, telemovel))")
         .eq("id", id)
         .single(),
       sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
+      carregarDaAngariacao(id),
     ]);
+    setCorresp(cs);
     if (r1.error || !r1.data) {
       setErro("Angariação não encontrada.");
       return;
@@ -97,10 +104,10 @@ export default function PlanoAngariacao() {
   }
 
   if (erro && !ang) return <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>;
-  if (!ang) return <p className="text-sm text-secundario">A carregar...</p>;
+  if (!ang) return <EsqueletoLista n={3} />;
 
   const dia = diaDeHoje(ang.inicio);
-  const cartao = "space-y-3 rounded-2xl bg-white p-4 shadow-sm";
+  const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
   const feitas = acoes.filter((a) => a.feita).length;
 
   const nB = ang.duracao_dias / 10;
@@ -117,7 +124,7 @@ export default function PlanoAngariacao() {
 
   return (
     <div className="space-y-4">
-      <Link href="/angariacoes" className="text-sm text-azul">&larr; Angariações</Link>
+      <Link href="/angariacoes" className="text-sm font-medium text-azul-escuro">&larr; Angariações</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       <ResumoAngariacao ang={ang} versao={versaoRegistos} />
@@ -172,11 +179,11 @@ export default function PlanoAngariacao() {
             )}
             <p className="text-sm text-secundario">
               {ang.proprietarios?.id ? (
-                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="text-azul">
+                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="font-medium text-azul-escuro">
                   {ang.proprietarios.contactos.nome}
                 </Link>
               ) : (
-                "Sem proprietário ligado"
+                ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"
               )}
               {ang.regime ? ` · ${REGIME[ang.regime]}` : ""}
             </p>
@@ -203,15 +210,79 @@ export default function PlanoAngariacao() {
             </Link>
           )}
         </div>
+        {ang.proprietarios?.contactos.telemovel && (
+          // falar com o proprietário sem sair da angariação (feedback das visitas, relatório)
+          <div className="flex gap-2">
+            <a href={`tel:${ang.proprietarios.contactos.telemovel}`} className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white">
+              Ligar ao proprietário
+            </a>
+            <a
+              href={linkWhatsapp(ang.proprietarios.contactos.telemovel)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 rounded-full bg-verde py-2.5 text-center text-sm font-semibold text-tinta"
+            >
+              WhatsApp
+            </a>
+          </div>
+        )}
       </section>
 
       {!ang.proprietario_id && <AssociarProprietario angariacaoId={ang.id} onAssociado={carregar} />}
 
-      <ListaMatches
-        matches={matches.filter((m) => m.angariacao?.id === ang.id)}
-        vista="imovel"
-        onAlterado={recarregarMatches}
-      />
+      <section className={cartao}>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-sm font-semibold text-tinta">Imóvel</h2>
+          {!editarImovel && (
+            <button
+              onClick={() => {
+                setImovelForm(imovelDe(ang));
+                setEditarImovel(true);
+              }}
+              className="shrink-0 rounded-xl bg-black/5 px-3 py-1.5 text-sm font-medium"
+            >
+              Editar
+            </button>
+          )}
+        </div>
+        {editarImovel && imovelForm ? (
+          <>
+            <DadosImovel valor={imovelForm} onChange={setImovelForm} />
+            <button
+              onClick={async () => {
+                const { error } = await sbBrowser().from("angariacoes").update(imovelParaBd(imovelForm)).eq("id", ang.id);
+                if (error) return setErro("Não foi possível guardar o imóvel.");
+                await atualizarPorAngariacao(ang.id);
+                setEditarImovel(false);
+                await carregar();
+              }}
+              className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white"
+            >
+              Guardar imóvel
+            </button>
+          </>
+        ) : (
+          <p className="text-sm text-secundario">
+            {resumoImovel(ang) || "Sem dados do imóvel. Preenche para encontrarmos compradores com interesse."}
+          </p>
+        )}
+      </section>
+
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h2 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h2>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       <Registos ang={ang} tipo="visita" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
       <Registos ang={ang} tipo="proposta" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
@@ -228,7 +299,7 @@ export default function PlanoAngariacao() {
               <button
                 key={d}
                 onClick={() => setDuracao(d)}
-                className={`flex-1 rounded-lg py-2 ${duracao === d ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+                className={`flex-1 rounded-lg py-2 ${duracao === d ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
               >
                 {d} dias
               </button>
@@ -348,11 +419,12 @@ export default function PlanoAngariacao() {
                 Toca num quadrado vazio (+) para juntar a ação a esse bloco. Toca numa ação para a retirar ou mudar de dia.
               </p>
             )}
-            <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium">
+            <div className="flex rounded-xl bg-black/5 p-1 text-sm font-medium" role="group" aria-label="Período da grelha">
               {([["tudo", "Tudo"], ["mes", "Mês"], ["trimestre", "Trimestre"]] as const).map(([v, rotulo]) => (
                 <button
                   key={v}
                   onClick={() => mudarVista(v)}
+                  aria-pressed={vista === v}
                   className={`flex-1 rounded-lg py-1.5 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
                 >
                   {rotulo}
@@ -391,7 +463,7 @@ export default function PlanoAngariacao() {
               ate={ate}
               onAbrir={setAberta}
               onVazia={(nome, bloco) => correr(adicionarAcao(ang, nome, bloco, nome === NOME_FOLLOW_UP))}
-              onMover={(a, bloco) => correr(mudarDiaAcao(ang, a, diaPadraoDoBloco(bloco, a.follow_up)))}
+              onMover={(a, bloco) => correr(moverAcao(ang, a, acoes, diaPadraoDoBloco(bloco, a.follow_up)))}
             />
             <p className="text-xs text-secundario">
               Cada quadrado são 10 dias. Verde = feita, laranja = bloco já passou sem estar feita, bandeira = follow up.
@@ -461,7 +533,7 @@ export default function PlanoAngariacao() {
                     correr(marcarVendido(ang, acoes, hojeISO()));
                   }
                 }}
-                className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-white"
+                className="w-full rounded-xl bg-verde py-3 text-sm font-semibold text-tinta"
               >
                 Marcar como vendido
               </button>
@@ -481,7 +553,7 @@ export default function PlanoAngariacao() {
             await sbBrowser().from("angariacao_acoes").update({ feedback: texto.trim() || null }).eq("id", aberta.id);
             await carregar();
           }}
-          onMudarDia={(novoDia) => correr(mudarDiaAcao(ang, aberta, novoDia))}
+          onMover={(novoDia) => correr(moverAcao(ang, aberta, acoes, novoDia))}
           onRetirar={async () => {
             if (!window.confirm("Retirar esta ação do plano?")) return;
             await sbBrowser().from("angariacao_acoes").delete().eq("id", aberta.id);
@@ -497,7 +569,7 @@ export default function PlanoAngariacao() {
           await sbBrowser().from("angariacoes").delete().eq("id", ang.id);
           router.push("/angariacoes");
         }}
-        className="w-full py-2 text-sm text-red-600"
+        className="w-full py-2 text-sm font-medium text-red-700"
       >
         Apagar angariação
       </button>

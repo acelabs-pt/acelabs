@@ -1,11 +1,16 @@
 import ConteudoShell from "@/components/ConteudoShell";
 import Nav from "@/components/Nav";
+import AcoesRapidas from "@/components/AcoesRapidas";
+import { ToastProvider } from "@/components/Toast";
 
 export default function ShellLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0 md:pl-56 print:pb-0 print:pl-0">
-      <ConteudoShell>{children}</ConteudoShell>
+    <div className="min-h-screen bg-background pb-20 print:bg-white md:pb-0 md:pl-56 print:pb-0 print:pl-0">
+      <ToastProvider>
+        <ConteudoShell>{children}</ConteudoShell>
+      </ToastProvider>
       <Nav />
+      <AcoesRapidas />
     </div>
   );
 }

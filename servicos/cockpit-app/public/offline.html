@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Cockpit - sem ligação</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:#f5f5f7;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,sans-serif;padding:max(24px,env(safe-area-inset-top)) 16px 32px}
+  main{max-width:520px;margin:0 auto}
+  h1{font-size:34px;line-height:1.05;letter-spacing:-.03em;margin:24px 0 8px;font-weight:800}
+  p{color:#6e6e73;font-size:16px;line-height:1.5;margin:0 0 20px}
+  .cartao{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:24px;padding:16px 16px 8px;margin:0 0 16px}
+  .cartao h2{font-size:15px;margin:0 0 4px;font-weight:600}
+  .cartao .nota{font-size:13px;margin:0 0 8px}
+  .seguir{background:#eaf2fd;color:#0059b3;border-radius:12px;padding:8px 12px;font-size:14px;margin:0 0 8px}
+  ul{list-style:none;margin:0;padding:0}
+  li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(0,0,0,.06)}
+  li:first-child{border-top:0}
+  .texto{min-width:0;flex:1}
+  .titulo{font-size:14px;color:#1d1d1f;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .quando{font-size:12px;color:#6e6e73;margin:2px 0 0}
+  .atraso{color:#9a5b00}
+  a.ligar{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;background:#eaf2fd;color:#0059b3}
+  button{font:inherit;font-weight:600;background:#1d1d1f;color:#fff;border:0;border-radius:999px;padding:14px 28px;width:100%}
+  button:focus-visible,a:focus-visible{outline:3px solid #0071e3;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Sem ligação.</h1>
+  <p id="msg">O Cockpit precisa de internet para mostrar os teus dados. Volta a ligar e tenta de novo.</p>
+  <section id="dia" class="cartao" hidden>
+    <h2>Hoje</h2>
+    <p class="nota" id="guardado"></p>
+    <p class="seguir" id="seguir" hidden></p>
+    <ul id="lista"></ul>
+  </section>
+  <button onclick="location.reload()">Tentar de novo</button>
+</main>
+<script>
+  // Lista guardada pelo Dashboard (lib/semRede.ts). Só se mostra se for de hoje.
+  (function () {
+    var d;
+    try { d = JSON.parse(localStorage.getItem("cockpit-dia") || "null"); } catch (e) { d = null; }
+    var agora = new Date();
+    var hoje = agora.getFullYear() + "-" + String(agora.getMonth() + 1).padStart(2, "0") + "-" + String(agora.getDate()).padStart(2, "0");
+    if (!d || d.dia !== hoje) return;
+    var hora = function (iso) { return new Date(iso).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }); };
+    var MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    var diaCurto = function (iso) { var x = new Date(iso); return x.getDate() + " " + MESES[x.getMonth()]; };
+    document.getElementById("msg").textContent = "Mostramos a tua lista de hoje tal como estava. Para marcar tarefas como feitas, volta a ligar.";
+    document.getElementById("guardado").textContent = "Atualizada às " + hora(d.guardado_em);
+    if (d.proxima) {
+      var s = document.getElementById("seguir");
+      s.textContent = "A seguir: " + d.proxima.titulo + ", " + diaCurto(d.proxima.inicio) + " " + hora(d.proxima.inicio);
+      s.hidden = false;
+    }
+    var ul = document.getElementById("lista");
+    if (!d.tarefas.length) {
+      var vazio = document.createElement("li");
+      vazio.textContent = "Nada em atraso nem para hoje.";
+      vazio.className = "quando";
+      ul.appendChild(vazio);
+    }
+    d.tarefas.forEach(function (t) {
+      var li = document.createElement("li");
+      var tx = document.createElement("div");
+      tx.className = "texto";
+      var ti = document.createElement("p");
+      ti.className = "titulo";
+      ti.textContent = t.titulo;
+      var q = document.createElement("p");
+      q.className = "quando" + (t.atrasada ? " atraso" : "");
+      q.textContent = t.atrasada ? diaCurto(t.inicio) + ", em atraso" : hora(t.inicio);
+      tx.appendChild(ti);
+      tx.appendChild(q);
+      li.appendChild(tx);
+      if (t.tel) {
+        var a = document.createElement("a");
+        a.className = "ligar";
+        a.href = "tel:" + t.tel;
+        a.setAttribute("aria-label", "Ligar");
+        a.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    document.getElementById("dia").hidden = false;
+  })();
+</script>
+</body>
+</html>

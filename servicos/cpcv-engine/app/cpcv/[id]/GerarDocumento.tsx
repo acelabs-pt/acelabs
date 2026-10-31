@@ -8,7 +8,9 @@ import { btnAccent, btnAccentOutline, btnGhost, btnPrimary, btnSecondary, Spinne
 // Drive) que não têm progresso granular reportado pelo servidor - isto é só cosmético, para
 // a espera (pode ir a dezenas de segundos, medido em teste) não parecer parada, não é um
 // indicador fiel de progresso real.
-const FASES_GERACAO = ["A rever com IA...", "A montar o PDF...", "A montar o Word...", "Quase lá..."];
+const FASES_GERACAO = ["A rever com IA...", "A montar o PDF...", "A montar o Word...", "A ler o contrato final...", "Quase lá..."];
+
+type ProblemaLeitura = { gravidade: "alta" | "media" | "baixa"; onde: string; problema: string; sugestao?: string };
 
 function useFaseRotativa(activo: boolean): string {
   const [indice, setIndice] = useState(0);
@@ -36,6 +38,7 @@ export function GerarButton({
   const [aGerar, setAGerar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [avisos, setAvisos] = useState<string[] | null>(null);
+  const [leitura, setLeitura] = useState<{ problemas: ProblemaLeitura[]; iaCorreu: boolean } | null>(null);
   const fase = useFaseRotativa(aGerar);
 
   async function gerar(forcar = false) {
@@ -59,11 +62,43 @@ export function GerarButton({
         setAGerar(false);
         return;
       }
+      // A leitura final do Word gerado: se encontrou pontos, mostra-os antes de recarregar a página.
+      if (data.leitura && (data.leitura.problemas.length > 0 || !data.leitura.iaCorreu)) {
+        setLeitura(data.leitura);
+        setAGerar(false);
+        return;
+      }
       router.refresh();
     } catch {
       setErro("Erro de rede ao gerar o documento.");
       setAGerar(false);
     }
+  }
+
+  if (leitura) {
+    return (
+      <div className="flex flex-col items-end gap-2 max-w-xl">
+        <div className="w-full bg-[#FFF4E5] border border-[#F5D9A8] rounded-xl p-3 text-left">
+          <p className="text-xs font-semibold text-[#9A5B00] mb-1.5">
+            {leitura.problemas.length > 0
+              ? "O CPCV foi gerado. Li o Word final e há pontos a rever antes de assinar:"
+              : "O CPCV foi gerado, mas a leitura final por IA não chegou a correr."}
+          </p>
+          <ul className="text-xs text-[#9A5B00] list-disc pl-4 space-y-1">
+            {leitura.problemas.map((p, i) => (
+              <li key={i}>
+                <span className="font-semibold">[{p.gravidade}]</span> {p.onde ? `${p.onde}: ` : ""}
+                {p.problema}
+                {p.sugestao ? ` (${p.sugestao})` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <button onClick={() => router.refresh()} className={btnAccent}>
+          Ver documentos
+        </button>
+      </div>
+    );
   }
 
   if (avisos) {

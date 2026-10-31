@@ -49,22 +49,35 @@ const ITENS = [
       </>
     ),
   },
+  {
+    href: "/conta",
+    label: "Conta",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="10" r="3" />
+        <path d="M6.5 18.5c1.2-2.2 3.2-3.2 5.5-3.2s4.3 1 5.5 3.2" />
+      </>
+    ),
+  },
 ] as const;
 
 export default function Nav() {
   const pathname = usePathname();
 
   return (
-    <nav className="print:hidden fixed inset-x-0 bottom-0 z-10 flex border-t border-black/10 bg-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:right-auto md:w-56 md:flex-col md:gap-1 md:border-r md:border-t-0 md:p-3">
-      <p className="hidden px-3 pb-4 pt-2 text-xl font-semibold text-tinta md:block">Cockpit</p>
+    <nav className="print:hidden fixed inset-x-0 bottom-0 z-10 flex border-t border-linha bg-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:right-auto md:w-56 md:flex-col md:gap-1 md:border-r md:border-t-0 md:p-3">
+      <p className="hidden px-3 pb-5 pt-3 text-xl font-bold tracking-tight text-tinta md:block">
+        Cockpit<span className="text-azul">.</span>
+      </p>
       {ITENS.map((item) => {
         const ativo = pathname?.startsWith(item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium md:flex-none md:flex-row md:gap-3 md:rounded-xl md:px-3 md:py-2.5 md:text-sm ${
-              ativo ? "text-azul md:bg-azul/10" : "text-secundario md:hover:bg-black/5"
+            className={`flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium md:flex-none md:flex-row md:gap-3 md:rounded-2xl md:px-3 md:py-2.5 md:text-sm ${
+              ativo ? "text-azul md:bg-azul-suave" : "text-secundario md:hover:bg-black/5"
             }`}
           >
             <svg

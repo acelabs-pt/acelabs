@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DOCUMENTO_TIPO_OPCOES,
   ESTADO_CIVIL_OPCOES,
@@ -73,6 +73,11 @@ export default function ParteCampos({
   // antes de gravar. Não distingue campo a campo porque a leitura pode estar errada em
   // qualquer um deles, não só nos que já falharam antes.
   const [lidoPorIA, setLidoPorIA] = useState(false);
+  const [avisosLeitura, setAvisosLeitura] = useState<string[]>([]);
+  // O que a IA escreveu em cada campo da última vez. Um campo só é substituído por uma nova leitura
+  // se estiver vazio ou ainda tiver exactamente o valor da leitura anterior (ninguém o editou à mão)
+  // - assim um documento melhor corrige um erro da IA, sem nunca apagar o que o agente corrigiu.
+  const ultimaLeitura = useRef<Record<string, string>>({});
 
   function set<K extends keyof ParteDraft>(chave: K, valor: ParteDraft[K]) {
     onChange({ ...draft, [chave]: valor });
@@ -84,14 +89,21 @@ export default function ParteCampos({
   function aplicarExtracao(draftAntes: ParteDraft, extraido: ExtracaoPessoa) {
     const str = (v: string | null | undefined) => (typeof v === "string" && v.trim() ? v.trim() : "");
     const next = { ...draftAntes };
-
-    if (!next.nome.trim()) {
-      if (str(extraido.nome)) next.nome = str(extraido.nome);
-      if (extraido.tipo_pessoa === "singular" || extraido.tipo_pessoa === "coletiva") {
-        next.tipoPessoa = extraido.tipo_pessoa;
+    // Devolve o valor a gravar no campo e regista-o como "escrito pela IA".
+    const pick = (campo: string, atual: string, novo: string) => {
+      if (!novo) return atual;
+      if (!atual.trim() || atual === ultimaLeitura.current[campo]) {
+        ultimaLeitura.current[campo] = novo;
+        return novo;
       }
+      return atual;
+    };
+
+    next.nome = pick("nome", next.nome, str(extraido.nome));
+    if (next.nome !== draftAntes.nome && (extraido.tipo_pessoa === "singular" || extraido.tipo_pessoa === "coletiva")) {
+      next.tipoPessoa = extraido.tipo_pessoa;
     }
-    if (!next.nif.trim() && str(extraido.nif)) next.nif = str(extraido.nif);
+    next.nif = pick("nif", next.nif, str(extraido.nif));
 
     const moradaExtraida = composeMoradaPessoa(
       str(extraido.morada_rua),
@@ -102,8 +114,8 @@ export default function ParteCampos({
       "",
       ""
     );
-    if (!next.morada.trim() && moradaExtraida) {
-      next.morada = moradaExtraida;
+    next.morada = pick("morada", next.morada, moradaExtraida);
+    if (next.morada !== draftAntes.morada) {
       if (estruturado) {
         next.moradaRua = str(extraido.morada_rua);
         next.moradaNumero = str(extraido.morada_numero);
@@ -112,11 +124,11 @@ export default function ParteCampos({
       }
     }
 
-    if (!next.nacionalidade.trim() && str(extraido.nacionalidade)) next.nacionalidade = str(extraido.nacionalidade);
+    next.nacionalidade = pick("nacionalidade", next.nacionalidade, str(extraido.nacionalidade));
 
     const naturalidadeExtraida = composeNaturalidade(str(extraido.naturalidade_freguesia), str(extraido.naturalidade_concelho));
-    if (!next.naturalidade.trim() && naturalidadeExtraida) {
-      next.naturalidade = naturalidadeExtraida;
+    next.naturalidade = pick("naturalidade", next.naturalidade, naturalidadeExtraida);
+    if (next.naturalidade !== draftAntes.naturalidade) {
       if (estruturado) {
         next.naturalidadeFreguesia = str(extraido.naturalidade_freguesia);
         next.naturalidadeConcelho = str(extraido.naturalidade_concelho);
@@ -126,14 +138,14 @@ export default function ParteCampos({
     // O dropdown de tipo de documento já vem com "Cartão de Cidadão" por defeito (nunca vazio),
     // por isso só faz sentido a IA ajustá-lo enquanto o agente ainda não tiver começado a
     // preencher o número à mão - a partir daí presume-se que o tipo já foi confirmado.
-    if (!draftAntes.documentoNumero.trim() && str(extraido.documento_tipo) && DOCUMENTO_TIPO_OPCOES.includes(str(extraido.documento_tipo))) {
+    next.documentoNumero = pick("documentoNumero", next.documentoNumero, str(extraido.documento_numero));
+    if (next.documentoNumero !== draftAntes.documentoNumero && DOCUMENTO_TIPO_OPCOES.includes(str(extraido.documento_tipo))) {
       next.documentoTipo = str(extraido.documento_tipo);
     }
-    if (!next.documentoNumero.trim() && str(extraido.documento_numero)) next.documentoNumero = str(extraido.documento_numero);
-    if (!next.documentoValidade.trim() && str(extraido.documento_validade)) next.documentoValidade = str(extraido.documento_validade);
-    if (!next.representanteNome.trim() && str(extraido.representante_nome)) next.representanteNome = str(extraido.representante_nome);
-    if (!next.representanteCargo.trim() && str(extraido.representante_cargo)) next.representanteCargo = str(extraido.representante_cargo);
-    if (!next.certidaoPermanente.trim() && str(extraido.certidao_permanente)) next.certidaoPermanente = str(extraido.certidao_permanente);
+    next.documentoValidade = pick("documentoValidade", next.documentoValidade, str(extraido.documento_validade));
+    next.representanteNome = pick("representanteNome", next.representanteNome, str(extraido.representante_nome));
+    next.representanteCargo = pick("representanteCargo", next.representanteCargo, str(extraido.representante_cargo));
+    next.certidaoPermanente = pick("certidaoPermanente", next.certidaoPermanente, str(extraido.certidao_permanente));
 
     if (Object.keys(next).some((chave) => next[chave as keyof ParteDraft] !== draftAntes[chave as keyof ParteDraft])) {
       setLidoPorIA(true);
@@ -149,11 +161,12 @@ export default function ParteCampos({
     setErroAnalise("");
     try {
       const supabase = sbBrowser();
-      const { extraido } = await analisarComUploadTemporario<{ extraido: ExtracaoPessoa }>(
+      const { extraido, avisos } = await analisarComUploadTemporario<{ extraido: ExtracaoPessoa; avisos?: string[] }>(
         supabase,
         suportados,
         "/api/cpcv/extrair-pessoa"
       );
+      setAvisosLeitura(avisos ?? []);
       aplicarExtracao(draftAntes, extraido ?? {});
     } catch (e) {
       setErroAnalise(e instanceof Error ? e.message : "Erro ao analisar o documento.");
@@ -268,6 +281,14 @@ export default function ParteCampos({
         </div>
       )}
 
+      {avisosLeitura.length > 0 && (
+        <ul className="text-xs text-[#9A5B00] bg-[#FFF4E5] border border-[#F5D9A8] rounded-lg px-3 py-2 list-disc pl-6 space-y-1">
+          {avisosLeitura.map((a, i) => (
+            <li key={i}>{a}</li>
+          ))}
+        </ul>
+      )}
+
       {lidoPorIA && (
         <p className="text-xs text-[#9A5B00] bg-[#FFF4E5] border border-[#F5D9A8] rounded-lg px-3 py-2">
           Dados lidos automaticamente do documento - confirma nome, número e validade do documento,
@@ -288,6 +309,10 @@ export default function ParteCampos({
             className={`${campoClass} ${nifInvalido ? "border-red-400 focus:ring-red-400" : ""}`}
           />
           {nifInvalido && <p className="text-[11px] text-red-500 mt-1">NIF inválido.</p>}
+        </div>
+        <div>
+          <label className={labelClass}>Email (sai no contrato)</label>
+          <input type="email" value={draft.email} onChange={(e) => set("email", e.target.value)} className={campoClass} />
         </div>
       </div>
 
@@ -351,6 +376,13 @@ export default function ParteCampos({
         ) : (
           <input value={draft.morada} onChange={(e) => set("morada", e.target.value)} className={campoClass} />
         )}
+        {/* O cartão de cidadão nem sempre traz o código postal e a morada gravada é texto livre: sem
+            ele o contrato não é gerado (a solicitadora precisa dele para as cartas registadas). */}
+        {draft.morada.trim() !== "" && !/\b\d{4}-\d{3}\b/.test(draft.morada) && (
+          <p className="text-[11px] text-[#9A5B00] mt-1">
+            Falta o código postal (0000-000) na morada - o CPCV só é gerado com ele.
+          </p>
+        )}
       </div>
 
       {draft.tipoPessoa === "singular" ? (
@@ -370,6 +402,17 @@ export default function ParteCampos({
                     ))}
                   </select>
                 </div>
+                {mostraRegimeBens && (
+                  <div>
+                    <label className={labelClass}>Casal (cônjuge do mesmo lado)</label>
+                    <select value={draft.casal} onChange={(e) => set("casal", e.target.value)} className={campoClass}>
+                      <option value="">Sem ligação</option>
+                      <option value="1">Casal 1</option>
+                      <option value="2">Casal 2</option>
+                      <option value="3">Casal 3</option>
+                    </select>
+                  </div>
+                )}
                 {mostraRegimeBens && (
                   <div>
                     <label className={labelClass}>Regime de bens</label>

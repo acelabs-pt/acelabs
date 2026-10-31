@@ -1,12 +1,21 @@
 "use client";
 
+import { EsqueletoLista } from "@/components/Esqueleto";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLocalizacao";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { localCobre, resumoLocais } from "@/lib/localizacoes";
-import { useMatches } from "@/lib/match";
-import { corDoProgresso, corTextoDoProgresso } from "@/components/BarraProgresso";
+import { todas } from "@/lib/todas";
+import BarraPesquisaFiltros from "@/components/BarraPesquisaFiltros";
+import { combina } from "@/lib/pesquisa";
+import SeletorOrdem from "@/components/SeletorOrdem";
+import { useToast } from "@/components/Toast";
+import { apagarChamada, haQuanto, registarChamadaAgora, ultimosContactos } from "@/lib/contactos";
+import SwipeLinha from "@/components/gestos/SwipeLinha";
+import { swipeContacto } from "@/components/gestos/contacto";
+import { contarNovasPorComprador } from "@/lib/oportunidades";
+import { localCobre, resumoLocais, type Local } from "@/lib/localizacoes";
+import { corDoProgresso } from "@/components/BarraProgresso";
 import {
   FUNIL,
   OBJETIVOS,
@@ -18,13 +27,24 @@ import {
   labelEstado,
   type Comprador,
   type Contagens,
+  type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
+
+// Alertas de imóveis que podem servir ao comprador, ao lado da barra de motivação.
+function AlertaImoveis({ n }: { n: number }) {
+  if (!n) return null;
+  return (
+    <span className="shrink-0 rounded-full bg-azul px-2 py-0.5 text-[11px] font-semibold text-white" title="Imóveis que podem servir, por rever">
+      {n} {n === 1 ? "imóvel" : "imóveis"}
+    </span>
+  );
+}
 
 // Escala contínua do vermelho (0) ao verde (10) através do âmbar.
 function BarraMotivacao({ valor }: { valor: number | null }) {
   if (valor == null) {
-    return <span className="shrink-0 text-[11px] text-secundario/60" title="Motivação por definir">-</span>;
+    return <span className="shrink-0 text-[11px] text-secundario" title="Motivação por definir">-</span>;
   }
   const cor = corDoProgresso(valor / 10);
   return (
@@ -32,33 +52,17 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
       <span className="h-1.5 w-14 overflow-hidden rounded-full bg-black/10">
         <span className="block h-full rounded-full" style={{ width: `${Math.max(valor, 0.5) * 10}%`, backgroundColor: cor }} />
       </span>
-      <span className="text-[11px] font-medium tabular-nums" style={{ color: corTextoDoProgresso(valor / 10) }}>{valor}</span>
-    </span>
-  );
-}
-
-// Compradores que cruzam com imóveis ainda por verificar
-function BadgeMatch({ n }: { n?: number }) {
-  if (!n) return null;
-  return (
-    <span
-      className="shrink-0 rounded-full bg-ambar-fundo px-2 py-0.5 text-[11px] font-semibold text-ambar-texto"
-      title={`${n} ${n === 1 ? "imóvel compatível por verificar" : "imóveis compatíveis por verificar"}`}
-    >
-      {n} {n === 1 ? "imóvel" : "imóveis"}
+      {/* o número em tinta: a cor da escala, em letra pequena, não tem contraste suficiente */}
+      <span className="text-[11px] font-medium tabular-nums text-tinta">{valor}</span>
     </span>
   );
 }
 
 export default function ListaCompradores() {
-  const { matches } = useMatches();
-  const pend = useMemo(() => {
-    const r: Record<string, number> = {};
-    for (const m of matches) if (!m.confirmado) r[m.comprador.id] = (r[m.comprador.id] ?? 0) + 1;
-    return r;
-  }, [matches]);
   const [compradores, setCompradores] = useState<Comprador[]>([]);
   const [contagens, setContagens] = useState<Record<string, Contagens>>({});
+  const [novas, setNovas] = useState<Record<string, number>>({});
+  const [zonas, setZonas] = useState<Record<string, Local[]>>({});
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -69,15 +73,28 @@ export default function ListaCompradores() {
   const [valorMax, setValorMax] = useState("");
   const [motivacaoMin, setMotivacaoMin] = useState("");
   const [soAlertas, setSoAlertas] = useState(false);
+  const [pesquisa, setPesquisa] = useState("");
+  const [painel, setPainel] = useState(false);
+  const [ultimos, setUltimos] = useState<Record<string, string>>({});
+  const [ordem, setOrdem] = useState<"recentes" | "motivacao" | "parados" | "nome">("recentes");
+  const { avisar } = useToast();
+  // Fase vinda de um toque no Dashboard (?fase=cpcv): mostra só essa fase, concluídos incluídos.
+  const [fase, setFase] = useState("");
+  useEffect(() => {
+    setFase(new URLSearchParams(window.location.search).get("fase") ?? "");
+  }, []);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [vista, setVista] = useState<"lista" | "funil">("lista");
 
   useEffect(() => {
     (async () => {
       const sb = sbBrowser();
-      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }] = await Promise.all([
-        sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }),
-        sb.from("comprador_imoveis").select("*"),
+      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }, { data: zs }] = await Promise.all([
+        todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }).order("id").range(de, ate)),
+        todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
+        todas<{ comprador_id: string; distrito: string; concelho: string | null; freguesia: string | null }>((de, ate) =>
+          sb.from("comprador_zonas").select("comprador_id, distrito, concelho, freguesia").order("id").range(de, ate)
+        ),
       ]);
       if (e1 || e2) {
         setErro("Não foi possível carregar os compradores.");
@@ -89,6 +106,12 @@ export default function ListaCompradores() {
       for (const i of (imoveis ?? []) as ImovelComprador[]) (porComprador[i.comprador_id] ??= []).push(i);
       const cont: Record<string, Contagens> = {};
       for (const c of lista) cont[c.id] = contar(porComprador[c.id] ?? []);
+      // todas as zonas de cada comprador, para o filtro de localização (a primeira está também na ficha)
+      const porZona: Record<string, Local[]> = {};
+      for (const z of zs) (porZona[z.comprador_id] ??= []).push({ distrito: z.distrito, concelho: z.concelho ?? undefined, freguesia: z.freguesia ?? undefined });
+      setZonas(porZona);
+      setNovas(await contarNovasPorComprador());
+      setUltimos(await ultimosContactos());
       setCompradores(lista);
       setContagens(cont);
       setACarregar(false);
@@ -101,24 +124,40 @@ export default function ListaCompradores() {
     return compradores.filter((c) => {
       if (tipo && c.tipo_imovel !== tipo) return false;
       if (tipologia && c.tipologia_minima !== tipologia) return false;
-      if (local.distrito && !localCobre(c.localizacoes, local)) return false;
+      if (local.distrito && !localCobre(zonas[c.id]?.length ? zonas[c.id] : c.distrito ? [{ distrito: c.distrito, concelho: c.concelho ?? undefined, freguesia: c.freguesia ?? undefined }] : [], local)) return false;
       if (valorMin && (c.expectativa_valor ?? -1) < Number(valorMin)) return false;
       if (valorMax && (c.expectativa_valor ?? Infinity) > Number(valorMax)) return false;
       if (motivacaoMin && (c.motivacao ?? -1) < Number(motivacaoMin)) return false;
       if (soAlertas && !alertaLaranja(c)) return false;
+      if (fase && c.estado !== fase) return false;
+      if (!combina(pesquisa, [c.contactos.nome, c.contactos.email, c.concelho, c.freguesia, c.distrito, c.referencia_imovel], [c.contactos.telemovel])) return false;
       return true;
     });
-  }, [compradores, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas]);
+  }, [compradores, zonas, tipo, tipologia, local, valorMin, valorMax, motivacaoMin, soAlertas, fase, pesquisa]);
 
   // Lista: só em curso. Funil: todas as fases, incluindo concluídos (os perdidos ficam de fora).
   const filtrados = useMemo(
-    () => filtradosBase.filter((c) => c.estado !== "perdido" && c.estado !== "negocio_concluido"),
-    [filtradosBase]
+    () => filtradosBase.filter((c) => fase || (c.estado !== "perdido" && c.estado !== "negocio_concluido")),
+    [filtradosBase, fase]
   );
+  // "recentes" = pela ordem em que chegaram. "Sem contacto há mais tempo" põe primeiro quem nunca foi contactado.
+  const ordenados = useMemo(() => {
+    const l = [...filtrados];
+    if (ordem === "motivacao") l.sort((a, b) => (b.motivacao ?? -1) - (a.motivacao ?? -1));
+    else if (ordem === "nome") l.sort((a, b) => a.contactos.nome.localeCompare(b.contactos.nome, "pt"));
+    else if (ordem === "parados") l.sort((a, b) => (ultimos[a.contacto_id] ?? "").localeCompare(ultimos[b.contacto_id] ?? ""));
+    return l;
+  }, [filtrados, ordem, ultimos]);
+
+  // Só se desenham 60 de cada vez: com mil compradores, desenhar todos demorava vários segundos no telemóvel.
+  const [limite, setLimite] = useState(60);
+  useEffect(() => {
+    setLimite(60);
+  }, [filtradosBase]);
 
   const sel = "rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm";
   const nVisiveis = vista === "lista" ? filtrados.length : filtradosBase.filter((c) => c.estado !== "perdido").length;
-  const temFiltros = Boolean(tipo || tipologia || local.distrito || valorMin || valorMax || motivacaoMin || soAlertas);
+  const temFiltros = Boolean(pesquisa || tipo || tipologia || local.distrito || valorMin || valorMax || motivacaoMin || soAlertas);
   function limpar() {
     setTipo("");
     setTipologia("");
@@ -127,6 +166,7 @@ export default function ListaCompradores() {
     setValorMax("");
     setMotivacaoMin("");
     setSoAlertas(false);
+    setPesquisa("");
   }
 
   return (
@@ -137,7 +177,7 @@ export default function ListaCompradores() {
             <button
               key={v}
               onClick={() => setVista(v)}
-              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-secundario"}`}
+              className={`flex-1 rounded-lg py-2 ${vista === v ? "bg-white text-tinta shadow-sm" : "text-tinta/70"}`}
             >
               {v === "lista" ? "Lista" : "Funil"}
             </button>
@@ -149,6 +189,15 @@ export default function ListaCompradores() {
       </div>
 
       <div className="space-y-2 rounded-2xl bg-white p-3 shadow-sm">
+        <BarraPesquisaFiltros
+          pesquisa={pesquisa}
+          onPesquisa={setPesquisa}
+          aberto={painel}
+          onAlternar={() => setPainel((x) => !x)}
+          nAtivos={[tipo, tipologia, local.distrito, valorMin, valorMax, motivacaoMin].filter(Boolean).length + (soAlertas ? 1 : 0)}
+        />
+        {painel && (
+        <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
           <select value={tipologia} onChange={(e) => setTipologia(e.target.value)} className={sel}>
             <option value="">Tipologia</option>
@@ -180,14 +229,31 @@ export default function ListaCompradores() {
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-secundario">
-          <span>
+        </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 text-xs text-secundario">
+          <span className="shrink-0 whitespace-nowrap">
             {nVisiveis} {nVisiveis === 1 ? "comprador" : "compradores"}
           </span>
+          {vista === "lista" && (
+            <SeletorOrdem
+              valor={ordem}
+              onChange={setOrdem}
+              opcoes={[
+                ["recentes", "Mais recentes"],
+                ["parados", "Sem contacto há mais tempo"],
+                ["motivacao", "Mais motivados"],
+                ["nome", "Nome"],
+              ]}
+            />
+          )}
           <div className="flex gap-3">
-            <button onClick={() => setFiltrosAbertos((x) => !x)} className="underline">
-              {filtrosAbertos ? "Menos filtros" : "Mais filtros"}
-            </button>
+            {painel && (
+              <button onClick={() => setFiltrosAbertos((x) => !x)} className="underline">
+                {filtrosAbertos ? "Menos filtros" : "Mais filtros"}
+              </button>
+            )}
             {temFiltros && (
               <button onClick={limpar} className="font-medium text-azul">Limpar</button>
             )}
@@ -195,50 +261,80 @@ export default function ListaCompradores() {
         </div>
       </div>
 
+      {fase && (fase === "perdido" || FUNIL.some((f) => f.id === fase)) && (
+        <p className="flex w-fit items-center gap-1 rounded-full bg-azul-suave py-1 pl-3 pr-1 text-sm text-azul-escuro">
+          Fase: {labelEstado(fase as EstadoComprador)}
+          <button onClick={() => setFase("")} aria-label="Tirar o filtro de fase" className="flex h-6 w-6 items-center justify-center rounded-full text-base leading-none hover:bg-white/60">
+            &times;
+          </button>
+        </p>
+      )}
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {aCarregar ? (
-        <p className="text-sm text-secundario">A carregar...</p>
+        <EsqueletoLista />
       ) : vista === "funil" ? (
-        <Funil compradores={filtradosBase} contagens={contagens} pend={pend} />
+        <Funil compradores={filtradosBase} contagens={contagens} novas={novas} />
       ) : filtrados.length === 0 ? (
         <p className="py-8 text-center text-sm text-secundario">
-          {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : "Nenhum comprador com estes filtros."}
+          {compradores.length === 0 ? "Ainda não há compradores. Cria o primeiro." : pesquisa.trim() ? `Nenhum resultado para "${pesquisa.trim()}".` : "Nenhum comprador com estes filtros."}
         </p>
       ) : (
+        <>
         <ul className="space-y-2">
-          {filtrados.map((c) => {
+          {ordenados.slice(0, limite).map((c) => {
             const n = contagens[c.id] ?? { enviados: 0, visitas: 0, propostas: 0 };
             const alerta = alertaLaranja(c);
             return (
               <li key={c.id}>
-                <Link href={`/crm/compradores/${c.id}`} className="block rounded-2xl bg-white p-4 shadow-sm">
+                <SwipeLinha
+                  {...swipeContacto(c.contactos.telemovel, async () => {
+                    const id = await registarChamadaAgora(c.contacto_id);
+                    if (!id) return;
+                    setUltimos((u) => ({ ...u, [c.contacto_id]: new Date().toISOString() }));
+                    avisar("Chamada registada.", { rotulo: "Desfazer", onAcao: () => apagarChamada(id).then(() => ultimosContactos().then(setUltimos)) });
+                  })}
+                >
+                <Link href={`/crm/compradores/${c.id}`} className="block rounded-2xl border border-linha bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-base font-semibold text-tinta">{c.contactos.nome}</p>
                         <BarraMotivacao valor={c.motivacao} />
-                        <BadgeMatch n={pend[c.id]} />
+                        <AlertaImoveis n={novas[c.id] ?? 0} />
                       </div>
                       <p className="truncate text-xs text-secundario">
-                        {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ") || "Sem qualificação"}
+                        {[c.tipo_imovel, c.tipologia_minima, resumoLocais(zonas[c.id]) || c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul">
+                    <span className="shrink-0 rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">
                       {labelEstado(c.estado)}
                     </span>
                   </div>
                   <p className="mt-2 text-xs text-secundario">
                     {n.enviados}/{OBJETIVOS.enviados} enviados · {n.visitas}/{OBJETIVOS.visitas} visitas · {n.propostas}/{OBJETIVOS.propostas} propostas
                   </p>
+                  <p className={`mt-1.5 text-xs ${ultimos[c.contacto_id] && Date.now() - new Date(ultimos[c.contacto_id]).getTime() < 14 * 86400000 ? "text-secundario" : "font-medium text-ambar-texto"}`}>
+                    {ultimos[c.contacto_id] ? `Último contacto ${haQuanto(ultimos[c.contacto_id])}` : "Ainda sem chamadas registadas"}
+                  </p>
                   {alerta && (
                     <p className="mt-2 rounded-lg bg-ambar-fundo px-2.5 py-1.5 text-xs font-medium text-ambar-texto">{alerta}</p>
                   )}
                 </Link>
+                </SwipeLinha>
               </li>
             );
           })}
         </ul>
+        {filtrados.length > limite && (
+          <button
+            onClick={() => setLimite((l) => l + 60)}
+            className="mt-3 w-full rounded-full bg-black/5 py-3 text-sm font-medium text-tinta"
+          >
+            Mostrar mais ({filtrados.length - limite} por mostrar)
+          </button>
+        )}
+        </>
       )}
     </div>
   );
@@ -248,14 +344,14 @@ export default function ListaCompradores() {
 function Funil({
   compradores,
   contagens,
-  pend,
+  novas,
 }: {
   compradores: Comprador[];
   contagens: Record<string, Contagens>;
-  pend: Record<string, number>;
+  novas: Record<string, number>;
 }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+    <div data-no-swipe className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
       <div className="flex gap-3">
         {FUNIL.map((fase) => {
           const daFase = compradores.filter((c) => c.estado === fase.id);
@@ -276,10 +372,10 @@ function Funil({
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate text-sm font-semibold text-tinta">{c.contactos.nome}</p>
                           <BarraMotivacao valor={c.motivacao} />
-                          <BadgeMatch n={pend[c.id]} />
+                        <AlertaImoveis n={novas[c.id] ?? 0} />
                         </div>
                         <p className="mt-0.5 truncate text-xs text-secundario">
-                          {[c.tipo_imovel, c.tipologia_minima, resumoLocais(c.localizacoes)].filter(Boolean).join(" · ") || "Sem qualificação"}
+                          {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                         </p>
                         <p className="mt-1.5 text-[11px] text-secundario">
                           {n.enviados} env. · {n.visitas} vis. · {n.propostas} prop.

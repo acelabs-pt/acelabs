@@ -1,6 +1,5 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { semanaISO, diasDesde } from "@/lib/datas";
-import type { Local } from "@/lib/localizacoes";
 
 export type EstadoComprador =
   | "lead_qualificada"
@@ -40,7 +39,10 @@ export type Comprador = {
   motivacao: number | null;
   referencia_imovel: string | null;
   tipo_imovel: string | null;
-  localizacoes: Local[] | null;
+  // primeira zona de procura; todas as zonas estão em comprador_zonas
+  distrito: string | null;
+  concelho: string | null;
+  freguesia: string | null;
   tipologia_minima: string | null;
   expectativa_valor: number | null;
   financiamento: string | null;
@@ -105,6 +107,18 @@ export const TIPOLOGIAS = ["T0", "T1", "T2", "T3", "T4", "T5 ou mais"];
 export const CANAIS_ORIGEM = ["Idealista", "Imovirtual", "Meta", "Site da imobiliária", "Placa", "Referência", "Outro"];
 export const FINANCIAMENTO = ["Capitais próprios", "Crédito pré-aprovado", "Vai pedir crédito"];
 export const SIMULACAO_CREDITO = ["Feita", "Por fazer", "Não aplicável"];
+// Documentos habituais do comprador para a escritura. Proposta inicial, a validar pelo Miguel.
+export const DOCUMENTOS_ESCRITURA = [
+  "Cartão de Cidadão (ou passaporte) e NIF dos compradores",
+  "Comprovativo de morada",
+  "Estado civil e regime de bens (certidão de casamento, se aplicável)",
+  "Aprovação do crédito (carta do banco)",
+  "Comprovativo do pagamento do sinal",
+  "Comprovativo de pagamento do IMT e do Imposto do Selo",
+  "IBAN para pagamentos",
+  "Procuração (se alguém assinar em nome do comprador)",
+];
+
 export const PREFIXOS = ["+351", "+34", "+33", "+44", "+49", "+41", "+55", "+1"];
 
 /**

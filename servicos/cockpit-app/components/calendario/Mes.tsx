@@ -51,7 +51,7 @@ export default function Mes({
               <span
                 className={`flex h-7 w-7 items-center justify-center self-center rounded-full text-sm font-medium md:self-start ${
                   eHoje ? "bg-azul text-white" : sel ? "ring-2 ring-azul" : ""
-                } ${!doMes && !eHoje ? "text-secundario/50" : "text-tinta"}`}
+                } ${!doMes && !eHoje ? "font-normal text-secundario" : "text-tinta"}`}
               >
                 {d.getDate()}
               </span>

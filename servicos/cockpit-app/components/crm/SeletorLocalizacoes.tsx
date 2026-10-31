@@ -62,6 +62,7 @@ export default function SeletorLocalizacoes({
       <div className="space-y-2 rounded-xl border border-black/10 p-3">
         <div className="grid gap-2 sm:grid-cols-2">
           <select
+            aria-label="Distrito"
             value={distrito}
             onChange={(e) => {
               setDistrito(e.target.value);
@@ -76,6 +77,7 @@ export default function SeletorLocalizacoes({
             ))}
           </select>
           <select
+            aria-label="Concelho"
             value={concelho}
             disabled={!distrito}
             onChange={(e) => {
