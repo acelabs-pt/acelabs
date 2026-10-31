@@ -5,6 +5,7 @@ export type Angariacao = {
   id: string;
   proprietario_id: string | null;
   titulo: string;
+  referencia: string | null;
   duracao_dias: 120 | 180;
   regime: "exclusivo" | "nao_exclusivo" | null;
   inicio: string; // YYYY-MM-DD

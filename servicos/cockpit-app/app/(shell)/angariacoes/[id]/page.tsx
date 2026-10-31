@@ -177,6 +177,7 @@ export default function PlanoAngariacao() {
                 </button>
               </div>
             )}
+            {ang.referencia && <p className="text-xs text-secundario">ID {ang.referencia}</p>}
             <p className="text-sm text-secundario">
               {ang.proprietarios?.id ? (
                 <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="font-medium text-azul-escuro">

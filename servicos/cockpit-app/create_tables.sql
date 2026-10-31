@@ -138,7 +138,8 @@ create index on chamadas (contacto_id, ocorreu_em desc);
 create table angariacoes (
   id uuid primary key default gen_random_uuid(),
   proprietario_id uuid references proprietarios(id) on delete set null,
-  titulo text not null,      -- morada ou referência do imóvel
+  titulo text not null,      -- tipologia, concelho e freguesia
+  referencia text,           -- ID do imóvel
   duracao_dias smallint not null default 180 check (duracao_dias in (120, 180)),
   regime text check (regime in ('exclusivo', 'nao_exclusivo')),   -- contrato em exclusivo ou não
   inicio date not null default current_date,
