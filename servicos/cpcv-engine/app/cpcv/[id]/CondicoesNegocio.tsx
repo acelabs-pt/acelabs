@@ -48,6 +48,10 @@ type Processo = {
   email_comprador_contrato: string | null;
   data_assinatura_contrato: string | null;
   observacoes_adicionais: string | null;
+  // Colunas da migration_fase16.sql - podem não existir numa instalação sem a migração (ver guardar()).
+  escritura_aviso_dias?: number | null;
+  agencia_parceira_nome?: string | null;
+  agencia_parceira_ami?: string | null;
 };
 
 // Todos os valores monetários do formulário (preço, sinal, reforços, mobília, reserva,
@@ -164,6 +168,14 @@ export default function CondicoesNegocio({
   const [emailComprador, setEmailComprador] = useState(processo.email_comprador_contrato ?? "");
   const [dataAssinatura, setDataAssinatura] = useState(processo.data_assinatura_contrato ?? "");
   const [observacoes, setObservacoes] = useState(processo.observacoes_adicionais ?? "");
+  // Campos da migration_fase16.sql: só aparecem e só se gravam quando a coluna existe na base de dados
+  // (o processo vem de um select *), para o formulário não falhar numa instalação ainda sem a migração.
+  const temFase16 = "escritura_aviso_dias" in processo;
+  const [avisoEscrituraDias, setAvisoEscrituraDias] = useState(processo.escritura_aviso_dias?.toString() ?? "");
+  const [agenciaParceiraNome, setAgenciaParceiraNome] = useState(processo.agencia_parceira_nome ?? "");
+  const [agenciaParceiraAmi, setAgenciaParceiraAmi] = useState(processo.agencia_parceira_ami ?? "");
+  // A data-limite e o email de comunicação servem a avaliação e também a aprovação do financiamento.
+  const pedePrazoEEmail = condAvaliacao === "sim" || condFinanciamento === "sim";
 
   function atualizarReforco(index: number, campo: keyof Reforco, valor: string) {
     setReforcos((prev) => prev.map((r, i) => (i === index ? { ...r, [campo]: valor } : r)));
@@ -217,8 +229,8 @@ export default function CondicoesNegocio({
         condicionado_avaliacao: condAvaliacao ? condAvaliacao === "sim" : null,
         valor_avaliacao_minimo: condAvaliacao === "sim" && valorAvaliacaoMinimo ? Number(valorAvaliacaoMinimo) : null,
         prazo_avaliacao_dias: condAvaliacao === "sim" && prazoAvaliacaoDias ? Number(prazoAvaliacaoDias) : null,
-        avaliacao_prazo_data: condAvaliacao === "sim" ? avaliacaoPrazoData || null : null,
-        avaliacao_contacto_email: condAvaliacao === "sim" ? avaliacaoEmail.trim() || null : null,
+        avaliacao_prazo_data: pedePrazoEEmail ? avaliacaoPrazoData || null : null,
+        avaliacao_contacto_email: pedePrazoEEmail ? avaliacaoEmail.trim() || null : null,
         tem_bens_moveis: temBensMoveis ? temBensMoveis === "sim" : null,
         condicionado_financiamento: condFinanciamento ? condFinanciamento === "sim" : null,
         valor_financiamento_minimo: condFinanciamento === "sim" && valorFinanciamentoMinimo ? Number(valorFinanciamentoMinimo) : null,
@@ -240,6 +252,13 @@ export default function CondicoesNegocio({
         email_comprador_contrato: emailComprador || null,
         data_assinatura_contrato: dataAssinatura || null,
         observacoes_adicionais: observacoes || null,
+        ...(temFase16
+          ? {
+              escritura_aviso_dias: avisoEscrituraDias ? Number(avisoEscrituraDias) : null,
+              agencia_parceira_nome: agenciaParceiraNome.trim() || null,
+              agencia_parceira_ami: agenciaParceiraAmi.trim() || null,
+            }
+          : {}),
         atualizado_em: new Date().toISOString(),
       })
       .eq("id", processo.id);
@@ -310,6 +329,24 @@ export default function CondicoesNegocio({
                 </div>
               </div>
 
+              {temFase16 && (
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="avisoEscrituraDias" className={labelClass}>Aviso da escritura (dias de antecedência)</label>
+                    <input
+                      id="avisoEscrituraDias"
+                      type="number"
+                      min={1}
+                      value={avisoEscrituraDias}
+                      onChange={(e) => setAvisoEscrituraDias(e.target.value)}
+                      placeholder="15"
+                      className={campoClass}
+                    />
+                    <p className="text-[11px] text-[#94A3B8] mt-1">Vazio = 15 dias, como no modelo.</p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label htmlFor="metodoPagamento" className={labelClass}>
                   Método de pagamento - o comprador recorre a financiamento bancário?
@@ -366,7 +403,9 @@ export default function CondicoesNegocio({
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="valorMobilia" className={labelClass}>Valor atribuído à mobília</label>
-                  <NotaForaDoContrato />
+                  <p className="text-[11px] text-[#94A3B8] mb-1">
+                    Entra na Cláusula Segunda: o preço divide-se entre o imóvel e o recheio.
+                  </p>
                   <CampoEuros id="valorMobilia" value={valorMobilia} onChange={setValorMobilia} className={campoClass} />
                 </div>
               </div>
@@ -375,7 +414,9 @@ export default function CondicoesNegocio({
 
           <div className={seccaoClass}>
             <h3 className={tituloSeccaoClass}>Reserva</h3>
-            <NotaForaDoContrato />
+            <p className="text-[11px] text-[#94A3B8] mb-3">
+              Entra na Cláusula Segunda: a reserva conta como a primeira parte do sinal e o resto é reforço de sinal na data do contrato.
+            </p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="reserva" className={labelClass}>Reserva</label>
@@ -454,7 +495,10 @@ export default function CondicoesNegocio({
                 )}
               </div>
 
-              <NotaForaDoContrato />
+              <p className="text-[11px] text-[#94A3B8]">
+                Condicionado ao financiamento: com financiamento e sem avaliação mínima, o CPCV fica condicionado à aprovação do
+                financiamento (5 pontos na Cláusula de Avaliação Bancária).
+              </p>
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="condFinanciamento" className={labelClass}>Condicionado ao financiamento</label>
@@ -466,13 +510,25 @@ export default function CondicoesNegocio({
                 </div>
                 {condFinanciamento === "sim" && (
                   <div>
-                    <label htmlFor="valorFinanciamentoMinimo" className={labelClass}>Igual ou superior a que valor?</label>
+                    <label htmlFor="valorFinanciamentoMinimo" className={labelClass}>Igual ou superior a que valor? (opcional)</label>
                     <CampoEuros id="valorFinanciamentoMinimo" value={valorFinanciamentoMinimo} onChange={setValorFinanciamentoMinimo} className={campoClass} />
                   </div>
                 )}
-                {condFinanciamento === "sim" && (
+                {condFinanciamento === "sim" && condAvaliacao !== "sim" && (
                   <div>
-                    <label htmlFor="prazoFinanciamentoDias" className={labelClass}>Prazo (dias corridos)</label>
+                    <label htmlFor="avaliacaoPrazoDataFin" className={labelClass}>Data-limite para comunicar a aprovação</label>
+                    <input id="avaliacaoPrazoDataFin" type="date" value={avaliacaoPrazoData} onChange={(e) => setAvaliacaoPrazoData(e.target.value)} className={campoClass} />
+                  </div>
+                )}
+                {condFinanciamento === "sim" && condAvaliacao !== "sim" && (
+                  <div className="sm:col-span-2">
+                    <label htmlFor="avaliacaoEmailFin" className={labelClass}>Email para onde o comprador comunica a aprovação</label>
+                    <input id="avaliacaoEmailFin" type="email" value={avaliacaoEmail} onChange={(e) => setAvaliacaoEmail(e.target.value)} className={campoClass} />
+                  </div>
+                )}
+                {condFinanciamento === "sim" && !avaliacaoPrazoData && (
+                  <div>
+                    <label htmlFor="prazoFinanciamentoDias" className={labelClass}>Ou prazo em dias corridos</label>
                     <input id="prazoFinanciamentoDias" type="number" value={prazoFinanciamentoDias} onChange={(e) => setPrazoFinanciamentoDias(e.target.value)} className={campoClass} />
                   </div>
                 )}
@@ -613,12 +669,35 @@ export default function CondicoesNegocio({
             <div className="space-y-4">
               <div>
                 <label htmlFor="dataAssinatura" className={labelClass}>
-                  Data de assinatura do contrato <span className="text-[#9A5B00] font-normal">(obrigatória - sai como &quot;Braga, dd de mês de aaaa&quot;)</span>
+                  Data de assinatura do contrato{" "}
+                  <span className="text-[#9A5B00] font-normal">(obrigatória - sai como &quot;concelho do imóvel, dd de mês de aaaa&quot;)</span>
                 </label>
                 <input id="dataAssinatura" type="date" value={dataAssinatura} onChange={(e) => setDataAssinatura(e.target.value)} className={campoClass} />
               </div>
 
-              <NotaForaDoContrato />
+              {temFase16 && (
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="agenciaParceiraNome" className={labelClass}>Outra agência que interveio no negócio (opcional)</label>
+                    <input
+                      id="agenciaParceiraNome"
+                      value={agenciaParceiraNome}
+                      onChange={(e) => setAgenciaParceiraNome(e.target.value)}
+                      placeholder="Nome da mediadora, ex.: a que trouxe o comprador"
+                      className={campoClass}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="agenciaParceiraAmi" className={labelClass}>Licença AMI dessa agência</label>
+                    <input id="agenciaParceiraAmi" value={agenciaParceiraAmi} onChange={(e) => setAgenciaParceiraAmi(e.target.value)} className={campoClass} />
+                  </div>
+                  <p className="sm:col-span-3 text-[11px] text-[#94A3B8] -mt-2">Entra na cláusula da Intervenção Imobiliária, a seguir à nossa agência.</p>
+                </div>
+              )}
+
+              <p className="text-[11px] text-[#94A3B8] mb-1">
+                Os emails abaixo só entram no contrato quando as partes não têm email próprio em &quot;Dados das partes&quot;.
+              </p>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="emailProprietario" className={labelClass}>Email do proprietário (para o contrato)</label>

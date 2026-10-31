@@ -274,20 +274,24 @@ const REFERENCIA: { titulo: string; pontos: string[] }[] = [
 // tem de ser idêntico.
 const ADAPTACOES_APROVADAS: [string, string][] = [
   // Dados dinâmicos do processo com formato próprio da app
-  ["sita na Praceta", "sita em Praceta"],
+  ["sita na Praceta", "sito em Praceta"],
+  // Contratos finais da solicitadora (31/10/2026): "sito"/"descrito" concordam com o prédio, e "da freguesia de"
+  ["nº160, freguesia de Braga Maximinos", "nº160, da freguesia de Braga Maximinos"],
+  ["descrita na Conservatória", "descrito na Conservatória"],
   ["de 2025-11-21", "de 21-11-2025"],
   ["2.000€", "2.000,00€"],
   [
     "PT50 0007 0000 0080 2304 3642 3, do Novo Banco",
     `${process.env.CPCV_AGENCIA_IBAN || "____________"}, do ${process.env.CPCV_AGENCIA_BANCO || "____________"}`,
   ],
-  // Fiel depositária: redacção aprovada acrescenta a transferência ao vendedor e a dedução da comissão
+  // Fiel depositária com avaliação: redação da solicitadora no contrato final de 21/10/2026 (até ao
+  // resultado da avaliação, envio do valor ao vendedor e dedução da comissão)
   [
-    "financiamento/ avaliação que os segundos outorgantes estão a recorrer junto de uma instituição bancária.",
-    "financiamento/avaliação que os segundos outorgantes estão a recorrer junto de uma instituição bancária, após o que transferirá o sinal ao primeiro outorgante, podendo deduzir a comissão imobiliária devida, de acordo com a modalidade acordada.",
+    "até resposta do financiamento/ avaliação que os segundos outorgantes estão a recorrer junto de uma instituição bancária.",
+    "até ao resultado da avaliação relativa ao financiamento que os segundos outorgantes estão a recorrer junto de uma instituição bancária, sendo posteriormente enviado, em caso de avaliação positiva, o valor entregue, ao primeiro outorgante, depois de deduzido o valor da comissão devida.",
   ],
-  // Feedback da solicitadora (25/10/2026): notificações também por email convencionado
-  ["com aviso de receção com pelo menos 15", "com aviso de receção ou através dos emails convencionados, com pelo menos 15"],
+  // (Notificações por email convencionado só entram quando as partes têm email - o contrato de
+  // referência não tem, por isso fica igual ao original.)
   // Feedback da solicitadora: pedir o distrate/protocolo APB, não "o cancelamento" da hipoteca
   [
     "e cancelamento da referida hipoteca e o custo a esta associado",
@@ -321,18 +325,8 @@ const contratoRef = montarContrato(h, processoBase, [vendedorRef, compradoraRef,
 
 verificar("16 cláusulas, pela ordem do modelo", contratoRef.clausulas.length === 16 && contratoRef.clausulas[15].ordinal === "Décima Sexta");
 
-// Feedback da solicitadora: segundo ponto de fiel depositária ("Os segundos outorgantes nomeiam ...",
-// artigo 18.º da Lei n.º 15/2013) - não existe no PDF assinado, por isso sai da comparação e os
-// pontos seguintes voltam à numeração do original.
-function pontosSemFielDepositariaExtra(pontos: string[]): string[] {
-  return pontos
-    .filter((p) => !/^\d+ – Os segundos outorgantes nomeiam a Agência/.test(p))
-    .map((p, k) => p.replace(/^\d+ – /, `${k + 1} – `));
-}
-
 REFERENCIA.forEach((ref, i) => {
-  const gerada0 = contratoRef.clausulas[i];
-  const gerada = gerada0 && { ...gerada0, pontos: pontosSemFielDepositariaExtra(gerada0.pontos) };
+  const gerada = contratoRef.clausulas[i];
   if (!gerada) {
     verificar(`Cláusula ${i + 1} (${ref.titulo}) existe`, false);
     return;
@@ -369,11 +363,11 @@ verificar(
     contratoRef.assinaturas.linhasCompradores === 2
 );
 verificar(
-  "Identificação: nomes em maiúsculas, 1)/2) nos compradores",
+  "Identificação: nomes em maiúsculas, '1 - '/'2 - ' nos compradores",
   semMarcas(contratoRef.outorgantes.identificacoesVendedores[0]).startsWith("PEDRO MANUEL GONÇALVES ROQUE, NIF 275 146 499, solteiro, maior, titular do cartão de cidadão n.º 15664140 2ZV5, válido até 28-03-2036, emitido pela República Portuguesa") &&
-    semMarcas(contratoRef.outorgantes.identificacoesCompradores[0]).startsWith("1) ANA CATARINA PINTO MELO") &&
-    semMarcas(contratoRef.outorgantes.identificacoesCompradores[1]).startsWith("2) RENATO COELHO DIAS"),
-  contratoRef.outorgantes.identificacoesVendedores[0]
+    semMarcas(contratoRef.outorgantes.identificacoesCompradores[0]).startsWith("1 - ANA CATARINA PINTO MELO") &&
+    semMarcas(contratoRef.outorgantes.identificacoesCompradores[1]).startsWith("2 - RENATO COELHO DIAS"),
+  semMarcas(contratoRef.outorgantes.identificacoesCompradores[0])
 );
 
 // ---------------------------------------------------------------------------------------------
@@ -393,7 +387,7 @@ const partes1x1 = [vendedorRef, compradoraRef];
 // A - completo: hipoteca, financiamento, avaliação, bens móveis, condomínio
 const A = contratoRef;
 verificar("A: Objeto com 5 pontos (hipoteca incluída)", clausula(A, "Objeto")!.pontos.length === 5);
-verificar("A: Preço com 6 pontos (dois de fiel depositária)", clausula(A, "Preço e Condições de Pagamento")!.pontos.length === 6 && textoTodo(A).includes("fiel depositária"));
+verificar("A: Preço com 5 pontos (um só de fiel depositária)", clausula(A, "Preço e Condições de Pagamento")!.pontos.length === 5 && textoTodo(A).includes("fiel depositária"));
 verificar("A: Avaliação Bancária é a Quarta com 5 pontos", clausula(A, "Avaliação Bancária")!.ordinal === "Quarta" && clausula(A, "Avaliação Bancária")!.pontos.length === 5);
 verificar("A: Bens Móveis é a Quinta", clausula(A, "Bens Móveis")!.ordinal === "Quinta");
 verificar("A: Encargos menciona a hipoteca", clausula(A, "Encargos e Despesas")!.pontos[0].includes("cancelamento da referida hipoteca"));
@@ -416,19 +410,24 @@ verificar("B: Encargos sem hipoteca termina em 'licença de utilização e certi
 // C - financiamento sem condição de avaliação
 const C = montarContrato(h, { ...processoBase, metodo_pagamento: "misto", condicionado_avaliacao: false }, partes1x1, [hipotecaRef]);
 verificar("C: Avaliação Bancária só com o ponto 1", clausula(C, "Avaliação Bancária")!.pontos.length === 1 && clausula(C, "Avaliação Bancária")!.pontos[0].includes("pretende recorrer a financiamento bancário"));
-verificar("C: fiel depositária 'até resposta do financiamento'", textoTodo(C).includes("até resposta do financiamento que o segundo outorgante está a recorrer"));
+verificar("C: fiel depositária 'até resposta da aprovação do financiamento' (compradora: feminino)", textoTodo(C).includes("até resposta da aprovação do financiamento que a segunda outorgante está a recorrer"));
 
 // D - sinal directamente ao vendedor
 const D = montarContrato(h, { ...processoBase, destino_sinal: "vendedor", iban_sinal: "PT50 1234", conta_sinal_banco: "Caixa Geral de Depósitos", conta_sinal_titular: "Pedro Manuel Gonçalves Roque" }, partes1x1, [hipotecaRef]);
 const precoD = clausula(D, "Preço e Condições de Pagamento")!;
 verificar("D: Preço com 4 pontos, sem fiel depositária", precoD.pontos.length === 4 && !textoTodo(D).includes("fiel depositária"));
 verificar("D: ponto 3 passa a ser o do artigo 432º e o 4 o do cheque bancário", precoD.pontos[2].startsWith("3 – Os outorgantes convencionam") && precoD.pontos[3].startsWith("4 – A restante parte"));
-verificar("D: IBAN/banco/titular do vendedor", precoD.pontos[1].includes("IBAN PT50 1234, do Caixa Geral de Depósitos, à ordem de Pedro Manuel Gonçalves Roque"));
+verificar("D: IBAN/banco/titular do vendedor ('da Caixa')", precoD.pontos[1].includes("IBAN PT50 1234, da Caixa Geral de Depósitos, à ordem de Pedro Manuel Gonçalves Roque"));
 
-// E - sinal recebido pela agência (sem financiamento nem avaliação -> retenção até à assinatura)
+// E - sinal recebido pela agência (sem financiamento nem avaliação -> retenção até às assinaturas, Lei 15/2013)
 const E = montarContrato(h, { ...processoBase, metodo_pagamento: "capital_proprio", condicionado_avaliacao: false }, partes1x1, [hipotecaRef]);
-verificar("E: fiel depositária até à assinatura por todos os outorgantes", clausula(E, "Preço e Condições de Pagamento")!.pontos[2].includes("até à assinatura do presente contrato-promessa por todos os outorgantes, após o que transferirá o sinal ao primeiro outorgante"));
-verificar("E (A): com financiamento e avaliação -> 'do financiamento/avaliação'", clausula(A, "Preço e Condições de Pagamento")!.pontos[2].includes("até resposta do financiamento/avaliação"));
+verificar(
+  "E: fiel depositária até estarem todas as assinaturas (redação do contrato final de 17/10/2026)",
+  clausula(E, "Preço e Condições de Pagamento")!.pontos[2].includes(
+    "A segunda outorgante nomeia a Agência House Culture, Lda, para ficar como fiel depositária, nos termos do artigo 18.º da Lei n.º 15/2013, de 8 de fevereiro, do valor acima mencionado, até que estejam reunidas todas as assinaturas do presente contrato de promessa, sendo posteriormente enviado, por transferência bancária, para a conta do primeiro outorgante, depois de deduzido o valor da comissão devida."
+  )
+);
+verificar("E (A): com avaliação -> 'até ao resultado da avaliação relativa ao financiamento'", clausula(A, "Preço e Condições de Pagamento")!.pontos[2].includes("até ao resultado da avaliação relativa ao financiamento"));
 
 // F - 2 vendedores, 3 compradores
 const F = montarContrato(
@@ -445,7 +444,7 @@ verificar("F: Terceira - 'notificá-los' (vendedores) e 'notificá-los' (comprad
 
 // Não-fracção (moradia): termos "imóvel" e ponto 1 em formato de prédio urbano
 const M = montarContrato(h, { ...processoBase, imovel_e_fracao_autonoma: false, imovel_condominio: false }, partes1x1, [hipotecaRef]);
-verificar("Moradia: ponto 1 'do prédio urbano sito em' e descrito na Conservatória", clausula(M, "Objeto")!.pontos[0].includes("proprietário do prédio urbano sito em Praceta Padre Sena de Freitas, nº160, freguesia de Braga Maximinos, concelho de Braga, descrito na Conservatória do Registo Predial de Braga"));
+verificar("Moradia: ponto 1 'do prédio urbano sito em' e descrito na Conservatória", clausula(M, "Objeto")!.pontos[0].includes("proprietário do prédio urbano sito em Praceta Padre Sena de Freitas, nº160, da freguesia de Braga Maximinos, concelho de Braga, descrito na Conservatória do Registo Predial de Braga"));
 verificar("Moradia: 'Sobre o referido imóvel incide', 'o imóvel identificado na cláusula anterior'", clausula(M, "Objeto")!.pontos[1].startsWith("2 – Sobre o referido imóvel incide") && clausula(M, "Preço e Condições de Pagamento")!.pontos[0].includes("o imóvel identificado na cláusula anterior"));
 
 // H - datas e valores
@@ -456,6 +455,220 @@ verificar("H: euroPorExtenso 187500", euroPorExtenso(187500) === "Cento e Oitent
 verificar("H: data longa 2026-10-15", formatarDataLonga("2026-10-15") === "15 de outubro de 2026");
 verificar("H: data curta 2027-02-10", formatarDataCurta("2027-02-10") === "10-02-2027");
 verificar("H: local de assinatura é o concelho do imóvel", montarContrato(h, { ...processoBase, imovel_concelho: "GUIMARÃES" }, partes1x1, []).localData.startsWith("Guimarães, "));
+
+// ---------------------------------------------------------------------------------------------
+// Parte 3 - o que a solicitadora corrigiu nos contratos finais (31/10/2026), com dados fictícios
+// (os contratos reais ficam fora do repositório). Cada cenário reproduz a estrutura de um deles.
+// ---------------------------------------------------------------------------------------------
+
+console.log("\n=== Parte 3: contratos finais da solicitadora ===\n");
+
+const tudo = (c: Contrato) =>
+  semMarcas(
+    [
+      c.outorgantes.cabecalhoVendedores,
+      ...c.outorgantes.identificacoesVendedores,
+      c.outorgantes.cabecalhoCompradores,
+      ...c.outorgantes.identificacoesCompradores,
+      textoTodo(c),
+      c.textoFinal.antes + c.textoFinal.depois,
+      c.assinaturas.tituloVendedores,
+      c.assinaturas.tituloCompradores,
+    ].join(" ")
+  );
+const pessoa = (papel: string, nome: string, extra: Partial<Parte> = {}): Parte => ({
+  ...vendedorRef,
+  papel,
+  nome,
+  morada: "Rua do Exemplo, n.º 10, 4700-001, freguesia de Palmeira, concelho de Braga",
+  ...extra,
+});
+const contem = (nome: string, c: Contrato, trechos: string[]) => {
+  const t = tudo(c);
+  for (const x of trechos) verificar(`${nome}: "${x.slice(0, 90)}"`, t.includes(x), t.length > 0 ? "" : "texto vazio");
+};
+const naoContem = (nome: string, c: Contrato, trechos: string[]) => {
+  const t = tudo(c);
+  for (const x of trechos) verificar(`${nome}: sem "${x.slice(0, 90)}"`, !t.includes(x));
+};
+
+// G - um vendedor, uma compradora divorciada, fração com hipoteca, reserva + reforço, avaliação.
+const G = montarContrato(
+  h,
+  {
+    ...processoBase,
+    imovel_freguesia: "UNIÃO DAS FREGUESIAS DE VILA NOVA DE FAMALICÃO E CALENDÁRIO",
+    imovel_concelho: "VILA NOVA DE FAMALICÃO",
+    imovel_codigo_postal: "4760-337",
+    imovel_localidade: "VILA NOVA DE FAMALICÃO",
+    imovel_morada: "Rua Exemplo, n.ºs 1 e 3, r/c, 4760-337 VILA NOVA DE FAMALICÃO",
+    imovel_descricao_predial: "526/19910122",
+    imovel_licenca_utilizacao: "resposta à comunicação prévia para utilização após operação urbanística, emitida pela Câmara Municipal de Vila Nova de Famalicão",
+    preco_total: 215000,
+    valor_sinal: 25000,
+    reserva: true,
+    valor_reserva: 2500,
+    reserva_ate_data: "2026-09-02",
+    iban_sinal: "PT50 0000 0000 0000 0000 0000 0",
+    conta_sinal_banco: "Novo Banco",
+  },
+  [
+    pessoa("vendedor", "Paulo Exemplo Lima", { estado_civil: "Solteiro", email: "paulo@exemplo.pt" }),
+    pessoa("comprador", "Cláudia Exemplo Saraiva", { estado_civil: "Divorciada", email: "claudia@exemplo.pt", morada: "Rua A, n.º nº 113, 4730-762, freguesia de Vila Verde, concelho de Vila Verde" }),
+  ],
+  [{ entidade_credora: "CAIXA GERAL DE DEPÓSITOS, S.A.", natureza: "Hipoteca Voluntária", numero_apresentacao: "Ap. 555", data_registo: "2025-11-06" }]
+);
+contem("G", G, [
+  "SEGUNDA OUTORGANTE – PROMITENTE COMPRADORA:",
+  "A SEGUNDA OUTORGANTE:",
+  "n.º 113, C.P. 4730-762, freguesia de Vila Verde",
+  "com o email: claudia@exemplo.pt",
+  "sito em Rua Exemplo, n.ºs 1 e 3, r/c, da União das Freguesias de Vila Nova de Famalicão e Calendário, concelho de Vila Nova de Famalicão, descrito na",
+  "sob o n.º 526, inscrito",
+  "com a resposta à comunicação prévia para utilização após operação urbanística, emitida pela Câmara Municipal de Vila Nova de Famalicão, com o certificado",
+  "incide uma hipoteca voluntária registada a favor da Caixa Geral de Depósitos, S.A., através da AP. 555 de 06-11-2025, cujo cancelamento terá de ser assegurado pelo primeiro outorgante",
+  "a segunda outorgante reconhece que",
+  "No dia 02 de setembro do corrente ano, a segunda outorgante entregou, a título de sinal e princípio de pagamento, a quantia de 2.500,00€ (Dois Mil e Quinhentos Euros), através de transferência bancária, para a conta com o IBAN PT50 0000 0000 0000 0000 0000 0, do Novo Banco, à ordem da Agência House Culture, Lda, de que o primeiro outorgante dará quitação após boa cobrança.",
+  "Na presente data, a segunda outorgante terá de entregar, a título de reforço de sinal e sempre por conta do pagamento do preço, a quantia de 22.500,00€ (Vinte e Dois Mil e Quinhentos Euros), através de transferência bancária, para a conta com o IBAN supramencionado, do Novo Banco",
+  "até ao resultado da avaliação relativa ao financiamento que a segunda outorgante está a recorrer junto de uma instituição bancária, sendo posteriormente enviado, em caso de avaliação positiva, o valor entregue, ao primeiro outorgante, depois de deduzido o valor da comissão devida.",
+  "a designar pela segunda outorgante, devendo esta avisar o primeiro outorgante",
+  "por carta registada com aviso de receção ou através dos emails convencionados, com pelo menos 15 (quinze) dias",
+  "imputável à segunda outorgante, esta sujeita-se",
+  "recebidas da segunda outorgante",
+  "através de carta registada com aviso de receção ou através dos emails convencionados, à contraparte",
+  "para a morada das partes ou a boa receção do email será prova bastante",
+  "aos promitentes compradores, a quantia total",
+  "e distrate/protocolo APB para o cancelamento da referida hipoteca e o custo a esta associado",
+  "FEITO EM DOIS EXEMPLARES",
+]);
+naoContem("G", G, ["n.º nº", "4760-337", "/19910122", "licença de utilização n.º resposta", "fiel depositária, nos termos do artigo 18.º", "ao promitente comprador,"]);
+
+// I - dois vendedores divorciados (pagamento a cada um), casal comprador, sem financiamento, 8 dias de aviso.
+const I = montarContrato(
+  h,
+  {
+    ...processoBase,
+    imovel_e_fracao_autonoma: false,
+    imovel_condominio: false,
+    imovel_composicao: "Casa de cave e rés-do-chão",
+    imovel_situado_em: "Lugar da Exemplar, atual Rua do Forno, n.º 10",
+    metodo_pagamento: "capital_proprio",
+    condicionado_avaliacao: false,
+    tem_bens_moveis: false,
+    escritura_aviso_dias: 8,
+  },
+  [
+    pessoa("vendedor", "Regina Exemplo Lopes", { estado_civil: "Divorciada", email: "regina@exemplo.pt" }),
+    pessoa("vendedor", "António Exemplo Novais", { estado_civil: "Divorciado", email: "antonio@exemplo.pt" }),
+    pessoa("comprador", "Antónia Exemplo Pinto", { estado_civil: "Casada", regime_bens: "comunhão de adquiridos", email: "pinto@exemplo.pt", casal: 1 }),
+    pessoa("comprador", "Augusto Exemplo Pinto", { estado_civil: "Casado", regime_bens: "comunhão de adquiridos", documento_numero: "11111111 1ZZ1", casal: 1 }),
+  ],
+  []
+);
+contem("I", I, [
+  "1 - REGINA EXEMPLO LOPES",
+  "2 - ANTÓNIO EXEMPLO NOVAIS",
+  "SEGUNDOS OUTORGANTES – PROMITENTES COMPRADORES:",
+  "casados sob o regime de comunhão de adquiridos, titulares, respetivamente, dos cartões de cidadão n.º",
+  "e do cartão de cidadão n.º 11111111 1ZZ1",
+  "do prédio urbano, composto por casa de cave e rés-do-chão, sito em Lugar da Exemplar, atual Rua do Forno, n.º 10, da freguesia de Braga Maximinos",
+  "Os segundos outorgantes nomeiam a Agência House Culture, Lda, para ficar como fiel depositária, nos termos do artigo 18.º da Lei n.º 15/2013",
+  "na proporção de metade, para a conta de cada um dos primeiros outorgantes, depois de deduzido o valor da comissão devida.",
+  "através de dois cheques bancários, um cheque para cada um dos primeiros outorgantes.",
+  "com antecedência mínima de 8 (oito) dias",
+  "com pelo menos 8 (oito) dias de antecedência",
+  "FEITO EM TRÊS EXEMPLARES",
+  "OS SEGUNDOS OUTORGANTES:",
+]);
+naoContem("I", I, ["ambos maiores", "Avaliação", "1) "]);
+
+// J - casal vendedor e casal comprador (no estrangeiro), financiamento sem avaliação, duas hipotecas e
+// um ónus, mobília com valor e inventário anexo, outra agência no negócio.
+const J = montarContrato(
+  h,
+  {
+    ...processoBase,
+    imovel_e_fracao_autonoma: false,
+    imovel_condominio: false,
+    imovel_morada: "RUA DE S. EXEMPLO, n.º 18",
+    imovel_codigo_postal: "4700-019",
+    imovel_localidade: "PALMEIRA",
+    imovel_freguesia: "PALMEIRA",
+    imovel_concelho: "BRAGA",
+    imovel_licenca_entidade_emissora: "Câmara Municipal de BRAGA",
+    condicionado_avaliacao: false,
+    condicionado_financiamento: true,
+    avaliacao_prazo_data: "2026-10-30",
+    preco_total: 565000,
+    valor_mobilia: 25000,
+    valor_sinal: 56500,
+    incluidos_no_imovel: "com os móveis integrados no inventário anexo ao presente contrato e que dele faz parte integrante",
+    agencia_parceira_nome: "Mediadora Exemplo, Lda",
+    agencia_parceira_ami: "99999",
+  },
+  [
+    pessoa("vendedor", "Luísa Exemplo Veloso", { estado_civil: "Casada", regime_bens: "comunhão de adquiridos", casal: 1 }),
+    pessoa("vendedor", "Hugo Exemplo Mlauzi", { estado_civil: "Casado", regime_bens: "comunhão de adquiridos", email: "hugo@exemplo.pt", casal: 1 }),
+    pessoa("comprador", "Sónia Exemplo Amorim", { estado_civil: "Casada", regime_bens: "comunhão de adquiridos", morada: "Rue de Exemple 4, 1530 Cidade, Suíça", casal: 1 }),
+    pessoa("comprador", "João Exemplo Silva", { estado_civil: "Casado", regime_bens: "comunhão de adquiridos", morada: "Rue de Exemple 4, 1530 Cidade, Suíça", email: "joao@exemplo.pt", casal: 1 }),
+  ],
+  [
+    { entidade_credora: "Caixa Geral de Depósitos, S.A.", natureza: "voluntária", numero_apresentacao: "AP. 2696", data_registo: "2025-10-02" },
+    { entidade_credora: "Caixa Geral de Depósitos, S.A.", natureza: "voluntária", numero_apresentacao: "AP. 2697", data_registo: "2025-10-02" },
+    { entidade_credora: "decorrente do mútuo garantido pela hipoteca voluntária objeto da AP. 2696 de 2025/10/02", natureza: "Ónus de Inalienabilidade", numero_apresentacao: "AP. 2698", data_registo: null },
+  ]
+);
+contem("J", J, [
+  "PRIMEIROS OUTORGANTES – PROMITENTES VENDEDORES:",
+  "residentes em Rue de Exemple 4, 1530 Cidade, Suíça, com o email: joao@exemplo.pt",
+  "do prédio urbano sito em Rua de S. Exemplo, n.º 18, da freguesia de Palmeira, concelho de Braga",
+  "pela Câmara Municipal de Braga",
+  "incidem duas hipotecas voluntárias, ambas registadas a favor da Caixa Geral de Depósitos, S.A., através da AP. 2696 de 02-10-2025 e da AP. 2697 de 02-10-2025, incidindo ainda um ónus de inalienabilidade decorrente do mútuo garantido pela hipoteca voluntária objeto da AP. 2696 de 02-10-2025, através da AP. 2698, cujo cancelamento terá de ser assegurado pelos primeiros outorgantes",
+  "pelo preço total de 565.000,00€ (Quinhentos e Sessenta e Cinco Mil Euros), correspondendo a quantia de 540.000,00€ (Quinhentos e Quarenta Mil Euros) ao prédio urbano e a quantia de 25.000,00€ (Vinte e Cinco Mil Euros) ao recheio integrado no prédio urbano, conforme cláusula quinta e anexo do presente contrato de promessa.",
+  "até resposta da aprovação do financiamento que os segundos outorgantes estão a recorrer junto de uma instituição bancária, sendo posteriormente enviado, aos primeiros outorgantes, em caso de aprovação do referido financiamento, o valor entregue, depois de deduzido o valor da comissão devida.",
+  "O presente contrato, fica expressamente condicionado à aprovação do referido financiamento.",
+  "Os segundos outorgantes dispõem até ao dia 30 de outubro de 2026, para comunicar via email, para wego@remax.pt, se o referido financiamento foi aprovado.",
+  "Se o financiamento não for aprovado, este contrato considera-se automaticamente resolvido",
+  "considera-se que o financiamento foi aprovado",
+  "Que o imóvel é vendido com os móveis integrados no inventário anexo",
+  "distrate/protocolo APB para o cancelamento das referidas hipotecas e os custos a estas associados.",
+  "titular da licença AMI 21596 e pela agência Mediadora Exemplo, Lda, titular da licença AMI 99999.",
+  "PÁGINAS E ANEXO, NUMERADAS",
+  "FEITO EM DOIS EXEMPLARES",
+]);
+naoContem("J", J, ["com com", "4700-019 Palmeira", "na proporção de metade", "bem como o cancelamento do referido ónus", "A) "]);
+verificar("J: Bens Móveis é a Quinta (a referência 'cláusula quinta' bate certo)", clausula(J, "Bens Móveis")!.ordinal === "Quinta");
+
+// K - duas vendedoras (feminino plural) e dois casais compradores (letras A) e B)).
+const K = montarContrato(
+  h,
+  { ...processoBase, metodo_pagamento: "capital_proprio", condicionado_avaliacao: false, destino_sinal: "vendedor", iban_sinal: "PT50 1", conta_sinal_banco: "Banco X", conta_sinal_titular: "Ana Irmã" },
+  [
+    pessoa("vendedor", "Ana Irmã Costa", { estado_civil: "Solteira" }),
+    pessoa("vendedor", "Inês Irmã Costa", { estado_civil: "Divorciada" }),
+    pessoa("comprador", "Rui Um", { estado_civil: "Casado", regime_bens: "separação de bens", casal: 1 }),
+    pessoa("comprador", "Rita Um", { estado_civil: "Casada", regime_bens: "separação de bens", casal: 1 }),
+    pessoa("comprador", "Tiago Dois", { estado_civil: "Casado", regime_bens: "comunhão de adquiridos", casal: 2 }),
+    pessoa("comprador", "Teresa Dois", { estado_civil: "Casada", regime_bens: "comunhão de adquiridos", casal: 2 }),
+  ],
+  []
+);
+contem("K", K, [
+  "PRIMEIRAS OUTORGANTES – PROMITENTES VENDEDORAS:",
+  "AS PRIMEIRAS OUTORGANTES:",
+  "As primeiras outorgantes, declaram para os devidos e legais efeitos, que são as únicas donas e legítimas proprietárias",
+  "comprar àquelas",
+  "sejam contactadas",
+  "A) RUI UM",
+  "e mulher, RITA UM",
+  "B) TIAGO DOIS",
+  "através de dois cheques bancários, um cheque para cada uma das primeiras outorgantes.",
+  "notificá-las de novo",
+  "determinado por estas",
+  "estas obrigam-se",
+  "FEITO EM QUATRO EXEMPLARES",
+]);
+naoContem("K", K, ["fiel depositária", "1 - RUI"]);
 
 console.log(`\n${falhas === 0 ? "Tudo coincide com o contrato de referência e com os cenários do pedido." : `${falhas} verificação(ões) falhada(s).`}\n`);
 process.exit(falhas === 0 ? 0 : 1);

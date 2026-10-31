@@ -97,6 +97,13 @@ export type Processo = Record<string, unknown> & {
   email_comprador_contrato: string | null;
   data_assinatura_contrato: string | null;
   observacoes_adicionais: string | null;
+  // Fase 16 (contratos finais da solicitadora, 31/10/2026). Opcionais: numa instalação sem a migração
+  // as colunas não existem e o contrato usa os valores por omissão (15 dias, sem agência parceira).
+  // Dias de antecedência para avisar da escritura (Cláusula Terceira); omissão 15.
+  escritura_aviso_dias?: number | null;
+  // Outra mediadora que interveio no negócio (ex.: trouxe o comprador) - entra na Intervenção Imobiliária.
+  agencia_parceira_nome?: string | null;
+  agencia_parceira_ami?: string | null;
 };
 
 export type Hipoteca = {
@@ -183,4 +190,21 @@ export function regimeBensValido(regimeBens: string | null): boolean {
 // número de descrição predial real tem sempre pelo menos um dígito.
 export function descricaoPredialValida(descricaoPredial: string | null): boolean {
   return !!descricaoPredial && /\d/.test(descricaoPredial);
+}
+
+// Moradas no estrangeiro não têm código postal português (ex.: "Rue Exemple 4, 1530 Cidade, Suíça",
+// compradores emigrados de um contrato real) - a exigência do código postal 0000-000 só se aplica a
+// moradas em Portugal. Reconhece-se a morada estrangeira pelo país no fim ("..., Suíça"): só o último
+// elemento conta, porque há muitas ruas portuguesas com nomes de países ("Avenida do Brasil").
+const PAIS_ESTRANGEIRO =
+  /^(su[íi][çc]a|switzerland|schweiz|suisse|fran[çc]a|france|luxemburgo|luxembourg|alemanha|germany|deutschland|espanha|spain|españa|reino unido|united kingdom|uk|inglaterra|england|esc[óo]cia|irlanda|ireland|b[ée]lgica|belgium|belgique|pa[íi]ses baixos|holanda|netherlands|it[áa]lia|italy|[áa]ustria|su[ée]cia|noruega|dinamarca|andorra|m[óo]naco|brasil|brazil|angola|mo[çc]ambique|cabo verde|s[ãa]o tom[ée] e pr[íi]ncipe|guin[ée]-bissau|estados unidos( da am[ée]rica)?|eua|usa|canad[áa]|venezuela|[áa]frica do sul|austr[áa]lia)$/i;
+
+export function moradaNoEstrangeiro(morada: string | null | undefined): boolean {
+  if (!morada) return false;
+  const ultimo = morada.split(",").pop()?.trim().replace(/[.\s]+$/, "") ?? "";
+  return PAIS_ESTRANGEIRO.test(ultimo);
+}
+
+export function moradaTemCodigoPostal(morada: string | null | undefined): boolean {
+  return !!morada && (/\b\d{4}-\d{3}\b/.test(morada) || moradaNoEstrangeiro(morada));
 }

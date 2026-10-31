@@ -5,7 +5,7 @@ import { gerarDocxCpcv } from "@/lib/cpcv-docx";
 import { enviarCpcvParaDrive } from "@/lib/google-drive";
 import { reverAntesDeGerar } from "@/lib/cpcv-revisao";
 import { temGestaoTotal } from "@/lib/cpcv-auth";
-import { descricaoPredialValida } from "@/lib/cpcv-types";
+import { descricaoPredialValida, moradaTemCodigoPostal } from "@/lib/cpcv-types";
 import { informacaoForaDoContrato } from "@/lib/cpcv-alertas";
 import { lerContrato, resumoDaLeitura, type Leitura } from "@/lib/cpcv-leitor";
 
@@ -99,6 +99,13 @@ export async function POST(req: NextRequest) {
     falta(!processo.avaliacao_prazo_data, "data-limite para comunicar o resultado da avaliação");
     falta(!processo.avaliacao_contacto_email, "email para comunicar o resultado da avaliação");
   }
+  // Condicionado à aprovação do financiamento (sem condição de avaliação): a Cláusula de Avaliação
+  // Bancária leva a data-limite (ou os dias) e o email para comunicar a aprovação.
+  const recorreAFinanciamento = processo.metodo_pagamento === "financiamento" || processo.metodo_pagamento === "misto";
+  if (recorreAFinanciamento && processo.condicionado_financiamento === true && !processo.condicionado_avaliacao) {
+    falta(!processo.avaliacao_prazo_data && !processo.prazo_financiamento_dias, "data-limite para comunicar a aprovação do financiamento");
+    falta(!processo.avaliacao_contacto_email, "email para comunicar a aprovação do financiamento");
+  }
 
   if (processo.tem_bens_moveis) falta(!processo.incluidos_no_imovel, "lista de bens móveis incluídos na venda");
 
@@ -123,12 +130,13 @@ export async function POST(req: NextRequest) {
     .select("entidade_credora, natureza, numero_apresentacao, data_registo")
     .eq("processo_id", processo_id);
 
-  // Código postal na morada de cada parte é obrigatório (pedido da solicitadora).
-  const semCodigoPostal = (partes ?? []).filter((p) => !p.morada || !/\b\d{4}-\d{3}\b/.test(p.morada));
+  // Código postal na morada de cada parte é obrigatório (pedido da solicitadora). Uma morada no
+  // estrangeiro (país no fim, ex.: "..., 1530 Payerne, Suíça") não tem código postal português.
+  const semCodigoPostal = (partes ?? []).filter((p) => !moradaTemCodigoPostal(p.morada));
   if (semCodigoPostal.length > 0) {
     return NextResponse.json(
       {
-        error: `Falta o código postal (0000-000) na morada de: ${semCodigoPostal.map((p) => p.nome ?? "parte sem nome").join(", ")}. Acrescenta-o em "Dados das partes" antes de gerar.`,
+        error: `Falta o código postal (0000-000) na morada de: ${semCodigoPostal.map((p) => p.nome ?? "parte sem nome").join(", ")}. Acrescenta-o em "Dados das partes" antes de gerar (se a morada for no estrangeiro, termina-a com o país).`,
       },
       { status: 400 }
     );

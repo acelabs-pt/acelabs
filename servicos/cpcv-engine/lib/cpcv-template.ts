@@ -1,6 +1,6 @@
 import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "./cpcv-types";
-import { euroPorExtenso, paginasPorExtenso, neg, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
+import { euroPorExtenso, paginasPorExtenso, neg, fimDeIdentificacao, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
 import { montarContrato, TITULO_CONTRATO } from "./cpcv-contrato";
 import { ARIMO_LATIN_WOFF2_BASE64 } from "./fonts/arimo";
 
@@ -108,11 +108,11 @@ export function gerarHtmlCpcv(
 </head>
 <body>
   <p class="titulo-principal">${TITULO_CONTRATO}</p>
-  <p class="cabecalho-outorgantes">OUTORGANTES:</p>
-  <p class="cabecalho-outorgantes">${outorgantes.cabecalhoVendedores}</p>
-  ${outorgantes.identificacoesVendedores.map((texto) => `<p>${texto}.</p>`).join("\n  ")}
-  <p class="cabecalho-outorgantes">${outorgantes.cabecalhoCompradores}</p>
-  ${outorgantes.identificacoesCompradores.map((texto) => `<p>${texto}.</p>`).join("\n  ")}
+  <p class="cabecalho-outorgantes trancar">OUTORGANTES:</p>
+  <p class="cabecalho-outorgantes trancar">${outorgantes.cabecalhoVendedores}</p>
+  ${outorgantes.identificacoesVendedores.map((texto) => `<p class="trancar">${fimDeIdentificacao(texto)}</p>`).join("\n  ")}
+  <p class="cabecalho-outorgantes trancar">${outorgantes.cabecalhoCompradores}</p>
+  ${outorgantes.identificacoesCompradores.map((texto) => `<p class="trancar">${fimDeIdentificacao(texto)}</p>`).join("\n  ")}
 
   <p class="intro">${contrato.introBoaFe}</p>
 
@@ -135,11 +135,13 @@ ${linhas(assinaturas.linhasCompradores)}
 // Fecha o fim de cada ponto de cláusula com um traço até à margem direita, para ninguém poder
 // acrescentar texto depois do ponto final ("trancar" o parágrafo). Corre no browser, depois de a
 // fonte carregar: mede onde acaba a última linha e enche o resto com sublinhados (texto normal, como
-// no contrato de referência). Se a última linha já vai quase cheia não se acrescenta nada.
+// no contrato de referência). Se a última linha já vai quase cheia não se acrescenta nada. Também
+// tranca os cabeçalhos dos outorgantes e a identificação de cada parte (classe "trancar"), como nos
+// contratos finais da solicitadora.
 export async function trancarFimDosPontos(page: { evaluate: (fn: () => Promise<void>) => Promise<unknown> }) {
   await page.evaluate(async () => {
     await document.fonts.ready;
-    document.querySelectorAll("p.ponto").forEach((p) => {
+    document.querySelectorAll("p.ponto, p.trancar").forEach((p) => {
       const s = document.createElement("span");
       s.className = "tranca";
       s.textContent = "_";

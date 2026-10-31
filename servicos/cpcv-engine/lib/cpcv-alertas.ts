@@ -2,10 +2,12 @@ import type { Processo } from "./cpcv-types";
 import { formatarDataCurta, formatarEuros } from "./cpcv-types";
 
 // O CPCV gerado tem exactamente as 16 cláusulas do contrato de referência. Vários campos que a app
-// continua a recolher (reserva, reforços, mobília, comodato, observações, ...) não entram em
-// nenhuma delas - por decisão do Miguel ficam registados e são mostrados à gestora/solicitadora
-// como alertas (na página do processo e no ecrã de confirmação antes de gerar), para ela decidir
-// o que fazer com essa informação fora do documento gerado. Nunca acrescentam cláusulas.
+// continua a recolher (reforços, comodato, observações, ...) não entram em nenhuma delas - por
+// decisão do Miguel ficam registados e são mostrados à gestora/solicitadora como alertas (na página
+// do processo e no ecrã de confirmação antes de gerar), para ela decidir o que fazer com essa
+// informação fora do documento gerado. Nunca acrescentam cláusulas. A reserva, a divisão do preço com
+// a mobília e o condicionamento ao financiamento passaram a entrar em pontos das cláusulas existentes,
+// porque a solicitadora os escreve assim nos contratos finais (31/10/2026).
 function euros(valor: number | null | undefined): string {
   return valor === null || valor === undefined ? "-" : `${formatarEuros(valor)}€`;
 }
@@ -26,16 +28,21 @@ export function informacaoForaDoContrato(processo: Processo): string[] {
     );
   }
 
+  // Reforços além do sinal (ex.: reforço pago aos vendedores depois de aprovado o financiamento): a
+  // app não sabe para que conta vão, por isso não entram no texto - a solicitadora acrescenta o ponto.
   const reforcos = (processo.reforcos_sinal ?? []).filter((r) => r.valor);
   if (reforcos.length > 0) {
     alertas.push(
-      `Reforços de sinal: ${reforcos
+      `Reforços de sinal (acrescentar na Cláusula Segunda, com a conta de destino): ${reforcos
         .map((r) => `${euros(r.valor)}${r.data ? ` até ${formatarDataCurta(r.data)}` : ""}`)
         .join("; ")}`
     );
   }
 
-  if (processo.valor_mobilia) alertas.push(`Valor atribuído à mobília: ${euros(processo.valor_mobilia)}`);
+  // O valor da mobília entra na Cláusula Segunda (divisão do preço) quando é menor do que o preço.
+  const mobiliaNoContrato =
+    typeof processo.valor_mobilia === "number" && typeof processo.preco_total === "number" && processo.valor_mobilia > 0 && processo.valor_mobilia < processo.preco_total;
+  if (processo.valor_mobilia && !mobiliaNoContrato) alertas.push(`Valor atribuído à mobília: ${euros(processo.valor_mobilia)}`);
 
   if (processo.tem_fracoes_multiplas) {
     alertas.push(
@@ -43,7 +50,11 @@ export function informacaoForaDoContrato(processo: Processo): string[] {
     );
   }
 
-  if (processo.condicionado_financiamento === true) {
+  // Condicionado ao financiamento entra na Cláusula de Avaliação Bancária (versão "aprovação do
+  // financiamento") quando há financiamento e não há condição de avaliação; nos outros casos fica aqui.
+  const financiamentoNoContrato =
+    (processo.metodo_pagamento === "financiamento" || processo.metodo_pagamento === "misto") && !processo.condicionado_avaliacao;
+  if (processo.condicionado_financiamento === true && !financiamentoNoContrato) {
     const prazo = processo.prazo_financiamento_dias ? `, prazo de ${processo.prazo_financiamento_dias} dias` : "";
     alertas.push(`Condicionado ao financiamento: igual ou superior a ${euros(processo.valor_financiamento_minimo)}${prazo}`);
   }

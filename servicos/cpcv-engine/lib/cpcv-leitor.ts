@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { anthropicClient, REVISAO_FINAL_MODEL } from "./anthropic";
 import { ORDINAIS, formatarNif } from "./cpcv-clausulas";
-import { formatarEuros } from "./cpcv-types";
+import { formatarEuros, moradaTemCodigoPostal } from "./cpcv-types";
 import type { Hipoteca, Parte, Processo } from "./cpcv-types";
 
 // Leitor do contrato JÁ GERADO. Ao contrário de lib/cpcv-revisao.ts (que olha para os dados antes de
@@ -28,7 +28,11 @@ export type Leitura = {
 export async function textoDoDocx(docx: Buffer): Promise<string> {
   const zip = await JSZip.loadAsync(docx);
   const xml = await zip.file("word/document.xml")!.async("string");
+  // Fora: o código dos campos (um Word gravado pelo próprio Word escreve "NUMPAGES \* CardText" em
+  // <w:instrText>) e o texto apagado com alterações registadas (<w:delText>) - não se lêem no documento.
   return xml
+    .replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/g, "")
+    .replace(/<w:delText\b[^>]*>[\s\S]*?<\/w:delText>/g, "")
     .replace(/<\/w:p>/g, "\n")
     .replace(/<w:tab\/>/g, " ")
     .replace(/<[^>]+>/g, "")
@@ -95,13 +99,20 @@ export function verificacoesDeRegra(texto: string, processo: Processo, partes: P
     if (!tem(parte.nome)) add("alta", parte.nome, "O nome desta parte não aparece no contrato.");
     if (parte.nif && !tem(formatarNif(parte.nif))) add("alta", parte.nome, "O NIF desta parte não aparece no contrato.");
     if (parte.email && !tem(parte.email)) add("media", parte.nome, "O email desta parte não aparece no contrato.");
-    if (parte.morada && !/\b\d{4}-\d{3}\b/.test(parte.morada)) add("alta", parte.nome, "A morada desta parte não tem código postal.", "Acrescentar o código postal (0000-000) à morada.");
+    if (parte.morada && !moradaTemCodigoPostal(parte.morada)) add("alta", parte.nome, "A morada desta parte não tem código postal.", "Acrescentar o código postal (0000-000) à morada.");
   }
   if (typeof processo.preco_total === "number" && !texto.includes(formatarEuros(processo.preco_total))) {
     add("alta", "Cláusula Segunda", "O preço total do processo não aparece no contrato.");
   }
-  if (typeof processo.valor_sinal === "number" && !texto.includes(formatarEuros(processo.valor_sinal))) {
+  // Com reserva, o sinal aparece em duas parcelas (a reserva já entregue e o reforço na data do
+  // contrato), não pelo total.
+  const comReserva = processo.reserva === true && typeof processo.valor_reserva === "number" && processo.valor_reserva > 0;
+  if (typeof processo.valor_sinal === "number" && !comReserva && !texto.includes(formatarEuros(processo.valor_sinal))) {
     add("alta", "Cláusula Segunda", "O valor do sinal do processo não aparece no contrato.");
+  }
+  if (comReserva && typeof processo.valor_sinal === "number" && processo.valor_sinal > (processo.valor_reserva as number)) {
+    const reforco = Math.round((processo.valor_sinal - (processo.valor_reserva as number)) * 100) / 100;
+    if (!texto.includes(formatarEuros(reforco))) add("alta", "Cláusula Segunda", "O reforço de sinal (sinal menos reserva) não aparece no contrato.");
   }
   if (processo.reserva === true && typeof processo.valor_reserva === "number" && !texto.includes(formatarEuros(processo.valor_reserva))) {
     add("alta", "Cláusula Segunda", "O processo tem reserva, mas o valor da reserva não aparece no contrato.");
@@ -150,8 +161,12 @@ Só a assinales se contradisser os dados DESTE processo ou o resto do contrato. 
 repetidos entre pessoas (NIF, CC) só os assinales se forem claramente erro e não dados de teste óbvios.
 
 Convenções DELIBERADAS que NÃO são erro: nomes das partes em MAIÚSCULAS; "primeiro outorgante" /
-"segundo outorgante" sempre no masculino; pontos numerados como "1 – "; redação fixa e formal das
-cláusulas (vem de um modelo aprovado); o contrato não menciona o valor da comissão; os sublinhados do
+"segundo outorgante" concordam em género e número com as pessoas desse lado ("a segunda outorgante"
+quando é uma mulher; masculino quando o lado mistura homens e mulheres); "aos promitentes compradores"
+fica no plural na cláusula dos Direitos de Preferência mesmo com um só comprador; várias partes do mesmo
+lado numeradas "1 - ", "2 - " (casais "A)", "B)"); pontos numerados como "1 – "; redação fixa e formal
+das cláusulas (vem de um modelo aprovado); o contrato não menciona o valor da comissão; com reserva, o
+sinal aparece em duas parcelas (reserva já entregue e reforço na data do contrato); os sublinhados do
 fim dos parágrafos não aparecem no texto que recebes.
 
 Não inventes problemas. Se estiver tudo coerente, devolve a lista vazia. Cada problema é concreto, cita

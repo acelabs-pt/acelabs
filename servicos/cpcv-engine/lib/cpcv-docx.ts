@@ -1,7 +1,7 @@
 import { AlignmentType, Document, Footer, LeaderType, Packer, PageNumber, Paragraph, SimpleField, Tab, TabStopType, TextRun } from "docx";
 import type { Parte, Processo, Helpers, Hipoteca } from "./cpcv-types";
 import { formatarDataCurta, formatarDataLonga, formatarEuros } from "./cpcv-types";
-import { euroPorExtenso, paginasPorExtenso, neg, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
+import { euroPorExtenso, paginasPorExtenso, neg, fimDeIdentificacao, NEG_ABRE, NEG_FECHA } from "./cpcv-clausulas";
 import { montarContrato, TITULO_CONTRATO } from "./cpcv-contrato";
 
 function v(value: unknown, fallback = "____________"): string {
@@ -91,11 +91,12 @@ export async function gerarDocxCpcv(
       spacing: { after: 200 },
       children: [new TextRun({ text: TITULO_CONTRATO, bold: true, font: FONTE, size: 24, color: "000000" })],
     }),
-    paragrafo("OUTORGANTES:", { bold: true, antes: 200 }),
-    paragrafo(outorgantes.cabecalhoVendedores, { bold: true, antes: 200 }),
-    ...outorgantes.identificacoesVendedores.map((texto) => paragrafo(`${texto}.`)),
-    paragrafo(outorgantes.cabecalhoCompradores, { bold: true, antes: 200 }),
-    ...outorgantes.identificacoesCompradores.map((texto) => paragrafo(`${texto}.`)),
+    // Cabeçalhos e identificação das partes também "trancados" até à margem, como nos contratos finais.
+    paragrafo("OUTORGANTES:", { bold: true, antes: 200, trancar: true }),
+    paragrafo(outorgantes.cabecalhoVendedores, { bold: true, antes: 200, trancar: true }),
+    ...outorgantes.identificacoesVendedores.map((texto) => paragrafo(fimDeIdentificacao(texto), { trancar: true })),
+    paragrafo(outorgantes.cabecalhoCompradores, { bold: true, antes: 200, trancar: true }),
+    ...outorgantes.identificacoesCompradores.map((texto) => paragrafo(fimDeIdentificacao(texto), { trancar: true })),
     paragrafo(contrato.introBoaFe, { bold: true, antes: 200 }),
   ];
 

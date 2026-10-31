@@ -160,8 +160,33 @@ mesmo padrão já usado para método de pagamento/reserva/etc.
   Sexta; certificado energético válido/isento/em execução; "situado em"/composição da certidão no ponto 1
   da Primeira; TEXTOS ALL CAPS passam por `capitalizarLocal`; local de assinatura = concelho do imóvel;
   ficheiro descarregado chama-se `CPCV-<id de angariação>`. Migração: `migration_fase15.sql`.
-  Várias partes do mesmo lado numeram-se 1) 2) 3) (não A) B)); reserva conta para o sinal; código postal na
-  morada de cada parte é obrigatório (`/api/cpcv/gerar` recusa sem ele).
+  Reserva conta para o sinal; código postal na morada de cada parte é obrigatório (`/api/cpcv/gerar` recusa sem
+  ele, menos numa morada no estrangeiro que termine com o país, `moradaTemCodigoPostal` em `cpcv-types.ts`).
+- **Comparação com os contratos finais da solicitadora (31/10/2026)**: três pares PLATAFORMA/FINAL (Word) que ela
+  corrigiu (ficam fora do repositório, têm dados reais). Fidelidade medida com `comparar:final` sobre os mesmos dados
+  gerados pelo código: 92/91/87% antes, 99/99/95% depois. Regras tiradas deles (todas em `cpcv-clausulas.ts`):
+  género das partes (`parteFeminina`/`ladoFeminino`: estado civil do formulário, nome só como último recurso; um lado
+  vai no feminino só se forem todas mulheres) em cabeçalhos, assinaturas e cláusulas ("a segunda outorgante", "devendo
+  esta", "notificá-la"); plural dos cabeçalhos conta pessoas (um casal são dois outorgantes); partes sozinhas
+  numeradas "1 - ", "2 - " e casais "A)", "B)" (nota da reunião de 25/10); "com o email: x" sem ponto final a seguir;
+  "C.P." antes do código postal e "n.º nº" corrigido (`moradaParaContrato`); casal sem "ambos maiores" e com "dos
+  cartões de cidadão"; MAIÚSCULAS copiadas passam a nome próprio também a meio de texto (`capitalizarLocal`, mantém
+  siglas, "S.A.", "AP."); morada do imóvel sem código postal nem localidade, "da freguesia de" / "da União das
+  Freguesias de", composição logo a seguir a "prédio urbano", "sito"/"descrito" também nas frações, descrição sem a
+  data ("526/19910122" -> "526"), licença em texto livre quando não é um número; hipotecas do mesmo credor juntas
+  ("duas hipotecas voluntárias, ambas registadas a favor da ...") e ónus com "incidindo ainda"; reserva com a redação
+  dela ("No dia ... do corrente ano, ... entregaram, a título de sinal ...") e o resto do sinal como reforço na data do
+  contrato; UM só ponto de fiel depositária (até ao resultado da avaliação / até à aprovação do financiamento / sem
+  financiamento, Lei 15/2013 até estarem todas as assinaturas); vendedores sozinhos recebem cada um ("na proporção de
+  metade", um cheque para cada); valor da mobília divide o preço ("conforme cláusula quinta e anexo", marca
+  `refClausula` trocada pelo ordinal em `cpcv-contrato.ts`); Avaliação Bancária na versão "aprovação do financiamento"
+  quando está condicionado ao financiamento sem avaliação; dias de aviso da escritura configuráveis; emails
+  convencionados também nas Notificações (só quando as partes têm email); "aos promitentes compradores" sempre no
+  plural (ela repôs); outra agência na Intervenção Imobiliária; exemplares por unidade (casal conta um); "PÁGINAS E
+  ANEXO" com inventário anexo. Migração: `migration_fase16.sql` (colunas opcionais: sem ela o formulário esconde os
+  campos e o contrato usa 15 dias). Ficaram de fora por decisão: reforços além do sinal (a app não sabe para que conta
+  vão; continuam como alerta), "TRÊS EXEMPLARES" do contrato com duas agências e estilo que ela própria varia ("nº" ou
+  "n.º", "residente em" ou "na"). O nome do banco ("Novo Banco, S.A.") é o `CPCV_AGENCIA_BANCO` do `.env`.
 - **Leitura final do Word gerado** (`lib/cpcv-leitor.ts`, chamada em `/api/cpcv/gerar` depois do Word): lê o .docx
   de ponta a ponta com verificações de regra (campos em branco, numeração, dados do processo ausentes do texto,
   datas/valores) e uma leitura por IA (`REVISAO_FINAL_MODEL`, Sonnet, ~9k tokens de entrada e ~4k de saída por
@@ -179,8 +204,8 @@ mesmo padrão já usado para método de pagamento/reserva/etc.
   melhoria. Pedir-lhe os dois ficheiros de cada contrato.
 - O Word gerado foi exportado para PDF com o próprio Word (COM, `ExportAsFixedFormat`) e tem as mesmas 7 páginas
   do PDF do cenário 12, com negrito e traços de fim de ponto corretos.
-  Redação nova a confirmar com a solicitadora: ponto da reserva, segundo ponto de fiel depositária, "em
-  execução, a entregar até à escritura".
+  Redação nova a confirmar com a solicitadora: "em execução, a entregar até à escritura" (a reserva e a fiel
+  depositária já usam a redação dos contratos finais dela, ver abaixo).
 - Informação que a app recolhe mas não entra em nenhuma das 16 cláusulas (reforços,
   mobília, comodato, observações, ...) nunca gera cláusulas: `lib/cpcv-alertas.ts`
   lista-a para a gestora/solicitadora (`AlertasSolicitadora.tsx` na página do processo e nos
@@ -241,10 +266,11 @@ Ainda não há atribuição de um processo a uma gestora específica (qualquer g
 
 ### Teste do contrato (PDF e Word)
 
-`npm run testar:contrato` (`scripts/testar-contrato.ts`) gera PDF e Word para 11 cenários fictícios
+`npm run testar:contrato` (`scripts/testar-contrato.ts`) gera PDF e Word para 18 cenários fictícios
 (partes singulares e coletivas, regimes de bens, hipoteca, financiamento, nomes com acentos, valores
-grandes, etc.) e verifica: sem `undefined`/`null`/`NaN`, sem travessões, PDF e Word com o mesmo texto,
-valores e nomes presentes. Os ficheiros ficam na pasta temporária do sistema. Correr sempre depois de
+grandes, etc.; 16-18 reproduzem a estrutura dos três contratos finais da solicitadora) e verifica: sem
+`undefined`/`null`/`NaN`, sem travessões, PDF e Word com o mesmo texto, valores e nomes presentes.
+`npm run verificar:clausulas` tem uma Parte 3 com os mesmos casos, só ao nível do texto (rápido). Os ficheiros ficam na pasta temporária do sistema. Correr sempre depois de
 mexer em `cpcv-clausulas.ts`, `cpcv-contrato.ts`, `cpcv-template.ts` ou `cpcv-docx.ts`. Precisa de
 `pdftotext` (Poppler) no PATH. Não substitui a comparação com a minuta real da agência.
 Lacunas conhecidas: dados do procurador e valor da comissão não entram no contrato.

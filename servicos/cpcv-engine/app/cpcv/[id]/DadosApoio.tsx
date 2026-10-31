@@ -91,8 +91,13 @@ export default function DadosApoio({ processo }: { processo: Processo }) {
             id="licencaUtilizacao"
             value={licencaUtilizacao}
             onChange={(e) => setLicencaUtilizacao(e.target.value)}
+            placeholder="342/2009"
             className={campoClass}
           />
+          <p className="text-[11px] text-[#94A3B8] mt-1">
+            O número da licença. Sem licença numerada, o texto a usar no contrato (ex.: &quot;resposta à comunicação prévia para
+            utilização ..., emitida pela Câmara Municipal de ...&quot;).
+          </p>
         </div>
         <div>
           <label htmlFor="certificadoEnergetico" className={labelClass}>

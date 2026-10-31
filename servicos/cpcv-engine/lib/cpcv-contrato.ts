@@ -23,6 +23,11 @@ import {
   pontosClausulaDecimaSexta,
   capitalizarLocal,
   textoFinal,
+  agruparUnidades,
+  ladoFeminino,
+  tituloAssinaturas,
+  REF_ABRE,
+  REF_FECHA,
   type BlocoOutorgantes,
   type ClausulaTexto,
   type TextoFinal,
@@ -57,14 +62,26 @@ export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], 
   if (vendedores.length === 0) vendedores.push(PARTE_EM_BRANCO);
   if (compradores.length === 0) compradores.push(PARTE_EM_BRANCO);
 
-  const C = concordancia(vendedores.length, compradores.length);
+  // Unidades: um casal conta uma vez (um exemplar, um pagamento). Género: um lado vai no feminino só
+  // quando todas as pessoas desse lado são mulheres.
+  const unidadesVendedores = agruparUnidades(vendedores);
+  const unidadesCompradores = agruparUnidades(compradores);
+  const femVendedores = ladoFeminino(vendedores);
+  const femCompradores = ladoFeminino(compradores);
+  const C = concordancia(vendedores.length, compradores.length, {
+    femVendedores,
+    femCompradores,
+    unidadesVendedores: unidadesVendedores.length,
+    vendedoresSozinhos: unidadesVendedores.every((u) => u.length === 1 && u[0].tipo_pessoa !== "coletiva"),
+  });
   const emails = {
     vendedores: vendedores.map((p) => (p.email ?? "").trim()).filter(Boolean),
     compradores: compradores.map((p) => (p.email ?? "").trim()).filter(Boolean),
   };
-  const textoEmails = (s: string | null | undefined) => (s ?? "").split(/[;,s]+/).filter(Boolean);
+  const textoEmails = (s: string | null | undefined) => (s ?? "").split(/[;,\s]+/).filter(Boolean);
   if (emails.vendedores.length === 0) emails.vendedores = textoEmails(processo.email_proprietario_contrato);
   if (emails.compradores.length === 0) emails.compradores = textoEmails(processo.email_comprador_contrato);
+  const comEmails = emails.vendedores.length > 0 || emails.compradores.length > 0;
 
   const lista: (ClausulaTexto | null)[] = [
     { titulo: "Objeto", paragrafos: pontosClausulaPrimeira(h, C, processo, hipotecas) },
@@ -75,24 +92,33 @@ export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], 
     { titulo: "Encargos e Despesas", paragrafos: pontosClausulaSexta(C, hipotecas, processo) },
     { titulo: "Incumprimento do Contrato", paragrafos: pontosClausulaSetima(C) },
     { titulo: "Alterações", paragrafos: pontosClausulaOitava() },
-    { titulo: "Notificações", paragrafos: pontosClausulaNona() },
+    { titulo: "Notificações", paragrafos: pontosClausulaNona(comEmails) },
     { titulo: "Proteção de Dados", paragrafos: pontosClausulaDecima() },
-    { titulo: "Direitos de Preferência", paragrafos: pontosClausulaDecimaPrimeira(C) },
+    { titulo: "Direitos de Preferência", paragrafos: pontosClausulaDecimaPrimeira() },
     processo.imovel_condominio ? { titulo: "Condomínio", paragrafos: pontosClausulaDecimaSegunda() } : null,
     { titulo: "Lei Aplicável e Foro Competente", paragrafos: pontosClausulaDecimaTerceira() },
     { titulo: "Reconhecimento de Assinaturas", paragrafos: pontosClausulaDecimaQuarta() },
     { titulo: "Prévia Análise", paragrafos: pontosClausulaDecimaQuinta() },
-    { titulo: "Intervenção Imobiliária", paragrafos: pontosClausulaDecimaSexta() },
+    {
+      titulo: "Intervenção Imobiliária",
+      paragrafos: pontosClausulaDecimaSexta(h, { nome: processo.agencia_parceira_nome, ami: processo.agencia_parceira_ami }),
+    },
   ];
 
   // Uma cláusula condicional que não se aplica devolve zero pontos (Avaliação Bancária, Bens
   // Móveis) ou é null (Condomínio) - sai da lista e as seguintes avançam uma posição.
-  const clausulas: ClausulaContrato[] = lista
+  const numeradas = lista
     .filter((c): c is ClausulaTexto => c !== null && c.paragrafos.length > 0)
     .map((c, i) => ({ ordinal: ORDINAIS[i] ?? String(i + 1), titulo: c.titulo, pontos: c.paragrafos }));
+  // Referências a outras cláusulas ("conforme cláusula quinta") só ficam a saber o número agora.
+  const ordinalDe = (titulo: string) => (numeradas.find((c) => c.titulo === titulo)?.ordinal ?? "").toLocaleLowerCase("pt-PT");
+  const marca = new RegExp(`${REF_ABRE}([^${REF_FECHA}]*)${REF_FECHA}`, "g");
+  const clausulas: ClausulaContrato[] = numeradas.map((c) => ({ ...c, pontos: c.pontos.map((p) => p.replace(marca, (_, t: string) => ordinalDe(t))) }));
 
-  // Um exemplar por outorgante (o modelo, com 1 vendedor e 2 compradores, é feito em três).
-  const exemplares = vendedores.length + compradores.length;
+  // Um exemplar por parte do negócio: cada pessoa sozinha conta um e cada casal conta um (o contrato
+  // final de 17/10/2026, com dois vendedores divorciados e um casal comprador, foi feito em três).
+  const exemplares = unidadesVendedores.length + unidadesCompradores.length;
+  const comAnexo = !!processo.tem_bens_moveis && /\banexo\b/i.test(processo.incluidos_no_imovel ?? "");
 
   return {
     outorgantes: montarBlocoOutorgantes(h, vendedores, compradores, {
@@ -101,12 +127,12 @@ export function montarContrato(h: Helpers, processo: Processo, partes: Parte[], 
     }),
     introBoaFe: INTRO_BOA_FE,
     clausulas,
-    textoFinal: textoFinal(exemplares),
+    textoFinal: textoFinal(exemplares, comAnexo),
     localData: `${h.v(capitalizarLocal(processo.imovel_concelho), LOCAL_ASSINATURA_OMISSAO)}, ${h.dataLongaPT(processo.data_assinatura_contrato)}`,
     assinaturas: {
-      tituloVendedores: vendedores.length > 1 ? "OS PRIMEIROS OUTORGANTES:" : "O PRIMEIRO OUTORGANTE:",
+      tituloVendedores: tituloAssinaturas("vendedor", vendedores.length, femVendedores),
       linhasVendedores: vendedores.length,
-      tituloCompradores: compradores.length > 1 ? "OS SEGUNDOS OUTORGANTES:" : "O SEGUNDO OUTORGANTE:",
+      tituloCompradores: tituloAssinaturas("comprador", compradores.length, femCompradores),
       linhasCompradores: compradores.length,
     },
   };
