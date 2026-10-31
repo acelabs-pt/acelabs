@@ -27,6 +27,7 @@ import {
   type ImovelComprador,
 } from "@/lib/comprador";
 import BarraProgresso from "@/components/BarraProgresso";
+import EditorVisita from "@/components/crm/EditorVisita";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
@@ -34,6 +35,7 @@ import { eur } from "@/lib/graficos";
 import { linkWhatsapp } from "@/lib/whatsapp";
 
 type Documento = { id: string; nome: string; entregue: boolean };
+type AngMinha = { id: string; titulo: string; vendido_em: string | null };
 
 export default function FichaComprador() {
   const { id } = useParams<{ id: string }>();
@@ -47,15 +49,18 @@ export default function FichaComprador() {
   const [editar, setEditar] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
   const [novoImovel, setNovoImovel] = useState("");
+  const [angs, setAngs] = useState<AngMinha[]>([]);
+  const [angSel, setAngSel] = useState("");
   const [novoDoc, setNovoDoc] = useState("");
   const [verTodosImoveis, setVerTodosImoveis] = useState(false);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
-    const [r1, r2, r3, r4, cs] = await Promise.all([
+    const [r1, r2, r3, r4, r5, cs] = await Promise.all([
       sb.from("compradores").select("*, contactos(*)").eq("id", id).single(),
       sb.from("comprador_imoveis").select("*").eq("comprador_id", id).order("created_at"),
       sb.from("comprador_documentos").select("*").eq("comprador_id", id).order("created_at"),
+      sb.from("angariacoes").select("id, titulo, vendido_em").order("created_at", { ascending: false }),
       sb.from("comprador_zonas").select("distrito, concelho, freguesia").eq("comprador_id", id).order("created_at"),
       carregarDoComprador(id),
     ]);
@@ -66,7 +71,8 @@ export default function FichaComprador() {
     setC(r1.data as unknown as Comprador);
     setImoveis((r2.data ?? []) as ImovelComprador[]);
     setDocs((r3.data ?? []) as Documento[]);
-    setZonas(((r4.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
+    setAngs((r4.data ?? []) as AngMinha[]);
+    setZonas(((r5.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
     setCorresp(cs);
   }, [id]);
 
@@ -118,25 +124,28 @@ export default function FichaComprador() {
 
   async function adicionarImovel(e: React.FormEvent) {
     e.preventDefault();
-    if (!novoImovel.trim() || !c) return;
     const texto = novoImovel.trim();
+    if ((!texto && !angSel) || !c) return;
     const eLink = /^https?:\/\//i.test(texto);
+    const minha = angs.find((a) => a.id === angSel);
     const { error } = await sbBrowser()
       .from("comprador_imoveis")
       .insert({
         comprador_id: id,
         link: eLink ? texto : null,
-        descricao: eLink ? null : texto,
+        descricao: eLink ? null : texto || minha?.titulo || null,
+        angariacao_id: angSel || null,
         enviado_em: hojeISO(),
       });
     if (error) return setErro("Não foi possível adicionar o imóvel.");
     setNovoImovel("");
+    setAngSel("");
     await concluirTarefasSemanais(c.id, "enviar");
     await avancarPara("imoveis_enviados", c.estado);
     await carregar();
   }
 
-  async function alternarMarco(i: ImovelComprador, campo: "enviado_em" | "visitado_em" | "proposta_em") {
+  async function alternarMarco(i: ImovelComprador, campo: "enviado_em" | "visitado_em" | "proposta_em" | "sem_interesse_em") {
     if (!c) return;
     const novo = i[campo] ? null : hojeISO();
     const { error } = await sbBrowser().from("comprador_imoveis").update({ [campo]: novo }).eq("id", i.id);
@@ -147,6 +156,12 @@ export default function FichaComprador() {
       if (campo === "visitado_em") await avancarPara("visitas_realizadas", c.estado);
       if (campo === "proposta_em") await avancarPara("propostas_efetuadas", c.estado);
     }
+    await carregar();
+  }
+
+  async function atualizarImovel(i: ImovelComprador, campos: { visitado_em?: string; visita_obs?: string | null; proposta_em?: string; proposta_obs?: string | null }) {
+    const { error } = await sbBrowser().from("comprador_imoveis").update(campos).eq("id", i.id);
+    if (error) setErro("Não foi possível guardar.");
     await carregar();
   }
 
@@ -372,21 +387,50 @@ export default function FichaComprador() {
                 )}
                 <button onClick={() => apagarImovel(i)} aria-label="Remover" className="text-secundario">&times;</button>
               </div>
+              {i.angariacao_id && (
+                <Link href={`/angariacoes/${i.angariacao_id}`} className="mt-0.5 block truncate text-xs text-azul">
+                  Angariação: {angs.find((a) => a.id === i.angariacao_id)?.titulo ?? "ver angariação"}
+                </Link>
+              )}
               <div className="mt-2 flex gap-1.5">
                 {([
                   ["enviado_em", "Enviado"],
                   ["visitado_em", "Visitado"],
                   ["proposta_em", "Proposta"],
+                  ["sem_interesse_em", "Sem interesse"],
                 ] as const).map(([campo, rotulo]) => (
                   <button
                     key={campo}
                     onClick={() => alternarMarco(i, campo)}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${i[campo] ? "bg-verde text-tinta" : "bg-black/5 text-secundario"}`}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${
+                      i[campo] ? (campo === "sem_interesse_em" ? "bg-red-600 text-white" : "bg-verde text-white") : "bg-black/5 text-secundario"
+                    }`}
                   >
                     {rotulo}
                   </button>
                 ))}
               </div>
+              {i.visitado_em && (
+                <div className="mt-2">
+                  <EditorVisita
+                    data={i.visitado_em}
+                    obs={i.visita_obs}
+                    onData={(d) => atualizarImovel(i, { visitado_em: d })}
+                    onObs={(t) => atualizarImovel(i, { visita_obs: t.trim() || null })}
+                  />
+                </div>
+              )}
+              {i.proposta_em && (
+                <div className="mt-2">
+                  <EditorVisita
+                    tipo="proposta"
+                    data={i.proposta_em}
+                    obs={i.proposta_obs}
+                    onData={(d) => atualizarImovel(i, { proposta_em: d })}
+                    onObs={(t) => atualizarImovel(i, { proposta_obs: t.trim() || null })}
+                  />
+                </div>
+              )}
               </div>
               </SwipeLinha>
             </li>
@@ -397,16 +441,35 @@ export default function FichaComprador() {
             {verTodosImoveis ? "Mostrar só os 3 mais recentes" : `Ver os ${imoveis.length} imóveis`}
           </button>
         )}
-        <form onSubmit={adicionarImovel} className="flex gap-2">
-          <input
-            value={novoImovel}
-            onChange={(e) => setNovoImovel(e.target.value)}
-            placeholder="Link ou descrição do imóvel enviado"
-            className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2.5 text-sm"
-          />
-          <button type="submit" disabled={!novoImovel.trim()} className="rounded-xl bg-azul px-4 text-sm font-semibold text-white disabled:opacity-50">
-            Juntar
-          </button>
+        <form onSubmit={adicionarImovel} className="space-y-2">
+          <select
+            value={angSel}
+            onChange={(e) => setAngSel(e.target.value)}
+            className="w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm"
+          >
+            <option value="">Uma angariação minha (opcional)</option>
+            {angs.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.titulo}
+                {a.vendido_em ? " (vendido)" : ""}
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <input
+              value={novoImovel}
+              onChange={(e) => setNovoImovel(e.target.value)}
+              placeholder={angSel ? "Link (opcional)" : "Link ou descrição do imóvel enviado"}
+              className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2.5 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!novoImovel.trim() && !angSel}
+              className="rounded-xl bg-azul px-4 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              Juntar
+            </button>
+          </div>
         </form>
       </section>
 

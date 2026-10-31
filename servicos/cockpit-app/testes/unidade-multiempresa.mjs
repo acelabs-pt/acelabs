@@ -13,7 +13,7 @@ const ORDEM = ["create_tables.sql", "migracao_zonas_correspondencias.sql", "migr
 const sql = (f) => readFileSync(path.join(pasta, f), "utf8").replace(/\r\n/g, "\n").replace(/create extension if not exists "pgcrypto";/, "");
 const TABELAS = [
   "contactos", "compradores", "comprador_imoveis", "comprador_documentos", "comprador_zonas", "proprietarios", "chamadas",
-  "angariacoes", "angariacao_acoes", "tarefas", "correspondencias", "metas", "metas_config", "metas_semanas",
+  "angariacoes", "angariacao_acoes", "tarefas", "correspondencias", "metas", "metas_config", "metas_semanas", "visitas_externas", "propostas_externas",
 ];
 
 const out = [];
@@ -73,6 +73,8 @@ async function semear(db, empresa, tag) {
   await admin(db, "insert into chamadas (contacto_id, empresa_id) values ($1, $2)", [c, e]);
   const an = await uuid(db, "insert into angariacoes (titulo, proprietario_id, empresa_id) values ($1, $2, $3) returning id", [`A ${tag}`, pr, e]);
   await admin(db, "insert into angariacao_acoes (angariacao_id, nome, dia, empresa_id) values ($1, 'Fotos', 0, $2)", [an, e]);
+  await admin(db, "insert into visitas_externas (angariacao_id, consultor, empresa_id) values ($1, 'Consultor X', $2)", [an, e]);
+  await admin(db, "insert into propostas_externas (angariacao_id, consultor, empresa_id) values ($1, 'Consultor X', $2)", [an, e]);
   await admin(db, "insert into tarefas (titulo, chave_automacao, empresa_id) values ($1, 'meta:2026-W44', $2)", [`T ${tag}`, e]);
   await admin(db, "insert into correspondencias (comprador_id, angariacao_id, empresa_id) values ($1, $2, $3)", [cp, an, e]);
   await admin(db, "insert into metas (ano, metrica, valor_anual, empresa_id) values (2026, 'visitas', 10, $1)", [e]);
