@@ -1,5 +1,10 @@
 # Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026)
 
+> **Estado: publicado a 31/10/2026 pelo Pedro** (TypeScript e lint limpos, isolamento entre empresas com 164 verificações a passar).
+> Sem SQL novo: o Demo já tinha todas as tabelas e colunas. Confirmado no endereço publicado, em tamanho de iPhone: plano no topo
+> da angariação, "Visita +" e "Proposta +", relatório, "ID do imóvel" na nova angariação, seguimentos do dashboard com Compradores
+> e Proprietários, listas do CRM e ficha do comprador com Editar. Nenhum erro da base de dados.
+
 O `main` tem tudo, mas o Cockpit publicado (`cockpit-gamma-one.vercel.app`) ainda tem a versão antiga. Falta o deploy, que só o Pedro faz.
 
 ## O que o Miguel mudou desde a tua última junção (3272909 e da9ff7e)
