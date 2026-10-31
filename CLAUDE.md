@@ -123,6 +123,27 @@ sincronização assíncrona.
 Commit e push apenas com confirmação explícita do utilizador antes de cada execução (push para
 `main` despoleta deploy automático em produção, ver secção Arquitetura).
 
+### Trabalho a dois no Cockpit (Pedro e Miguel, cada um com o seu Claude)
+
+- O Cockpit publicado (`cockpit-gamma-one.vercel.app`) usa o Supabase **Demo** (`gebqaxhwebsmoeqpzzzg`). O projeto de teste
+  antigo `erxnqdadqbmfeyuwaybi` já não é usado: SQL novo corre-se no Demo.
+- Cada tabela nova entra em `create_tables.sql`, nas duas listas de `migracao_multiempresa.sql` e nos dados de exemplo de
+  `testes/unidade-multiempresa.mjs` (sem linhas de exemplo o teste falha). `npm run testar -- unidade-multiempresa` passa
+  antes de qualquer push.
+- O SQL tem de poder correr duas vezes sem erro (`if not exists`, `drop policy if exists` antes de `create policy`).
+  Nunca deixar uma regra "autenticado total" numa tabela do projeto partilhado: vê-se entre empresas.
+- Antes do push: `git pull --rebase`. Nunca force-push.
+- Não retirar funcionalidade que o outro fez sem combinar primeiro.
+- **Publicar o Cockpit é só com o Pedro.** A equipa Vercel `acelabs1` está no plano Hobby (decisão do Pedro, 2026-10-31),
+  que não tem membros: o Miguel não tem acesso ao projeto `cockpit` e não consegue fazer deploy. O Git está desligado da
+  Vercel, por isso um push **não** põe nada no ar.
+- Quando o Miguel quiser ver as alterações dele no iPhone (`cockpit-gamma-one.vercel.app`), o Claude do Miguel faz o push
+  e termina **sempre** a dizer ao Miguel: "Avisa o Pedro para fazer deploy", com uma mensagem de passagem pronta a enviar:
+  commits, ficheiros SQL a correr no Demo (por ordem), testes corridos e o que ver no iPhone. Nunca dizer ao Miguel que
+  as alterações "já estão no ar" só porque houve push.
+- O Claude do Pedro, ao receber a passagem: `git pull`, testes, SQL no Demo **antes** do deploy (sem as tabelas novas a
+  app publicada dá erro), `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado.
+
 ## Decisões de conteúdo do site (Pedro, 2026-10-15)
 
 - Reunião inicial de 30 minutos gratuita; o reembolso de 12 meses é gancho de captação e pode aparecer.
