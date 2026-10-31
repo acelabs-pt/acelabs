@@ -1,7 +1,6 @@
 # Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026, 3.ª entrega)
 
-> **Estado: por publicar.** As entregas 1 e 2 (018a93b e 401f9c4) já foram publicadas pelo Pedro. Esta é a seguinte.
-> **Tem SQL novo (uma coluna), a correr no Demo ANTES do deploy:** `migration_google_calendar.sql`.
+> **Estado: publicado a 31/10/2026 pelo Pedro** (commit 87796d2). SQL corrido no Demo antes do deploy: `alter table tarefas add column if not exists google_calendar_em timestamptz` (confirmado depois). O SQL opcional de limpeza dos avisos antigos NÃO foi corrido. TypeScript e lint limpos, isolamento entre empresas com 164 verificações a passar. Confirmado no endereço publicado, em tamanho de iPhone: Seguimentos com etiqueta, ficha do proprietário com a ordem nova e a caixa "Google Calendar", caixa também na ficha do comprador, sem erros da base de dados. Não testado: abrir o Google Calendar ao marcar a caixa e a automação de apagar ao angariar.
 
 Só o Pedro faz o deploy: `git pull`, `npm install`, `npx tsc --noEmit`, `npx next lint`, `node testes/unidade-multiempresa.mjs`,
 SQL no Demo, `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado (tamanho de iPhone).
