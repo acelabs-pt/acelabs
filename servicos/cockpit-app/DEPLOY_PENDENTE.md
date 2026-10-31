@@ -1,32 +1,41 @@
-# Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026, 2.ª entrega)
+# Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026, 3.ª entrega)
 
-> **Estado: publicado a 31/10/2026 pelo Pedro** (commit 401f9c4; TypeScript e lint limpos, isolamento entre empresas com 164
-> verificações a passar). Confirmado no endereço publicado, em tamanho de iPhone: Dashboard com os dois discos e os três indicadores,
-> data "31 de outubro", sem deslizar de lado; `/crm` com os dois cartões; ficha do comprador com Próximos passos, Funil e Imóveis por
-> esta ordem e "Chamadas anteriores" com seta (também no proprietário); `.relevo` só no Dashboard. Nenhum erro da base de dados.
+> **Estado: por publicar.** As entregas 1 e 2 (018a93b e 401f9c4) já foram publicadas pelo Pedro. Esta é a seguinte.
+> **Tem SQL novo (uma coluna), a correr no Demo ANTES do deploy:** `migration_google_calendar.sql`.
 
 Só o Pedro faz o deploy: `git pull`, `npm install`, `npx tsc --noEmit`, `npx next lint`, `node testes/unidade-multiempresa.mjs`,
-`vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado (tamanho de iPhone).
+SQL no Demo, `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado (tamanho de iPhone).
 
-## O que mudou (tudo no Dashboard e no CRM)
-- **Dashboard, novo estilo "relevo definido"** (classe `.relevo`, em `app/globals.css`, só no Dashboard): cartões brancos sobre fundo
-  cinzento-claro, com aresta de luz em cima, linha escura por baixo, fio de brilho (azul claro nos dois cartões grandes, âmbar nos
-  discos e nos três indicadores) e halo. Medido contra uma imagem de referência do Miguel. Botões finos e com sombra curta.
-- **Dashboard, Metas:** Angariações e Faturação são dois discos (um por baixo do outro, à esquerda) com anel de progresso; Reuniões de
-  angariação, Visitas e Transações ficam alinhadas na vertical à direita. Cartões das Metas e dos Seguimentos com a mesma largura
-  (máx. 576 px, centrados) e mais espaço entre eles. O valor da faturação desce de tamanho quando é comprido.
-- **Dashboard, correções:** a data aparecia "31 De Outubro" (corrigido); no telemóvel a página era mais larga que o ecrã por causa dos
-  títulos longos dos seguimentos (corrigido com `min-w-0`).
-- **CRM:** a entrada (`/crm`) mostra dois cartões grandes, Compradores à esquerda e Proprietários à direita, em vez de abrir a lista.
-  Ficha do comprador: ordem Cabeçalho, Próximos passos, Funil, Imóveis, Chamadas...; o cartão "Próximos passos" deixou de ter o
-  formulário Visita/Tarefa; as chamadas anteriores ficam atrás de uma seta (também na ficha do proprietário).
-- Não alterei Supabase, tabelas, rotas de API nem a lógica de dados.
+## SQL no Demo (`gebqaxhwebsmoeqpzzzg`), antes do deploy
+1. `migration_google_calendar.sql`: `alter table tarefas add column if not exists google_calendar_em timestamptz;` (repetível; já está
+   também no `create_tables.sql`). Sem esta coluna, marcar a caixa "Google Calendar" mostra um aviso e não guarda.
+2. Opcional (limpeza de dados antigos): `delete from tarefas where chave_automacao like 'proprietario:%:aviso' and feita = false;`
+   apaga os avisos "Daqui a 2 horas" que ficaram de antes por fazer (o plano novo já não os cria).
+
+## O que mudou
+- **Dashboard, Seguimentos da semana:** cada linha mostra o nome do cliente, uma etiqueta do que fazer ("Follow up", "Reunião",
+  "Agradecer", "Enviar dossier", "Enviar opções", "Ligar"...) e, só nos proprietários, o imóvel (tipologia, freguesia, concelho). O texto
+  completo da tarefa saiu; atrás da seta fica só a data, a hora e "em atraso".
+- **Ficha do proprietário:** cabeçalho com nome, fase e Editar, e uma seta que abre o resto (imóvel, preço, zona, contactos, Ligar e WhatsApp).
+  Nova ordem: Próximos passos, Funil, Fechar angariação (se aplicável), Reunião de angariação, Chamadas (histórico atrás de uma seta),
+  Compradores com interesse, Exportar e Apagar.
+- **Automações dos proprietários (`lib/proprietario.ts`):**
+  - quando o proprietário fica **angariado** (fechar angariação na ficha, criar angariação com proprietário existente, associar proprietário a
+    uma angariação), apagam-se as automações dele que estão por fazer (as feitas ficam no histórico); tarefas manuais e as do plano da
+    angariação não se tocam. Ao marcar "não angariado" (perdido) só a chamada de angariação fica feita, como antes;
+  - o plano deixou de criar o **aviso de 2 horas antes**; a reunião continua no calendário; a **mensagem de agradecimento** passou de 2 horas
+    para **5 horas depois** da reunião. Ao reagendar a reunião apagam-se os avisos antigos por fazer desse proprietário.
+- **Caixa "Google Calendar"** em cada tarefa por fazer, nos Próximos passos do **proprietário** e do **comprador**: ao marcar, abre o Google
+  Calendar do agente com a marcação preenchida (título, dia, hora) e guarda o visto em `tarefas.google_calendar_em`. Não há ligação à
+  conta Google (sem OAuth): o Cockpit não sabe se o agente guardou o evento nem o atualiza se a data mudar; desmarcar só tira o visto cá.
+  Código em `lib/googleCalendar.ts`.
+- **Ficha do comprador, Próximos passos:** sem formulário Visita/Tarefa (já tinha ido na entrega anterior); mantém só a lista.
 
 ## O que ver no iPhone depois do deploy
-Dashboard (discos e indicadores, botões, espaçamentos, sem deslizar de lado), `/crm` com os dois cartões, ficha de um comprador
-(Funil e Imóveis logo a seguir aos Próximos passos; "Chamadas anteriores" com seta). O estilo `.relevo` não deve aparecer fora do Dashboard.
+Dashboard (Seguimentos com nome, etiqueta e imóvel; seta com a data), ficha de um proprietário (seta no cabeçalho, ordem das secções, caixa
+"Google Calendar" nas tarefas por fazer, marcar a caixa e ver abrir o Google Calendar), ficha de um comprador (a mesma caixa), e uma reunião
+nova de proprietário (o plano já não tem o aviso de 2 horas e o agradecimento fica às 5 horas).
 
 ## Notas
-- Para estender o estilo a outro ecrã basta acrescentar `relevo` ao contentor da página. Não foi pedido ainda.
-- Dados de teste: a simulação de 3 meses (`scripts/simulacao-3-meses.ts`) só foi corrida na base antiga `erxnqdadqbmfeyuwaybi`; o utilizador de
-  teste `teste.design@acelabs.pt` existe só nessa base. Não correr em bases de clientes.
+- Não há tabelas novas nem mudanças nas regras de acesso: o teste de isolamento por empresa não deve ser afetado.
+- A caixa Google Calendar não está nas tarefas das angariações nem no Calendário: só se o Miguel pedir.

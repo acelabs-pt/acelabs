@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { useToast } from "@/components/Toast";
 import { marcarTarefa } from "@/lib/tarefas";
+import { alternarGoogleCalendar } from "@/lib/googleCalendar";
 import { formatarDia, formatarHora } from "@/lib/datas";
 import type { ImovelComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
@@ -58,6 +59,11 @@ export default function AgendaDoComprador({ compradorId, nome }: { compradorId: 
     });
   }
 
+  async function alternarGoogle(t: Tarefa) {
+    setErro(await alternarGoogleCalendar(t));
+    await carregar();
+  }
+
   const agora = new Date();
   return (
     <section className="space-y-3 rounded-3xl border border-linha bg-white p-5" aria-labelledby="proximos-comprador">
@@ -99,6 +105,12 @@ export default function AgendaDoComprador({ compradorId, nome }: { compradorId: 
                   <p className={`text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
                     {t.inicio ? `${formatarDia(new Date(t.inicio))}${formatarHora(t.inicio) ? `, ${formatarHora(t.inicio)}` : ""}${atrasada ? ", em atraso" : ""}` : "Sem data"}
                   </p>
+                  {t.inicio && (
+                    <label className="mt-0.5 flex w-fit items-center gap-1.5 text-xs text-secundario">
+                      <input type="checkbox" checked={!!t.google_calendar_em} onChange={() => alternarGoogle(t)} />
+                      Google Calendar
+                    </label>
+                  )}
                 </div>
                 {t.inicio && !atrasada && (
                   <a

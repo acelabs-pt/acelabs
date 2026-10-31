@@ -218,6 +218,7 @@ create table tarefas (
   angariacao_acao_id uuid references angariacao_acoes(id) on delete cascade,
   chave_automacao text,      -- evita duplicar a mesma tarefa automática
   google_event_id text,      -- para a sincronização com Google Calendar (fase posterior)
+  google_calendar_em timestamptz,   -- quando o agente levou esta tarefa para o seu Google Calendar (caixa "Google Calendar")
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

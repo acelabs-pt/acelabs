@@ -65,8 +65,7 @@ function plano(nome: string, reuniao: Date) {
   const em = (ms: number) => new Date(reuniao.getTime() + ms);
   return [
     { k: "reuniao", tipo: "evento", quando: reuniao, titulo: `Reunião de angariação: ${nome}` },
-    { k: "aviso", tipo: "tarefa", quando: em(-2 * H), titulo: `Daqui a 2 horas: reunião de angariação com ${nome}` },
-    { k: "agradecimento", tipo: "tarefa", quando: em(2 * H), titulo: `Mensagem de agradecimento a ${nome}` },
+    { k: "agradecimento", tipo: "tarefa", quando: em(5 * H), titulo: `Mensagem de agradecimento a ${nome}` },
     { k: "dossier", tipo: "tarefa", quando: em(2 * D), titulo: `Enviar Dossier Digital + página de Instagram a ${nome}` },
     { k: "vendido", tipo: "tarefa", quando: em(7 * D), titulo: `Partilhar um imóvel vendido com ${nome} (exemplo, de forma natural)` },
     { k: "fu1", tipo: "tarefa", quando: em(14 * D), titulo: `Chamada a ${nome}: ponto de situação da venda por conta própria` },
@@ -86,6 +85,8 @@ export async function agendarFollowUps(
   reuniao: Date
 ): Promise<void> {
   const sb = sbBrowser();
+  // o aviso de 2 horas antes já não faz parte do plano: tira os que ficaram de antes e ainda estão por fazer
+  await sb.from("tarefas").delete().eq("chave_automacao", chave(p.id, "aviso")).eq("feita", false);
   const itens = plano(p.nome, reuniao);
   const { data: existentes } = await sb
     .from("tarefas")
@@ -113,17 +114,36 @@ export async function agendarFollowUps(
   if (novas.length > 0) await sb.from("tarefas").insert(novas);
 }
 
-// Ao avançar no funil, as tarefas dessa fase ficam como feitas.
+// Ao avançar no funil, as tarefas dessa fase ficam como feitas (em "angariado" apagam-se as que faltam, ver abaixo).
 const TAREFAS_POR_ESTADO: Partial<Record<EstadoProprietario, string[]>> = {
-  reuniao_angariacao: ["aviso", "reuniao"],
+  reuniao_angariacao: ["reuniao"],
   dossier_enviado: ["dossier"],
   imovel_vendido_enviado: ["vendido"],
   follow_up_1: ["fu1"],
   follow_up_2: ["fu2"],
-  angariado: ["angariar"],
 };
 
+// Quando o proprietário fica angariado, o plano de follow-up deixa de fazer sentido: as automações que ainda estão por fazer
+// são apagadas (as que já foram feitas ficam no histórico). Tarefas manuais e as do plano da angariação não se tocam.
+export async function limparAutomacoesAoAngariar(propId: string): Promise<void> {
+  await sbBrowser()
+    .from("tarefas")
+    .delete()
+    .like("chave_automacao", `proprietario:${propId}:%`)
+    .eq("feita", false);
+}
+
+// A chamada de angariação foi feita mas o proprietário não angariou (fica perdido): só essa tarefa fica feita, o resto mantém-se.
+export async function concluirChamadaDeAngariacao(propId: string): Promise<void> {
+  await sbBrowser()
+    .from("tarefas")
+    .update({ feita: true, feita_em: new Date().toISOString() })
+    .eq("chave_automacao", chave(propId, "angariar"))
+    .eq("feita", false);
+}
+
 export async function concluirTarefasDaFase(propId: string, estado: EstadoProprietario): Promise<void> {
+  if (estado === "angariado") return limparAutomacoesAoAngariar(propId);
   const ks = TAREFAS_POR_ESTADO[estado];
   if (!ks) return;
   await sbBrowser()
@@ -134,7 +154,7 @@ export async function concluirTarefasDaFase(propId: string, estado: EstadoPropri
 }
 
 // Ao marcar uma tarefa como feita, o proprietário avança para esta fase do funil.
-// "aviso" e "agradecimento" não têm fase própria (acontecem dentro da reunião).
+// "agradecimento" não tem fase própria (acontece depois da reunião).
 export const ESTADO_POR_TAREFA: Record<string, EstadoProprietario> = {
   reuniao: "reuniao_angariacao",
   dossier: "dossier_enviado",

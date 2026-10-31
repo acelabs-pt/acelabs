@@ -1,5 +1,6 @@
 "use client";
 
+import { alternarGoogleCalendar } from "@/lib/googleCalendar";
 import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -13,6 +14,7 @@ import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisPr
 import {
   FUNIL_PROP,
   agendarFollowUps,
+  concluirChamadaDeAngariacao,
   concluirTarefasDaFase,
   ESTADO_POR_TAREFA,
   indiceFunilProp,
@@ -35,6 +37,7 @@ export default function FichaProprietario() {
   const [temAngariacao, setTemAngariacao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
+  const [fichaAberta, setFichaAberta] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
 
   const [reuniao, setReuniao] = useState("");
@@ -94,6 +97,11 @@ export default function FichaProprietario() {
 
   const tReuniao = p ? tarefas.find((t) => t.chave_automacao === `proprietario:${p.id}:reuniao` && !t.feita) : undefined;
 
+  async function alternarGoogle(t: Tarefa) {
+    setErro(await alternarGoogleCalendar(t));
+    await carregar();
+  }
+
   async function marcarReuniao(e: React.FormEvent) {
     e.preventDefault();
     if (!p || !reuniao) return;
@@ -135,7 +143,7 @@ export default function FichaProprietario() {
     if (!p) return;
     setFechar(false);
     await atualizar({ estado: "perdido", estado_desde: new Date().toISOString() });
-    await concluirTarefasDaFase(p.id, "angariado");
+    await concluirChamadaDeAngariacao(p.id);
     await carregar();
   }
 
@@ -224,11 +232,34 @@ export default function FichaProprietario() {
               )}
             </div>
           </div>
-          <button onClick={() => setEditar(true)} className="shrink-0 rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
-            Editar
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button onClick={() => setEditar(true)} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setFichaAberta((v) => !v)}
+              aria-expanded={fichaAberta}
+              aria-label="Ver mais informação"
+              className="rounded-full p-2 text-secundario"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className={`h-5 w-5 transition-transform ${fichaAberta ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          </div>
         </div>
 
+        {fichaAberta && (
+        <>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
           {(
             [
@@ -265,25 +296,46 @@ export default function FichaProprietario() {
             </a>
           </div>
         )}
+        </>
+        )}
       </section>
 
-      {/* compradores cujo perfil serve este imóvel (ideia do Miguel, sobre os alertas de correspondência) */}
-      {corresp.length > 0 && (
-        <section className={cartao}>
-          <h3 className="text-sm font-semibold text-tinta">
-            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
-          </h3>
-          <ListaCorrespondencias
-            itens={corresp}
-            mostrar="comprador"
-            onResponder={async (x, estado) => {
-              await responder(x.id, estado);
-              await carregar();
-            }}
-          />
-        </section>
-      )}
 
+
+
+
+
+
+      <section className={cartao}>
+        <h3 className="text-sm font-semibold text-tinta">Próximos passos</h3>
+        {tarefas.length === 0 ? (
+          <p className="text-sm text-secundario">Sem tarefas. Marca a reunião para gerar o plano de follow up.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {tarefas.map((t) => (
+              <li key={t.id}>
+                <label className="flex items-start gap-2 text-sm">
+                  <input type="checkbox" checked={t.feita} onChange={() => alternarTarefa(t)} className="mt-1" />
+                  <span className={t.feita ? "text-secundario line-through" : "text-tinta"}>
+                    {t.titulo}
+                    {t.inicio && (
+                      <span className={`block text-xs ${!t.feita && new Date(t.inicio) < new Date() ? "text-ambar-texto" : "text-secundario"}`}>
+                        {formatarDia(new Date(t.inicio))} {formatarHora(t.inicio)}
+                      </span>
+                    )}
+                  </span>
+                </label>
+                {!t.feita && t.inicio && (
+                  <label className="ml-6 mt-1 flex w-fit items-center gap-1.5 text-xs text-secundario">
+                    <input type="checkbox" checked={!!t.google_calendar_em} onChange={() => alternarGoogle(t)} />
+                    Google Calendar
+                  </label>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -391,36 +443,29 @@ export default function FichaProprietario() {
           </button>
         </form>
         <p className="text-xs text-secundario">
-          Ao marcar, o calendário recebe a reunião, o aviso 2 horas antes e os follow-ups (2h, 2, 7, 14, 22 e 30 dias depois).
+          Ao marcar, o calendário recebe a reunião e os follow-ups (5 horas, 2, 7, 14, 22 e 30 dias depois).
         </p>
       </section>
 
-      <section className={cartao}>
-        <h3 className="text-sm font-semibold text-tinta">Próximos passos</h3>
-        {tarefas.length === 0 ? (
-          <p className="text-sm text-secundario">Sem tarefas. Marca a reunião para gerar o plano de follow up.</p>
-        ) : (
-          <ul className="space-y-1.5">
-            {tarefas.map((t) => (
-              <li key={t.id}>
-                <label className="flex items-start gap-2 text-sm">
-                  <input type="checkbox" checked={t.feita} onChange={() => alternarTarefa(t)} className="mt-1" />
-                  <span className={t.feita ? "text-secundario line-through" : "text-tinta"}>
-                    {t.titulo}
-                    {t.inicio && (
-                      <span className={`block text-xs ${!t.feita && new Date(t.inicio) < new Date() ? "text-ambar-texto" : "text-secundario"}`}>
-                        {formatarDia(new Date(t.inicio))} {formatarHora(t.inicio)}
-                      </span>
-                    )}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
       <ContactosRegistados contactoId={p.contacto_id} />
+
+      {/* compradores cujo perfil serve este imóvel (ideia do Miguel, sobre os alertas de correspondência) */}
+      {corresp.length > 0 && (
+        <section className={cartao}>
+          <h3 className="text-sm font-semibold text-tinta">
+            Compradores com interesse ({corresp.filter((x) => x.estado === "nova").length} por rever)
+          </h3>
+          <ListaCorrespondencias
+            itens={corresp}
+            mostrar="comprador"
+            onResponder={async (x, estado) => {
+              await responder(x.id, estado);
+              await carregar();
+            }}
+          />
+        </section>
+      )}
 
       <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
 

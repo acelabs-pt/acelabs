@@ -13,4 +13,5 @@ export type Tarefa = {
   proprietario_id: string | null;
   angariacao_acao_id: string | null;
   chave_automacao: string | null;
+  google_calendar_em?: string | null; // quando o agente levou esta tarefa para o seu Google Calendar
 };

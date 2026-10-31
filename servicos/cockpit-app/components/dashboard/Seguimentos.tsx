@@ -9,24 +9,42 @@ import { formatarDia, formatarHora, inicioDaSemana, somarDias } from "@/lib/data
 
 const VISIVEIS = 8;
 
-type Ficha = { href: string; tipo: "comprador" | "proprietario" };
-
-const ETIQUETA = {
-  comprador: { texto: "Comprador", classe: "bg-azul/10 text-azul" },
-  proprietario: { texto: "Proprietário", classe: "bg-verde/15 text-verde" },
-} as const;
+type Ficha = { href: string; tipo: "comprador" | "proprietario"; id: string };
 
 // Ficha do cliente a que o seguimento diz respeito (comprador ou proprietário). Sem ficha, não é um seguimento.
 function fichaDe(t: Tarefa, d: Dados): Ficha | null {
-  if (t.comprador_id) return { href: `/crm/compradores/${t.comprador_id}`, tipo: "comprador" };
-  if (t.proprietario_id) return { href: `/crm/proprietarios/${t.proprietario_id}`, tipo: "proprietario" };
+  if (t.comprador_id) return { href: `/crm/compradores/${t.comprador_id}`, tipo: "comprador", id: t.comprador_id };
+  if (t.proprietario_id) return { href: `/crm/proprietarios/${t.proprietario_id}`, tipo: "proprietario", id: t.proprietario_id };
   if (t.angariacao_acao_id) {
     const acao = d.acoes.find((a) => a.id === t.angariacao_acao_id);
     if (!acao?.follow_up) return null; // só os follow ups ao proprietário, não as outras ações do plano
     const ang = d.angariacoes.find((a) => a.id === acao.angariacao_id);
-    return ang?.proprietario_id ? { href: `/crm/proprietarios/${ang.proprietario_id}`, tipo: "proprietario" } : null;
+    return ang?.proprietario_id ? { href: `/crm/proprietarios/${ang.proprietario_id}`, tipo: "proprietario", id: ang.proprietario_id } : null;
   }
   return null;
+}
+
+// O que há para fazer, em duas palavras (o título completo fica atrás da seta).
+function acaoDe(t: Tarefa): string {
+  const x = t.titulo.toLowerCase();
+  if (x.includes("follow up")) return "Follow up";
+  if (x.includes("enviar opções")) return "Enviar opções";
+  if (x.includes("dossier")) return "Enviar dossier";
+  if (x.includes("agradecimento")) return "Agradecer";
+  if (x.includes("partilhar")) return "Partilhar";
+  if (x.includes("reunião")) return "Reunião";
+  if (x.includes("visita")) return "Visita";
+  if (x.includes("escritura")) return "Escritura";
+  if (x.includes("ligar") || x.includes("seguimento") || x.includes("contactar") || x.includes("contacto")) return "Ligar";
+  if (x.includes("pedir")) return "Pedir";
+  return "Tarefa";
+}
+
+// Nome do cliente e, nos proprietários, o imóvel que têm (só tipologia, freguesia e concelho).
+function clienteDe(f: Ficha, d: Dados): { nome: string | null; imovel: string } {
+  if (f.tipo === "comprador") return { nome: d.compradores.find((c) => c.id === f.id)?.contactos.nome ?? null, imovel: "" };
+  const p = d.proprietarios.find((x) => x.id === f.id);
+  return { nome: p?.contactos.nome ?? null, imovel: p ? [p.tipologia, p.freguesia, p.concelho].filter(Boolean).join(" · ") : "" };
 }
 
 // Seguimentos a clientes desta semana (e os que ficaram para trás), cada um com a ficha do cliente à frente.
@@ -78,6 +96,7 @@ export default function Seguimentos({ dados }: { dados: Dados }) {
         <ul className="space-y-2">
           {mostradas.map(({ t, ficha }) => {
             const atrasada = new Date(t.inicio!) < inicioSemana;
+            const cliente = clienteDe(ficha, dados);
             return (
               <li key={t.id} className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
@@ -94,7 +113,8 @@ export default function Seguimentos({ dados }: { dados: Dados }) {
                     aria-label="Ver detalhes do seguimento"
                     className="flex w-full items-center gap-1.5 text-left"
                   >
-                    <span className="min-w-0 truncate text-sm text-tinta">{t.titulo}</span>
+                    <span className="min-w-0 truncate text-sm font-medium text-tinta">{cliente.nome ?? t.titulo}</span>
+                    <span className="shrink-0 rounded-full bg-azul/10 px-2 py-0.5 text-[11px] font-medium text-azul-escuro">{acaoDe(t)}</span>
                     <svg
                       viewBox="0 0 24 24"
                       className={`h-4 w-4 shrink-0 text-secundario transition-transform ${abertos.has(t.id) ? "rotate-180" : ""}`}
@@ -107,11 +127,9 @@ export default function Seguimentos({ dados }: { dados: Dados }) {
                       <path d="M6 9l6 6 6-6" />
                     </svg>
                   </button>
+                  {cliente.imovel && <p className="truncate text-xs text-secundario">{cliente.imovel}</p>}
                   {abertos.has(t.id) && (
                     <p className={`mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ETIQUETA[ficha.tipo].classe}`}>
-                        {ETIQUETA[ficha.tipo].texto}
-                      </span>
                       {formatarDia(new Date(t.inicio!))}
                       {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
                       {atrasada ? " · em atraso" : ""}
