@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "oversized-h1",
+        "value": "*",
+        "files": [
+          "business-center/apresentacao-contabilista/apresentacao.html"
+        ],
+        "createdAt": "2026-10-31T20:00:21.898Z",
+        "reason": "Claude: slide de 1920x1080 (titulo de capa a 100px, igual a apresentacao-cliente a 104px), tres linhas e sem conteudo acima; verificado em captura"
+      }
+    ]
+  }
+}
