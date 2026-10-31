@@ -17,6 +17,7 @@ import {
   marcarAcao,
   mudarDiaAcao,
   marcarVendido,
+  renomearAngariacao,
   nBlocos,
   NOME_FOLLOW_UP,
   type Acao,
@@ -26,6 +27,9 @@ import {
 import { formatarDia, hojeISO } from "@/lib/datas";
 import Comissao from "@/components/crm/Comissao";
 import ListaMatches from "@/components/crm/ListaMatches";
+import Registos from "@/components/angariacoes/Registos";
+import ResumoAngariacao from "@/components/angariacoes/ResumoAngariacao";
+import AssociarProprietario from "@/components/angariacoes/AssociarProprietario";
 import { useMatches } from "@/lib/match";
 
 const BLOCOS_POR_VISTA = { mes: 3, trimestre: 9 } as const;
@@ -46,6 +50,9 @@ export default function PlanoAngariacao() {
   const [vista, setVista] = useState<Vista>("tudo");
   const [periodo, setPeriodo] = useState(0);
   const { matches, recarregar: recarregarMatches } = useMatches();
+  const [versaoRegistos, setVersaoRegistos] = useState(0);
+  const [aRenomear, setARenomear] = useState(false);
+  const [novoNome, setNovoNome] = useState("");
 
   // montagem do plano
   const [duracao, setDuracao] = useState<120 | 180>(180);
@@ -59,7 +66,11 @@ export default function PlanoAngariacao() {
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
     const [r1, r2] = await Promise.all([
-      sb.from("angariacoes").select("*, proprietarios(contactos(nome))").eq("id", id).single(),
+      sb
+        .from("angariacoes")
+        .select("*, proprietarios(id, tipo_imovel, tipologia, distrito, concelho, freguesia, valor, contactos(nome))")
+        .eq("id", id)
+        .single(),
       sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
     ]);
     if (r1.error || !r1.data) {
@@ -109,14 +120,78 @@ export default function PlanoAngariacao() {
       <Link href="/angariacoes" className="text-sm text-azul">&larr; Angariações</Link>
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
+      <ResumoAngariacao ang={ang} versao={versaoRegistos} />
+
       <section className={cartao}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-tinta">{ang.titulo}</h1>
+            {aRenomear ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErro(null);
+                  const e1 = await renomearAngariacao(ang, novoNome);
+                  if (e1) return setErro(e1);
+                  setARenomear(false);
+                  await carregar();
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  autoFocus
+                  value={novoNome}
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  aria-label="Nome da angariação"
+                  className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2 text-base text-tinta"
+                />
+                <button type="submit" disabled={!novoNome.trim()} className="rounded-xl bg-azul px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                  Guardar
+                </button>
+                <button type="button" onClick={() => setARenomear(false)} className="px-1 text-sm text-secundario">
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <h1 className="min-w-0 truncate text-xl font-semibold text-tinta">{ang.titulo}</h1>
+                <button
+                  onClick={() => {
+                    setNovoNome(ang.titulo);
+                    setARenomear(true);
+                  }}
+                  aria-label="Mudar o nome da angariação"
+                  title="Mudar o nome"
+                  className="shrink-0 rounded-lg p-1.5 text-secundario hover:bg-black/5"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z" />
+                    <path d="M14.5 7.5l3 3" />
+                  </svg>
+                </button>
+              </div>
+            )}
             <p className="text-sm text-secundario">
-              {ang.proprietarios?.contactos.nome ?? "Sem proprietário ligado"}
+              {ang.proprietarios?.id ? (
+                <Link href={`/crm/proprietarios/${ang.proprietarios.id}`} className="text-azul">
+                  {ang.proprietarios.contactos.nome}
+                </Link>
+              ) : (
+                "Sem proprietário ligado"
+              )}
               {ang.regime ? ` · ${REGIME[ang.regime]}` : ""}
             </p>
+            {ang.proprietarios && (
+              <p className="text-sm text-secundario">
+                {[
+                  ang.proprietarios.tipo_imovel,
+                  ang.proprietarios.tipologia,
+                  ang.proprietarios.freguesia || ang.proprietarios.concelho || ang.proprietarios.distrito,
+                  ang.proprietarios.valor != null ? `${ang.proprietarios.valor.toLocaleString("pt-PT")} EUR` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
             <p className="text-sm text-secundario">
               Início {formatarDia(dataDoDia(ang.inicio, 0))} · fim {formatarDia(dataDoDia(ang.inicio, ang.duracao_dias - 1))} ·{" "}
               {ang.vendido_em ? "vendido" : dia < 1 ? "ainda não começou" : dia > ang.duracao_dias ? "contrato terminado" : `dia ${dia} de ${ang.duracao_dias}`}
@@ -130,11 +205,16 @@ export default function PlanoAngariacao() {
         </div>
       </section>
 
+      {!ang.proprietario_id && <AssociarProprietario angariacaoId={ang.id} onAssociado={carregar} />}
+
       <ListaMatches
         matches={matches.filter((m) => m.angariacao?.id === ang.id)}
         vista="imovel"
         onAlterado={recarregarMatches}
       />
+
+      <Registos ang={ang} tipo="visita" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
+      <Registos ang={ang} tipo="proposta" onAlterado={() => setVersaoRegistos((v) => v + 1)} />
 
       {acoes.length === 0 ? (
         <section className={cartao}>

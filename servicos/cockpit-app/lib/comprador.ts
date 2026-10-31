@@ -76,6 +76,10 @@ export type ImovelComprador = {
   enviado_em: string | null;
   visitado_em: string | null;
   proposta_em: string | null;
+  angariacao_id: string | null; // quando o imóvel é uma angariação minha
+  visita_obs: string | null;
+  sem_interesse_em: string | null;
+  proposta_obs: string | null;
 };
 
 export type Contagens = { enviados: number; visitas: number; propostas: number };
@@ -172,3 +176,39 @@ export async function concluirTarefasSemanais(compradorId: string, tipo: TipoTar
     .like("chave_automacao", `comprador:${compradorId}:${tipo}:%`)
     .eq("feita", false);
 }
+
+type RegistoAng = { compradorId: string; angariacaoId: string; descricao: string; data: string; obs: string };
+
+/**
+ * Regista uma visita ou uma proposta de um comprador a uma angariação (a partir da página da angariação).
+ * Faz o mesmo que marcar "Visitado" ou "Proposta" na ficha do comprador. Se o comprador já tem este imóvel
+ * ligado à angariação (por exemplo, "enviado"), aproveita a mesma linha em vez de criar outra.
+ */
+async function registarMarco(tipo: "visita" | "proposta", v: RegistoAng): Promise<string | null> {
+  const campo = tipo === "visita" ? "visitado_em" : "proposta_em";
+  const campoObs = tipo === "visita" ? "visita_obs" : "proposta_obs";
+  const sb = sbBrowser();
+  const { data: existentes } = await sb
+    .from("comprador_imoveis")
+    .select("id, visitado_em, proposta_em")
+    .eq("comprador_id", v.compradorId)
+    .eq("angariacao_id", v.angariacaoId);
+  const livre = ((existentes ?? []) as Record<string, string | null>[]).find((x) => !x[campo]);
+  const valores = { [campo]: v.data, [campoObs]: v.obs.trim() || null };
+  const { error } = livre
+    ? await sb.from("comprador_imoveis").update(valores).eq("id", livre.id)
+    : await sb
+        .from("comprador_imoveis")
+        .insert({ comprador_id: v.compradorId, angariacao_id: v.angariacaoId, descricao: v.descricao, ...valores });
+  if (error) return `Não foi possível registar a ${tipo}.`;
+  if (tipo === "visita") await concluirTarefasSemanais(v.compradorId, "visita");
+  const destino: EstadoComprador = tipo === "visita" ? "visitas_realizadas" : "propostas_efetuadas";
+  const { data: c } = await sb.from("compradores").select("estado").eq("id", v.compradorId).single();
+  if (c && c.estado !== "perdido" && indiceFunil(c.estado as EstadoComprador) < indiceFunil(destino)) {
+    await sb.from("compradores").update({ estado: destino, estado_desde: new Date().toISOString() }).eq("id", v.compradorId);
+  }
+  return null;
+}
+
+export const registarVisita = (v: RegistoAng) => registarMarco("visita", v);
+export const registarProposta = (v: RegistoAng) => registarMarco("proposta", v);

@@ -163,6 +163,36 @@ create table angariacao_acoes (
 );
 create index on angariacao_acoes (angariacao_id, dia);
 
+-- Imóveis do comprador que são uma angariação minha, e observações da visita (a data é visitado_em).
+-- Fica aqui porque a tabela angariacoes só existe a partir deste ponto.
+alter table comprador_imoveis add column angariacao_id uuid references angariacoes(id) on delete set null;
+alter table comprador_imoveis add column visita_obs text;
+alter table comprador_imoveis add column sem_interesse_em date;   -- o comprador disse que não tem interesse
+alter table comprador_imoveis add column proposta_obs text;       -- observações da proposta (a data é proposta_em)
+create index on comprador_imoveis (angariacao_id);
+
+-- Visitas de clientes de outro consultor a uma angariação minha (só o nome do consultor)
+create table visitas_externas (
+  id uuid primary key default gen_random_uuid(),
+  angariacao_id uuid not null references angariacoes(id) on delete cascade,
+  consultor text not null,
+  data date not null default current_date,
+  obs text,
+  created_at timestamptz not null default now()
+);
+create index on visitas_externas (angariacao_id);
+
+-- Propostas de clientes de outro consultor a uma angariação minha (só o nome do consultor)
+create table propostas_externas (
+  id uuid primary key default gen_random_uuid(),
+  angariacao_id uuid not null references angariacoes(id) on delete cascade,
+  consultor text not null,
+  data date not null default current_date,
+  obs text,
+  created_at timestamptz not null default now()
+);
+create index on propostas_externas (angariacao_id);
+
 -- ---------------------------------------------------------------------------
 -- Tarefas e calendário (tudo o que as automações geram acaba aqui)
 -- ---------------------------------------------------------------------------
@@ -247,7 +277,7 @@ begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos',
     'proprietarios', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'metas',
-    'metas_config', 'metas_semanas', 'alertas_match'
+    'metas_config', 'metas_semanas', 'alertas_match', 'visitas_externas', 'propostas_externas'
   ] loop
     execute format('alter table %I enable row level security', t);
     execute format(
