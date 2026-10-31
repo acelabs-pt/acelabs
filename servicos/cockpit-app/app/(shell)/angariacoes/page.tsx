@@ -106,6 +106,7 @@ export default function Angariacoes() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-base font-semibold text-tinta">{a.titulo}</p>
+                      {a.referencia && <p className="truncate text-xs text-secundario">ID {a.referencia}</p>}
                       <p className="truncate text-xs text-secundario">
                         {a.proprietarios?.contactos.nome ?? "Sem proprietário ligado"}
                         {a.regime ? ` · ${REGIME[a.regime]}` : ""}
@@ -163,7 +164,7 @@ const resumoQualificacao = (d: Dono) =>
     .join(" · ");
 
 function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m: string | null) => void }) {
-  const [titulo, setTitulo] = useState("");
+  const [referencia, setReferencia] = useState("");
   const [duracao, setDuracao] = useState<120 | 180>(180);
   const [regime, setRegime] = useState<"" | "exclusivo" | "nao_exclusivo">("");
   const [inicio, setInicio] = useState(hojeISO());
@@ -187,6 +188,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
   }, []);
 
   const dono = donos.find((d) => d.id === donoId);
+  const titulo = [imovel.tipologia, imovel.concelho, imovel.freguesia].map((x) => x.trim()).filter(Boolean).join(", ");
   const donoValido = modo === "nenhum" || (modo === "existente" && donoId !== "") || (modo === "novo" && novo.nome.trim() !== "");
 
   return (
@@ -224,7 +226,8 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
         }
 
         const { data, error } = await sb.from("angariacoes").insert({
-          titulo: titulo.trim(),
+          titulo,
+          referencia: referencia.trim() || null,
           duracao_dias: duracao,
           regime: regime || null,
           inicio,
@@ -242,8 +245,8 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
       className="space-y-3 rounded-2xl bg-white p-4 shadow-sm"
     >
       <label className="block text-xs text-secundario">
-        Imóvel (morada ou referência)
-        <input value={titulo} onChange={(e) => setTitulo(e.target.value)} required className={`${campo} mt-1 text-tinta`} />
+        ID do imóvel
+        <input value={referencia} onChange={(e) => setReferencia(e.target.value)} className={`${campo} mt-1 text-tinta`} />
       </label>
       <div className="grid grid-cols-2 gap-3">
         <label className="block text-xs text-secundario">
@@ -259,6 +262,9 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
         </label>
       </div>
       <DadosImovel valor={imovel} onChange={setImovel} />
+      <p className="text-xs text-secundario">
+        Título da angariação: {titulo || "escolhe a tipologia e o concelho (e a freguesia)"}
+      </p>
       <label className="block text-xs text-secundario">
         Regime
         <select value={regime} onChange={(e) => setRegime(e.target.value as typeof regime)} className={`${campo} mt-1 text-tinta`}>
@@ -330,7 +336,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
 
       <button
         type="submit"
-        disabled={aGuardar || !titulo.trim() || !donoValido}
+        disabled={aGuardar || !titulo || !donoValido}
         className="w-full rounded-xl bg-azul py-2.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         Criar angariação
