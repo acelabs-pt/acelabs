@@ -12,6 +12,7 @@ Este repositório é **público**: nunca pôr aqui chaves, tokens, dados de clie
 | `infra/acelabs-api/` | Função de contacto (Resend) deployada por CLI. Ver o README da pasta. |
 | `servicos/cpcv-engine/` | App Next.js/Supabase do serviço "CPCV com IA" (tem README e CLAUDE.md próprios). |
 | `servicos/cockpit/` | App do Cockpit, em desenvolvimento (tem CLAUDE.md próprio). |
+| `servicos/torre/` | Torre: painel de gestão interno dos sócios (contas, extratos, débitos diretos, sócios). Tem LEIAME próprio. |
 | `docs/` | Plano de negócio, briefing, catálogo, manuais e a documentação de infraestrutura. |
 | `.claude/skills/` | Skills partilhadas do Claude Code (design, verificação no browser). |
 

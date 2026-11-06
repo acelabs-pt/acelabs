@@ -1,0 +1,12 @@
+node_modules
+.next
+next-env.d.ts
+*.tsbuildinfo
+# Chaves e dados: nunca no repositório (público)
+.env*
+testes/resultados/
+.vercel
+
+.vercel
+.env*
+public/pdf.worker.min.mjs

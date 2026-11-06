@@ -32,6 +32,12 @@ tentar registar).
 - `servicos/controlo/` - plataforma interna dos sócios para gerir os clientes: criar, suspender e apagar utilizadores do
   Cockpit e do CPCV de cada cliente e ver o estado da instalação. **Corre só em localhost, nunca se publica.** Ver LEIAME.md
   dentro da pasta. A lista de clientes e as chaves ficam fora do git.
+- `servicos/torre/` - **Torre**, painel de gestão interno dos sócios (o "ERP" da Ace Labs): contas, movimentos, extratos,
+  débitos diretos, quem pagou o quê e quanto a empresa deve a cada sócio. **Publicado** (Vercel `acelabs1`, por CLI, só o
+  Pedro), com Supabase próprio, login por nome e PIN de 6 algarismos (sem 2FA, decisão do Pedro, 2026-11-06). A `service_role` nunca vai para a Vercel. Fases 2 e 3
+  (faturas lidas pelo QR da AT e por IA, ligadas aos movimentos; pesquisa Ctrl K; resultados e IVA; tesouraria com previsão e
+  autonomia; clientes, fornecedores e contratos com MRR) publicadas a 2026-11-06; o aspeto segue o do Cockpit.
+  Fases seguintes: painéis do Cockpit e do CPCV, faturas por email. Ver LEIAME.md dentro da pasta.
 - `business-center/` - pasta local, no `.gitignore`, não deve ir para o GitHub (repositório
   público).
 

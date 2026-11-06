@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* A mesma pele do Cockpit (servicos/cockpit-app/app/globals.css): cinzento claro, brilho azul no canto, cartões brancos. */
+
+body {
+  background: #f5f5f7;
+  color: #1d1d1f;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60rem 36rem at 100% -6%, rgba(0, 113, 227, 0.1), rgba(0, 113, 227, 0) 70%);
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+button,
+a {
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Quadros com um toque glossy em azul suave, como os indicadores do Cockpit. */
+@layer components {
+  .quadro-glossy {
+    background-image: linear-gradient(180deg, #e8f2ff 0%, #ffffff 100%);
+    border: 1px solid rgba(0, 113, 227, 0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 0 -1px 0 rgba(0, 113, 227, 0.05),
+      0 1px 3px rgba(0, 113, 227, 0.12);
+  }
+}
+
+/* Uma fatura acabada de largar entra na lista; o ponto azul respira enquanto é lida. Só respondem ao que a pessoa fez. */
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes respirar {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes paleta {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes gaveta {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+.anim-gaveta { animation: gaveta 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.anim-entrada { animation: entrada 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.anim-respirar { animation: respirar 1.2s ease-in-out infinite; }
+.anim-paleta { animation: paleta 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a {
+    transition: none;
+  }
+  button:not(:disabled):active {
+    transform: none;
+  }
+  .anim-entrada,
+  .anim-gaveta,
+  .anim-respirar,
+  .anim-paleta {
+    animation: none !important;
+  }
+}
+
+/* iPhone: o Safari faz zoom em campos com letra menor que 16px. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
