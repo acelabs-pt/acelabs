@@ -1,7 +1,8 @@
 "use client";
 
 // Campos de formulário partilhados no CRM (compradores e proprietários).
-const BASE = "w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base";
+const BASE = "w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm";
+const BASE_ESCOLHA = "w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm";
 
 export function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -56,7 +57,7 @@ export function Escolha({
 }) {
   return (
     <Campo label={label}>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className={BASE}>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className={BASE_ESCOLHA}>
         <option value="">-</option>
         {opcoes.map((o) => (
           <option key={o} value={o}>
@@ -88,7 +89,7 @@ export function CampoTelemovel({
         <select
           value={prefixo}
           onChange={(e) => onPrefixo(e.target.value)}
-          className="rounded-xl border border-black/10 bg-white px-2 py-3 text-base"
+          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-sm"
         >
           {PREFIXOS_TEL.map((p) => (
             <option key={p}>{p}</option>
@@ -99,7 +100,7 @@ export function CampoTelemovel({
           inputMode="tel"
           value={numero}
           onChange={(e) => onNumero(e.target.value)}
-          className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-3 text-base"
+          className="min-w-0 flex-1 rounded-lg border border-black/10 px-2.5 py-1.5 text-sm"
         />
       </div>
     </Campo>

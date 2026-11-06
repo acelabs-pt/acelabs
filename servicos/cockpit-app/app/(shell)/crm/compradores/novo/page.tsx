@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import FormComprador, { comContacto, guardarZonas, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import FormComprador, { comContacto, guardarComoProprietario, guardarZonas, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
 import { escolherContacto, naApp } from "@/lib/nativo";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { atualizarPorComprador } from "@/lib/oportunidades";
@@ -68,7 +68,9 @@ export default function NovoComprador() {
             return;
           }
           await guardarZonas(comprador.id, v);
+          const eProp = await guardarComoProprietario(contacto.id, v);
           await atualizarPorComprador(comprador.id);
+          if (eProp) alert(`Comprador criado. ${eProp}`);
           router.push(`/crm/compradores/${comprador.id}`);
         }}
       />

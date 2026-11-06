@@ -35,6 +35,7 @@ export type Proprietario = {
   id: string;
   contacto_id: string;
   link_imovel: string | null;
+  tipo_negocio: string | null;
   tipo_imovel: string | null;
   distrito: string | null;
   concelho: string | null;

@@ -1,5 +1,6 @@
 import { sbBrowser } from "@/lib/supabase-browser";
 import { semanaISO, diasDesde } from "@/lib/datas";
+import { distribuirHoras } from "@/lib/horas";
 
 export type EstadoComprador =
   | "lead_qualificada"
@@ -38,6 +39,7 @@ export type Comprador = {
   contacto_id: string;
   motivacao: number | null;
   referencia_imovel: string | null;
+  tipo_negocio: string | null;
   tipo_imovel: string | null;
   // primeira zona de procura; todas as zonas estão em comprador_zonas
   distrito: string | null;
@@ -80,6 +82,7 @@ export type ImovelComprador = {
   proposta_em: string | null;
   angariacao_id: string | null; // quando o imóvel é uma angariação minha
   visita_obs: string | null;
+  visita_hora: string | null;
   sem_interesse_em: string | null;
   proposta_obs: string | null;
 };
@@ -103,10 +106,17 @@ export function alertaLaranja(c: Pick<Comprador, "estado" | "estado_desde">): st
 }
 
 export const TIPOS_IMOVEL = ["Apartamento", "Moradia", "Terreno", "Armazém", "Loja", "Prédio", "Outro"];
+/** Tipos de imóvel que fazem sentido para cada tipo de negócio (sem negócio escolhido, mostram-se todos). */
+export function tiposImovelPara(negocio: string): string[] {
+  if (negocio === "Comercial") return ["Loja", "Armazém", "Prédio", "Terreno", "Outro"];
+  if (negocio === "Habitação") return ["Apartamento", "Moradia", "Prédio", "Terreno", "Outro"];
+  return TIPOS_IMOVEL;
+}
+export const TIPOS_NEGOCIO = ["Habitação", "Comercial"];
 export const TIPOLOGIAS = ["T0", "T1", "T2", "T3", "T4", "T5 ou mais"];
 export const CANAIS_ORIGEM = ["Idealista", "Imovirtual", "Meta", "Site da imobiliária", "Placa", "Referência", "Outro"];
 export const FINANCIAMENTO = ["Capitais próprios", "Crédito pré-aprovado", "Vai pedir crédito"];
-export const SIMULACAO_CREDITO = ["Feita", "Por fazer", "Não aplicável"];
+export const SIMULACAO_CREDITO = ["Feita", "Em processamento", "Por fazer", "Não aplicável"];
 // Documentos habituais do comprador para a escritura. Proposta inicial, a validar pelo Miguel.
 export const DOCUMENTOS_ESCRITURA = [
   "Cartão de Cidadão (ou passaporte) e NIF dos compradores",
@@ -152,19 +162,17 @@ export async function garantirTarefasSemanais(
     .in("chave_automacao", candidatas.map((c) => c.chave));
   const jaExiste = new Set((existentes ?? []).map((e) => e.chave_automacao));
 
-  const hoje9h = new Date();
-  hoje9h.setHours(9, 0, 0, 0);
-  const novas = candidatas
-    .filter((c) => !jaExiste.has(c.chave))
-    .map((c) => ({
-      titulo: c.titulo,
-      tipo: "tarefa",
-      inicio: hoje9h.toISOString(),
-      origem: "comprador",
-      comprador_id: c.comprador.id,
-      contacto_id: c.comprador.contacto_id,
-      chave_automacao: c.chave,
-    }));
+  const porCriar = candidatas.filter((c) => !jaExiste.has(c.chave));
+  const horas = await distribuirHoras(porCriar.map((c) => ({ chave: c.chave, dia: new Date() })));
+  const novas = porCriar.map((c, i) => ({
+    titulo: c.titulo,
+    tipo: "tarefa",
+    inicio: horas[i].toISOString(),
+    origem: "comprador",
+    comprador_id: c.comprador.id,
+    contacto_id: c.comprador.contacto_id,
+    chave_automacao: c.chave,
+  }));
   if (novas.length > 0) await sb.from("tarefas").insert(novas);
 }
 
@@ -189,6 +197,39 @@ export async function concluirTarefasSemanais(compradorId: string, tipo: TipoTar
     .update({ feita: true, feita_em: new Date().toISOString() })
     .like("chave_automacao", `comprador:${compradorId}:${tipo}:%`)
     .eq("feita", false);
+}
+
+/** Põe (ou atualiza) a visita no calendário como evento de 1 hora. Uma por imóvel do comprador. Devolve erro em texto ou null. */
+export async function sincronizarEventoVisita(
+  comprador: { id: string; contacto_id: string; nome: string },
+  imovelId: string,
+  descricao: string,
+  data: string,
+  hora: string
+): Promise<string | null> {
+  const inicio = new Date(`${data}T${hora}`);
+  if (Number.isNaN(inicio.getTime())) return "Data ou hora inválida.";
+  const fim = new Date(inicio.getTime() + 60 * 60 * 1000);
+  const chave = `comprador:${comprador.id}:agendada:${imovelId}`;
+  const campos = { titulo: `Visita: ${descricao} (${comprador.nome})`, inicio: inicio.toISOString(), fim: fim.toISOString() };
+  const sb = sbBrowser();
+  const { data: existente } = await sb.from("tarefas").select("id").eq("chave_automacao", chave).maybeSingle();
+  const { error } = existente
+    ? await sb.from("tarefas").update(campos).eq("id", existente.id)
+    : await sb.from("tarefas").insert({
+        ...campos,
+        tipo: "evento",
+        origem: "comprador",
+        comprador_id: comprador.id,
+        contacto_id: comprador.contacto_id,
+        chave_automacao: chave,
+      });
+  return error ? "A visita ficou guardada, mas não foi possível pô-la no calendário." : null;
+}
+
+/** Tira do calendário a visita agendada deste imóvel (quando se desfaz o "Visitado"). */
+export async function removerEventoVisita(compradorId: string, imovelId: string): Promise<void> {
+  await sbBrowser().from("tarefas").delete().eq("chave_automacao", `comprador:${compradorId}:agendada:${imovelId}`);
 }
 
 type RegistoAng = { compradorId: string; angariacaoId: string; descricao: string; data: string; obs: string };

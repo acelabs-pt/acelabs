@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { sbBrowser } from "@/lib/supabase-browser";
-import FormComprador, { guardarZonas, nomeZona, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
+import FormComprador, { guardarComoProprietario, guardarZonas, nomeZona, paraComprador, paraContacto, valoresIniciais } from "@/components/crm/FormComprador";
 import type { Localizacao } from "@/components/crm/SeletorLocalizacao";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
@@ -19,6 +19,8 @@ import {
   OBJETIVOS,
   alertaLaranja,
   concluirTarefasSemanais,
+  removerEventoVisita,
+  sincronizarEventoVisita,
   contar,
   indiceFunil,
   labelEstado,
@@ -26,11 +28,13 @@ import {
   type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
+import type { Proprietario } from "@/lib/proprietario";
 import BarraProgresso from "@/components/BarraProgresso";
 import EditorVisita from "@/components/crm/EditorVisita";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
+import { distribuirHoras } from "@/lib/horas";
 import { eur } from "@/lib/graficos";
 import { linkWhatsapp } from "@/lib/whatsapp";
 
@@ -45,6 +49,7 @@ export default function FichaComprador() {
   const [docs, setDocs] = useState<Documento[]>([]);
   const [zonas, setZonas] = useState<Localizacao[]>([]);
   const [corresp, setCorresp] = useState<Correspondencia[]>([]);
+  const [propExistente, setPropExistente] = useState<Proprietario | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [fichaAberta, setFichaAberta] = useState(false);
@@ -54,6 +59,8 @@ export default function FichaComprador() {
   const [angSel, setAngSel] = useState("");
   const [novoDoc, setNovoDoc] = useState("");
   const [verTodosImoveis, setVerTodosImoveis] = useState(false);
+  // Visita a agendar: só passa a "Visitado" quando se confirma com data, hora e observações.
+  const [agendar, setAgendar] = useState<{ id: string; data: string; hora: string; obs: string } | null>(null);
 
   const carregar = useCallback(async () => {
     const sb = sbBrowser();
@@ -75,6 +82,8 @@ export default function FichaComprador() {
     setAngs((r4.data ?? []) as AngMinha[]);
     setZonas(((r5.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
     setCorresp(cs);
+    const { data: pr } = await sb.from("proprietarios").select("*, contactos(*)").eq("contacto_id", (r1.data as { contacto_id: string }).contacto_id).limit(1);
+    setPropExistente(((pr ?? [])[0] as unknown as Proprietario | undefined) ?? null);
   }, [id]);
 
   useEffect(() => {
@@ -108,13 +117,13 @@ export default function FichaComprador() {
     await atualizar({ estado: "negocio_concluido", estado_desde: new Date().toISOString() });
     const em6meses = new Date();
     em6meses.setMonth(em6meses.getMonth() + 6);
-    em6meses.setHours(9, 0, 0, 0);
     const chave = `comprador:${c.id}:pos-escritura`;
+    const [quando6meses] = await distribuirHoras([{ chave, dia: em6meses }]);
     const { data } = await sb.from("tarefas").select("id").eq("chave_automacao", chave);
     if (!data || data.length === 0) {
       await sb.from("tarefas").insert({
         titulo: `Ligar a ${c.contactos.nome} (6 meses após a escritura)`,
-        inicio: em6meses.toISOString(),
+        inicio: quando6meses.toISOString(),
         origem: "comprador",
         comprador_id: c.id,
         contacto_id: c.contacto_id,
@@ -149,6 +158,7 @@ export default function FichaComprador() {
   async function alternarMarco(i: ImovelComprador, campo: "enviado_em" | "visitado_em" | "proposta_em" | "sem_interesse_em") {
     if (!c) return;
     const novo = i[campo] ? null : hojeISO();
+    if (campo === "visitado_em" && !novo) await removerEventoVisita(c.id, i.id);
     const { error } = await sbBrowser().from("comprador_imoveis").update({ [campo]: novo }).eq("id", i.id);
     if (error) return setErro("Não foi possível guardar.");
     if (novo) {
@@ -160,9 +170,36 @@ export default function FichaComprador() {
     await carregar();
   }
 
-  async function atualizarImovel(i: ImovelComprador, campos: { visitado_em?: string; visita_obs?: string | null; proposta_em?: string; proposta_obs?: string | null }) {
+  const descricaoImovel = (i: ImovelComprador) =>
+    (i.angariacao_id ? angs.find((a) => a.id === i.angariacao_id)?.titulo : null) || i.descricao || i.link || "imóvel";
+
+  function abrirAgendar(i: ImovelComprador) {
+    setAgendar({ id: i.id, data: hojeISO(), hora: "", obs: "" });
+  }
+
+  async function confirmarVisita(i: ImovelComprador) {
+    if (!c || !agendar || !agendar.data || !agendar.hora) return;
+    const { error } = await sbBrowser()
+      .from("comprador_imoveis")
+      .update({ visitado_em: agendar.data, visita_hora: agendar.hora, visita_obs: agendar.obs.trim() || null })
+      .eq("id", i.id);
+    if (error) return setErro("Não foi possível guardar a visita.");
+    setAgendar(null);
+    const eCal = await sincronizarEventoVisita({ id: c.id, contacto_id: c.contacto_id, nome: c.contactos.nome }, i.id, descricaoImovel(i), agendar.data, agendar.hora);
+    if (eCal) setErro(eCal);
+    await concluirTarefasSemanais(c.id, "visita");
+    await avancarPara("visitas_realizadas", c.estado);
+    await carregar();
+  }
+
+  async function atualizarImovel(i: ImovelComprador, campos: { visitado_em?: string; visita_hora?: string; visita_obs?: string | null; proposta_em?: string; proposta_obs?: string | null }) {
     const { error } = await sbBrowser().from("comprador_imoveis").update(campos).eq("id", i.id);
     if (error) setErro("Não foi possível guardar.");
+    else if (c && (campos.visitado_em || campos.visita_hora)) {
+      const data = campos.visitado_em ?? i.visitado_em;
+      const hora = campos.visita_hora ?? i.visita_hora;
+      if (data && hora) await sincronizarEventoVisita({ id: c.id, contacto_id: c.contacto_id, nome: c.contactos.nome }, i.id, descricaoImovel(i), data, hora);
+    }
     await carregar();
   }
 
@@ -216,7 +253,7 @@ export default function FichaComprador() {
       <div className="space-y-4">
         <button onClick={() => setEditar(false)} className="text-sm font-medium text-azul-escuro">&larr; Cancelar</button>
         <FormComprador
-          inicial={valoresIniciais(c, zonas)}
+          inicial={valoresIniciais(c, zonas, propExistente)}
           textoBotao="Guardar alterações"
           aGuardar={aGuardar}
           onSubmit={async (v) => {
@@ -225,9 +262,10 @@ export default function FichaComprador() {
             const r1 = await sb.from("contactos").update(paraContacto(v)).eq("id", c.contacto_id);
             const r2 = await sb.from("compradores").update(paraComprador(v)).eq("id", c.id);
             const eZonas = await guardarZonas(c.id, v);
+            const eProp = await guardarComoProprietario(c.contacto_id, v);
             if (!r1.error && !r2.error && !eZonas) await atualizarPorComprador(c.id);
             setAGuardar(false);
-            if (r1.error || r2.error || eZonas) return setErro(eZonas ?? "Não foi possível guardar.");
+            if (r1.error || r2.error || eZonas || eProp) return setErro(eZonas ?? eProp ?? "Não foi possível guardar.");
             setEditar(false);
             await carregar();
           }}
@@ -382,7 +420,7 @@ export default function FichaComprador() {
                 className="rounded-xl"
                 direita={
                   !i.visitado_em
-                    ? { rotulo: "Visitado", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "visitado_em") }
+                    ? { rotulo: "Agendar visita", classe: "bg-verde text-tinta", onAcao: () => abrirAgendar(i) }
                     : !i.proposta_em
                     ? { rotulo: "Proposta", classe: "bg-verde text-tinta", onAcao: () => alternarMarco(i, "proposta_em") }
                     : undefined
@@ -406,13 +444,13 @@ export default function FichaComprador() {
               <div className="mt-2 flex gap-1.5">
                 {([
                   ["enviado_em", "Enviado"],
-                  ["visitado_em", "Visitado"],
+                  ["visitado_em", i.visitado_em ? "Visitado" : "Agendar visita"],
                   ["proposta_em", "Proposta"],
                   ["sem_interesse_em", "Sem interesse"],
                 ] as const).map(([campo, rotulo]) => (
                   <button
                     key={campo}
-                    onClick={() => alternarMarco(i, campo)}
+                    onClick={() => (campo === "visitado_em" && !i.visitado_em ? abrirAgendar(i) : alternarMarco(i, campo))}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${
                       i[campo] ? (campo === "sem_interesse_em" ? "bg-red-600 text-white" : "bg-verde text-white") : "bg-black/5 text-secundario"
                     }`}
@@ -421,9 +459,61 @@ export default function FichaComprador() {
                   </button>
                 ))}
               </div>
+              {agendar?.id === i.id && !i.visitado_em && (
+                <div className="mt-2 space-y-2 rounded-xl bg-black/[0.03] p-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-xs text-secundario">
+                      Data
+                      <input
+                        type="date"
+                        value={agendar.data}
+                        onChange={(e) => setAgendar({ ...agendar, data: e.target.value })}
+                        className="mt-1 block w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm text-tinta"
+                      />
+                    </label>
+                    <label className="block text-xs text-secundario">
+                      Hora
+                      <input
+                        type="time"
+                        value={agendar.hora}
+                        onChange={(e) => setAgendar({ ...agendar, hora: e.target.value })}
+                        className="mt-1 block w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm text-tinta"
+                      />
+                    </label>
+                  </div>
+                  <label className="block text-xs text-secundario">
+                    Observações
+                    <textarea
+                      value={agendar.obs}
+                      onChange={(e) => setAgendar({ ...agendar, obs: e.target.value })}
+                      rows={2}
+                      className="mt-1 block w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm text-tinta"
+                    />
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAgendar(null)}
+                      className="flex-1 rounded-lg bg-black/5 py-1.5 text-xs font-medium text-secundario"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!agendar.data || !agendar.hora}
+                      onClick={() => confirmarVisita(i)}
+                      className="flex-1 rounded-lg bg-verde py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      Confirmar visita
+                    </button>
+                  </div>
+                </div>
+              )}
               {i.visitado_em && (
                 <div className="mt-2">
                   <EditorVisita
+                    hora={i.visita_hora}
+                    onHora={(h) => atualizarImovel(i, { visita_hora: h })}
                     data={i.visitado_em}
                     obs={i.visita_obs}
                     onData={(d) => atualizarImovel(i, { visitado_em: d })}

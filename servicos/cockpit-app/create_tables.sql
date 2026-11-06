@@ -38,6 +38,7 @@ create table compradores (
   -- qualificação (campos do desenho)
   motivacao smallint check (motivacao between 0 and 10),
   referencia_imovel text,
+  tipo_negocio text,         -- Habitação ou Comercial
   tipo_imovel text,          -- Apartamento, Moradia, Terreno, Armazém, Loja, Prédio, ...
   distrito text,
   concelho text,
@@ -104,6 +105,7 @@ create table proprietarios (
   contacto_id uuid not null references contactos(id) on delete cascade,
 
   link_imovel text,
+  tipo_negocio text,         -- Habitação ou Comercial
   tipo_imovel text,
   distrito text,
   concelho text,
@@ -170,6 +172,7 @@ create index on angariacao_acoes (angariacao_id, dia);
 -- Fica aqui porque a tabela angariacoes só existe a partir deste ponto.
 alter table comprador_imoveis add column angariacao_id uuid references angariacoes(id) on delete set null;
 alter table comprador_imoveis add column visita_obs text;
+alter table comprador_imoveis add column visita_hora text; -- HH:MM, ver migration_visita_hora.sql
 alter table comprador_imoveis add column sem_interesse_em date;   -- o comprador disse que não tem interesse
 alter table comprador_imoveis add column proposta_obs text;       -- observações da proposta (a data é proposta_em)
 create index on comprador_imoveis (angariacao_id);

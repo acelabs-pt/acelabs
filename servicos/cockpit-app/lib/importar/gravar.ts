@@ -1,4 +1,5 @@
 import { sbBrowser } from "@/lib/supabase-browser";
+import { distribuirHoras } from "@/lib/horas";
 import { ACOES_PADRAO, dataDoDia, linhasDoPlano, tarefaDaAcao, type Acao } from "@/lib/angariacao";
 import type { Entidade } from "@/lib/importar/esquemas";
 import type { Existentes, LinhaValida } from "@/lib/importar/validar";
@@ -111,16 +112,18 @@ async function montarPlanos(angs: { id: string; titulo: string; inicio?: string;
   const hojeIso = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
   const nomes = ACOES_PADRAO.map((a) => a.nome);
   const acoes: (Acao & { angariacao_id: string })[] = [];
-  const tarefas: ReturnType<typeof tarefaDaAcao>[] = [];
+  const pendentes: { acao: Acao; inicio: string; titulo: string }[] = [];
   for (const a of angs) {
     const inicio = a.inicio ?? hojeIso;
     for (const l of linhasDoPlano(nomes, true, a.duracao_dias)) {
       if (soFuturas && dataDoDia(inicio, l.dia) < hoje) continue;
       const acao = { id: crypto.randomUUID(), angariacao_id: a.id, nome: l.nome, dia: l.dia, follow_up: l.follow_up, feita: false, feita_em: null, feedback: null } as Acao;
       acoes.push(acao);
-      tarefas.push(tarefaDaAcao(acao, { inicio, titulo: a.titulo }));
+      pendentes.push({ acao, inicio, titulo: a.titulo });
     }
   }
+  const horas = await distribuirHoras(pendentes.map((p) => ({ chave: p.acao.id, dia: dataDoDia(p.inicio, p.acao.dia) })));
+  const tarefas = pendentes.map((p, i) => tarefaDaAcao(p.acao, { inicio: p.inicio, titulo: p.titulo }, horas[i]));
   for (const lote of em(acoes)) {
     const { error } = await sb.from("angariacao_acoes").insert(lote);
     if (error) return "As angariações foram criadas mas não foi possível montar os planos.";

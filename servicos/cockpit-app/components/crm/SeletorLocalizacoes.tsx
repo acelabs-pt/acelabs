@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { DISTRITOS, concelhosDe, etiquetaLocal, freguesiasDe, type Local } from "@/lib/localizacoes";
 
-const SELECT = "w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base disabled:opacity-50";
+const SELECT = "w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm disabled:opacity-50";
 
 const mesmaZona = (a: Local, b: Local) =>
   a.distrito === b.distrito && (a.concelho ?? "") === (b.concelho ?? "") && (a.freguesia ?? "") === (b.freguesia ?? "");
@@ -59,7 +59,7 @@ export default function SeletorLocalizacoes({
         <p className="text-sm text-secundario">Ainda sem zonas.</p>
       )}
 
-      <div className="space-y-2 rounded-xl border border-black/10 p-3">
+      <div className="space-y-2 rounded-lg border border-black/10 p-3">
         <div className="grid gap-2 sm:grid-cols-2">
           <select
             aria-label="Distrito"

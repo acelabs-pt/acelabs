@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Campo, CampoTelemovel, Escolha, Texto } from "@/components/crm/Campos";
 import SeletorLocalizacao from "@/components/crm/SeletorLocalizacao";
-import { CANAIS_ORIGEM, PREFIXOS, TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
+import { CANAIS_ORIGEM, PREFIXOS, TIPOLOGIAS, TIPOS_NEGOCIO, tiposImovelPara } from "@/lib/comprador";
 import type { Proprietario } from "@/lib/proprietario";
 
 export type ValoresProprietario = {
@@ -14,6 +14,7 @@ export type ValoresProprietario = {
   canal_origem: string;
   observacoes: string;
   link_imovel: string;
+  tipo_negocio: string;
   tipo_imovel: string;
   tipologia: string;
   distrito: string;
@@ -33,6 +34,7 @@ export function valoresIniciaisProp(p?: Proprietario): ValoresProprietario {
     canal_origem: p?.contactos.canal_origem ?? "",
     observacoes: p?.contactos.observacoes ?? "",
     link_imovel: p?.link_imovel ?? "",
+    tipo_negocio: p?.tipo_negocio ?? "",
     tipo_imovel: p?.tipo_imovel ?? "",
     tipologia: p?.tipologia ?? "",
     distrito: p?.distrito ?? "",
@@ -58,6 +60,7 @@ export function paraContactoProp(v: ValoresProprietario) {
 export function paraProprietario(v: ValoresProprietario) {
   return {
     link_imovel: vazio(v.link_imovel),
+    tipo_negocio: vazio(v.tipo_negocio),
     tipo_imovel: vazio(v.tipo_imovel),
     tipologia: vazio(v.tipologia),
     distrito: vazio(v.distrito),
@@ -100,15 +103,16 @@ export default function FormProprietario({
       <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold text-tinta">Qualificação</h2>
         <Escolha label="Canal de origem" value={v.canal_origem} onChange={set("canal_origem")} opcoes={CANAIS_ORIGEM} />
-        <Texto label="Link ou referência do imóvel" value={v.link_imovel} onChange={set("link_imovel")} />
-        <Escolha label="Tipo de imóvel" value={v.tipo_imovel} onChange={set("tipo_imovel")} opcoes={TIPOS_IMOVEL} />
+        <Texto label="Link ou referência do imóvel (opcional)" value={v.link_imovel} onChange={set("link_imovel")} />
+        <Escolha label="Tipo de negócio" value={v.tipo_negocio} onChange={(n) => setV((x) => ({ ...x, tipo_negocio: n, tipo_imovel: tiposImovelPara(n).includes(x.tipo_imovel) ? x.tipo_imovel : "" }))} opcoes={TIPOS_NEGOCIO} />
+        <Escolha label="Tipo de imóvel" value={v.tipo_imovel} onChange={set("tipo_imovel")} opcoes={tiposImovelPara(v.tipo_negocio)} />
         <Escolha label="Tipologia" value={v.tipologia} onChange={set("tipologia")} opcoes={TIPOLOGIAS} />
         <div className="grid gap-3 sm:grid-cols-3">
           <SeletorLocalizacao
             comRotulos
             valor={{ distrito: v.distrito, concelho: v.concelho, freguesia: v.freguesia }}
             onChange={(l) => setV((x) => ({ ...x, ...l }))}
-            className="w-full rounded-xl border border-black/10 bg-white px-3 py-3 text-base"
+            className="w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm"
           />
         </div>
         <Texto label="Valor pedido (EUR)" type="number" value={v.valor} onChange={set("valor")} />
@@ -117,7 +121,7 @@ export default function FormProprietario({
             value={v.observacoes}
             onChange={(e) => set("observacoes")(e.target.value)}
             rows={3}
-            className="w-full rounded-xl border border-black/10 px-3 py-3 text-base"
+            className="w-full rounded-lg border border-black/10 px-2.5 py-1.5 text-sm"
           />
         </Campo>
       </section>

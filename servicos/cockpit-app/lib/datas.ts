@@ -80,3 +80,17 @@ export function somarMeses(d: Date, n: number): Date {
 export function isoDataLocal(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+/**
+ * Põe uma hora de trabalho (entre as 9:00 e as 17:45, de 15 em 15 minutos) num dia, escolhida a partir de uma chave estável.
+ * As tarefas automáticas deixam de cair todas às 9:00: a mesma chave dá sempre a mesma hora, por isso mover ou
+ * recriar uma tarefa não a muda de sítio.
+ */
+export function horaDistribuida(dia: Date, chave: string): Date {
+  let h = 2166136261;
+  for (let i = 0; i < chave.length; i++) h = Math.imul(h ^ chave.charCodeAt(i), 16777619);
+  const slot = (h >>> 0) % 36; // 36 intervalos de 15 min: 9:00 ... 17:45
+  const d = new Date(dia);
+  d.setHours(9 + Math.floor(slot / 4), (slot % 4) * 15, 0, 0);
+  return d;
+}

@@ -1,5 +1,6 @@
 import { sbBrowser } from "@/lib/supabase-browser";
-import { inicioDoDia, somarDias } from "@/lib/datas";
+import { horaDistribuida, inicioDoDia, somarDias } from "@/lib/datas";
+import { distribuirHoras } from "@/lib/horas";
 
 export type Angariacao = {
   id: string;
@@ -125,9 +126,8 @@ export function linhasDoPlano(
   return linhas;
 }
 
-export function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">) {
-  const quando = dataDoDia(ang.inicio, a.dia);
-  quando.setHours(9, 0, 0, 0);
+// `quando` vem de distribuirHoras (sem colisões); sem ele usa uma hora estável calculada só pela chave.
+export function tarefaDaAcao(a: Acao, ang: Pick<Angariacao, "inicio" | "titulo">, quando: Date = horaDistribuida(dataDoDia(ang.inicio, a.dia), a.id)) {
   return {
     titulo: a.follow_up ? `Follow up com o proprietário: ${ang.titulo}` : `${a.nome}: ${ang.titulo}`,
     tipo: "tarefa",
@@ -158,7 +158,9 @@ export async function criarPlano(
     .insert(linhas.map((l) => ({ ...l, angariacao_id: ang.id })))
     .select("*");
   if (error || !data) return "Não foi possível criar o plano.";
-  const { error: e2 } = await sb.from("tarefas").insert((data as Acao[]).map((a) => tarefaDaAcao(a, ang)));
+  const acoes = data as Acao[];
+  const horas = await distribuirHoras(acoes.map((a) => ({ chave: a.id, dia: dataDoDia(ang.inicio, a.dia) })));
+  const { error: e2 } = await sb.from("tarefas").insert(acoes.map((a, i) => tarefaDaAcao(a, ang, horas[i])));
   return e2 ? "O plano foi criado mas não foi possível pôr as tarefas no calendário." : null;
 }
 
@@ -177,7 +179,8 @@ export async function adicionarAcao(
     .select("*")
     .single();
   if (error || !data) return "Não foi possível adicionar a ação.";
-  const { error: e2 } = await sb.from("tarefas").insert(tarefaDaAcao(data as Acao, ang));
+  const [hora] = await distribuirHoras([{ chave: (data as Acao).id, dia: dataDoDia(ang.inicio, (data as Acao).dia) }]);
+  const { error: e2 } = await sb.from("tarefas").insert(tarefaDaAcao(data as Acao, ang, hora));
   return e2 ? "Ação criada, mas sem tarefa no calendário." : null;
 }
 
@@ -251,8 +254,7 @@ export async function moverAcao(ang: Angariacao, a: Acao, outras: Acao[], novoDi
   const sb = sbBrowser();
   const { error } = await sb.from("angariacao_acoes").update({ dia: novoDia }).eq("id", a.id);
   if (error) return "Não foi possível mover a ação.";
-  const quando = dataDoDia(ang.inicio, novoDia);
-  quando.setHours(9, 0, 0, 0);
+  const [quando] = await distribuirHoras([{ chave: a.id, dia: dataDoDia(ang.inicio, novoDia) }]);
   const { error: e2 } = await sb.from("tarefas").update({ inicio: quando.toISOString() }).eq("angariacao_acao_id", a.id);
   return e2 ? "Ação mudada de dia, mas a tarefa do calendário não foi atualizada." : null;
 }

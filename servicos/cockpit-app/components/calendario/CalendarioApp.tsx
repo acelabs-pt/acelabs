@@ -7,7 +7,7 @@ import { todas } from "@/lib/todas";
 import Link from "next/link";
 import { tipoTarefaComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
-import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias, somarMeses } from "@/lib/datas";
+import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, mesmoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
 import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
@@ -35,10 +35,14 @@ function titulo(vista: Vista, ref: Date): string {
   if (vista === "dia") return ref.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
   const ini = inicioDaSemana(ref);
   const fim = somarDias(ini, 6);
-  const mesmoMes = ini.getMonth() === fim.getMonth();
-  const a = ini.toLocaleDateString("pt-PT", mesmoMes ? { day: "numeric" } : { day: "numeric", month: "short" });
-  const b = fim.toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
-  return `${a} - ${b} ${fim.getFullYear()}`;
+  const mes = (d: Date) => d.toLocaleDateString("pt-PT", { month: "long" });
+  if (ini.getFullYear() !== fim.getFullYear()) {
+    return `${ini.getDate()} de ${mes(ini)} de ${ini.getFullYear()} a ${fim.getDate()} de ${mes(fim)} de ${fim.getFullYear()}`;
+  }
+  if (ini.getMonth() !== fim.getMonth()) {
+    return `${ini.getDate()} de ${mes(ini)} a ${fim.getDate()} de ${mes(fim)} de ${fim.getFullYear()}`;
+  }
+  return `${ini.getDate()} a ${fim.getDate()} de ${mes(fim)} de ${fim.getFullYear()}`;
 }
 
 export default function CalendarioApp() {
@@ -49,6 +53,7 @@ export default function CalendarioApp() {
   const [erro, setErro] = useState<string | null>(null);
   const [aberta, setAberta] = useState<string | null>(null);
   const [novo, setNovo] = useState<Date | null>(null);
+  const [filtro, setFiltro] = useState<"todos" | "comprador" | "proprietario" | "angariacao">("todos");
   const [adiar, setAdiar] = useState<Tarefa | null>(null);
   const [tipoNovo, setTipoNovo] = useState<"tarefa" | "evento">("evento");
   const { avisar } = useToast();
@@ -114,7 +119,9 @@ export default function CalendarioApp() {
     jaCarregou.current = true;
   }, [carregar, vista]);
 
-  const ocs = useMemo(() => tarefas.map(ocorrencia).filter((o): o is Ocorrencia => o !== null), [tarefas]);
+  // Filtro por tipo de cliente: "Todos" mostra também metas, angariações e tarefas manuais.
+  const visiveis = useMemo(() => (filtro === "todos" ? tarefas : tarefas.filter((t) => t.origem === filtro)), [tarefas, filtro]);
+  const ocs = useMemo(() => visiveis.map(ocorrencia).filter((o): o is Ocorrencia => o !== null), [visiveis]);
 
   async function alternarFeita(t: Tarefa) {
     const feita = !t.feita;
@@ -168,7 +175,17 @@ export default function CalendarioApp() {
   async function adiarPara(dia: Date) {
     const t = adiar;
     setAdiar(null);
-    if (!t) return;
+    if (t) await moverPara(t, dia);
+  }
+
+  // Passa uma tarefa ou marcação para outro dia (pelo "Adiar" ou ao arrastar), mantendo a hora.
+  function arrastarPara(id: string, dia: Date) {
+    const t = tarefas.find((x) => x.id === id);
+    if (!t || t.feita || !t.inicio || mesmoDia(new Date(t.inicio), dia)) return;
+    moverPara(t, dia);
+  }
+
+  async function moverPara(t: Tarefa, dia: Date) {
     const e = await adiarTarefa(t, dia);
     if (e) setErro(e);
     else if (t.inicio) {
@@ -214,6 +231,19 @@ export default function CalendarioApp() {
         ))}
       </div>
 
+      <div className="flex gap-1.5">
+        {([["todos", "Todos"], ["comprador", "Compradores"], ["proprietario", "Proprietários"], ["angariacao", "Angariações"]] as const).map(([f, r]) => (
+          <button
+            key={f}
+            onClick={() => setFiltro(f)}
+            aria-pressed={filtro === f}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${filtro === f ? "bg-azul text-white" : "bg-black/5 text-tinta/70"}`}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
       {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
       {vista !== "tarefas" && (
@@ -236,10 +266,10 @@ export default function CalendarioApp() {
       {aCarregar ? (
         <EsqueletoLista />
       ) : vista === "tarefas" ? (
-        <ListaTarefas tarefas={tarefas} totalAtrasadas={totalAtrasadas} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} onAbrir={(t) => setAberta(t.id)} />
+        <ListaTarefas tarefas={visiveis} totalAtrasadas={filtro === "todos" ? totalAtrasadas : 0} onAlternar={alternarFeita} onApagar={apagar} onAdiar={setAdiar} onAbrir={(t) => setAberta(t.id)} />
       ) : vista === "mes" ? (
         <>
-          <Mes ref_={ref} ocs={ocs} onEscolher={setRef} />
+          <Mes ref_={ref} ocs={ocs} onEscolher={setRef} onMover={arrastarPara} />
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold capitalize text-tinta">{formatarDia(ref)}</h3>
@@ -252,7 +282,7 @@ export default function CalendarioApp() {
             ) : (
               <ul className="space-y-2">
                 {diaEscolhido.map((o) => (
-                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAdiar={setAdiar} onAbrir={() => setAberta(o.t.id)} />
+                  <LinhaTarefa key={o.t.id} t={o.t} onAlternar={alternarFeita} onAdiar={setAdiar} onAbrir={() => setAberta(o.t.id)} arrastavel />
                 ))}
               </ul>
             )}
@@ -265,6 +295,11 @@ export default function CalendarioApp() {
           ocs={ocs}
           onSlot={setNovo}
           onItem={(o) => setAberta(o.t.id)}
+          onMover={arrastarPara}
+          onDia={(d) => {
+            setRef(inicioDoDia(d));
+            setVista("dia");
+          }}
         />
       )}
 
@@ -289,6 +324,7 @@ function LinhaTarefa({
   onAdiar,
   onAbrir,
   atrasada,
+  arrastavel,
 }: {
   t: Tarefa;
   onAlternar: (t: Tarefa) => void;
@@ -296,11 +332,18 @@ function LinhaTarefa({
   onAdiar?: (t: Tarefa) => void;
   onAbrir?: () => void;
   atrasada?: boolean;
+  arrastavel?: boolean;
 }) {
   const hora = t.inicio ? formatarHora(t.inicio) : "";
   const paraFicha = !t.feita && Boolean(t.comprador_id && tipoTarefaComprador(t));
   return (
-    <li>
+    <li
+      draggable={arrastavel && !t.feita}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", t.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
+    >
       <SwipeLinha
         // tarefas semanais automáticas não se marcam à mão: fecham-se ao registar o envio ou a visita na ficha
         direita={paraFicha ? undefined : { rotulo: t.feita ? "Por fazer" : "Feita", classe: t.feita ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => onAlternar(t) }}

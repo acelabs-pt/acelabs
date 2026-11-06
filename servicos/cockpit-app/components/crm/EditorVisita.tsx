@@ -9,6 +9,8 @@ export default function EditorVisita({
   obs,
   onData,
   onObs,
+  hora,
+  onHora,
   tipo = "visita",
 }: {
   tipo?: "visita" | "proposta";
@@ -16,6 +18,8 @@ export default function EditorVisita({
   obs: string | null;
   onData: (d: string) => void;
   onObs: (texto: string) => void;
+  hora?: string | null;
+  onHora?: (h: string) => void;
 }) {
   const [aberto, setAberto] = useState(false);
   const nome = tipo === "visita" ? "visita" : "proposta";
@@ -59,6 +63,17 @@ export default function EditorVisita({
               className="mt-1 block w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-tinta"
             />
           </label>
+          {onHora && (
+            <label className="block text-xs text-secundario">
+              Hora da {nome}
+              <input
+                type="time"
+                value={hora ?? ""}
+                onChange={(e) => e.target.value && e.target.value !== hora && onHora(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm text-tinta"
+              />
+            </label>
+          )}
           <label className="block text-xs text-secundario">
             Observações
             <textarea

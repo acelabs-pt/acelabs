@@ -42,5 +42,12 @@ export async function adiarTarefa(t: Tarefa, dia: Date): Promise<string | null> 
   const campos: Record<string, string> = { inicio: novo.toISOString() };
   if (orig && t.fim) campos.fim = new Date(new Date(t.fim).getTime() + (novo.getTime() - orig.getTime())).toISOString();
   const { error } = await sb.from("tarefas").update(campos).eq("id", t.id);
-  return error ? "Não foi possível adiar." : null;
+  if (error) return "Não foi possível adiar.";
+  // visita agendada na ficha do comprador: a data da visita acompanha o evento
+  const m = t.chave_automacao?.match(/^comprador:[^:]+:agendada:(.+)$/);
+  if (m) {
+    const iso = `${novo.getFullYear()}-${String(novo.getMonth() + 1).padStart(2, "0")}-${String(novo.getDate()).padStart(2, "0")}`;
+    await sb.from("comprador_imoveis").update({ visitado_em: iso }).eq("id", m[1]);
+  }
+  return null;
 }

@@ -13,11 +13,15 @@ export default function Tempo({
   ocs,
   onSlot,
   onItem,
+  onDia,
+  onMover,
 }: {
   dias: Date[];
   ocs: Ocorrencia[];
   onSlot: (d: Date) => void;
   onItem: (o: Ocorrencia) => void;
+  onDia?: (d: Date) => void;
+  onMover?: (id: string, d: Date) => void;
 }) {
   const cont = useRef<HTMLDivElement>(null);
   const [agora, setAgora] = useState(() => new Date());
@@ -35,7 +39,13 @@ export default function Tempo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [n]);
 
-  const diasInteiros = dias.map((d) => doDia(ocs, d).filter((o) => o.diaInteiro));
+  // Tarefas (muitas, quase sempre às 9h) não vão para a grelha, porque ficavam em tiras ilegíveis:
+  // na semana viram um contador por dia (toca para abrir o dia) e no dia uma lista. Marcações com hora ficam na grelha.
+  const semana = n > 1;
+  const eTarefa = (o: Ocorrencia) => o.t.tipo !== "evento";
+  const tarefasDoDia = dias.map((d) => doDia(ocs, d).filter(eTarefa).sort((a, b) => a.ini.getTime() - b.ini.getTime()));
+  const haTarefas = tarefasDoDia.some((x) => x.length > 0);
+  const diasInteiros = dias.map((d) => doDia(ocs, d).filter((o) => o.diaInteiro && !eTarefa(o)));
   const haDiaInteiro = diasInteiros.some((x) => x.length > 0);
 
   return (
@@ -78,7 +88,45 @@ export default function Tempo({
               ))}
             </div>
           )}
+          {semana && haTarefas && (
+            <div className="grid border-t border-black/5" style={{ gridTemplateColumns: cols }}>
+              <div className="px-1 py-1.5 text-right text-[10px] leading-tight text-secundario">tarefas</div>
+              {tarefasDoDia.map((x, i) => {
+                const porFazer = x.filter((o) => !o.t.feita).length;
+                return (
+                  <div key={i} className="border-l border-black/10 p-0.5">
+                    {x.length > 0 && (
+                      <button
+                        onClick={() => onDia?.(dias[i])}
+                        className={`block w-full truncate rounded-md px-1 py-1 text-center text-[11px] font-semibold ${
+                          porFazer > 0 ? "bg-verde/15 text-tinta" : "bg-black/5 text-secundario"
+                        }`}
+                      >
+                        {porFazer > 0 ? `${porFazer} tarefa${porFazer === 1 ? "" : "s"}` : `${x.length} feita${x.length === 1 ? "" : "s"}`}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {!semana && tarefasDoDia[0].length > 0 && (
+          <ul className="space-y-1 border-b border-black/10 p-2">
+            {tarefasDoDia[0].map((o) => (
+              <li key={o.t.id}>
+                <button
+                  onClick={() => onItem(o)}
+                  className={`flex w-full items-center gap-2 rounded-lg border-l-4 px-2 py-1.5 text-left text-sm ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
+                >
+                  <span className="shrink-0 text-xs opacity-70">{o.diaInteiro ? "dia todo" : formatarHora(o.t.inicio!)}</span>
+                  <span className="min-w-0 truncate">{o.t.titulo}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="grid" style={{ gridTemplateColumns: cols }}>
           <div className="relative" style={{ height: 24 * HORA_PX }}>
@@ -94,7 +142,7 @@ export default function Tempo({
           </div>
 
           {dias.map((d) => {
-            const colocadas = colocar(doDia(ocs, d), d);
+            const colocadas = colocar(doDia(ocs, d).filter((o) => !eTarefa(o)), d);
             const eHoje = mesmoDia(d, agora);
             const topoAgora = ((agora.getHours() * 60 + agora.getMinutes()) / 60) * HORA_PX;
             return (
@@ -105,6 +153,12 @@ export default function Tempo({
                   height: 24 * HORA_PX,
                   backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,.07) 1px, transparent 1px)",
                   backgroundSize: `100% ${HORA_PX}px`,
+                }}
+                onDragOver={(e) => onMover && e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = e.dataTransfer.getData("text/plain");
+                  if (id) onMover?.(id, d);
                 }}
                 onClick={(e) => {
                   const r = e.currentTarget.getBoundingClientRect();
@@ -117,6 +171,11 @@ export default function Tempo({
                 {colocadas.map(({ o, col, cols: nc, topo, altura }) => (
                   <button
                     key={o.t.id}
+                    draggable={!o.t.feita && n > 1}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", o.t.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       onItem(o);

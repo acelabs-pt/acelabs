@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { somarDias, inicioDaSemana, mesmoDia } from "@/lib/datas";
 import { corItem, doDia, type Ocorrencia } from "@/lib/calendario";
 import { formatarHora } from "@/lib/datas";
@@ -11,11 +12,14 @@ export default function Mes({
   ref_,
   ocs,
   onEscolher,
+  onMover,
 }: {
   ref_: Date;
   ocs: Ocorrencia[];
   onEscolher: (d: Date) => void;
+  onMover?: (id: string, d: Date) => void;
 }) {
+  const [sobre, setSobre] = useState<string | null>(null);
   const primeiro = new Date(ref_.getFullYear(), ref_.getMonth(), 1);
   const inicio = inicioDaSemana(primeiro);
   const diasNoMes = new Date(ref_.getFullYear(), ref_.getMonth() + 1, 0).getDate();
@@ -40,13 +44,28 @@ export default function Mes({
           const x = doDia(ocs, d).sort((a, b) => a.ini.getTime() - b.ini.getTime());
           const abertas = x.filter((o) => !o.t.feita).length;
           return (
-            <button
+            <div
               key={d.toISOString()}
+              role="button"
+              tabIndex={0}
               onClick={() => onEscolher(d)}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onEscolher(d)}
+              onDragOver={(e) => {
+                if (!onMover) return;
+                e.preventDefault();
+                setSobre(d.toISOString());
+              }}
+              onDragLeave={() => setSobre((s) => (s === d.toISOString() ? null : s))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setSobre(null);
+                const id = e.dataTransfer.getData("text/plain");
+                if (id) onMover?.(id, d);
+              }}
               aria-label={`${d.getDate()}, ${x.length} itens`}
               className={`flex min-h-16 flex-col items-center gap-1 border-black/5 p-1 text-left md:min-h-28 md:items-stretch ${
                 i % 7 !== 0 ? "border-l" : ""
-              } ${i >= 7 ? "border-t" : ""} ${sel && !eHoje ? "bg-azul/5" : ""}`}
+              } ${i >= 7 ? "border-t" : ""} ${sel && !eHoje ? "bg-azul/5" : ""} ${sobre === d.toISOString() ? "bg-azul/15" : ""} cursor-pointer`}
             >
               <span
                 className={`flex h-7 w-7 items-center justify-center self-center rounded-full text-sm font-medium md:self-start ${
@@ -72,6 +91,11 @@ export default function Mes({
                 {x.slice(0, 3).map((o) => (
                   <span
                     key={o.t.id}
+                    draggable={!o.t.feita}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", o.t.id);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
                     className={`block truncate rounded border-l-2 px-1 py-0.5 text-[11px] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
                   >
                     {!o.diaInteiro && <span className="mr-1 opacity-70">{formatarHora(o.t.inicio!)}</span>}
@@ -80,7 +104,7 @@ export default function Mes({
                 ))}
                 {x.length > 3 && <span className="block px-1 text-[11px] text-secundario">+{x.length - 3} mais</span>}
               </span>
-            </button>
+            </div>
           );
         })}
       </div>

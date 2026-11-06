@@ -405,7 +405,6 @@ COMPRADORES.forEach((c, i) => {
   for (let j = 0; j < antigas; j++) {
     tarefas.push(doComprador(i, `Ligar a ${c.nome.split(" ").slice(0, 2).join(" ")}: ponto de situação`, dias(-(8 + j * 17 + (i % 6)), 10 + (j % 6)), "tarefa", true));
   }
-  if (ativo && i % 2 === 0) tarefas.push(doComprador(i, `Seguimento com ${c.nome.split(" ").slice(0, 2).join(" ")}`, dias((i % 6) - 1, 10 + (i % 7))));
   if (ativo && i % 5 === 0) tarefas.push(doComprador(i, `Enviar novas opções a ${c.nome.split(" ").slice(0, 2).join(" ")}`, dias(-(3 + (i % 5)), 12))); // em atraso
 });
 tarefas.push(
