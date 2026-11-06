@@ -1,40 +1,38 @@
-# Passagem do Miguel para o Pedro: Cockpit por publicar (31/10/2026, 3.ª entrega)
+# Passagem do Miguel para o Pedro: Cockpit por publicar (06/11/2026, 4.ª entrega)
 
-> **Estado: publicado a 31/10/2026 pelo Pedro** (commit 87796d2). SQL corrido no Demo antes do deploy: `alter table tarefas add column if not exists google_calendar_em timestamptz` (confirmado depois). O SQL opcional de limpeza dos avisos antigos NÃO foi corrido. TypeScript e lint limpos, isolamento entre empresas com 164 verificações a passar. Confirmado no endereço publicado, em tamanho de iPhone: Seguimentos com etiqueta, ficha do proprietário com a ordem nova e a caixa "Google Calendar", caixa também na ficha do comprador, sem erros da base de dados. Não testado: abrir o Google Calendar ao marcar a caixa e a automação de apagar ao angariar.
+> **Estado: publicado a 06/11/2026 pelo Pedro** (commit cfa395a). SQL corrido no Demo antes do deploy e colunas confirmadas;
+> `unidade-multiempresa` passou (164 verificações); confirmado no endereço publicado com um utilizador temporário na Agência
+> Ensaio (painel, "Tipo de negócio" no novo comprador e no novo proprietário, filtros do calendário; sem erros nem pedidos
+> falhados). A passagem anterior (31/10, commit 87796d2) está no histórico do git.
 
-Só o Pedro faz o deploy: `git pull`, `npm install`, `npx tsc --noEmit`, `npx next lint`, `node testes/unidade-multiempresa.mjs`,
-SQL no Demo, `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no endereço publicado (tamanho de iPhone).
+Só o Pedro faz o deploy: `git pull`, testes, SQL no Demo, `vercel deploy --prod` em `servicos/cockpit-app`, e confirmar no
+endereço publicado.
 
 ## SQL no Demo (`gebqaxhwebsmoeqpzzzg`), antes do deploy
-1. `migration_google_calendar.sql`: `alter table tarefas add column if not exists google_calendar_em timestamptz;` (repetível; já está
-   também no `create_tables.sql`). Sem esta coluna, marcar a caixa "Google Calendar" mostra um aviso e não guarda.
-2. Opcional (limpeza de dados antigos): `delete from tarefas where chave_automacao like 'proprietario:%:aviso' and feita = false;`
-   apaga os avisos "Daqui a 2 horas" que ficaram de antes por fazer (o plano novo já não os cria).
+1. `migration_tipo_negocio.sql`: `tipo_negocio` em `compradores` e `proprietarios`.
+2. `migration_visita_hora.sql`: `visita_hora` em `comprador_imoveis`.
+
+Podem correr-se duas vezes sem erro. Sem estas colunas, guardar comprador, proprietário ou visita dá erro.
 
 ## O que mudou
-- **Dashboard, Seguimentos da semana:** cada linha mostra o nome do cliente, uma etiqueta do que fazer ("Follow up", "Reunião",
-  "Agradecer", "Enviar dossier", "Enviar opções", "Ligar"...) e, só nos proprietários, o imóvel (tipologia, freguesia, concelho). O texto
-  completo da tarefa saiu; atrás da seta fica só a data, a hora e "em atraso".
-- **Ficha do proprietário:** cabeçalho com nome, fase e Editar, e uma seta que abre o resto (imóvel, preço, zona, contactos, Ligar e WhatsApp).
-  Nova ordem: Próximos passos, Funil, Fechar angariação (se aplicável), Reunião de angariação, Chamadas (histórico atrás de uma seta),
-  Compradores com interesse, Exportar e Apagar.
-- **Automações dos proprietários (`lib/proprietario.ts`):**
-  - quando o proprietário fica **angariado** (fechar angariação na ficha, criar angariação com proprietário existente, associar proprietário a
-    uma angariação), apagam-se as automações dele que estão por fazer (as feitas ficam no histórico); tarefas manuais e as do plano da
-    angariação não se tocam. Ao marcar "não angariado" (perdido) só a chamada de angariação fica feita, como antes;
-  - o plano deixou de criar o **aviso de 2 horas antes**; a reunião continua no calendário; a **mensagem de agradecimento** passou de 2 horas
-    para **5 horas depois** da reunião. Ao reagendar a reunião apagam-se os avisos antigos por fazer desse proprietário.
-- **Caixa "Google Calendar"** em cada tarefa por fazer, nos Próximos passos do **proprietário** e do **comprador**: ao marcar, abre o Google
-  Calendar do agente com a marcação preenchida (título, dia, hora) e guarda o visto em `tarefas.google_calendar_em`. Não há ligação à
-  conta Google (sem OAuth): o Cockpit não sabe se o agente guardou o evento nem o atualiza se a data mudar; desmarcar só tira o visto cá.
-  Código em `lib/googleCalendar.ts`.
-- **Ficha do comprador, Próximos passos:** sem formulário Visita/Tarefa (já tinha ido na entrega anterior); mantém só a lista.
+- **CRM:** "Tipo de negócio" (Habitação ou Comercial) em compradores e proprietários; o tipo de imóvel mostra só as opções desse
+  negócio. Referência do imóvel retirada da ficha do comprador. Campos e listas mais pequenos. Simulação de crédito com
+  "Em processamento".
+- **Comprador com "Precisa de vender = Sim":** mostra a qualificação de proprietário e a caixa "Adicionar ao CRM de
+  proprietários" (cria ou atualiza a ficha do mesmo contacto).
+- **Visitas:** "Agendar visita" (data, hora e observações). Só ao confirmar fica "Visitado", e a visita vai para o calendário como
+  evento de 1 hora.
+- **Calendário:** filtros Todos, Compradores, Proprietários e Angariações; título da semana por extenso; tarefas fora da grelha
+  de horas (contador por dia na semana, lista no dia); arrastar tarefas e marcações para outro dia (só no computador; no iPhone
+  continua o "Adiar"); horas das tarefas automáticas novas distribuídas entre as 9:00 e as 18:45, sem colisões (nunca altera
+  visitas, reuniões de angariação nem escrituras).
+- **Simulação de 3 meses:** sem as tarefas de teste "Seguimento com (nome)". As que já estão na base de dados continuam lá.
 
-## O que ver no iPhone depois do deploy
-Dashboard (Seguimentos com nome, etiqueta e imóvel; seta com a data), ficha de um proprietário (seta no cabeçalho, ordem das secções, caixa
-"Google Calendar" nas tarefas por fazer, marcar a caixa e ver abrir o Google Calendar), ficha de um comprador (a mesma caixa), e uma reunião
-nova de proprietário (o plano já não tem o aviso de 2 horas e o agradecimento fica às 5 horas).
+## O que ver no iPhone
+- Criar um comprador com negócio Comercial e "Precisa de vender = Sim", com a caixa marcada, e ver se aparece em Proprietários.
+- Agendar uma visita num imóvel do comprador e ver o evento no calendário.
+- No mês, arrastar uma tarefa para outro dia (no computador).
 
-## Notas
-- Não há tabelas novas nem mudanças nas regras de acesso: o teste de isolamento por empresa não deve ser afetado.
-- A caixa Google Calendar não está nas tarefas das angariações nem no Calendário: só se o Miguel pedir.
+## Nota para os testes
+`testes/publicado.js` cria o utilizador temporário sem empresa (`membros.empresa_id` é obrigatório desde a multiempresa), por isso
+fica sem painel. Precisa de passar a pôr o utilizador numa empresa de ensaio.
