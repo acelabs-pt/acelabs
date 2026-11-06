@@ -36,6 +36,9 @@ function atualizar() {
 
 // Entrar e sair -----------------------------------------------------------------------------------------------------
 
+// O Supabase recusa "mudar" para a mesma password; aqui isso quer só dizer que se escolheu o PIN que já se tinha: não é erro.
+const mesmoPin = (e: { message: string } | null) => Boolean(e && /different from the old password/i.test(e.message));
+
 // Entra-se com email e PIN (lib/pin.ts). As falhas contam-se na base de dados (vale para todos os servidores da Vercel):
 // 10 erradas em 30 minutos bloqueiam esse email durante 30 minutos.
 export async function entrar(_: Resposta, f: FormData): Promise<Resposta> {
@@ -97,7 +100,7 @@ export async function redefinirPin(_: Resposta, f: FormData): Promise<Resposta> 
     return { erro: "Código errado ou fora de prazo. Pede outro se for preciso." };
   }
   const { error: e2 } = await s.auth.updateUser({ password: senhaDoPin(email, nova) });
-  if (e2) return { erro: "O código estava certo mas não foi possível gravar o PIN. Tenta outra vez." };
+  if (e2 && !mesmoPin(e2)) return { erro: "O código estava certo mas não foi possível gravar o PIN. Tenta outra vez." };
   await s.rpc("pin_ok");
   await s.rpc("pin_escolhido");
   redirect("/");
@@ -120,7 +123,7 @@ export async function mudarPin(_: Resposta, f: FormData): Promise<Resposta> {
   } = await s.auth.getUser();
   if (!user?.email) return { erro: "Sessão sem email. Sai e volta a entrar." };
   const { error } = await s.auth.updateUser({ password: senhaDoPin(user.email, nova) });
-  if (error) return erroDe(error)!;
+  if (error && !mesmoPin(error)) return erroDe(error)!;
   await s.rpc("pin_escolhido");
   atualizar();
   return { ok: true, aviso: "PIN mudado. Da próxima vez entras com este." };
@@ -381,10 +384,11 @@ export async function criarSocioMovimento(_: Resposta, f: FormData): Promise<Res
   const valor = paraCentimos(txt(f, "valor"));
   const data = lerData(txt(f, "data"));
   if (!valor || !data) return { erro: "Falta a data ou o valor." };
-  const { error } = await s.from("socios_movimentos").insert({ socio_id: txt(f, "socio_id"), tipo: txt(f, "tipo"), data, valor: Math.abs(valor), conta_id: opc(f, "conta_id"), notas: opc(f, "notas") });
+  const tipo = txt(f, "tipo");
+  const { error } = await s.from("socios_movimentos").insert({ socio_id: txt(f, "socio_id"), tipo, data, valor: Math.abs(valor), conta_id: opc(f, "conta_id"), notas: opc(f, "notas") });
   if (error) return erroDe(error)!;
   atualizar();
-  return { ok: true, aviso: "Registado." };
+  return { ok: true, aviso: tipo === "reembolso" ? "Devolução registada." : tipo === "capital" ? "Entrada de capital registada." : tipo === "suprimento" ? "Suprimento registado." : "Registado." };
 }
 
 export async function apagarSocioMovimento(f: FormData) {

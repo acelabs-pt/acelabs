@@ -9,6 +9,10 @@ import { calcularResultados, ivaPorTrimestre, ultimosMeses } from "../lib/result
 import { problemaDoPin, senhaDoPin } from "../lib/pin";
 import { autonomiaEmMeses, datasMensais, eventosFuturos, mrr, pontoMaisBaixo, porReceber, preverCaixa, saidaMensalMedia } from "../lib/tesouraria";
 import { resumirEntidades } from "../lib/entidades";
+import * as XLSX from "xlsx";
+import { eFolha, linhasDaFolha } from "../lib/folha";
+import { estadoDebito, saidoEsteMes } from "../lib/debitos";
+import { euroCsv, filtrarMovimentos, folhaCsv } from "../lib/filtros";
 import type { Categoria, Conta, Contrato, Fatura, Movimento, Socio, SocioMovimento, Subscricao } from "../lib/tipos";
 
 let n = 0;
@@ -377,13 +381,92 @@ export function correrUnidade() {
     assert.deepEqual(iva, [{ trimestre: "2026 T1", liquidado: 0, dedutivel: 500, saldo: -500 }, { trimestre: "2026 T4", liquidado: 4600, dedutivel: 1500, saldo: 3100 }]);
   });
 
-  teste("PIN: 6 algarismos, sem os óbvios; a password deriva do PIN, do email e do segredo", () => {
+  teste("débitos: pago neste ciclo, em falta, a seguir, sem pagamentos; valor diferente; saído este mês", () => {
+    const sub = (id: string, extra: Partial<Subscricao> = {}): Subscricao => ({ id, nome: id, entidade_id: null, categoria_id: null, conta_id: "emp", valor_previsto: 2000, moeda: "EUR", periodicidade: "mensal", dia: 2, inicio: "2026-01-02", padrao: null, debito_direto: true, ativa: true, notas: null, ...extra });
+    const ms = [
+      mov("emp", "2026-11-02", -2000, { subscricao_id: "pago" }),
+      mov("emp", "2026-09-02", -2000, { subscricao_id: "falta" }),
+      mov("emp", "2026-10-28", -2600, { subscricao_id: "caro" }), // pago em adiantado ao dia 2 (dentro dos 10 dias)
+      mov("emp", "2026-10-20", -1000, { subscricao_id: "breve", }),
+      mov("emp", "2026-11-03", 500, { subscricao_id: "pago" }), // estorno: não é pagamento
+    ];
+    const hoje = "2026-11-06";
+    assert.equal(estadoDebito(sub("pago"), ms, hoje).estado, "pago");
+    const falta = estadoDebito(sub("falta"), ms, hoje);
+    assert.deepEqual([falta.estado, falta.faltaDe], ["em_falta", "2026-10-02"]);
+    const caro = estadoDebito(sub("caro"), ms, hoje);
+    assert.deepEqual([caro.estado, caro.diferente], ["pago", true]);
+    assert.equal(estadoDebito(sub("nada"), ms, hoje).estado, "sem_pagamentos");
+    // Cobra a dia 20; a última foi a 20/10 e a próxima é 20/11: ainda não é altura.
+    const breve = estadoDebito(sub("breve", { dia: 20, inicio: "2026-01-20", valor_previsto: 1000 }), ms, hoje);
+    assert.deepEqual([breve.estado, breve.anterior, breve.proxima, breve.diferente], ["pago", "2026-10-20", "2026-11-20", false]);
+    // Cobra a dia 4 e ainda não saiu: só passa a "em falta" depois de 7 dias.
+    assert.equal(estadoDebito(sub("falta", { dia: 4, inicio: "2026-01-04" }), [mov("emp", "2026-10-04", -2000, { subscricao_id: "falta" })], hoje).estado, "a_seguir");
+    assert.equal(saidoEsteMes(ms, hoje), 2000);
+  });
+
+  teste("filtros dos movimentos e CSV para o Excel", () => {
+    const ms: Movimento[] = [
+      { ...mov("emp", "2026-10-02", -1230, { descricao: "DD Vercel Inc", categoria_id: null }), id: "a" },
+      { ...mov("emp", "2026-11-03", -4090, { descricao: "MEO; fibra \"casa\"" }), id: "b" },
+      { ...mov("pp", "2026-11-04", 50000, { descricao: "TRF cliente" }), id: "c" },
+    ];
+    const ids = (f: Parameters<typeof filtrarMovimentos>[1], falta = new Set<string>()) => filtrarMovimentos(ms, f, falta).map((m) => m.id);
+    assert.deepEqual(ids({ q: "vercel" }), ["a"]);
+    assert.deepEqual(ids({ q: "12,30" }), ["a"]);
+    assert.deepEqual(ids({ q: "40.90" }), ["b"]);
+    assert.deepEqual(ids({ mes: "2026-11", conta: "emp" }), ["b"]);
+    assert.deepEqual(ids({ sem: "categoria" }), ["a"]);
+    assert.deepEqual(ids({ sem: "fatura" }, new Set(["b"])), ["b"]);
+    const csv = folhaCsv(["Descrição", "Valor"], [[ms[1].descricao, euroCsv(ms[1].valor)]]);
+    assert.ok(csv.startsWith("﻿Descrição;Valor\r\n"));
+    assert.ok(csv.endsWith('"MEO; fibra ""casa""";-40,90'));
+  });
+
+  teste("extrato em Excel: datas pelo número de série (nunca à americana), valores, cabeçalho no meio", () => {
+    // Folha como as dos bancos: título, linha vazia, cabeçalho, e datas guardadas como datas do Excel (formato m/d/yy).
+    const folha = XLSX.utils.aoa_to_sheet(
+      [
+        ["Extrato de conta", "", "", ""],
+        [],
+        ["Data", "Descrição", "Débito", "Crédito"],
+        [new Date(Date.UTC(2026, 9, 2)), "DD VERCEL INC", 20, ""],
+        [new Date(Date.UTC(2026, 9, 12)), "TRF CLIENTE", "", 1500.5],
+        [new Date(Date.UTC(2026, 9, 30)), "COMPRA 0.1+0.2", 0.1 + 0.2, ""],
+      ],
+      { cellDates: true, UTC: true },
+    );
+    const livro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(livro, folha, "Movimentos");
+    const bytes = XLSX.write(livro, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const l = linhasDaFolha(bytes);
+    assert.deepEqual(l[0], ["Extrato de conta"]);
+    assert.deepEqual(l[1], ["Data", "Descrição", "Débito", "Crédito"]); // a linha vazia saiu
+    assert.deepEqual(l[2], ["2026-10-02", "DD VERCEL INC", "20"]);
+    assert.equal(l[3][0], "2026-10-12"); // dia 12 de outubro, e não 10 de dezembro
+    assert.equal(l[4][2], "0.3");
+    const i = encontrarCabecalho(l);
+    assert.equal(i, 1);
+    const r = interpretar(l.slice(i + 1), sugerirMapa(l[i]) as Mapa);
+    assert.deepEqual(r.movimentos.map((m) => [m.data, m.valor]), [["2026-10-02", -2000], ["2026-10-12", 150050], ["2026-10-30", -30]]);
+    assert.ok(eFolha("extrato.XLSX") && eFolha("mov.xls") && !eFolha("extrato.csv") && !eFolha("extrato_xlsx"));
+
+    // O .xls antigo (Excel 97-2003) dá o mesmo.
+    const xls = XLSX.write(livro, { type: "array", bookType: "biff8" }) as ArrayBuffer;
+    assert.deepEqual(linhasDaFolha(xls)[3], l[3]);
+    // Alguns bancos exportam um "xls" que é uma tabela HTML. Também se lê.
+    const html = new TextEncoder().encode("<html><body><table><tr><td>Data</td><td>Descrição</td><td>Montante</td></tr><tr><td>05-10-2026</td><td>DD MEO</td><td>-40,90</td></tr></table></body></html>");
+    const lh = linhasDaFolha(html);
+    const rh = interpretar(lh.slice(1), sugerirMapa(lh[0]) as Mapa);
+    assert.deepEqual(rh.movimentos.map((m) => [m.data, m.descricao, m.valor]), [["2026-10-05", "DD MEO", -4090]]);
+  });
+
+  teste("PIN: 6 algarismos; a password deriva do PIN, do email e do segredo", () => {
     assert.equal(problemaDoPin("483915"), null);
     assert.ok(problemaDoPin("12345"));
     assert.ok(problemaDoPin("12a456"));
-    assert.ok(problemaDoPin("000000"));
-    assert.ok(problemaDoPin("123456"));
-    assert.ok(problemaDoPin("987654"));
+    assert.equal(problemaDoPin("000000"), null); // qualquer PIN de 6 algarismos serve
+    assert.equal(problemaDoPin("123456"), null);
     const antes = process.env.TORRE_PIN_SEGREDO;
     process.env.TORRE_PIN_SEGREDO = "segredo-de-teste-com-mais-de-trinta-e-dois-caracteres";
     try {

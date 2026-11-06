@@ -2,7 +2,8 @@ import Link from "next/link";
 import { exigirSocio } from "@/lib/sessao";
 import { carregar } from "@/lib/dados";
 import { euros } from "@/lib/dinheiro";
-import { data, hojeLisboa, mesTitulo, normalizar } from "@/lib/texto";
+import { data, hojeLisboa, mesTitulo } from "@/lib/texto";
+import { filtrarMovimentos } from "@/lib/filtros";
 import { semFatura } from "@/lib/ligar";
 import { criarMovimento } from "../../acoes";
 import { Formulario } from "@/components/Formulario";
@@ -21,23 +22,7 @@ export default async function Movimentos({ searchParams }: { searchParams: Filtr
   const { novo, n, ...f } = searchParams;
   const faltaFatura = new Set(semFatura(t.movimentos, t.faturas, t.categorias).map((m) => m.id));
   const comFatura = new Set(t.faturas.map((x) => x.movimento_id).filter(Boolean) as string[]);
-  const termos = normalizar(f.q ?? "").split(/\s+/).filter(Boolean);
-
-  const lista = t.movimentos.filter((m) => {
-    if (f.conta && m.conta_id !== f.conta) return false;
-    if (f.mes && !m.data.startsWith(f.mes)) return false;
-    if (f.categoria && m.categoria_id !== f.categoria) return false;
-    if (f.socio && m.socio_id !== f.socio) return false;
-    if (f.entidade && m.entidade_id !== f.entidade) return false;
-    if (f.sem === "categoria" && m.categoria_id) return false;
-    if (f.sem === "fatura" && !faltaFatura.has(m.id)) return false;
-    if (termos.length) {
-      // Procura no texto e no valor (12,30 ou 12.30).
-      const alvo = normalizar(`${m.descricao} ${m.notas ?? ""} ${(Math.abs(m.valor) / 100).toFixed(2)} ${(Math.abs(m.valor) / 100).toFixed(2).replace(".", ",")}`);
-      if (!termos.every((x) => alvo.includes(x))) return false;
-    }
-    return true;
-  });
+  const lista = filtrarMovimentos(t.movimentos, f, faltaFatura);
   const limite = Math.max(PASSO, Number(n) || PASSO);
   const mostrar = lista.slice(0, limite);
   const total = lista.reduce((x, m) => x + m.valor, 0);
@@ -70,6 +55,7 @@ export default async function Movimentos({ searchParams }: { searchParams: Filtr
       <Titulo titulo="Movimentos" texto={entidadeFiltro ? `Só ${entidadeFiltro.nome}.` : "Tudo o que entra e sai, de todas as contas."}>
         <Link href="/movimentos/importar" className={botaoPrimario}>Importar extrato</Link>
         <Link href="/movimentos?novo=1#lancar" className={botaoSecundario}>Lançar à mão</Link>
+        <a href={`/movimentos/exportar${href({}).replace("/movimentos", "")}`} download className={botaoSecundario}>Exportar</a>
       </Titulo>
 
       <Segmentos

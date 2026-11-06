@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { importarExtrato } from "@/app/acoes";
 import { euros } from "@/lib/dinheiro";
 import { chavesDeDuplicado, detetarSeparador, encontrarCabecalho, interpretar, lerCsv, sugerirMapa, type Mapa } from "@/lib/extrato";
+// Só a verificação do nome: a biblioteca do Excel (lib/folha) carrega-se à parte, quando é precisa.
+const eFolha = (nome: string) => /\.(xlsx|xlsm|xls|ods)$/i.test(nome);
 import { aplicarRegras, contaDeSocios } from "@/lib/calculos";
 import { data } from "@/lib/texto";
 import type { Categoria, Conta, Regra } from "@/lib/tipos";
@@ -46,9 +48,27 @@ export default function Importar({ contas, regras, categorias }: { contas: Conta
 
   async function carregar(f: File) {
     if (!conta) return;
-    const texto = descodificar(await f.arrayBuffer());
-    const sep = conta.modelo_extrato?.separador ?? detetarSeparador(texto);
-    const l = lerCsv(texto, sep);
+    let sep: string;
+    let l: string[][];
+    if (eFolha(f.name)) {
+      // Excel: a biblioteca só se carrega quando é precisa.
+      const { linhasDaFolha } = await import("@/lib/folha");
+      try {
+        l = linhasDaFolha(await f.arrayBuffer());
+      } catch {
+        setEstado({ erro: "Não consegui abrir este Excel. Experimenta exportar outra vez do banco, ou gravar como CSV." });
+        return;
+      }
+      sep = "excel";
+    } else {
+      const texto = descodificar(await f.arrayBuffer());
+      sep = conta.modelo_extrato?.separador && conta.modelo_extrato.separador !== "excel" ? conta.modelo_extrato.separador : detetarSeparador(texto);
+      l = lerCsv(texto, sep);
+    }
+    if (!l.length) {
+      setEstado({ erro: "O ficheiro está vazio." });
+      return;
+    }
     const i = encontrarCabecalho(l);
     const guardado = conta.modelo_extrato?.mapa as Partial<Mapa> | undefined;
     const m = guardado && mapaCompleto(guardado) && Object.values(guardado).every((x) => x < (l[i]?.length ?? 0)) ? guardado : sugerirMapa(l[i] ?? []);
@@ -114,9 +134,9 @@ export default function Importar({ contas, regras, categorias }: { contas: Conta
           </select>
         </div>
         <div>
-          <label className={rotulo} htmlFor="ficheiro">Ficheiro CSV exportado do banco</label>
-          <input id="ficheiro" type="file" accept=".csv,.txt,text/csv" disabled={!conta} className={`${campo} file:mr-3 file:rounded-full file:border-0 file:bg-azul-suave file:px-3 file:py-1 file:text-sm file:font-semibold file:text-azul-escuro disabled:opacity-50`} onChange={(e) => e.target.files?.[0] && carregar(e.target.files[0])} />
-          <p className="mt-1 text-xs text-secundario">Se o banco só der Excel, abre no Excel e grava como CSV.</p>
+          <label className={rotulo} htmlFor="ficheiro">Extrato exportado do banco (Excel ou CSV)</label>
+          <input id="ficheiro" type="file" accept=".csv,.txt,.xls,.xlsx,.xlsm,.ods,text/csv" disabled={!conta} className={`${campo} file:mr-3 file:rounded-full file:border-0 file:bg-azul-suave file:px-3 file:py-1 file:text-sm file:font-semibold file:text-azul-escuro disabled:opacity-50`} onChange={(e) => e.target.files?.[0] && carregar(e.target.files[0])} />
+          <p className="mt-1 text-xs text-secundario">Excel (.xls, .xlsx) ou CSV, tal como sai do banco.</p>
         </div>
       </div>
 

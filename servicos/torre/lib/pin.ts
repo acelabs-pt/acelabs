@@ -13,12 +13,8 @@ export function senhaDoPin(email: string, pin: string): string {
   return "T1-" + createHmac("sha256", segredo).update(`${email.trim().toLowerCase()}:${pin}`).digest("hex");
 }
 
-/** Erro em português se o PIN não servir; null se servir. Recusa os óbvios (000000, 123456, 654321...). */
+/** Erro em português se o PIN não servir; null se servir. Qualquer PIN de 6 algarismos serve (decisão do Pedro, 2026-11-06). */
 export function problemaDoPin(pin: string): string | null {
   if (!new RegExp(`^\\d{${TAMANHO_PIN}}$`).test(pin)) return `O PIN tem de ter ${TAMANHO_PIN} algarismos.`;
-  if (/^(\d)\1+$/.test(pin)) return "PIN demasiado fácil: algarismos todos iguais.";
-  const d = pin.split("").map(Number);
-  const passo = d[1] - d[0];
-  if (Math.abs(passo) === 1 && d.every((x, i) => i === 0 || x - d[i - 1] === passo)) return "PIN demasiado fácil: algarismos seguidos.";
   return null;
 }

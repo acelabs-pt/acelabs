@@ -11,10 +11,10 @@ algarismos** (decisão do Pedro, 2026-11-06; sem 2FA). Abre no telemóvel.
 - O PIN não é a password do Supabase: a password é derivada do PIN com `TORRE_PIN_SEGREDO`, um segredo que só o servidor
   tem (`lib/pin.ts`). Quem tentar PINs diretamente no Supabase não consegue nada. Na Torre, 10 PINs errados em 30 minutos
   bloqueiam esse sócio durante 30 minutos (tabela `pin_falhas`, contada na base de dados).
-- Recusam-se PINs óbvios (todos iguais, seguidos). Mudar: "Mudar PIN", no menu.
+- Qualquer PIN de 6 algarismos serve, incluindo os fáceis (decisão do Pedro, 2026-11-06). Mudar: "Mudar PIN", no menu.
 - **PIN temporário:** `npm run socio -- email Nome --pin=123456` cria a conta (ou repõe o PIN) com um PIN combinado, que pode ser
   fácil porque é temporário. Na primeira entrada a Torre só mostra "Escolhe o PIN que quiseres": até o sócio o escolher não abre
-  nenhuma página, ação ou ficheiro (`exigirSocio` volta ao início). O PIN escolhido não pode ser fácil. Sem o `--pin`, sai um PIN
+  nenhuma página, ação ou ficheiro (`exigirSocio` volta ao início). Sem o `--pin`, sai um PIN
   aleatório.
 - **Esqueci-me do PIN** (`/redefinir`, a partir do ecrã de entrar): escolhe-se o nome, o Supabase envia um código de 6
   algarismos para o email do sócio (vale 15 minutos), e com o código escreve-se o PIN novo e entra-se. Os códigos errados
@@ -27,6 +27,17 @@ algarismos** (decisão do Pedro, 2026-11-06; sem 2FA). Abre no telemóvel.
 Feitas e publicadas (2026-11-06): fase 1, fase 2 (faturas) e fase 3 (tesouraria,
 clientes e fornecedores, contratos, IVA por trimestre). Seguem-se: 4) painéis do Cockpit e do CPCV (só leitura, pela função
 `admin` com uma chave própria da Torre); 5) faturas apanhadas do email, avisos por email e ligação automática ao banco.
+
+## Melhorias de 2026-11-06 (tarde)
+
+- **Extratos em Excel:** `.xlsx`, `.xls` (também o "xls" que alguns bancos exportam e que é uma tabela HTML) e `.ods`, além do
+  CSV (`lib/folha.ts`, SheetJS 0.20.3 da CDN oficial). As datas do Excel leem-se pelo número de série, nunca pelo texto
+  formatado (que pode sair à americana); o texto dos "xls" em HTML fica tal e qual e é lido pelas regras portuguesas.
+- **Débitos diretos com o estado do ciclo:** cada débito diz se já saiu ("Saiu a dd/mm, valor"), se não apareceu (só passados
+  7 dias da data), a próxima data e se o valor foi diferente do previsto. Indicadores: por mês, por ano, já saiu este mês e em
+  falta (`lib/debitos.ts`, os mesmos limites dos avisos do Início).
+- **Sócios:** "Registar devolução" em cada sócio com dívida, já com o valor em dívida e a conta da empresa.
+- **Exportar movimentos** em CSV para o Excel, com os mesmos filtros e pesquisa do ecrã (`lib/filtros.ts`, partilhado).
 
 ## Tesouraria, clientes e contratos (fase 3)
 

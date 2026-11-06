@@ -26,7 +26,7 @@ export default async function Socios() {
     <>
       <Titulo titulo="Sócios" texto="Quanto cada um adiantou, emprestou e já recebeu de volta." />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
         {saldos.map((x) => (
           <Cartao key={x.socio.id} titulo={x.socio.nome}>
             <p className="text-sm text-secundario">A empresa deve-lhe</p>
@@ -42,6 +42,38 @@ export default async function Socios() {
               <dd className="numero text-right text-tinta">{euros(x.capital)}</dd>
             </dl>
             <Link href={`/movimentos?socio=${x.socio.id}`} className="mt-3 inline-block text-sm font-semibold text-azul">Movimentos do {x.socio.nome}</Link>
+            {/* Esconde-se em vez de sair da página: ao registar, a dívida passa a zero e o aviso de "Registado" ainda tem de aparecer. */}
+            {(
+              <details className={x.devido > 0 ? "mt-4 rounded-2xl bg-azul-suave p-4" : "hidden"}>
+                <summary className="cursor-pointer text-sm font-semibold text-azul-escuro">Registar devolução ao {x.socio.nome}</summary>
+                <div className="mt-3">
+                  <Formulario acao={criarSocioMovimento} botao="Registar devolução">
+                    <input type="hidden" name="socio_id" value={x.socio.id} />
+                    <input type="hidden" name="tipo" value="reembolso" />
+                    <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
+                      <div>
+                        <label htmlFor={`dv-valor-${x.socio.id}`} className={rotulo}>Valor (EUR)</label>
+                        <input id={`dv-valor-${x.socio.id}`} name="valor" inputMode="decimal" required defaultValue={(x.devido / 100).toFixed(2).replace(".", ",")} className={`${campo} numero`} />
+                      </div>
+                      <div>
+                        <label htmlFor={`dv-data-${x.socio.id}`} className={rotulo}>Data</label>
+                        <input id={`dv-data-${x.socio.id}`} name="data" type="date" required defaultValue={hoje} className={campo} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor={`dv-conta-${x.socio.id}`} className={rotulo}>Saiu da conta</label>
+                        <select id={`dv-conta-${x.socio.id}`} name="conta_id" defaultValue={t.contas.find((c) => c.tipo === "empresa")?.id ?? ""} className={campo}>
+                          <option value="">Nenhuma</option>
+                          {t.contas.filter((c) => c.tipo === "empresa").map((c) => (
+                            <option key={c.id} value={c.id}>{c.nome}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <p className="text-xs text-secundario">Vem preenchido com o que está em dívida. A transferência no extrato deve ficar na categoria &quot;Reembolso a sócio&quot;, para não contar como custo.</p>
+                  </Formulario>
+                </div>
+              </details>
+            )}
           </Cartao>
         ))}
       </div>

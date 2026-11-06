@@ -26,7 +26,6 @@ export default function EscolherPin({ nome }: { nome: string }) {
             <label htmlFor="repetir" className={rotulo}>Repetir</label>
             <input id="repetir" name="repetir" type="password" inputMode="numeric" autoComplete="new-password" pattern={`\\d{${TAMANHO_PIN}}`} maxLength={TAMANHO_PIN} required className={pinCampo} />
           </div>
-          <p className="text-sm text-secundario">Sem algarismos todos iguais nem seguidos (como 123456).</p>
         </Formulario>
       </div>
       <form action={sair} className="text-center">
