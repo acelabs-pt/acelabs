@@ -28,13 +28,12 @@ function Secao({ titulo, cor, children }: { titulo: string; cor: keyof typeof CO
 }
 
 type Periodo = "hoje" | "semana";
-type Filtro = "todos" | "comprador" | "proprietario" | "angariacao";
+type Filtro = "todos" | "comprador" | "proprietario";
 
 const FILTROS: [Filtro, string][] = [
   ["todos", "Todos"],
   ["comprador", "Compradores"],
   ["proprietario", "Proprietários"],
-  ["angariacao", "Angariações"],
 ];
 
 // Tarefas com data de um grupo de clientes: as que ficaram para trás (fechadas por defeito, com "Não feito") e as do período.
@@ -102,7 +101,7 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const inicio = periodo === "hoje" ? inicioHoje : inicioDaSemana(inicioHoje);
   const fim = somarDias(inicio, periodo === "hoje" ? 1 : 7);
   const abertas = dados.tarefas.filter(
-    (t) => !t.feita && t.no_calendario !== false && t.inicio && (filtro === "todos" || t.origem === filtro)
+    (t) => !t.feita && t.no_calendario !== false && t.inicio && (filtro === "todos" || (filtro === "proprietario" ? t.origem === "proprietario" || t.origem === "angariacao" : t.origem === filtro))
   );
   const doPeriodo = abertas.filter((t) => new Date(t.inicio!) >= inicio && new Date(t.inicio!) < fim);
   const marcacoes = doPeriodo.filter((t) => t.tipo === "evento").sort((a, b) => a.inicio!.localeCompare(b.inicio!));
@@ -148,7 +147,7 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   }
 
   // Avisos: o tipo de cliente vem do início do id (c- e e-: compradores, p-: proprietários, a- e aa-: angariações).
-  const tipoDoAviso = (a: Aviso): Filtro => (a.id.startsWith("p-") ? "proprietario" : a.id.startsWith("a") ? "angariacao" : "comprador");
+  const tipoDoAviso = (a: Aviso): Filtro => (a.id.startsWith("p-") || a.id.startsWith("a") ? "proprietario" : "comprador");
   const doFiltro = avisos.filter((a) => filtro === "todos" || tipoDoAviso(a) === filtro);
   const listaAvisos = doFiltro.slice(0, 8);
 

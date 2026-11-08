@@ -62,19 +62,19 @@ export type Seguimento = { t: Tarefa; ficha: Ficha };
 /**
  * Seguimentos a clientes por fazer, em dois grupos: os que ficaram para trás (antes de hoje) e os do período (hoje, ou de hoje
  * até ao fim da semana). Só entram as tarefas ligadas a uma ficha de cliente (comprador, proprietário ou follow-up de uma angariação).
- * filtro: tipo de cliente; "angariacao" = tarefas que vêm do plano de uma angariação.
+ * filtro: tipo de cliente; "proprietario" inclui também os follow-ups que vêm do plano de uma angariação.
  */
 export function seguimentosDe(
   dados: Dados,
   periodo: "hoje" | "semana",
-  filtro: "todos" | "comprador" | "proprietario" | "angariacao"
+  filtro: "todos" | "comprador" | "proprietario"
 ): { atrasados: Seguimento[]; doPeriodo: Seguimento[] } {
   const inicioHoje = inicioDoDia(new Date());
   const fim = periodo === "hoje" ? somarDias(inicioHoje, 1) : somarDias(inicioDaSemana(inicioHoje), 7);
   const motivacoes = new Map(dados.compradores.map((c) => [c.id, c.motivacao]));
   const todos = dados.tarefas
     .filter((t) => t.tipo === "tarefa" && !t.feita && t.inicio && new Date(t.inicio) < fim)
-    .filter((t) => filtro === "todos" || t.origem === filtro)
+    .filter((t) => filtro === "todos" || (filtro === "proprietario" ? t.origem === "proprietario" || t.origem === "angariacao" : t.origem === filtro))
     .filter((t) => !eSemanalDeComprador(t))
     .map((t) => ({ t, ficha: fichaDe(t, dados) }))
     .filter((x): x is Seguimento => x.ficha !== null)
