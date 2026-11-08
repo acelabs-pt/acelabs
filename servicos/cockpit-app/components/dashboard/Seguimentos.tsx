@@ -9,7 +9,7 @@ import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias } fro
 
 const VISIVEIS = 6;
 
-type Ficha = { href: string; tipo: "comprador" | "proprietario"; id: string };
+type Ficha = { href: string; tipo: "comprador" | "proprietario"; id: string; angariacao?: boolean };
 
 // Ficha do cliente a que o seguimento diz respeito (comprador ou proprietário). Sem ficha, não é um seguimento.
 function fichaDe(t: Tarefa, d: Dados): Ficha | null {
@@ -19,7 +19,8 @@ function fichaDe(t: Tarefa, d: Dados): Ficha | null {
     const acao = d.acoes.find((a) => a.id === t.angariacao_acao_id);
     if (!acao?.follow_up) return null; // só os follow ups ao proprietário, não as outras ações do plano
     const ang = d.angariacoes.find((a) => a.id === acao.angariacao_id);
-    return ang?.proprietario_id ? { href: `/crm/proprietarios/${ang.proprietario_id}`, tipo: "proprietario", id: ang.proprietario_id } : null;
+    // o follow-up do plano da angariação marca-se na própria angariação (plano), não na ficha do proprietário
+    return ang?.proprietario_id ? { href: `/angariacoes/${ang.id}`, tipo: "proprietario", id: ang.proprietario_id, angariacao: true } : null;
   }
   return null;
 }
@@ -103,11 +104,13 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
 
   // Um cliente, uma linha: todas as tarefas dele ficam juntas, atrás da seta.
   const porCliente = new Map<string, { ficha: Ficha; tarefas: Tarefa[] }>();
+  const angariacaoDe = new Map<string, Ficha>();
   for (const { t, ficha } of itens) {
     const k = `${ficha.tipo}:${ficha.id}`;
     const g = porCliente.get(k) ?? { ficha, tarefas: [] };
     g.tarefas.push(t);
     porCliente.set(k, g);
+    if (ficha.angariacao && !angariacaoDe.has(k)) angariacaoDe.set(k, ficha);
   }
   const grupos = [...porCliente.entries()];
   const mostradas = todos ? grupos : grupos.slice(0, VISIVEIS);
@@ -181,9 +184,15 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
                   Não feito
                 </button>
               )}
-              <Link href={ficha.href} className="shrink-0 text-sm font-medium text-azul">
-                Abrir ficha
-              </Link>
+              {(() => {
+                // Se algum seguimento vem do plano de uma angariação, o link vai para a angariação, onde se marca o follow-up.
+                const ang = angariacaoDe.get(chave);
+                return (
+                  <Link href={(ang ?? ficha).href} className="shrink-0 text-sm font-medium text-azul">
+                    {ang ? "Abrir angariação" : "Abrir ficha"}
+                  </Link>
+                );
+              })()}
             </li>
           );
         })}
