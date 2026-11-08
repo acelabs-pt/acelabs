@@ -5,7 +5,7 @@ import { somarDias, inicioDaSemana, mesmoDia } from "@/lib/datas";
 import { corItem, doDia, type Ocorrencia } from "@/lib/calendario";
 import { formatarHora } from "@/lib/datas";
 
-const SEMANA = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 // Vista mensal: grelha de dias com marcações. Tocar num dia seleciona-o; a lista desse dia fica por baixo.
 export default function Mes({
@@ -23,7 +23,7 @@ export default function Mes({
   const primeiro = new Date(ref_.getFullYear(), ref_.getMonth(), 1);
   const inicio = inicioDaSemana(primeiro);
   const diasNoMes = new Date(ref_.getFullYear(), ref_.getMonth() + 1, 0).getDate();
-  const linhas = Math.ceil((((primeiro.getDay() + 6) % 7) + diasNoMes) / 7);
+  const linhas = Math.ceil((primeiro.getDay() + diasNoMes) / 7);
   const dias = Array.from({ length: linhas * 7 }, (_, i) => somarDias(inicio, i));
   const hoje = new Date();
 

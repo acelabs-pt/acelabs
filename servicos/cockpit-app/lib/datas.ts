@@ -14,8 +14,8 @@ export function somarDias(d: Date, dias: number): Date {
 
 export function inicioDaSemana(d: Date): Date {
   const r = inicioDoDia(d);
-  const diaSemana = (r.getDay() + 6) % 7; // segunda = 0
-  return somarDias(r, -diaSemana);
+  // a semana começa ao domingo e acaba ao sábado (getDay: domingo = 0)
+  return somarDias(r, -r.getDay());
 }
 
 export function mesmoDia(a: Date, b: Date): boolean {
