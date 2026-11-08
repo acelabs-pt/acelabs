@@ -8,6 +8,7 @@ import { useToast } from "@/components/Toast";
 import AtivarNotificacoes from "@/components/AtivarNotificacoes";
 import OpcaoFaceId from "@/components/OpcaoFaceId";
 import NomeDoAgente from "@/components/NomeDoAgente";
+import AspetoDaApp from "@/components/AspetoDaApp";
 import { esquecerAparelhoNativo } from "@/lib/nativo";
 import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
@@ -102,6 +103,7 @@ export default function Conta() {
       </div>
 
       <NomeDoAgente />
+      <AspetoDaApp />
 
       <section className={cartao} data-so-web>
         <h2 className="text-sm font-semibold text-tinta">Instalar no telemóvel</h2>

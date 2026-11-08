@@ -6,7 +6,63 @@
   --background: #f5f5f7;
   --foreground: #1d1d1f;
   --linha: rgba(0, 0, 0, 0.08);
+  --cartao: #ffffff;
+  --c-tinta: 29 29 31;
+  --c-secundario: 110 110 115;
+  --c-bege: 237 235 229;
+  --c-azul: 0 113 227;
+  --c-azul-escuro: 0 89 179;
+  --c-verde: 31 174 90;
+  --c-ambar: 255 159 10;
+  --c-ambar-fundo: 255 244 229;
+  --c-ambar-texto: 154 91 0;
+  --c-azul-suave: 234 242 253;
+  --c-verde-suave: 230 246 236;
 }
+
+/* Modo escuro (Conta > Aspeto). O html leva data-tema="escuro" (ver lib/tema.ts); as cores da marca mudam pelas variáveis acima e as
+   classes de cor soltas do Tailwind (branco, preto com opacidade, vermelhos) são reescritas aqui, para a app inteira mudar de uma vez. */
+html[data-tema="escuro"] {
+  color-scheme: dark;
+  --background: #0b0f17;
+  --foreground: #f2f4f8;
+  --linha: rgba(255, 255, 255, 0.1);
+  --cartao: #141a26;
+  --c-tinta: 242 244 248;
+  --c-secundario: 154 163 178;
+  --c-bege: 30 34 44;
+  --c-azul: 10 132 255;
+  --c-azul-escuro: 140 194 255;
+  --c-verde: 48 209 88;
+  --c-ambar: 255 179 64;
+  --c-ambar-fundo: 59 42 14;
+  --c-ambar-texto: 255 194 102;
+  --c-azul-suave: 26 42 66;
+  --c-verde-suave: 20 52 36;
+}
+html[data-tema="escuro"] body[data-pagina="dashboard"] { --background: #0b0f17; }
+html[data-tema="escuro"] body::before { background: radial-gradient(60rem 36rem at 100% -6%, rgba(10, 132, 255, 0.14), rgba(10, 132, 255, 0) 70%); }
+html[data-tema="escuro"] .bg-white { background-color: var(--cartao); }
+html[data-tema="escuro"] .bg-\[\#f5f5f7\] { background-color: var(--background); }
+html[data-tema="escuro"] .border-black\/5, html[data-tema="escuro"] .border-black\/10, html[data-tema="escuro"] .border-black\/15, html[data-tema="escuro"] .border-black\/20 { border-color: rgba(255, 255, 255, 0.14); }
+html[data-tema="escuro"] .bg-black\/5, html[data-tema="escuro"] .hover\:bg-black\/5:hover { background-color: rgba(255, 255, 255, 0.07); }
+html[data-tema="escuro"] .bg-black\/10, html[data-tema="escuro"] .bg-black\/15, html[data-tema="escuro"] .bg-black\/20 { background-color: rgba(255, 255, 255, 0.14); }
+html[data-tema="escuro"] .bg-black { background-color: #e6e9ef; }
+html[data-tema="escuro"] .bg-black.text-white { color: #0b0f17; }
+html[data-tema="escuro"] .text-red-600 { color: #ff6b62; }
+html[data-tema="escuro"] .text-red-700 { color: #ff8a80; }
+html[data-tema="escuro"] .bg-red-50 { background-color: rgba(255, 80, 70, 0.14); }
+html[data-tema="escuro"] .border-red-200 { border-color: rgba(255, 80, 70, 0.4); }
+html[data-tema="escuro"] .text-\[\#158a48\] { color: #3ddc84; }
+html[data-tema="escuro"] .border-\[\#158a48\] { border-color: #3ddc84; }
+html[data-tema="escuro"] .quadro-glossy {
+  background-image: linear-gradient(180deg, rgba(10, 132, 255, 0.16) 0%, rgba(10, 132, 255, 0.04) 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+html[data-tema="escuro"] input, html[data-tema="escuro"] select, html[data-tema="escuro"] textarea { background-color: #0f1521; color: var(--foreground); }
+html[data-tema="escuro"][data-bloqueado="1"] body { background: var(--background); }
+html[data-tema="escuro"] [data-bloqueio] { background-color: var(--background); }
 
 body {
   background: var(--background);
@@ -165,3 +221,5 @@ html[data-bloqueado="1"] body > *:not([data-bloqueio]) { visibility: hidden; }
 body[data-pagina="dashboard"] {
   --background: #f6f9ff;
 }
+/* Botões de fundo "tinta" (escuro no claro): no modo escuro a tinta é clara, por isso o texto passa a escuro. */
+html[data-tema="escuro"] .bg-tinta.text-white { color: #0b0f17; }

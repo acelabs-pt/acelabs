@@ -25,6 +25,10 @@ Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá e
   Comprador/Proprietário, proprietários a seguir; os follow-ups de angariações contam como Proprietários) e **Metas**. Saíram o
   cartão "Precisa de atenção", o filtro "Angariações" e o painel "As minhas angariações": as ações do plano das angariações vivem só
   no Calendário.
+- **Modo escuro (Conta > Aspeto):** Claro, Escuro ou Automático (segue o sistema). Guarda-se no aparelho (localStorage, aplicado antes de
+  a página aparecer) e na conta (`user_metadata.tema`, sem SQL). As cores da marca passam a variáveis CSS (`tailwind.config.ts`,
+  `app/globals.css`); as classes soltas (bg-white, bg-black/5, vermelhos) são reescritas em `html[data-tema="escuro"]`. Só se viu no
+  ecrã de login: rever as restantes páginas no modo escuro (gráficos e cores escritas à mão em componentes podem precisar de ajuste).
 - **Semana de domingo a sábado:** o calendário (semana e mês), a Agenda do Dashboard e as metas da semana passam a contar a semana de
   domingo a sábado. A chave das tarefas semanais automáticas continua na semana ISO (segunda a domingo), para não duplicar tarefas.
 - **Agenda do Dashboard:** painéis brancos; cada secção (Resumo, Marcações, Seguimentos) começa com um título a negrito na sua cor

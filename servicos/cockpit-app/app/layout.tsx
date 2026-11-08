@@ -18,6 +18,10 @@ export const metadata: Metadata = {
 const ANTES_DE_HIDRATAR =
   '(function(){try{var c=window.Capacitor;if(c&&c.isNativePlatform&&c.isNativePlatform()&&localStorage.getItem("cockpit-faceid")!=="0"&&!/^\\/(login|recuperar|nova-password|cliente|convite)/.test(location.pathname))document.documentElement.setAttribute("data-bloqueado","1")}catch(e){}})();';
 
+// Aspeto escolhido (claro, escuro ou automático): aplica-se antes de a página aparecer, para não piscar branco no modo escuro.
+const TEMA_INICIAL =
+  '(function(){try{var t=localStorage.getItem("cockpit-tema");if(t==="escuro"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-tema","escuro")}catch(e){}})();';
+
 export const viewport: Viewport = {
   themeColor: "#0071e3",
   width: "device-width",
@@ -37,9 +41,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? `window.__COCKPIT_VARIOS=true;${cfg ? `window.__COCKPIT_SB=${JSON.stringify(cfg).replace(/</g, "\\u003c")};` : ""}`
     : "";
   return (
-    <html lang="pt-PT">
+    <html lang="pt-PT" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: ANTES_DE_HIDRATAR }} />
+        <script dangerouslySetInnerHTML={{ __html: TEMA_INICIAL }} />
         {inicio && <script dangerouslySetInnerHTML={{ __html: inicio }} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

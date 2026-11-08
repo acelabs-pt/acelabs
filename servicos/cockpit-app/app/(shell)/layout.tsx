@@ -1,6 +1,7 @@
 import ConteudoShell from "@/components/ConteudoShell";
 import Nav from "@/components/Nav";
 import AcoesRapidas from "@/components/AcoesRapidas";
+import SincronizarTema from "@/components/SincronizarTema";
 import { ToastProvider } from "@/components/Toast";
 
 export default function ShellLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export default function ShellLayout({ children }: { children: React.ReactNode })
       <ToastProvider>
         <ConteudoShell>{children}</ConteudoShell>
       </ToastProvider>
+      <SincronizarTema />
       <Nav />
       <AcoesRapidas />
     </div>
