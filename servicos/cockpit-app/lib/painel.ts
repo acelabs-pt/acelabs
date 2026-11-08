@@ -166,11 +166,8 @@ export function avisos(d: Dados, agora: Date = new Date()): Aviso[] {
     if (a.vendido_em) continue;
     const dia = diaDeHoje(a.inicio);
     if (dia < 1) continue;
-    const acoes = d.acoes.filter((x) => x.angariacao_id === a.id);
     const restam = a.duracao_dias - dia + 1;
     if (restam >= 0 && restam <= 30) out.push({ id: `a-${a.id}`, texto: `${a.titulo}: contrato termina em ${restam} dias`, href: `/angariacoes/${a.id}`, grave: restam <= 10 });
-    const emAtraso = acoes.filter((x) => !x.feita && dataDoDia(a.inicio, blocoDeDia(x.dia) * 10) < agora).length;
-    if (emAtraso) out.push({ id: `aa-${a.id}`, texto: `${a.titulo}: ${emAtraso} ${emAtraso === 1 ? "ação do plano em atraso" : "ações do plano em atraso"}`, href: `/angariacoes/${a.id}`, grave: false });
   }
   return out.sort((x, y) => Number(y.grave) - Number(x.grave));
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
 import { IconeAgenda, IconeAtencao, IconeClientes } from "@/components/dashboard/Icones";
-import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
 import CompradoresAFazerLista, { compradoresAFazer, type ProximoPassoComprador } from "@/components/dashboard/CompradoresAFazer";
 import Seguimentos, { acaoDe, seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
@@ -232,7 +231,6 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
           )}
         </Secao>
 
-        {filtro === "angariacao" && <AngariacoesEmAtraso dados={dados} />}
       </Cartao>
 
       <Cartao titulo={`Seguimentos${totalSeguimentos ? ` (${totalSeguimentos})` : ""}`} icone={<IconeClientes />}>
