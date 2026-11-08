@@ -71,6 +71,9 @@ function Datadas({
           {ver && (
             <div className="mt-2 rounded-lg bg-white px-3">
               <Seguimentos dados={dados} itens={atrasados} vazio="" onNaoFeito={onNaoFeito} />
+              <button type="button" onClick={() => setVer(false)} className="mb-2 mt-1 block text-sm font-medium text-ambar-texto underline">
+                Fechar
+              </button>
             </div>
           )}
         </div>
