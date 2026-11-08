@@ -187,12 +187,12 @@ export const PREFIXOS = ["+351", "+34", "+33", "+44", "+49", "+41", "+55", "+1"]
  * Tarefas semanais do desenho: "alerta a cada semana" para enviar opções de imóveis
  * (lead qualificada e imóveis enviados até ao 10.º) e para propor visita (visitas até
  * à 5.ª). Sem servidor agendado: corre quando o agente abre o CRM e cria, no máximo,
- * uma tarefa por comprador e por semana (chave_automacao evita duplicados).
+ * uma tarefa por comprador e por semana (chave_automacao evita duplicados). Devolve quantas criou.
  */
 export async function garantirTarefasSemanais(
   compradores: Comprador[],
   contagens: Record<string, Contagens>
-): Promise<void> {
+): Promise<number> {
   const semana = semanaISO(new Date());
   const candidatas: { chave: string; titulo: string; comprador: Comprador }[] = [];
 
@@ -205,7 +205,7 @@ export async function garantirTarefasSemanais(
       candidatas.push({ chave: `comprador:${c.id}:visita:${semana}`, titulo: `Propor visita a ${nome}`, comprador: c });
     }
   }
-  if (candidatas.length === 0) return;
+  if (candidatas.length === 0) return 0;
 
   const sb = sbBrowser();
   const { data: existentes } = await sb
@@ -226,6 +226,7 @@ export async function garantirTarefasSemanais(
     chave_automacao: c.chave,
   }));
   if (novas.length > 0) await sb.from("tarefas").insert(novas);
+  return novas.length;
 }
 
 export type TipoTarefaComprador = "enviar" | "visita";

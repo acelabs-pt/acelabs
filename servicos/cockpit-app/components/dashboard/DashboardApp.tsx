@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Metas from "@/components/dashboard/Metas";
 import Hoje from "@/components/dashboard/Hoje";
 import { avisos, carregarDados, type Dados } from "@/lib/painel";
+import { contar, garantirTarefasSemanais, type Contagens } from "@/lib/comprador";
 
 export default function DashboardApp() {
   const [dados, setDados] = useState<Dados | null>(null);
@@ -21,6 +22,23 @@ export default function DashboardApp() {
   useEffect(() => {
     carregar();
   }, [carregar]);
+
+  // As tarefas semanais dos compradores (enviar opções, propor visita) criam-se também aqui, ao abrir o Dashboard, e não só quando
+  // se abre a lista de compradores. Uma vez por visita à página; se criar alguma, recarrega para aparecerem logo.
+  const garantidas = useRef(false);
+  useEffect(() => {
+    if (!dados || garantidas.current) return;
+    garantidas.current = true;
+    const imoveisPor = new Map<string, Dados["imoveis"]>();
+    for (const i of dados.imoveis) imoveisPor.set(i.comprador_id, [...(imoveisPor.get(i.comprador_id) ?? []), i]);
+    const contagens: Record<string, Contagens> = {};
+    for (const c of dados.compradores) contagens[c.id] = contar(imoveisPor.get(c.id) ?? []);
+    garantirTarefasSemanais(dados.compradores, contagens)
+      .then((n) => {
+        if (n > 0) carregar();
+      })
+      .catch(() => {});
+  }, [dados, carregar]);
 
   // O Dashboard tem um fundo branco ligeiramente azulado, para os cartões brancos se destacarem (só nesta página).
   useEffect(() => {

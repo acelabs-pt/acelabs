@@ -4,7 +4,8 @@ import type { Proprietario } from "@/lib/proprietario";
 import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
-import { diasAte, diasDesde, semanaISO } from "@/lib/datas";
+import { diasAte, diasDesde, inicioDoDia, semanaISO, somarDias } from "@/lib/datas";
+import { todas } from "@/lib/todas";
 
 export type Dados = {
   compradores: Comprador[];
@@ -30,13 +31,19 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   const sb = sbBrowser();
   const ano = agora.getFullYear();
   const semana = semanaISO(agora);
+  // O Supabase devolve no máximo 1000 linhas por pedido, sem avisar: sem paginar, o Dashboard ficava com tarefas e acções em falta
+  // (por exemplo, nenhuma tarefa de compradores). Por isso as tabelas grandes lêem-se por páginas, e das tarefas só se pedem as que
+  // o Dashboard usa: por fazer, no calendário e até ao fim desta semana (a semana acaba, no máximo, daqui a 7 dias).
+  const limiteTarefas = somarDias(inicioDoDia(agora), 8).toISOString();
   const [c, i, p, a, ac, t, m, cfg, sem] = await Promise.all([
-    sb.from("compradores").select("*, contactos(*)"),
-    sb.from("comprador_imoveis").select("*"),
-    sb.from("proprietarios").select("*, contactos(*)"),
-    sb.from("angariacoes").select("*, proprietarios(contactos(nome))"),
-    sb.from("angariacao_acoes").select("*"),
-    sb.from("tarefas").select("*"),
+    todas<Comprador>((de, ate) => sb.from("compradores").select("*, contactos(*)").order("id").range(de, ate)),
+    todas<ImovelComprador>((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
+    todas<Proprietario>((de, ate) => sb.from("proprietarios").select("*, contactos(*)").order("id").range(de, ate)),
+    todas<Angariacao>((de, ate) => sb.from("angariacoes").select("*, proprietarios(contactos(nome))").order("id").range(de, ate)),
+    todas<Acao>((de, ate) => sb.from("angariacao_acoes").select("*").order("id").range(de, ate)),
+    todas<Tarefa>((de, ate) =>
+      sb.from("tarefas").select("*").eq("feita", false).eq("no_calendario", true).lt("inicio", limiteTarefas).order("id").range(de, ate)
+    ),
     sb.from("metas").select("*").eq("ano", ano),
     sb.from("metas_config").select("*").eq("ano", ano),
     sb.from("metas_semanas").select("*").eq("semana", semana),
@@ -56,12 +63,12 @@ export async function carregarDados(agora: Date = new Date()): Promise<Dados | s
   }
 
   return {
-    compradores: (c.data ?? []) as unknown as Comprador[],
-    imoveis: (i.data ?? []) as ImovelComprador[],
-    proprietarios: (p.data ?? []) as unknown as Proprietario[],
-    angariacoes: (a.data ?? []) as unknown as Angariacao[],
-    acoes: (ac.data ?? []) as Acao[],
-    tarefas: ((t.data ?? []) as Tarefa[]).filter((x) => x.no_calendario),
+    compradores: c.data,
+    imoveis: i.data,
+    proprietarios: p.data,
+    angariacoes: a.data,
+    acoes: ac.data,
+    tarefas: t.data,
     metas,
     decisaoSemana: (sem.data?.[0]?.decisao as "colocada" | "ignorada") ?? null,
   };
