@@ -1,4 +1,4 @@
-import { CANAIS_ORIGEM, FINANCIAMENTO, FUNIL, TIPOLOGIAS, TIPOS_IMOVEL, type EstadoComprador } from "@/lib/comprador";
+import { CANAIS_ORIGEM, FINANCIAMENTO, FUNIL, TIPOLOGIAS, TIPOS_IMOVEL, TIPOS_NEGOCIO, type EstadoComprador } from "@/lib/comprador";
 import { FUNIL_PROP, type EstadoProprietario } from "@/lib/proprietario";
 import { DISTRITOS, concelhosDe, freguesiasDe } from "@/lib/localizacoes";
 import { ESQUEMAS, type Entidade } from "@/lib/importar/esquemas";
@@ -196,6 +196,9 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       tipo = daLista(tipoRaw, TIPOS_IMOVEL);
       if (!tipo) erros.push(`Tipo de imóvel "${tipoRaw}" não reconhecido (${TIPOS_IMOVEL.join(", ")})`);
     }
+    const negRaw = get("tipo_negocio");
+    const negocio = negRaw ? daLista(negRaw, TIPOS_NEGOCIO) : null;
+    if (negRaw && !negocio) avisos.push(`Tipo de negócio "${negRaw}" não reconhecido (Habitação ou Comercial), ignorado`);
     const z1 = resolverZona(get("distrito"), get("concelho"), get("freguesia"));
     if (z1.erro) erros.push(z1.erro);
     if (z1.zona) out.zonas.push(z1.zona);
@@ -243,7 +246,7 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       if (pvRaw && precisa === null) avisos.push(`"Precisa de vender" tem de ser Sim ou Não, ignorado`);
       out.dados = {
         motivacao,
-        referencia_imovel: get("referencia_imovel") || null,
+        tipo_negocio: negocio,
         tipo_imovel: tipo,
         tipologia_minima: tipologia,
         expectativa_valor: numero("expectativa_valor", "Valor"),
@@ -263,6 +266,7 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       if (link && !/^https?:\/\//i.test(link)) avisos.push("O link não começa por http, guardado como está");
       out.dados = {
         link_imovel: link || null,
+        tipo_negocio: negocio,
         tipo_imovel: tipo,
         tipologia,
         valor: numero("valor", "Preço"),

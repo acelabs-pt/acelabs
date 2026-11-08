@@ -35,6 +35,7 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
     colunas: [
       ...CONTACTO,
       { chave: "motivacao", rotulo: "Motivação (0 a 10)", apelidos: ["motivacao", "motivação", "score"], exemplo: "7" },
+      { chave: "tipo_negocio", rotulo: "Tipo de negócio", apelidos: ["negocio", "tipo negocio", "tipo de negocio"], exemplo: "Habitação", ajuda: "Habitação ou Comercial" },
       ...IMOVEL,
       {
         chave: "outras_zonas",
@@ -47,7 +48,6 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
       { chave: "expectativa_valor", rotulo: "Expectativa de valor (EUR)", apelidos: ["valor", "orcamento", "preco", "expectativa", "expectativa valor", "budget"], exemplo: "250000" },
       { chave: "financiamento", rotulo: "Financiamento", apelidos: ["financiamento", "credito"], exemplo: "Crédito pré-aprovado", ajuda: "Capitais próprios, Crédito pré-aprovado, Vai pedir crédito" },
       { chave: "precisa_vender", rotulo: "Precisa de vender?", apelidos: ["precisa vender", "precisa de vender", "vende primeiro"], exemplo: "Não", ajuda: "Sim ou Não" },
-      { chave: "referencia_imovel", rotulo: "Referência do imóvel", apelidos: ["referencia", "ref", "referencia imovel"], exemplo: "REF-1042" },
       { chave: "estado", rotulo: "Fase do funil", apelidos: ["estado", "fase", "funil", "etapa"], exemplo: "Imóveis enviados", ajuda: FUNIL.map((f) => f.label).join(", ") + ". Em branco = Lead qualificada" },
     ],
   },
@@ -56,6 +56,7 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
     singular: "proprietário",
     colunas: [
       ...CONTACTO,
+      { chave: "tipo_negocio", rotulo: "Tipo de negócio", apelidos: ["negocio", "tipo negocio", "tipo de negocio"], exemplo: "Habitação", ajuda: "Habitação ou Comercial" },
       ...IMOVEL,
       { chave: "tipologia", rotulo: "Tipologia", apelidos: ["tipologia", "quartos"], exemplo: "T3" },
       { chave: "valor", rotulo: "Preço pedido (EUR)", apelidos: ["valor", "preco", "preco pedido", "pedido"], exemplo: "320000" },
