@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
-import { IconeAgenda, IconeAtencao, IconeClientes } from "@/components/dashboard/Icones";
+import { IconeAgenda, IconeClientes } from "@/components/dashboard/Icones";
 import CompradoresAFazerLista, { compradoresAFazer, type ProximoPassoComprador } from "@/components/dashboard/CompradoresAFazer";
 import Seguimentos, { acaoDe, seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
-import type { Aviso, Dados } from "@/lib/painel";
+import type { Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
 import { marcarNaoFeita, reporTarefa } from "@/lib/tarefas";
 import { useToast } from "@/components/Toast";
@@ -92,7 +92,7 @@ function Datadas({
 
 // Dois cartões que partilham o período e o filtro: "Agenda" (hoje ou semana: marcações, tarefas e atrasos) e "Precisa de atenção".
 // Tudo vem das tarefas do Calendário e dos dados do CRM, não há números à parte. "Todos" inclui também metas e tarefas criadas à mão.
-export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avisos: Aviso[]; aoAtualizar: () => void | Promise<void> }) {
+export default function Hoje({ dados, aoAtualizar }: { dados: Dados; aoAtualizar: () => void | Promise<void> }) {
   const { avisar } = useToast();
   const [periodo, setPeriodo] = useState<Periodo>("hoje");
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -146,10 +146,6 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
     });
   }
 
-  // Avisos: o tipo de cliente vem do início do id (c- e e-: compradores, p-: proprietários, a- e aa-: angariações).
-  const tipoDoAviso = (a: Aviso): Filtro => (a.id.startsWith("p-") || a.id.startsWith("a") ? "proprietario" : "comprador");
-  const doFiltro = avisos.filter((a) => filtro === "todos" || tipoDoAviso(a) === filtro);
-  const listaAvisos = doFiltro.slice(0, 8);
 
   const numeros = [
     { n: marcacoes.length, rotulo: marcacoes.length === 1 ? `marcação ${quando}` : `marcações ${quando}`, atraso: false },
@@ -242,24 +238,6 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
           vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
           onNaoFeito={naoFeito}
         />
-      </Cartao>
-
-      <Cartao titulo={`Precisa de atenção${doFiltro.length ? ` (${doFiltro.length})` : ""}`} icone={<IconeAtencao />} tom="ambar">
-        {listaAvisos.length === 0 ? (
-          <p className="text-sm text-secundario">Tudo em dia.</p>
-        ) : (
-          <ul className="divide-y divide-linha">
-            {listaAvisos.map((a) => (
-              <li key={a.id}>
-                <Link href={a.href} className="flex items-center gap-3 py-2.5 text-[15px]">
-                  <span className={`h-[9px] w-[9px] shrink-0 rounded-full ${a.grave ? "bg-red-600" : "bg-ambar"}`} aria-hidden="true" />
-                  <span className={`min-w-0 ${a.grave ? "font-semibold text-red-600" : "text-tinta"}`}>{a.texto}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {doFiltro.length > listaAvisos.length && <p className="text-xs text-secundario">+ {doFiltro.length - listaAvisos.length} mais</p>}
       </Cartao>
     </>
   );

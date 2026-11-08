@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Metas from "@/components/dashboard/Metas";
 import Hoje from "@/components/dashboard/Hoje";
-import { avisos, carregarDados, type Dados } from "@/lib/painel";
+import { carregarDados, type Dados } from "@/lib/painel";
 import { contar, garantirTarefasSemanais, type Contagens } from "@/lib/comprador";
 
 export default function DashboardApp() {
@@ -61,7 +61,7 @@ export default function DashboardApp() {
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
         <>
-          <Hoje dados={dados} avisos={avisos(dados)} aoAtualizar={carregar} />
+          <Hoje dados={dados} aoAtualizar={carregar} />
           <Metas dados={dados} onAlterado={carregar} />
         </>
       )}
