@@ -64,6 +64,11 @@ html[data-tema="escuro"] input, html[data-tema="escuro"] select, html[data-tema=
 html[data-tema="escuro"][data-bloqueado="1"] body { background: var(--background); }
 html[data-tema="escuro"] [data-bloqueio] { background-color: var(--background); }
 
+/* Tamanho geral da app: tudo o que o Tailwind mede em rem (letra, espaços, caixas) encolhe com isto. 100% = tamanho antigo. */
+html {
+  font-size: 85%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
