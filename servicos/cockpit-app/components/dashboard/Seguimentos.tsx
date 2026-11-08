@@ -112,6 +112,7 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
           return (
             <li key={t.id} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1">
+                <p className={`text-[11px] font-bold ${ficha.tipo === "comprador" ? "text-azul" : "text-verde"}`}>{ficha.tipo === "comprador" ? "Comprador" : "Proprietário"}</p>
                 <button
                   type="button"
                   onClick={() =>

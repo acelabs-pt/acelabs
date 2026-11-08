@@ -110,10 +110,8 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const aFazer = compradoresAFazer(dados);
-  const porTipo = (l: Seguimento[], tipo: "comprador" | "proprietario") => l.filter((x) => x.ficha.tipo === tipo);
-  const segCompradores = { atrasados: porTipo(seguimentos.atrasados, "comprador"), doPeriodo: porTipo(seguimentos.doPeriodo, "comprador") };
-  const segProprietarios = { atrasados: porTipo(seguimentos.atrasados, "proprietario"), doPeriodo: porTipo(seguimentos.doPeriodo, "proprietario") };
-  const nProprietarios = segProprietarios.atrasados.length + segProprietarios.doPeriodo.length;
+  const mostraCompradores = filtro === "todos" || filtro === "comprador";
+  const totalSeguimentos = (mostraCompradores ? aFazer.length : 0) + seguimentos.atrasados.length + seguimentos.doPeriodo.length;
 
   // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
   async function naoFeito(t: Tarefa) {
@@ -216,29 +214,21 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
         {filtro === "angariacao" && <AngariacoesEmAtraso dados={dados} />}
       </Cartao>
 
-      <Cartao titulo="Seguimentos" icone={<IconeClientes />}>
-        {(filtro === "todos" || filtro === "comprador") && (
-          <Secao titulo={`Compradores${aFazer.length ? ` (${aFazer.length})` : ""}`} cor="azul">
-            <CompradoresAFazerLista itens={aFazer} />
-            {(segCompradores.atrasados.length > 0 || segCompradores.doPeriodo.length > 0) && (
-              <div className="mt-3 border-t border-linha pt-3">
-                <p className="mb-1 text-xs font-semibold text-secundario">Tarefas com data</p>
-                <Datadas dados={dados} atrasados={segCompradores.atrasados} doPeriodo={segCompradores.doPeriodo} periodo={periodo} onNaoFeito={naoFeito} />
-              </div>
-            )}
-          </Secao>
-        )}
-        {(filtro === "todos" || filtro === "proprietario" || filtro === "angariacao") && (
-          <Secao titulo={`Proprietários${nProprietarios ? ` (${nProprietarios})` : ""}`} cor="verde">
+      <Cartao titulo={`Seguimentos${totalSeguimentos ? ` (${totalSeguimentos})` : ""}`} icone={<IconeClientes />}>
+        {mostraCompradores && <CompradoresAFazerLista itens={aFazer} />}
+        {(seguimentos.atrasados.length > 0 || seguimentos.doPeriodo.length > 0) && (
+          <div className={mostraCompradores ? "mt-3 border-t border-linha pt-3" : ""}>
             <Datadas
               dados={dados}
-              atrasados={segProprietarios.atrasados}
-              doPeriodo={segProprietarios.doPeriodo}
+              atrasados={seguimentos.atrasados}
+              doPeriodo={seguimentos.doPeriodo}
               periodo={periodo}
-              vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
               onNaoFeito={naoFeito}
             />
-          </Secao>
+          </div>
+        )}
+        {!mostraCompradores && seguimentos.atrasados.length === 0 && seguimentos.doPeriodo.length === 0 && (
+          <p className="text-sm text-secundario">{periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}</p>
         )}
       </Cartao>
 

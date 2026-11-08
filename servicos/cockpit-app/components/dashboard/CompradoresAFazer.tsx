@@ -34,6 +34,7 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
         {mostrados.map(({ c, passo, alerta }) => (
           <li key={c.id} className="flex items-center gap-3 py-2.5">
             <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold text-azul">Comprador</p>
               <div className="flex items-center gap-2">
                 <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{c.contactos.nome}</span>
                 <span className="shrink-0 rounded-full bg-azul-suave px-2.5 py-0.5 text-xs font-semibold text-azul-escuro">{passo}</span>
