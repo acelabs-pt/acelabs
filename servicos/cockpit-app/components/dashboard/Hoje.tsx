@@ -5,7 +5,7 @@ import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
 import { IconeAgenda, IconeAtencao, IconeClientes } from "@/components/dashboard/Icones";
 import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
-import CompradoresAFazerLista, { compradoresAFazer } from "@/components/dashboard/CompradoresAFazer";
+import CompradoresAFazerLista, { compradoresAFazer, type ProximoPassoComprador } from "@/components/dashboard/CompradoresAFazer";
 import Seguimentos, { seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
@@ -45,6 +45,7 @@ function Datadas({
   doPeriodo,
   periodo,
   vazio,
+  extra,
   onNaoFeito,
 }: {
   dados: Dados;
@@ -52,8 +53,10 @@ function Datadas({
   doPeriodo: Seguimento[];
   periodo: Periodo;
   vazio?: string;
+  extra?: ProximoPassoComprador[];
   onNaoFeito: (t: Tarefa) => void;
 }) {
+  const nExtra = extra?.length ?? 0;
   const [ver, setVer] = useState(false);
   return (
     <>
@@ -72,13 +75,14 @@ function Datadas({
           )}
         </div>
       )}
-      {(doPeriodo.length > 0 || vazio) && (
+      {(doPeriodo.length > 0 || nExtra > 0 || vazio) && (
         <>
           <h4 className="mb-0.5 mt-1 text-sm font-bold text-tinta">
             {periodo === "hoje" ? "Para hoje" : "Até ao fim da semana"}
-            {doPeriodo.length ? ` (${doPeriodo.length})` : ""}
+            {doPeriodo.length + nExtra ? ` (${doPeriodo.length + nExtra})` : ""}
           </h4>
-          <Seguimentos dados={dados} itens={doPeriodo} vazio={vazio ?? ""} />
+          {nExtra > 0 && <CompradoresAFazerLista itens={extra!} />}
+          <Seguimentos dados={dados} itens={doPeriodo} vazio={nExtra > 0 ? "" : vazio ?? ""} />
         </>
       )}
     </>
@@ -110,8 +114,11 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const aFazer = compradoresAFazer(dados);
-  const mostraCompradores = filtro === "todos" || filtro === "comprador";
-  const totalSeguimentos = (mostraCompradores ? aFazer.length : 0) + seguimentos.atrasados.length + seguimentos.doPeriodo.length;
+  // Os compradores com o passo da semana (enviar opções, propor visita...) entram na vista da semana, uma vez por cliente:
+  // se já têm uma tarefa com data na lista, não se repetem.
+  const comTarefa = new Set([...seguimentos.atrasados, ...seguimentos.doPeriodo].filter((x) => x.ficha.tipo === "comprador").map((x) => x.ficha.id));
+  const compradoresDaSemana = periodo === "semana" && (filtro === "todos" || filtro === "comprador") ? aFazer.filter((x) => !comTarefa.has(x.c.id)) : [];
+  const totalSeguimentos = seguimentos.atrasados.length + seguimentos.doPeriodo.length + compradoresDaSemana.length;
 
   // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
   async function naoFeito(t: Tarefa) {
@@ -215,21 +222,15 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
       </Cartao>
 
       <Cartao titulo={`Seguimentos${totalSeguimentos ? ` (${totalSeguimentos})` : ""}`} icone={<IconeClientes />}>
-        {mostraCompradores && <CompradoresAFazerLista itens={aFazer} />}
-        {(seguimentos.atrasados.length > 0 || seguimentos.doPeriodo.length > 0) && (
-          <div className={mostraCompradores ? "mt-3 border-t border-linha pt-3" : ""}>
-            <Datadas
-              dados={dados}
-              atrasados={seguimentos.atrasados}
-              doPeriodo={seguimentos.doPeriodo}
-              periodo={periodo}
-              onNaoFeito={naoFeito}
-            />
-          </div>
-        )}
-        {!mostraCompradores && seguimentos.atrasados.length === 0 && seguimentos.doPeriodo.length === 0 && (
-          <p className="text-sm text-secundario">{periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}</p>
-        )}
+        <Datadas
+          dados={dados}
+          atrasados={seguimentos.atrasados}
+          doPeriodo={seguimentos.doPeriodo}
+          extra={compradoresDaSemana}
+          periodo={periodo}
+          vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
+          onNaoFeito={naoFeito}
+        />
       </Cartao>
 
       <Cartao titulo={`Precisa de atenção${doFiltro.length ? ` (${doFiltro.length})` : ""}`} icone={<IconeAtencao />} tom="ambar">
