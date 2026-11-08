@@ -105,14 +105,6 @@ export default function Hoje({ dados, aoAtualizar }: { dados: Dados; aoAtualizar
   );
   const doPeriodo = abertas.filter((t) => new Date(t.inicio!) >= inicio && new Date(t.inicio!) < fim);
   const marcacoes = doPeriodo.filter((t) => t.tipo === "evento").sort((a, b) => a.inicio!.localeCompare(b.inicio!));
-  // Na semana, as tarefas incluem as que ficaram em atraso (tudo o que está por fazer até ao fim da semana).
-  // Os números de tarefas contam só as que estão ligadas a um cliente (as mesmas que a lista de seguimentos mostra).
-  const tarefasPeriodo =
-    periodo === "hoje"
-      ? doPeriodo.filter((t) => t.tipo !== "evento" && temCliente(t, dados)).length
-      : abertas.filter((t) => t.tipo !== "evento" && temCliente(t, dados) && new Date(t.inicio!) < fim).length;
-  const emAtraso = abertas.filter((t) => t.tipo !== "evento" && temCliente(t, dados) && new Date(t.inicio!) < inicioHoje).length;
-  const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const aFazer = compradoresAFazer(dados);
   // Compradores todos juntos, por motivação: os do passo da semana (só na vista Semana) e os que têm tarefa com data no período.
@@ -147,15 +139,6 @@ export default function Hoje({ dados, aoAtualizar }: { dados: Dados; aoAtualizar
   }
 
 
-  const numeros = [
-    { n: marcacoes.length, rotulo: marcacoes.length === 1 ? `marcação ${quando}` : `marcações ${quando}`, atraso: false },
-    {
-      n: tarefasPeriodo,
-      rotulo: periodo === "hoje" ? (tarefasPeriodo === 1 ? "tarefa para hoje" : "tarefas para hoje") : tarefasPeriodo === 1 ? "tarefa na semana, com atrasadas" : "tarefas na semana, com atrasadas",
-      atraso: false,
-    },
-    { n: emAtraso, rotulo: "em atraso", atraso: emAtraso > 0 },
-  ];
 
   const seletor = (
     <div className="flex rounded-[11px] bg-azul-suave p-[3px] text-sm font-medium">
@@ -194,17 +177,6 @@ export default function Hoje({ dados, aoAtualizar }: { dados: Dados; aoAtualizar
             Abrir calendário
           </Link>
         </div>
-
-        <Secao titulo="Resumo" cor="azul">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {numeros.map((x) => (
-              <div key={x.rotulo} className="rounded-[14px] border border-linha bg-white px-3 py-3 sm:px-4">
-                <p className="text-3xl font-bold leading-none tracking-tight text-tinta sm:text-4xl">{x.n}</p>
-                <p className={`mt-1.5 text-xs sm:text-sm ${x.atraso ? "font-semibold text-ambar-texto" : "text-secundario"}`}>{x.rotulo}</p>
-              </div>
-            ))}
-          </div>
-        </Secao>
 
         <Secao titulo={periodo === "hoje" ? "Marcações de hoje" : "Marcações da semana"} cor="verde">
           {marcacoes.length === 0 ? (
