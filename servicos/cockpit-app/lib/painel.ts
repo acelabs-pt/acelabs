@@ -4,7 +4,7 @@ import type { Proprietario } from "@/lib/proprietario";
 import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
 import { dentro, limites, type Metas, type Metrica, type Periodo } from "@/lib/metricas";
-import { diasAte, semanaISO } from "@/lib/datas";
+import { diasAte, diasDesde, semanaISO } from "@/lib/datas";
 
 export type Dados = {
   compradores: Comprador[];
@@ -144,9 +144,16 @@ export function avisos(d: Dados, agora: Date = new Date()): Aviso[] {
   }
   for (const p of d.proprietarios) {
     if (p.estado === "perdido" || p.estado === "angariado") continue;
-    const atrasadas = d.tarefas.filter((t) => t.proprietario_id === p.id && !t.feita && t.inicio && new Date(t.inicio) < agora);
-    if (atrasadas.length)
-      out.push({ id: `p-${p.id}`, texto: `${p.contactos.nome}: ${atrasadas.length} ${atrasadas.length === 1 ? "follow up em atraso" : "follow ups em atraso"}`, href: `/crm/proprietarios/${p.id}`, grave: false });
+    // diz exatamente qual é o passo em atraso (o mais antigo) e, se houver mais, quantos
+    const atrasadas = d.tarefas
+      .filter((t) => t.proprietario_id === p.id && !t.feita && t.inicio && new Date(t.inicio) < agora)
+      .sort((x, y) => x.inicio!.localeCompare(y.inicio!));
+    if (atrasadas.length) {
+      const dias = Math.max(0, diasDesde(atrasadas[0].inicio!));
+      const quando = dias === 0 ? "em atraso desde hoje" : dias === 1 ? "em atraso há 1 dia" : `em atraso há ${dias} dias`;
+      const mais = atrasadas.length > 1 ? ` (+ ${atrasadas.length - 1} em atraso)` : "";
+      out.push({ id: `p-${p.id}`, texto: `${atrasadas[0].titulo}: ${quando}${mais}`, href: `/crm/proprietarios/${p.id}`, grave: false });
+    }
   }
   for (const a of d.angariacoes) {
     if (a.vendido_em) continue;

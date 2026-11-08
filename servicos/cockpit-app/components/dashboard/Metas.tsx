@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Cartao from "@/components/dashboard/Cartao";
+import { IconeMetas } from "@/components/dashboard/Icones";
 import MetasForm from "@/components/dashboard/MetasForm";
 import { sbBrowser } from "@/lib/supabase-browser";
-import BarraProgresso, { corDoProgresso } from "@/components/BarraProgresso";
+import BarraProgresso from "@/components/BarraProgresso";
 import { METRICAS, fmtNum, metaDoPeriodo, plural, type Metas as MetasT, type Metrica, type Periodo } from "@/lib/metricas";
 import { feitos, type Dados } from "@/lib/painel";
 import { inicioDoDia, semanaISO } from "@/lib/datas";
@@ -18,7 +19,10 @@ const PERIODOS: [Periodo, string][] = [
   ["ano", "Ano"],
 ];
 
-export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado: () => void }) {
+// Indicadores secundários, por baixo das duas metas principais (angariações e faturação)
+const SECUNDARIAS: Metrica[] = ["visitas", "reunioes_angariacao", "transacoes"];
+
+export default function Metas({ dados, onAlterado, plano = false }: { dados: Dados; onAlterado: () => void; plano?: boolean }) {
   const [periodo, setPeriodo] = useState<Periodo>("semana");
   const [editar, setEditar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -71,6 +75,8 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
 
   return (
     <Cartao
+      plano={plano}
+      icone={<IconeMetas />}
       titulo="Metas"
       acao={
         !editar && (
@@ -86,12 +92,13 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
         <MetasForm inicial={m} onGuardar={guardar} onCancelar={() => setEditar(false)} />
       ) : (
         <>
-          <div className="flex gap-2 text-sm font-medium">
+          <div className="flex rounded-xl bg-azul-suave p-1 text-sm font-medium" role="group" aria-label="Período">
             {PERIODOS.map(([v, r]) => (
               <button
                 key={v}
                 onClick={() => setPeriodo(v)}
-                className={`quadro-glossy flex-1 rounded-xl py-2 ${periodo === v ? "text-azul ring-2 ring-azul" : "text-secundario"}`}
+                aria-pressed={periodo === v}
+                className={`flex-1 rounded-lg py-1 ${periodo === v ? "bg-white font-semibold text-tinta shadow-sm" : "text-azul-escuro"}`}
               >
                 {r}
               </button>
@@ -99,15 +106,15 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
           </div>
 
           {perguntar && (
-            <div className="space-y-2 rounded-xl bg-azul/10 p-3">
-              <p className="text-sm text-tinta">
-                Queres pôr as metas desta semana no calendário? ({plural(Math.ceil(metaSemanal("visitas")), "visita", "visitas")}, {plural(Math.ceil(metaSemanal("reunioes_angariacao")), "reunião", "reuniões")})
+            <div className="flex flex-col gap-2 rounded-xl bg-azul/10 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <p className="min-w-0 text-xs text-tinta sm:flex-1">
+                Pôr as metas desta semana no calendário? ({plural(Math.ceil(metaSemanal("visitas")), "visita", "visitas")}, {plural(Math.ceil(metaSemanal("reunioes_angariacao")), "reunião", "reuniões")})
               </p>
-              <div className="flex gap-2">
-                <button onClick={() => decidirSemana(true)} className="flex-1 rounded-lg bg-azul py-2 text-sm font-semibold text-white">
+              <div className="flex shrink-0 gap-2">
+                <button onClick={() => decidirSemana(true)} className="rounded-full bg-azul/15 px-3 py-1 text-xs font-medium text-azul-escuro hover:bg-azul/25">
                   Sim, pôr
                 </button>
-                <button onClick={() => decidirSemana(false)} className="flex-1 rounded-lg bg-white py-2 text-sm font-medium text-tinta">
+                <button onClick={() => decidirSemana(false)} className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-secundario hover:bg-white">
                   Semana de folga
                 </button>
               </div>
@@ -117,78 +124,45 @@ export default function Metas({ dados, onAlterado }: { dados: Dados; onAlterado:
           {(() => {
             const objFat = m.faturacaoAnual == null ? null : metaDoPeriodo(m.faturacaoAnual, periodo, m.semanasUteis);
             const objAng = m.anual.angariacoes == null ? null : metaDoPeriodo(m.anual.angariacoes, periodo, m.semanasUteis);
-            // Um disco por meta principal: o número grande ao centro e o progresso num anel à volta.
-            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number }) => {
-              const fracao = objetivo != null && objetivo > 0 ? Math.min(1, valor / objetivo) : 0;
-              const texto = rotulo === "Faturação" ? eur(valor) : String(valor);
-              // valores mais compridos descem de tamanho para ficarem dentro do anel
-              const tamanho = texto.length <= 5 ? "text-2xl sm:text-3xl" : texto.length <= 7 ? "text-xl sm:text-2xl" : "text-[19px] sm:text-[22px]";
-              return (
-                <div className="disco relative mx-auto flex aspect-square w-full max-w-[150px] items-center justify-center rounded-full">
-                  {objetivo != null && objetivo > 0 && (
-                    <svg viewBox="0 0 100 100" className="absolute inset-[5%] h-[90%] w-[90%] -rotate-90" aria-hidden="true">
-                      <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(104,116,140,0.16)" strokeWidth="3" />
-                      {fracao > 0 && (
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="46"
-                          fill="none"
-                          stroke={corDoProgresso(fracao)}
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeDasharray={`${fracao * 289} 289`}
-                        />
-                      )}
-                    </svg>
-                  )}
-                  <div className="px-3 text-center">
-                    <p className="text-[11px] font-medium text-secundario">{rotulo}</p>
-                    <p className={`mt-0.5 font-light leading-tight tracking-tight text-tinta ${tamanho}`}>{texto}</p>
-                    {fechado != null && (
-                      <p className="text-[10px] leading-tight text-secundario">
-                        fechados <b className="text-tinta">{eur(fechado)}</b>
-                      </p>
-                    )}
-                    <p className="text-[10px] leading-tight text-secundario">{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
-                  </div>
-                </div>
-              );
-            };
-            // Indicadores secundários, por baixo do disco da respetiva coluna.
-            const Secundaria = ({ id }: { id: Metrica }) => {
-              const x = METRICAS.find((y) => y.id === id)!;
-              const feito = f[x.id];
-              const anual = m.anual[x.id];
-              const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
-              return (
-                <div className="quadro-glossy cartao-leve rounded-xl px-3 py-2.5">
-                  <div className="flex flex-col gap-0.5 text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
-                    <span className="text-[13px] leading-tight text-tinta sm:whitespace-nowrap">{x.label}</span>
-                    <span className="shrink-0 text-secundario">
-                      <b className="text-base text-tinta">{feito}</b>
-                      {meta != null ? ` / ${fmtNum(meta)}` : ""}
-                    </span>
-                  </div>
-                  {meta != null && meta > 0 && <BarraProgresso valor={feito} objetivo={meta} />}
-                </div>
-              );
-            };
+            const Principal = ({ rotulo, valor, objetivo, objetivoTexto, fechado, semObjetivo }: { rotulo: string; valor: number; objetivo: number | null; objetivoTexto: string; fechado?: number; semObjetivo?: boolean }) => (
+              <div className="flex h-full flex-col rounded-2xl quadro-glossy p-3 sm:p-4">
+                <p className="text-sm font-medium text-secundario">{rotulo}</p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-tinta sm:text-4xl">
+                  {rotulo === "Faturação" ? eur(valor) : valor}
+                </p>
+                {/* a mesma linha nos dois cartões (vazia nas Angariações), para o objetivo e a barra ficarem alinhados */}
+                <p className={`whitespace-nowrap text-[10px] sm:text-xs ${fechado == null ? "invisible" : "text-secundario"}`} aria-hidden={fechado == null}>
+                  negócios fechados <b className="text-tinta">{eur(fechado ?? 0)}</b>
+                </p>
+                <p className={`text-xs text-secundario sm:text-sm ${semObjetivo ? "invisible" : ""}`} aria-hidden={semObjetivo}>{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
+                {!semObjetivo && objetivo != null && objetivo > 0 && <BarraProgresso valor={valor} objetivo={objetivo} className="mt-auto h-3.5 pt-0" />}
+              </div>
+            );
             return (
-              <div className="grid grid-cols-2 items-center gap-3 pt-5">
-                <div className="flex min-w-0 flex-col gap-7">
-                  <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
-                  <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} />
-                </div>
-                <div className="flex min-w-0 flex-col gap-4">
-                  <Secundaria id="reunioes_angariacao" />
-                  <Secundaria id="visitas" />
-                  <Secundaria id="transacoes" />
-                </div>
+              <div className="grid grid-cols-2 items-stretch gap-3">
+                <Principal rotulo="Angariações" valor={f.angariacoes} objetivo={objAng} objetivoTexto={objAng == null ? "" : fmtNum(objAng)} />
+                <Principal rotulo="Faturação" valor={f.faturado} objetivo={objFat} objetivoTexto={objFat == null ? "" : eur(objFat)} fechado={f.fechadoValor} semObjetivo={periodo === "semana"} />
               </div>
             );
           })()}
 
+          <ul className="grid grid-cols-3 gap-3">
+            {SECUNDARIAS.map((id) => METRICAS.find((x) => x.id === id)!).map((x) => {
+              const feito = f[x.id];
+              const anual = m.anual[x.id];
+              const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
+              return (
+                <li key={x.id} className="flex flex-col rounded-xl quadro-glossy px-3 py-2.5">
+                  <span className="min-h-[2rem] text-[12px] leading-tight text-tinta sm:min-h-0 sm:text-[13px]">{x.label}</span>
+                  <span className="mt-0.5 text-secundario">
+                    <b className="text-base text-tinta">{feito}</b>
+                    {meta != null ? ` / ${fmtNum(meta)}` : ""}
+                  </span>
+                  {meta != null && meta > 0 && <BarraProgresso valor={feito} objetivo={meta} className="mt-1 h-1.5" />}
+                </li>
+              );
+            })}
+          </ul>
           {!definidas && <p className="text-xs text-secundario">Ainda não definiste metas. Mostra só o que já fizeste.</p>}
         </>
       )}
