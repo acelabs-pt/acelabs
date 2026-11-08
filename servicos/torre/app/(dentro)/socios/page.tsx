@@ -105,7 +105,7 @@ export default async function Socios() {
                   <span className="block text-base text-tinta">
                     {TIPO[m.tipo]}, {nome.get(m.socio_id)}
                   </span>
-                  {(m.conta_id || m.notas) && <span className="block truncate text-sm text-secundario">{[m.conta_id && conta.get(m.conta_id), m.notas].filter(Boolean).join(". ")}</span>}
+                  {(m.conta_id || m.notas) && <span className="block truncate text-sm text-secundario">{[m.conta_id && (m.conta_id ? conta.get(m.conta_id) : "Sem conta"), m.notas].filter(Boolean).join(". ")}</span>}
                 </span>
                 <span className="numero text-base font-semibold text-tinta">{euros(m.valor)}</span>
                 <form action={apagarSocioMovimento}>
@@ -178,7 +178,7 @@ export default async function Socios() {
                   <span className="numero w-20 shrink-0 text-sm text-secundario">{data(m.data)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-base text-tinta">{m.descricao}</span>
-                    <span className="text-xs text-secundario">{conta.get(m.conta_id)}</span>
+                    <span className="text-xs text-secundario">{(m.conta_id ? conta.get(m.conta_id) : "Sem conta")}</span>
                   </span>
                   <Valor c={m.valor} className="text-base" />
                 </Link>

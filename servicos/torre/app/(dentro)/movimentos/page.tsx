@@ -170,7 +170,7 @@ export default async function Movimentos({ searchParams }: { searchParams: Filtr
                       <span className="block truncate text-base text-tinta">{m.descricao}</span>
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-secundario">
                         <span className="numero sm:hidden">{data(m.data)}</span>
-                        <span>{conta.get(m.conta_id)}</span>
+                        <span>{(m.conta_id ? conta.get(m.conta_id) : "Sem conta")}</span>
                         {m.socio_id && <span>{socio.get(m.socio_id)}</span>}
                         {m.reembolsavel && <Etiqueta cor="azul">A devolver</Etiqueta>}
                         {faltaFatura.has(m.id) && <Etiqueta cor="cinza">Sem fatura</Etiqueta>}

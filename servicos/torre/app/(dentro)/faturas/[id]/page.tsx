@@ -20,10 +20,10 @@ export default async function RevisaoFatura({ params, searchParams }: { params: 
   const sugestoes = sugerirMovimentos(f, t.movimentos, ocupados);
   const opcoes: OpcaoMovimento[] = [];
   const atual = f.movimento_id ? t.movimentos.find((m) => m.id === f.movimento_id) : null;
-  if (atual) opcoes.push({ id: atual.id, data: atual.data, descricao: atual.descricao, conta: conta.get(atual.conta_id) ?? "", valor: atual.valor, motivos: [], atual: true });
+  if (atual) opcoes.push({ id: atual.id, data: atual.data, descricao: atual.descricao, conta: (atual.conta_id ? conta.get(atual.conta_id) : "Sem conta") ?? "", valor: atual.valor, motivos: [], atual: true });
   for (const x of sugestoes)
     if (x.movimento.id !== atual?.id)
-      opcoes.push({ id: x.movimento.id, data: x.movimento.data, descricao: x.movimento.descricao, conta: conta.get(x.movimento.conta_id) ?? "", valor: x.movimento.valor, motivos: x.motivos, pontos: x.pontos });
+      opcoes.push({ id: x.movimento.id, data: x.movimento.data, descricao: x.movimento.descricao, conta: (x.movimento.conta_id ? conta.get(x.movimento.conta_id) : "Sem conta") ?? "", valor: x.movimento.valor, motivos: x.motivos, pontos: x.pontos });
 
   // Para pré-preencher a categoria quando se escolhe outro fornecedor: a última usada com cada um.
   const categoriaPorEntidade: Record<string, string> = {};

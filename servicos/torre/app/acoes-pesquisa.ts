@@ -32,7 +32,7 @@ export async function indicePesquisa(): Promise<Resultado[]> {
       tipo: "movimento",
       id: m.id,
       titulo: m.descricao,
-      detalhe: [m.data.split("-").reverse().join("/"), conta.get(m.conta_id), m.categoria_id ? categoria.get(m.categoria_id) : "por classificar"].filter(Boolean).join(", "),
+      detalhe: [m.data.split("-").reverse().join("/"), (m.conta_id ? conta.get(m.conta_id) : "Sem conta"), m.categoria_id ? categoria.get(m.categoria_id) : "por classificar"].filter(Boolean).join(", "),
       valor: m.valor,
       href: `/movimentos/${m.id}`,
       procura: `${m.descricao} ${(Math.abs(m.valor) / 100).toFixed(2)} ${(Math.abs(m.valor) / 100).toFixed(2).replace(".", ",")} ${m.notas ?? ""}`,

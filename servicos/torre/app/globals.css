@@ -4,6 +4,11 @@
 
 /* A mesma pele do Cockpit (servicos/cockpit-app/app/globals.css): cinzento claro, brilho azul no canto, cartões brancos. */
 
+/* Tamanho base reduzido (14px em vez de 16px): o Tailwind usa rem, por isso tudo encolhe em proporção. */
+html {
+  font-size: 14px;
+}
+
 body {
   background: #f5f5f7;
   color: #1d1d1f;

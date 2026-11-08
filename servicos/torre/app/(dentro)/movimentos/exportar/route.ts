@@ -25,7 +25,7 @@ export async function GET(req: Request) {
       const fa = fatura.get(m.id);
       return [
         m.data,
-        conta.get(m.conta_id),
+        (m.conta_id ? conta.get(m.conta_id) : "Sem conta"),
         m.descricao,
         euroCsv(m.valor),
         m.categoria_id ? categoria.get(m.categoria_id) : "Por classificar",

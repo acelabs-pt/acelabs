@@ -38,7 +38,7 @@ export default async function Debito({ params }: { params: { id: string } }) {
                 <Link href={`/movimentos/${m.id}`} className="flex items-center gap-3 py-2.5 hover:bg-black/[0.02]">
                   <span className="numero w-20 shrink-0 text-sm text-secundario">{data(m.data)}</span>
                   <span className="min-w-0 flex-1 truncate text-base text-tinta">{m.descricao}</span>
-                  <span className="hidden text-sm text-secundario sm:inline">{conta.get(m.conta_id)}</span>
+                  <span className="hidden text-sm text-secundario sm:inline">{m.conta_id ? conta.get(m.conta_id) : "Sem conta"}</span>
                   <Valor c={m.valor} className="text-base" />
                 </Link>
               </li>

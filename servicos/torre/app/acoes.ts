@@ -132,12 +132,13 @@ export async function mudarPin(_: Resposta, f: FormData): Promise<Resposta> {
 // Movimentos --------------------------------------------------------------------------------------------------------
 
 async function contaDe(id: string): Promise<Conta | null> {
+  if (!id) return null;
   const { s } = await exigirSocio();
   const { data } = await s.from("contas").select("*").eq("id", id).maybeSingle();
   return (data as Conta) ?? null;
 }
 
-function camposMovimento(f: FormData, conta: Conta): { erro: string } | Partial<Movimento> {
+function camposMovimento(f: FormData, conta: Conta | null): { erro: string } | Partial<Movimento> {
   const data = lerData(txt(f, "data"));
   if (!data) return { erro: "Data inválida." };
   const descricao = txt(f, "descricao").slice(0, 500);
@@ -146,24 +147,28 @@ function camposMovimento(f: FormData, conta: Conta): { erro: string } | Partial<
   if (!v) return { erro: "Valor inválido." };
   const valor = txt(f, "sentido") === "entrada" ? Math.abs(v) : -Math.abs(v);
   const r = txt(f, "reembolsavel");
+  // Sem conta de banco: alguém pagou do próprio bolso, por isso tem de se saber quem (para a empresa lhe devolver).
+  const socio = opc(f, "socio_id") ?? conta?.titular ?? null;
+  if (!conta && !socio) return { erro: "Sem conta, diz quem pagou." };
   return {
-    conta_id: conta.id,
+    conta_id: conta?.id ?? null,
     data,
     descricao,
     valor,
     categoria_id: opc(f, "categoria_id"),
     entidade_id: opc(f, "entidade_id"),
     subscricao_id: opc(f, "subscricao_id"),
-    socio_id: opc(f, "socio_id") ?? conta.titular,
-    reembolsavel: r === "sim" ? true : r === "nao" ? false : reembolsavelPorOmissao(conta),
+    socio_id: socio,
+    reembolsavel: r === "sim" ? true : r === "nao" ? false : conta ? reembolsavelPorOmissao(conta) : true,
     notas: opc(f, "notas"),
   };
 }
 
 export async function criarMovimento(_: Resposta, f: FormData): Promise<Resposta> {
   const { s } = await exigirSocio();
-  const conta = await contaDe(txt(f, "conta_id"));
-  if (!conta) return { erro: "Escolhe a conta." };
+  const idConta = txt(f, "conta_id");
+  const conta = await contaDe(idConta);
+  if (idConta && !conta) return { erro: "Conta não encontrada." };
   const m = camposMovimento(f, conta);
   if ("erro" in m) return { erro: m.erro as string };
   if (!m.categoria_id) {
@@ -180,8 +185,9 @@ export async function criarMovimento(_: Resposta, f: FormData): Promise<Resposta
 export async function guardarMovimento(_: Resposta, f: FormData): Promise<Resposta> {
   const { s } = await exigirSocio();
   const id = txt(f, "id");
-  const conta = await contaDe(txt(f, "conta_id"));
-  if (!conta) return { erro: "Escolhe a conta." };
+  const idConta = txt(f, "conta_id");
+  const conta = await contaDe(idConta);
+  if (idConta && !conta) return { erro: "Conta não encontrada." };
   const m = camposMovimento(f, conta);
   if ("erro" in m) return { erro: m.erro as string };
   const { error } = await s.from("movimentos").update(m).eq("id", id);
@@ -359,7 +365,7 @@ export async function juntarListaInicial() {
 /** Cria um débito direto a partir de pagamentos repetidos no extrato, liga-lhe esses pagamentos e cria a regra para os próximos. */
 export async function criarDeRecorrente(f: FormData) {
   const { s } = await exigirSocio();
-  const conta_id = txt(f, "conta_id");
+  const conta_id = opc(f, "conta_id");
   const chave = txt(f, "chave");
   const ultimo = lerData(txt(f, "ultimo")) ?? new Date().toISOString().slice(0, 10);
   const nome = txt(f, "nome").slice(0, 80) || chave;
@@ -369,7 +375,8 @@ export async function criarDeRecorrente(f: FormData) {
     .select("id")
     .single();
   if (error || !sub) throw new Error(erroDe(error)?.erro ?? "Não foi possível criar o débito.");
-  const { data: movs } = await s.from("movimentos").select("id, descricao").eq("conta_id", conta_id).is("subscricao_id", null).lt("valor", 0);
+  const consulta = s.from("movimentos").select("id, descricao");
+  const { data: movs } = await (conta_id ? consulta.eq("conta_id", conta_id) : consulta.is("conta_id", null)).is("subscricao_id", null).lt("valor", 0);
   const ids = (movs ?? []).filter((m) => chaveDescricao(m.descricao) === chave).map((m) => m.id);
   if (ids.length) await s.from("movimentos").update({ subscricao_id: sub.id }).in("id", ids);
   await s.from("regras").upsert({ texto: chave, subscricao_id: sub.id }, { onConflict: "texto" });

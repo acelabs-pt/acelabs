@@ -9,7 +9,7 @@ export default function CamposMovimento({ t, m, hoje }: { t: Tudo; m?: Movimento
   const grupos = (["custo", "proveito", "interno"] as const).map((tipo) => ({ tipo, cats: t.categorias.filter((c) => c.tipo === tipo && (c.ativa || c.id === m?.categoria_id)) }));
   const valor = m ? (Math.abs(m.valor) / 100).toFixed(2).replace(".", ",") : "";
   // Movimento novo: a conta onde se lançou à mão da última vez.
-  const ultimaConta = m ? m.conta_id : t.movimentos.find((x) => x.origem === "manual")?.conta_id ?? (t.contas.length === 1 ? t.contas[0].id : "");
+  const ultimaConta = m ? (m.conta_id ?? "") : t.movimentos.find((x) => x.origem === "manual")?.conta_id ?? (t.contas.length === 1 ? t.contas[0].id : "");
   const pistas: Pistas = { categoriaDe: {}, debito: {} };
   for (const x of [...t.movimentos].reverse()) if (x.entidade_id && x.categoria_id) pistas.categoriaDe[x.entidade_id] = x.categoria_id;
   for (const d of t.subscricoes)
@@ -20,8 +20,8 @@ export default function CamposMovimento({ t, m, hoje }: { t: Tudo; m?: Movimento
       <Prepreencher pistas={pistas} raiz={raiz} />
       <div>
         <label htmlFor="conta_id" className={rotulo}>Conta</label>
-        <select id="conta_id" name="conta_id" required defaultValue={ultimaConta} className={campo}>
-          <option value="" disabled>Escolher</option>
+        <select id="conta_id" name="conta_id" defaultValue={ultimaConta} className={campo}>
+          <option value="">Sem conta (pago por um sócio)</option>
           {t.contas.filter((c) => c.ativa || c.id === m?.conta_id).map((c) => (
             <option key={c.id} value={c.id}>{c.nome}</option>
           ))}
@@ -66,7 +66,7 @@ export default function CamposMovimento({ t, m, hoje }: { t: Tudo; m?: Movimento
       <div>
         <label htmlFor="socio_id" className={rotulo}>Quem pagou ou fez</label>
         <select id="socio_id" name="socio_id" defaultValue={m?.socio_id ?? ""} className={campo}>
-          <option value="">Pela conta (titular)</option>
+          <option value="">Pela conta (titular); sem conta, escolhe o sócio</option>
           {t.socios.map((s) => (
             <option key={s.id} value={s.id}>{s.nome}</option>
           ))}
@@ -75,7 +75,7 @@ export default function CamposMovimento({ t, m, hoje }: { t: Tudo; m?: Movimento
       <div>
         <label htmlFor="reembolsavel" className={rotulo}>A empresa tem de devolver?</label>
         <select id="reembolsavel" name="reembolsavel" defaultValue={m ? (m.reembolsavel ? "sim" : "nao") : "auto"} className={campo}>
-          {!m && <option value="auto">Pela conta (sim se for dinheiro dos sócios)</option>}
+          {!m && <option value="auto">Automático (sim se for dinheiro dos sócios ou sem conta)</option>}
           <option value="sim">Sim</option>
           <option value="nao">Não</option>
         </select>

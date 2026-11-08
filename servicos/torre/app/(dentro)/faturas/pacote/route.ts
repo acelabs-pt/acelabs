@@ -56,7 +56,7 @@ export async function GET(req: Request) {
         f.data, nomeTipoDoc(f.tipo_doc), f.sentido === "emitida" ? "Emitida" : "Recebida", f.emitente_nome, f.emitente_nif, f.numero, f.atcud, f.moeda,
         num(f.base), num(f.iva), num(f.total), num(f.moeda === "EUR" ? f.total : f.total_eur),
         f.categoria_id ? categoria.get(f.categoria_id) : "", f.estado === "confirmada" ? "Confirmada" : "Por rever",
-        m ? `${m.data} ${conta.get(m.conta_id) ?? ""} ${m.descricao}` : "Sem movimento", nomes.get(f.id) ?? "",
+        m ? `${m.data} ${(m.conta_id ? conta.get(m.conta_id) : "Sem conta") ?? ""} ${m.descricao}` : "Sem movimento", nomes.get(f.id) ?? "",
       ]),
     );
   }
@@ -66,7 +66,7 @@ export async function GET(req: Request) {
     const f = faturaDoMov.get(m.id);
     folhaM.push(
       linha([
-        m.data, conta.get(m.conta_id), m.descricao, num(m.valor), m.categoria_id ? categoria.get(m.categoria_id) : "Por classificar",
+        m.data, (m.conta_id ? conta.get(m.conta_id) : "Sem conta"), m.descricao, num(m.valor), m.categoria_id ? categoria.get(m.categoria_id) : "Por classificar",
         m.entidade_id ? entidade.get(m.entidade_id) : "", m.socio_id ? socio.get(m.socio_id) : "", m.reembolsavel ? "Sim" : "",
         f ? nomes.get(f.id) ?? `${f.emitente_nome ?? ""} ${f.numero ?? ""}` : m.valor < 0 ? "Sem fatura" : "",
       ]),

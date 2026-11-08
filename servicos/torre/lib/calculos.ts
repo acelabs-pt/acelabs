@@ -67,9 +67,14 @@ export function saldosSocios(socios: Socio[], contas: Conta[], movimentos: Movim
   const porConta = new Map(contas.map((c) => [c.id, c]));
   for (const m of movimentos) {
     if (!m.reembolsavel) continue;
-    const c = porConta.get(m.conta_id);
-    if (!c) continue;
+    const c = m.conta_id ? porConta.get(m.conta_id) : undefined;
     const valor = -m.valor;
+    if (!c) {
+      // Sem conta de banco: ficou para quem pagou.
+      const s = m.socio_id ? r.get(m.socio_id) : undefined;
+      if (s) s.adiantado += valor;
+      continue;
+    }
     if (c.titular) {
       const s = r.get(c.titular);
       if (s) s.adiantado += valor;
@@ -129,11 +134,12 @@ export function despesasPorOrigem(movimentos: Movimento[], contas: Conta[], soci
   for (const m of movimentos) {
     if (m.valor >= 0 || m.data < de || m.data > ate) continue;
     if (m.categoria_id && tipo.get(m.categoria_id) === "interno") continue;
-    const c = porConta.get(m.conta_id);
-    if (!c) continue;
-    const [chave, rotulo] = c.titular
-      ? [`socio:${c.titular}`, `Dinheiro do ${nome.get(c.titular) ?? "sócio"}`]
-      : c.tipo === "conjunta"
+    const c = m.conta_id ? porConta.get(m.conta_id) : undefined;
+    const dono = c ? c.titular : m.socio_id;
+    if (!c && !dono) continue;
+    const [chave, rotulo] = dono
+      ? [`socio:${dono}`, `Dinheiro do ${nome.get(dono) ?? "sócio"}`]
+      : c!.tipo === "conjunta"
         ? ["conjunta", "Conta conjunta"]
         : ["empresa", "Contas da empresa"];
     const l = r.get(chave) ?? { chave, rotulo, total: 0, movimentos: 0 };
@@ -202,7 +208,7 @@ export function cobrancaAnterior(s: Pick<Subscricao, "inicio" | "periodicidade" 
   return anterior;
 }
 
-export type Recorrente = { chave: string; exemplo: string; valorMedio: number; ocorrencias: number; ultimo: string; conta_id: string; periodicidade: Periodicidade };
+export type Recorrente = { chave: string; exemplo: string; valorMedio: number; ocorrencias: number; ultimo: string; conta_id: string | null; periodicidade: Periodicidade };
 
 /** Tira da descrição o que muda de mês para mês (datas, números, referências) para juntar pagamentos do mesmo serviço. */
 export function chaveDescricao(d: string): string {

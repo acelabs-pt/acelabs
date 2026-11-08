@@ -45,7 +45,8 @@ export type Subscricao = {
 
 export type Movimento = {
   id: string;
-  conta_id: string;
+  /** Vazio = despesa paga por um sócio, sem conta de banco (ainda não há conta da empresa). */
+  conta_id: string | null;
   data: string;
   descricao: string;
   /** Negativo = saída. */

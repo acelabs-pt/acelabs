@@ -171,6 +171,16 @@ export function correrUnidade() {
     assert.equal(miguel.capital, 250000);
   });
 
+  teste("despesa sem conta de banco fica a dever ao sócio que pagou", () => {
+    const semConta = [{ ...mov("emp", "2026-11-02", -1234), conta_id: null, socio_id: "m", reembolsavel: true } as Movimento];
+    const s = saldosSocios(socios, [], semConta, []);
+    assert.equal(s.find((x) => x.socio.id === "m")!.devido, 1234);
+    assert.equal(s.find((x) => x.socio.id === "p")!.devido, 0);
+    const o = despesasPorOrigem(semConta, [], socios, categorias, "2026-11-01", "2026-11-30");
+    assert.equal(o[0].chave, "socio:m");
+    assert.equal(o[0].total, 1234);
+  });
+
   teste("resultado do mês sem movimentos internos (um estorno reduz o custo)", () => {
     const r = resumo(movimentos, categorias, "2026-10-01", "2026-10-31");
     assert.equal(r.proveitos, 150000);

@@ -83,13 +83,13 @@ export default async function Debitos() {
                 <div className="min-w-0">
                   <p className="truncate text-base text-tinta">{r.exemplo}</p>
                   <p className="text-sm text-secundario">
-                    {r.ocorrencias} vezes, último a {data(r.ultimo)}, {nomeConta.get(r.conta_id)}
+                    {r.ocorrencias} vezes, último a {data(r.ultimo)}, {(r.conta_id ? nomeConta.get(r.conta_id) : "sem conta")}
                   </p>
                 </div>
                 <form action={criarDeRecorrente} className="flex items-center gap-3">
                   <input type="hidden" name="chave" value={r.chave} />
                   <input type="hidden" name="nome" value={r.chave.replace(/\b\w/g, (l) => l.toUpperCase())} />
-                  <input type="hidden" name="conta_id" value={r.conta_id} />
+                  <input type="hidden" name="conta_id" value={r.conta_id ?? ""} />
                   <input type="hidden" name="valor" value={r.valorMedio} />
                   <input type="hidden" name="periodicidade" value={r.periodicidade} />
                   <input type="hidden" name="ultimo" value={r.ultimo} />

@@ -355,3 +355,6 @@ insert into public.categorias (nome, tipo, grupo, ordem) values
   ('Reembolso a sócio', 'interno', 'Movimentos internos', 13),
   ('Entrega de IVA', 'interno', 'Movimentos internos', 14)
 on conflict (nome, tipo) do nothing;
+
+-- Despesas sem conta de banco (ainda não há conta da empresa): o movimento fica só com o sócio que pagou.
+alter table public.movimentos alter column conta_id drop not null;

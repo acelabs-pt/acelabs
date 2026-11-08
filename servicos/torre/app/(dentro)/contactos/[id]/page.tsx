@@ -127,7 +127,7 @@ export default async function Contacto({ params }: { params: { id: string } }) {
                     <span className="numero w-20 shrink-0 text-sm text-secundario">{data(m.data)}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-base text-tinta">{m.descricao}</span>
-                      <span className="text-xs text-secundario">{conta.get(m.conta_id)}</span>
+                      <span className="text-xs text-secundario">{(m.conta_id ? conta.get(m.conta_id) : "Sem conta")}</span>
                     </span>
                     <Valor c={m.valor} className="shrink-0 text-base" />
                   </Link>
