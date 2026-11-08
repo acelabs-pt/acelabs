@@ -87,7 +87,7 @@ export default function Seguimentos({ dados, itens, vazio }: { dados: Dados; ite
   if (itens.length === 0) return <p className="py-2 text-sm text-secundario">{vazio}</p>;
   return (
     <>
-      <ul className="divide-y divide-ambar/25">
+      <ul className="divide-y divide-linha">
         {mostradas.map(({ t, ficha }) => {
           const atrasada = new Date(t.inicio!) < inicioHoje;
           const cliente = clienteDe(ficha, dados);
@@ -107,7 +107,7 @@ export default function Seguimentos({ dados, itens, vazio }: { dados: Dados; ite
                   aria-label="Ver detalhes do seguimento"
                   className="flex w-full items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 truncate text-[15px] font-medium text-tinta">{cliente.nome ?? t.titulo}</span>
+                  <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{cliente.nome ?? t.titulo}</span>
                   <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${atrasada ? "bg-ambar-fundo text-ambar-texto" : "bg-azul-suave text-azul-escuro"}`}>{acaoDe(t)}</span>
                   <svg
                     viewBox="0 0 24 24"

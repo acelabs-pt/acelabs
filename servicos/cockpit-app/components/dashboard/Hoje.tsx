@@ -9,6 +9,21 @@ import Seguimentos, { seguimentosDe, temCliente } from "@/components/dashboard/S
 import type { Aviso, Dados } from "@/lib/painel";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias } from "@/lib/datas";
 
+// Cada secção da Agenda começa com um título a negrito, na cor da secção, com uma linha da mesma cor por baixo. O corpo fica branco.
+const COR_SECAO = {
+  azul: "border-azul text-azul",
+  verde: "border-[#158a48] text-[#158a48]",
+  ambar: "border-ambar text-ambar-texto",
+} as const;
+function Secao({ titulo, cor, children }: { titulo: string; cor: keyof typeof COR_SECAO; children: React.ReactNode }) {
+  return (
+    <div className="rounded-[14px] border border-linha p-3 sm:p-4">
+      <h3 className={`mb-2 border-b-2 pb-1.5 text-base font-bold ${COR_SECAO[cor]}`}>{titulo}</h3>
+      {children}
+    </div>
+  );
+}
+
 type Periodo = "hoje" | "semana";
 type Filtro = "todos" | "comprador" | "proprietario" | "angariacao";
 
@@ -97,49 +112,47 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
           </Link>
         </div>
 
-        <div className="rounded-[14px] border border-azul/20 border-l-4 border-l-azul bg-azul-suave/60 p-3 sm:p-4">
+        <Secao titulo="Resumo" cor="azul">
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {numeros.map((x) => (
-              <div key={x.rotulo} className="rounded-[14px] border border-azul/15 bg-white px-3 py-3 sm:px-4">
+              <div key={x.rotulo} className="rounded-[14px] border border-linha bg-white px-3 py-3 sm:px-4">
                 <p className="text-3xl font-bold leading-none tracking-tight text-tinta sm:text-4xl">{x.n}</p>
                 <p className={`mt-1.5 text-xs sm:text-sm ${x.atraso ? "font-semibold text-ambar-texto" : "text-secundario"}`}>{x.rotulo}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Secao>
 
-        <div className="rounded-[14px] border border-verde/25 border-l-4 border-l-verde bg-verde-suave/50 p-3 sm:p-4">
-          <h3 className="mb-1 text-sm font-semibold text-[#12703a]">{periodo === "hoje" ? "Marcações de hoje" : "Marcações da semana"}</h3>
+        <Secao titulo={periodo === "hoje" ? "Marcações de hoje" : "Marcações da semana"} cor="verde">
           {marcacoes.length === 0 ? (
             <p className="py-2 text-sm text-secundario">Nenhuma visita ou reunião marcada {periodo === "hoje" ? "para hoje" : "para esta semana"}.</p>
           ) : (
-            <ul className="divide-y divide-verde/20">
+            <ul className="divide-y divide-linha">
               {marcacoes.map((t) => (
                 <li key={t.id}>
                   <Link href="/calendario" className="flex items-baseline gap-3 py-2.5 text-[15px] text-tinta">
-                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-[#12703a]">
+                    <span className="shrink-0 whitespace-nowrap text-sm font-bold tabular-nums text-[#158a48]">
                       {periodo === "semana" ? `${formatarDia(new Date(t.inicio!))} ` : ""}
                       {formatarHora(t.inicio!)}
                     </span>
-                    <span className="min-w-0 truncate">{t.titulo}</span>
+                    <span className="min-w-0 truncate font-medium">{t.titulo}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Secao>
 
-        <div className="rounded-[14px] border border-ambar/30 border-l-4 border-l-ambar bg-ambar-fundo/50 p-3 sm:p-4">
-          <h3 className="text-sm font-semibold text-ambar-texto">Seguimentos</h3>
+        <Secao titulo="Seguimentos" cor="ambar">
           {seguimentos.atrasados.length > 0 && (
-            <div className="mt-2 rounded-xl border border-ambar/40 bg-white px-3 py-2.5">
+            <div className="mb-2 rounded-xl border border-ambar/50 px-3 py-2.5">
               <button
                 type="button"
                 onClick={() => setVerAtrasados((v) => !v)}
                 aria-expanded={verAtrasados}
                 className="flex w-full items-center justify-between gap-2 text-left"
               >
-                <span className="text-sm font-semibold text-ambar-texto">Em atraso ({seguimentos.atrasados.length})</span>
+                <span className="text-sm font-bold text-ambar-texto">Em atraso ({seguimentos.atrasados.length})</span>
                 <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-ambar-texto transition-transform ${verAtrasados ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
@@ -151,7 +164,7 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
               )}
             </div>
           )}
-          <h4 className="mb-0.5 mt-3 text-sm font-semibold text-tinta">
+          <h4 className="mb-0.5 mt-1 text-sm font-bold text-tinta">
             {periodo === "hoje" ? "Para hoje" : "Até ao fim da semana"}
             {seguimentos.doPeriodo.length ? ` (${seguimentos.doPeriodo.length})` : ""}
           </h4>
@@ -160,7 +173,7 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
             itens={seguimentos.doPeriodo}
             vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
           />
-        </div>
+        </Secao>
 
         {filtro === "angariacao" && <AngariacoesEmAtraso dados={dados} />}
       </Cartao>

@@ -32,7 +32,7 @@ export default function Cartao({
         {icone && (
           <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${tom === "ambar" ? "bg-ambar-fundo text-ambar-texto" : "bg-azul-suave text-azul"}`}>{icone}</span>
         )}
-        <h2 className="min-w-0 flex-1 text-base font-bold text-tinta">{titulo}</h2>
+        <h2 className={`min-w-0 flex-1 text-lg font-bold ${tom === "ambar" ? "text-ambar-texto" : "text-azul-escuro"}`}>{titulo}</h2>
         {acao}
       </header>
       <div className="space-y-3 p-4 sm:p-5">{children}</div>
