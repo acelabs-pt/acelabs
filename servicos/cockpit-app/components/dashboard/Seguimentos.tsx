@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
+import { tipoTarefaComprador } from "@/lib/comprador";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias } from "@/lib/datas";
 
 const VISIVEIS = 6;
@@ -51,7 +52,10 @@ function clienteDe(f: Ficha, d: Dados): { nome: string | null; imovel: string } 
 }
 
 /** A tarefa está ligada a um cliente (tem ficha para abrir)? As acções do plano de angariação que não são follow-ups não estão. */
-export const temCliente = (t: Tarefa, d: Dados) => fichaDe(t, d) !== null;
+export const temCliente = (t: Tarefa, d: Dados) => fichaDe(t, d) !== null && !eSemanalDeComprador(t);
+
+// "Enviar opções de imóveis" e "Propor visita" (as tarefas semanais dos compradores) aparecem na secção "Compradores: o que fazer".
+const eSemanalDeComprador = (t: Tarefa) => t.origem === "comprador" && tipoTarefaComprador(t) !== null;
 
 export type Seguimento = { t: Tarefa; ficha: Ficha };
 
@@ -71,6 +75,7 @@ export function seguimentosDe(
   const todos = dados.tarefas
     .filter((t) => t.tipo === "tarefa" && !t.feita && t.inicio && new Date(t.inicio) < fim)
     .filter((t) => filtro === "todos" || t.origem === filtro)
+    .filter((t) => !eSemanalDeComprador(t))
     .map((t) => ({ t, ficha: fichaDe(t, dados) }))
     .filter((x): x is Seguimento => x.ficha !== null)
     .sort((a, b) => {

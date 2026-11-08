@@ -5,6 +5,7 @@ import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
 import { IconeAgenda, IconeAtencao } from "@/components/dashboard/Icones";
 import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
+import CompradoresAFazerLista, { compradoresAFazer } from "@/components/dashboard/CompradoresAFazer";
 import Seguimentos, { seguimentosDe, temCliente } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
@@ -61,6 +62,7 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const emAtraso = abertas.filter((t) => t.tipo !== "evento" && temCliente(t, dados) && new Date(t.inicio!) < inicioHoje).length;
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
+  const aFazer = compradoresAFazer(dados);
   const [verAtrasados, setVerAtrasados] = useState(false);
 
   // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
@@ -160,6 +162,12 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
             </ul>
           )}
         </Secao>
+
+        {(filtro === "todos" || filtro === "comprador") && (
+          <Secao titulo={`Compradores: o que fazer${aFazer.length ? ` (${aFazer.length})` : ""}`} cor="azul">
+            <CompradoresAFazerLista itens={aFazer} />
+          </Secao>
+        )}
 
         <Secao titulo="Seguimentos" cor="ambar">
           {seguimentos.atrasados.length > 0 && (
