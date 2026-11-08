@@ -93,6 +93,7 @@ create table comprador_documentos (
   comprador_id uuid not null references compradores(id) on delete cascade,
   nome text not null,
   entregue boolean not null default false,
+  valor numeric(12,2),       -- só para o cheque bancário (ver migration_documento_valor.sql)
   created_at timestamptz not null default now()
 );
 create index on comprador_documentos (comprador_id);
@@ -124,6 +125,16 @@ create table proprietarios (
   updated_at timestamptz not null default now()
 );
 create index on proprietarios (estado);
+
+-- Documentos que o proprietário tem de entregar (angariação e escritura)
+create table proprietario_documentos (
+  id uuid primary key default gen_random_uuid(),
+  proprietario_id uuid not null references proprietarios(id) on delete cascade,
+  nome text not null,
+  entregue boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index on proprietario_documentos (proprietario_id);
 
 -- Registo de chamadas (qualquer contacto)
 create table chamadas (

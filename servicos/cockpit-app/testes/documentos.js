@@ -30,9 +30,9 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await botao.waitFor({ timeout: 20000 });
     await botao.scrollIntoViewIfNeeded();
     await botao.click();
-    await page.waitForSelector('text=Documentos em falta (8)', { timeout: 10000 });
+    await page.waitForSelector('text=Documentos em falta (2)', { timeout: 10000 });
     const docs = await rest('GET', `comprador_documentos?comprador_id=eq.${comp.id}&select=nome`);
-    ok('lista habitual junta 8 documentos', docs.length === 8, `${docs.length}`);
+    ok('lista habitual junta 2 documentos', docs.length === 2, `${docs.length}`);
     ok('o botão desaparece quando não falta nenhum', (await page.locator('button', { hasText: 'lista habitual' }).count()) === 0);
     await page.screenshot({ path: `${SP}/docs.png`, fullPage: true });
     ok('sem erros de página', erros.length === 0, JSON.stringify(erros));

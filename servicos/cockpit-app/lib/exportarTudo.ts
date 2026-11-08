@@ -117,6 +117,7 @@ const TABELAS: [string, string][] = [
   ["comprador_imoveis", "id"],
   ["comprador_documentos", "id"],
   ["proprietarios", "id"],
+  ["proprietario_documentos", "id"],
   ["angariacoes", "id"],
   ["angariacao_acoes", "id"],
   ["tarefas", "id"],

@@ -1,4 +1,49 @@
-# Passagem do Miguel para o Pedro: Cockpit por publicar (06/11/2026, 4.ª entrega)
+# Passagem do Miguel para o Pedro: Cockpit por publicar (08/11/2026, 5.ª entrega)
+
+> **Estado: por publicar.** O Pedro só precisa de `git pull`, correr o SQL abaixo no Demo, testes e `vercel deploy --prod`.
+> A 4.ª entrega (cfa395a, 06/11) já está publicada, ver mais abaixo.
+
+## SQL no Demo (`gebqaxhwebsmoeqpzzzg`), antes do deploy, por esta ordem
+1. `migration_documento_valor.sql`: `valor` em `comprador_documentos` (valor do cheque bancário).
+2. `migration_proprietario_documentos.sql`: tabela nova `proprietario_documentos`, já com `empresa_id`, gatilho e regra por empresa.
+   Corre-se depois de `migracao_multiempresa.sql` (já corrida no Demo). Entrou também em `create_tables.sql`, nas listas de
+   `migracao_multiempresa.sql` e `migracao_seguranca.sql` e em `testes/unidade-multiempresa.mjs`.
+
+Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá erro. Sem a 2.ª, a ficha do proprietário não carrega os documentos.
+
+## Verificado antes do push
+- `node testes/unidade-multiempresa.mjs`: 170 verificações OK (inclui o isolamento de `proprietario_documentos`).
+- `npm run lint`: sem erros. `next build`: passou (feito numa cópia, para não mexer no servidor de desenvolvimento).
+- Não corri `testes/publicado.js` nem `testes/documentos.js` (precisam do servidor e das chaves de teste); `documentos.js` passou a esperar 2 documentos.
+
+## O que mudou
+- **Dashboard (novo desenho, substitui o "relevo definido" do 401f9c4):** fundo branco ligeiramente azulado só no Dashboard, cartões com
+  cabeçalho (ícone, título, linha), cartão **Agenda** (Hoje ou Semana, filtros Todos, Compradores, Proprietários, Angariações,
+  números, marcações e seguimentos), **Precisa de atenção** (junto, filtrável) e **Metas**. Os Seguimentos passaram para dentro da
+  Agenda: "Em atraso (N)" fechado por defeito e a lista do período. Em "Angariações" aparece o painel "As minhas angariações" com o
+  alerta de acções em atraso por angariação. Os avisos de proprietário dizem qual é o passo em atraso.
+- **Compradores:** próximos passos só com "Enviar novas opções" (uma linha), "Agendar escritura" (automação nova: com o CPCV fechado e
+  o prazo da escritura definido, cria a tarefa; fecha ao agendar a escritura) e tarefas agendadas à mão. Nota de próximo passo por
+  fase na lista. Documentos da escritura: "Documento de identificação" e "Cheque Bancário" (com valor).
+- **Proprietários:** documentos (lista de 8) só quando está angariado, com imóvel angariado e escritura marcada; mensagem de
+  agradecimento (só depois de marcar a reunião; assinatura = nome definido em Conta); etiqueta "Reunião há X dias" nas tarefas
+  (acende ao marcar feita); cartões da reunião e do agradecimento fecham-se quando feitos; as chamadas aos 14 e 22 dias passam a
+  "Ligar a (nome) para marcar a reunião de angariação".
+- **Todas as fichas:** botão "Agendar tarefa" (título, dia e hora) nos Próximos passos; chamadas com botão "Adicionar chamada"
+  (dia, hora e nota) e "Editar" no histórico; **Conta** ganha "O teu nome" (guarda-se na conta).
+- **Horas das automações:** passam a ter 30 minutos de folga (9:00 às 19:00, aperta para 15 e 5 se o dia encher); nunca mexem em visitas,
+  reuniões ou escrituras.
+- **Simulação / demo:** retiradas as tarefas de teste que não são automações (Seguimento, Primeiro contacto, Contactar, Ligar a...).
+  As que já estão numa base de dados só saem com um `delete` à parte (o Miguel já o correu no projecto dele; no Demo só se o Pedro quiser).
+
+## O que ver no browser depois do deploy
+- Dashboard: alternar Hoje e Semana, os filtros, "Em atraso" a abrir e "Angariações".
+- Comprador com CPCV fechado e prazo da escritura: aparece "Agendar escritura" nos próximos passos.
+- Proprietário: marcar a reunião e ver a mensagem de agradecimento (com o nome definido em Conta).
+
+---
+
+## (publicada em 06/11/2026) 4.ª entrega: cfa395a
 
 > **Estado: publicado a 06/11/2026 pelo Pedro** (commit cfa395a). SQL corrido no Demo antes do deploy e colunas confirmadas;
 > `unidade-multiempresa` passou (164 verificações); confirmado no endereço publicado com um utilizador temporário na Agência

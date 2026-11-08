@@ -12,7 +12,7 @@ const pasta = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORDEM = ["create_tables.sql", "migracao_zonas_correspondencias.sql", "migracao_escala.sql", "migracao_seguranca.sql", "migracao_notificacoes.sql", "migracao_apagar_conta.sql"];
 const sql = (f) => readFileSync(path.join(pasta, f), "utf8").replace(/\r\n/g, "\n").replace(/create extension if not exists "pgcrypto";/, "");
 const TABELAS = [
-  "contactos", "compradores", "comprador_imoveis", "comprador_documentos", "comprador_zonas", "proprietarios", "chamadas",
+  "contactos", "compradores", "comprador_imoveis", "comprador_documentos", "comprador_zonas", "proprietarios", "proprietario_documentos", "chamadas",
   "angariacoes", "angariacao_acoes", "tarefas", "correspondencias", "metas", "metas_config", "metas_semanas", "visitas_externas", "propostas_externas",
 ];
 
@@ -70,6 +70,7 @@ async function semear(db, empresa, tag) {
   await admin(db, "insert into comprador_documentos (comprador_id, nome, empresa_id) values ($1, 'doc', $2)", [cp, e]);
   await admin(db, "insert into comprador_zonas (comprador_id, distrito, empresa_id) values ($1, 'Braga', $2)", [cp, e]);
   const pr = await uuid(db, "insert into proprietarios (contacto_id, empresa_id) values ($1, $2) returning id", [c, e]);
+  await admin(db, "insert into proprietario_documentos (proprietario_id, nome, empresa_id) values ($1, 'doc', $2)", [pr, e]);
   await admin(db, "insert into chamadas (contacto_id, empresa_id) values ($1, $2)", [c, e]);
   const an = await uuid(db, "insert into angariacoes (titulo, proprietario_id, empresa_id) values ($1, $2, $3) returning id", [`A ${tag}`, pr, e]);
   await admin(db, "insert into angariacao_acoes (angariacao_id, nome, dia, empresa_id) values ($1, 'Fotos', 0, $2)", [an, e]);

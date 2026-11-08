@@ -7,6 +7,7 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { useToast } from "@/components/Toast";
 import AtivarNotificacoes from "@/components/AtivarNotificacoes";
 import OpcaoFaceId from "@/components/OpcaoFaceId";
+import NomeDoAgente from "@/components/NomeDoAgente";
 import { esquecerAparelhoNativo } from "@/lib/nativo";
 import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
@@ -99,6 +100,8 @@ export default function Conta() {
         <h1 className="text-4xl font-bold tracking-tight text-tinta md:text-5xl">Conta</h1>
         <p className="text-sm text-secundario">{email ?? "A carregar..."}</p>
       </div>
+
+      <NomeDoAgente />
 
       <section className={cartao} data-so-web>
         <h2 className="text-sm font-semibold text-tinta">Instalar no telemóvel</h2>

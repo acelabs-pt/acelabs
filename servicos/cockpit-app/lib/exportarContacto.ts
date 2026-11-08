@@ -23,10 +23,11 @@ export async function reunirDadosDoContacto(contactoId: string) {
   const cid = comprador?.id as string | undefined;
   const pid = proprietario?.id as string | undefined;
 
-  const [zonas, imoveis, documentos, angariacoes, chamadas, tarefasContacto, tarefasComprador, tarefasProprietario, alertasComprador, alertasProprietario] = await Promise.all([
+  const [zonas, imoveis, documentos, documentosProprietario, angariacoes, chamadas, tarefasContacto, tarefasComprador, tarefasProprietario, alertasComprador, alertasProprietario] = await Promise.all([
     cid ? um(sb.from("comprador_zonas").select("*").eq("comprador_id", cid)) : [],
     cid ? um(sb.from("comprador_imoveis").select("*").eq("comprador_id", cid)) : [],
     cid ? um(sb.from("comprador_documentos").select("*").eq("comprador_id", cid)) : [],
+    pid ? um(sb.from("proprietario_documentos").select("*").eq("proprietario_id", pid)) : [],
     pid ? um(sb.from("angariacoes").select("*").eq("proprietario_id", pid)) : [],
     um(sb.from("chamadas").select("*").eq("contacto_id", contactoId).order("ocorreu_em")),
     um(sb.from("tarefas").select("*").eq("contacto_id", contactoId)),
@@ -42,7 +43,7 @@ export async function reunirDadosDoContacto(contactoId: string) {
     origem: "Cockpit (Ace Labs)",
     contacto,
     ficha_de_comprador: comprador ? { ...comprador, zonas, imoveis, documentos_da_escritura: documentos } : null,
-    ficha_de_proprietario: proprietario ? { ...proprietario, angariacoes } : null,
+    ficha_de_proprietario: proprietario ? { ...proprietario, angariacoes, documentos: documentosProprietario } : null,
     chamadas,
     tarefas: unicos([...tarefasContacto, ...tarefasComprador, ...tarefasProprietario]),
     alertas_de_correspondencia: unicos([...alertasComprador, ...alertasProprietario]),

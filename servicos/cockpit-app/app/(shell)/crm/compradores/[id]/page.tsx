@@ -18,8 +18,10 @@ import {
   FUNIL,
   OBJETIVOS,
   alertaLaranja,
+  comValor,
   concluirTarefasSemanais,
   removerEventoVisita,
+  sincronizarTarefaEscritura,
   sincronizarEventoVisita,
   contar,
   indiceFunil,
@@ -38,8 +40,32 @@ import { distribuirHoras } from "@/lib/horas";
 import { eur } from "@/lib/graficos";
 import { linkWhatsapp } from "@/lib/whatsapp";
 
-type Documento = { id: string; nome: string; entregue: boolean };
+type Documento = { id: string; nome: string; entregue: boolean; valor: number | null };
 type AngMinha = { id: string; titulo: string; vendido_em: string | null };
+
+// Valor do cheque bancário: grava ao sair do campo.
+function ValorDocumento({ valor, onGuardar }: { valor: number | null; onGuardar: (v: number | null) => void }) {
+  const [texto, setTexto] = useState(valor?.toString() ?? "");
+  useEffect(() => setTexto(valor?.toString() ?? ""), [valor]);
+  return (
+    <label className="mt-1 ml-6 flex items-center gap-2 text-xs text-secundario">
+      Valor (EUR)
+      <input
+        type="number"
+        inputMode="decimal"
+        min={0}
+        step="0.01"
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={() => {
+          const v = texto.trim() === "" ? null : Number(texto);
+          if (v !== valor && (v === null || !Number.isNaN(v))) onGuardar(v);
+        }}
+        className="w-32 rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-sm text-tinta"
+      />
+    </label>
+  );
+}
 
 export default function FichaComprador() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +76,7 @@ export default function FichaComprador() {
   const [zonas, setZonas] = useState<Localizacao[]>([]);
   const [corresp, setCorresp] = useState<Correspondencia[]>([]);
   const [propExistente, setPropExistente] = useState<Proprietario | null>(null);
+  const [agendaVersao, setAgendaVersao] = useState(0);
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [fichaAberta, setFichaAberta] = useState(false);
@@ -84,6 +111,16 @@ export default function FichaComprador() {
     setCorresp(cs);
     const { data: pr } = await sb.from("proprietarios").select("*, contactos(*)").eq("contacto_id", (r1.data as { contacto_id: string }).contacto_id).limit(1);
     setPropExistente(((pr ?? [])[0] as unknown as Proprietario | undefined) ?? null);
+    const cr = r1.data as unknown as Comprador;
+    await sincronizarTarefaEscritura({
+      id: cr.id,
+      contacto_id: cr.contacto_id,
+      nome: cr.contactos.nome,
+      cpcv_fechado: cr.cpcv_fechado,
+      escritura_prazo: cr.escritura_prazo,
+      escritura_agendada: cr.escritura_agendada,
+    });
+    setAgendaVersao((v) => v + 1);
   }, [id]);
 
   useEffect(() => {
@@ -227,6 +264,12 @@ export default function FichaComprador() {
     await carregar();
   }
 
+  async function guardarValorDoc(d: Documento, valor: number | null) {
+    setDocs((ds) => ds.map((x) => (x.id === d.id ? { ...x, valor } : x)));
+    const { error } = await sbBrowser().from("comprador_documentos").update({ valor }).eq("id", d.id);
+    if (error) setErro("Não foi possível guardar o valor do cheque.");
+  }
+
   async function alternarDoc(d: Documento) {
     setDocs((ds) => ds.map((x) => (x.id === d.id ? { ...x, entregue: !x.entregue } : x)));
     await sbBrowser().from("comprador_documentos").update({ entregue: !d.entregue }).eq("id", d.id);
@@ -366,7 +409,7 @@ export default function FichaComprador() {
         )}
       </section>
 
-      <AgendaDoComprador compradorId={c.id} nome={c.contactos.nome} />
+      <AgendaDoComprador compradorId={c.id} contactoId={c.contacto_id} nome={c.contactos.nome} versao={agendaVersao} />
 
       <section className={cartao}>
         <h3 className="text-sm font-semibold text-tinta">Funil</h3>
@@ -655,10 +698,13 @@ export default function FichaComprador() {
                   className="rounded-lg"
                   direita={{ rotulo: d.entregue ? "Por entregar" : "Entregue", classe: d.entregue ? "bg-secundario text-tinta" : "bg-verde text-tinta", onAcao: () => alternarDoc(d) }}
                 >
-                  <label className="flex items-center gap-2 bg-white py-1 text-sm">
-                    <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
-                    <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
-                  </label>
+                  <div className="bg-white py-1">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={d.entregue} onChange={() => alternarDoc(d)} />
+                      <span className={d.entregue ? "text-secundario line-through" : "text-tinta"}>{d.nome}</span>
+                    </label>
+                    {comValor(d.nome) && <ValorDocumento valor={d.valor} onGuardar={(v) => guardarValorDoc(d, v)} />}
+                  </div>
                 </SwipeLinha>
               </li>
             ))}

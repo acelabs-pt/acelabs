@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
-import { useToast } from "@/components/Toast";
-import { marcarTarefa } from "@/lib/tarefas";
-import { alternarGoogleCalendar } from "@/lib/googleCalendar";
+import AgendarTarefa from "@/components/crm/AgendarTarefa";
 import { formatarDia, formatarHora } from "@/lib/datas";
 import type { ImovelComprador } from "@/lib/comprador";
-import type { Tarefa } from "@/lib/types";
 
 /** Nome curto de um imóvel enviado: a descrição, ou o endereço do anúncio sem o "https://www.". */
 export function nomeImovel(i: Pick<ImovelComprador, "descricao" | "link">): string {
@@ -22,49 +19,55 @@ export function nomeImovel(i: Pick<ImovelComprador, "descricao" | "link">): stri
   }
 }
 
-// Próximos passos do comprador: o que está por fazer com ele.
-export default function AgendaDoComprador({ compradorId, nome }: { compradorId: string; nome: string }) {
-  const { avisar } = useToast();
-  const [tarefas, setTarefas] = useState<Tarefa[] | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = useCallback(async () => {
-    const { data } = await sbBrowser()
-      .from("tarefas")
-      .select("*")
-      .eq("comprador_id", compradorId)
-      .eq("feita", false)
-      .order("inicio", { ascending: true, nullsFirst: false })
-      .limit(20);
-    setTarefas((data ?? []) as Tarefa[]);
-  }, [compradorId]);
+// Próximos passos do comprador: "enviar novas opções de imóveis" (uma só linha, por muitas semanas que estejam por fazer) e "agendar escritura".
+// A tarefa não se marca à mão: fecha quando se regista um imóvel como "Enviado" (as etiquetas de atraso estão no topo da ficha).
+export default function AgendaDoComprador({
+  compradorId,
+  contactoId,
+  nome,
+  versao = 0,
+}: {
+  compradorId: string;
+  contactoId: string;
+  nome: string;
+  versao?: number;
+}) {
+  type Linha = { id: string; titulo: string; chave_automacao: string | null; inicio: string | null };
+  const [linhas, setLinhas] = useState<Linha[] | null>(null);
+  const [recarregar, setRecarregar] = useState(0);
+  const primeiro = nome.split(" ")[0];
 
   useEffect(() => {
-    carregar();
-  }, [carregar]);
+    sbBrowser()
+      .from("tarefas")
+      .select("id, titulo, chave_automacao, inicio")
+      .eq("comprador_id", compradorId)
+      .eq("feita", false)
+      .or("titulo.like.Enviar%,chave_automacao.like.%:agendar-escritura,chave_automacao.like.manual:comprador:%")
+      .order("inicio", { ascending: true })
+      .limit(100)
+      .then(({ data }) => setLinhas((data ?? []) as Linha[]));
+  }, [compradorId, versao, recarregar]);
 
-  async function feita(t: Tarefa) {
-    setTarefas((ts) => (ts ?? []).filter((x) => x.id !== t.id));
-    const e = await marcarTarefa(t, true);
-    if (e) {
-      setErro(e);
-      return carregar();
-    }
-    avisar("Tarefa feita.", {
-      rotulo: "Desfazer",
-      onAcao: async () => {
-        await marcarTarefa({ ...t, feita: true }, false);
-        await carregar();
-      },
-    });
+  async function feita(t: Linha) {
+    setLinhas((l) => (l ?? []).filter((x) => x.id !== t.id));
+    await sbBrowser().from("tarefas").update({ feita: true, feita_em: new Date().toISOString() }).eq("id", t.id);
   }
 
-  async function alternarGoogle(t: Tarefa) {
-    setErro(await alternarGoogleCalendar(t));
-    await carregar();
-  }
+  const enviar = (linhas ?? []).some((t) => t.titulo.startsWith("Enviar"));
+  const escritura = (linhas ?? []).some((t) => t.chave_automacao?.endsWith(":agendar-escritura"));
+  const agendadas = (linhas ?? []).filter((t) => t.chave_automacao?.startsWith("manual:comprador:"));
 
-  const agora = new Date();
+  const Passo = ({ titulo, nota }: { titulo: string; nota: string }) => (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-ambar" aria-hidden="true" />
+      <div>
+        <p className="text-sm font-medium text-tinta">{titulo}</p>
+        <p className="text-xs text-secundario">{nota}</p>
+      </div>
+    </div>
+  );
+
   return (
     <section className="space-y-3 rounded-3xl border border-linha bg-white p-5" aria-labelledby="proximos-comprador">
       <div className="flex items-center justify-between">
@@ -76,60 +79,31 @@ export default function AgendaDoComprador({ compradorId, nome }: { compradorId: 
         </Link>
       </div>
 
-      {erro && (
-        <p role="alert" className="text-sm text-red-700">
-          {erro}
-        </p>
+      {linhas === null ? (
+        <p className="text-sm text-secundario">A carregar...</p>
+      ) : !enviar && !escritura && agendadas.length === 0 ? (
+        <p className="text-sm text-secundario">Nada por fazer com {primeiro}.</p>
+      ) : (
+        <div className="space-y-3">
+          {escritura && <Passo titulo={`Agendar escritura com ${primeiro}`} nota="Fecha sozinho quando marcas a escritura como agendada." />}
+          {enviar && <Passo titulo={`Enviar novas opções de imóveis a ${primeiro}`} nota="Fecha sozinho quando registas um imóvel como enviado." />}
+          {agendadas.map((t) => (
+            <label key={t.id} className="flex items-start gap-2.5 text-sm">
+              <input type="checkbox" onChange={() => feita(t)} className="mt-1" />
+              <span className="text-tinta">
+                {t.titulo}
+                {t.inicio && (
+                  <span className={`block text-xs ${new Date(t.inicio) < new Date() ? "text-ambar-texto" : "text-secundario"}`}>
+                    {formatarDia(new Date(t.inicio))} {formatarHora(t.inicio)}
+                  </span>
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
       )}
 
-      {tarefas === null ? (
-        <p className="text-sm text-secundario">A carregar...</p>
-      ) : tarefas.length === 0 ? (
-        <p className="text-sm text-secundario">Nada por fazer com {nome.split(" ")[0]}.</p>
-      ) : (
-        <ul className="space-y-1">
-          {tarefas.map((t) => {
-            const atrasada = !!t.inicio && new Date(t.inicio) < agora;
-            return (
-              <li key={t.id} className="flex items-center gap-3 py-1">
-                <button
-                  onClick={() => feita(t)}
-                  aria-label={`Marcar como feita: ${t.titulo}`}
-                  className="h-6 w-6 shrink-0 rounded-full border-2 border-black/20 hover:border-verde"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-tinta">
-                    {t.tipo === "evento" && <span className="mr-1.5 text-azul" aria-hidden="true">&#9679;</span>}
-                    {t.titulo}
-                  </p>
-                  <p className={`text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                    {t.inicio ? `${formatarDia(new Date(t.inicio))}${formatarHora(t.inicio) ? `, ${formatarHora(t.inicio)}` : ""}${atrasada ? ", em atraso" : ""}` : "Sem data"}
-                  </p>
-                  {t.inicio && (
-                    <label className="mt-0.5 flex w-fit items-center gap-1.5 text-xs text-secundario">
-                      <input type="checkbox" checked={!!t.google_calendar_em} onChange={() => alternarGoogle(t)} />
-                      Google Calendar
-                    </label>
-                  )}
-                </div>
-                {t.inicio && !atrasada && (
-                  <a
-                    href={`/api/tarefas/${t.id}/calendario`}
-                    aria-label={`Pôr no calendário do telemóvel: ${t.titulo}`}
-                    title="Pôr no calendário do telemóvel"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-azul-suave text-azul-escuro hover:bg-azul hover:text-white"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <rect x="3" y="4" width="18" height="18" rx="2" />
-                      <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
-                    </svg>
-                  </a>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <AgendarTarefa origem="comprador" clienteId={compradorId} contactoId={contactoId} aoCriar={() => setRecarregar((v) => v + 1)} />
     </section>
   );
 }

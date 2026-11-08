@@ -399,28 +399,14 @@ const doProp = (i: number, titulo: string, quando: Date, tipo: "tarefa" | "event
   contacto_id: contP[i].id,
   chave_automacao: chave,
 });
-COMPRADORES.forEach((c, i) => {
-  const ativo = ESTADOS_A_PROCURAR.includes(c.estado) || c.estado === "cpcv" || c.estado === "escritura";
-  const antigas = c.estado === "perdido" ? 1 : (i % 3) + 2; // histórico feito
-  for (let j = 0; j < antigas; j++) {
-    tarefas.push(doComprador(i, `Ligar a ${c.nome.split(" ").slice(0, 2).join(" ")}: ponto de situação`, dias(-(8 + j * 17 + (i % 6)), 10 + (j % 6)), "tarefa", true));
-  }
-  if (ativo && i % 5 === 0) tarefas.push(doComprador(i, `Enviar novas opções a ${c.nome.split(" ").slice(0, 2).join(" ")}`, dias(-(3 + (i % 5)), 12))); // em atraso
-});
 tarefas.push(
   doComprador(COMPRADORES.findIndex((x) => x.nome === "Marta Gonçalves"), "Visita ao T3 em Creixomil com Marta Gonçalves", dias(0, 15, 30), "evento"),
   doComprador(COMPRADORES.findIndex((x) => x.nome === "Beatriz Correia"), "Segunda visita em Leça com Beatriz Correia", dias(2, 11), "evento"),
   doComprador(COMPRADORES.findIndex((x) => x.nome === "Diogo Antunes"), "Escritura do Diogo Antunes", dias(19, 11), "evento"),
-  doComprador(COMPRADORES.findIndex((x) => x.nome === "Helder Cruz"), "Escritura do Helder Cruz", dias(3, 10), "evento"),
-  doComprador(COMPRADORES.findIndex((x) => x.nome === "Rita Monteiro"), "Pedir à Rita Monteiro o comprovativo do sinal", dias(0, 9, 30)),
-  doComprador(COMPRADORES.findIndex((x) => x.nome === "Paulo Azevedo"), "Ligar a Paulo Azevedo (6 meses após a escritura)", dias(148, 9))
+  doComprador(COMPRADORES.findIndex((x) => x.nome === "Helder Cruz"), "Escritura do Helder Cruz", dias(3, 10), "evento")
 );
 PROPRIETARIOS.forEach((p, i) => {
-  if (p.estado === "perdido") {
-    tarefas.push(doProp(i, `Primeiro contacto com ${p.nome}`, dias(p.desde - 12, 11), "tarefa", true));
-    return;
-  }
-  tarefas.push(doProp(i, `Primeiro contacto com ${p.nome}`, dias(p.desde - 10, 11), "tarefa", true));
+  if (p.estado === "perdido") return;
   if (p.reuniao != null) {
     const passada = p.reuniao < 0;
     tarefas.push(doProp(i, `Reunião de angariação: ${p.nome}`, dias(p.reuniao, 18, 30), "evento", passada, `proprietario:${props[i].id}:reuniao`));
@@ -429,8 +415,6 @@ PROPRIETARIOS.forEach((p, i) => {
     tarefas.push(doProp(i, `Enviar Dossier Digital + página de Instagram a ${p.nome}`, dias(-4, 10), "tarefa", true, `proprietario:${props[i].id}:dossier`));
     tarefas.push(doProp(i, `Partilhar um imóvel vendido com ${p.nome} (exemplo, de forma natural)`, dias(1, 10), "tarefa", false, `proprietario:${props[i].id}:vendido`));
   }
-  if (p.estado === "follow_up_1") tarefas.push(doProp(i, `Follow up com ${p.nome} (14 dias)`, dias(-2, 10), "tarefa", false, `proprietario:${props[i].id}:followup1`));
-  if (p.estado === "fsbo") tarefas.push(doProp(i, `Contactar ${p.nome} (anúncio próprio)`, dias(i % 3, 11)));
 });
 blocos.push("-- tarefas e calendário", inserir("tarefas", tarefas));
 

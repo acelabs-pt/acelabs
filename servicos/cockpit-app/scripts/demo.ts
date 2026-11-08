@@ -335,15 +335,9 @@ async function semear() {
     contacto_id: ct(nome).id,
   });
   tarefas.push(
-    doComprador("Ana Rita Fernandes", "Ligar a Ana Rita Fernandes: primeiras opções em Azurém", dias(0, 10)),
     doComprador("Marta Gonçalves", "Visita ao T3 em Creixomil com Marta Gonçalves", dias(0, 15, 30), "evento"),
-    doComprador("André Sousa", "Saber resposta do proprietário à proposta do André Sousa", dias(0, 17)),
-    doComprador("Catarina Pinto", "Enviar mais 2 opções na Maia a Catarina Pinto", dias(-1, 12)),
     doComprador("Beatriz Correia", "Segunda visita em Leça com Beatriz Correia", dias(2, 11), "evento"),
-    doComprador("Diogo Antunes", "Escritura do Diogo Antunes", dias(19, 11), "evento"),
-    doComprador("Rita Monteiro", "Pedir à Rita Monteiro o comprovativo do sinal", dias(0, 9, 30)),
-    doComprador("Nuno Ribeiro", "Ponto de situação com Nuno Ribeiro (venda da casa dele)", dias(-3, 18)),
-    doComprador("Paulo Azevedo", "Ligar a Paulo Azevedo (6 meses após a escritura)", dias(148, 9))
+    doComprador("Diogo Antunes", "Escritura do Diogo Antunes", dias(19, 11), "evento")
   );
   const reuniao = (nome: string, quando: Date, feita: boolean) => ({
     titulo: `Reunião de angariação: ${nome}`,
@@ -381,7 +375,6 @@ async function semear() {
       contacto_id: pt("Lurdes Martins").id,
       chave_automacao: `proprietario:${p("Lurdes Martins").id}:vendido`,
     },
-    { titulo: "Primeiro contacto com Manuel Oliveira (anúncio no OLX)", tipo: "tarefa", inicio: dias(0, 11).toISOString(), feita: false, feita_em: null, origem: "proprietario", proprietario_id: p("Manuel Oliveira").id, contacto_id: pt("Manuel Oliveira").id }
   );
   await inserir("tarefas", tarefas);
 

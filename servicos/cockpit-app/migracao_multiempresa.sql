@@ -108,7 +108,7 @@ declare t text;
 begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos', 'comprador_zonas',
-    'proprietarios', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
+    'proprietarios', 'proprietario_documentos', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
     'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas'
   ] loop
     execute format('alter table %I add column if not exists empresa_id uuid references empresas(id) on delete cascade', t);
@@ -121,7 +121,7 @@ declare t text; sobra boolean;
 begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos', 'comprador_zonas',
-    'proprietarios', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
+    'proprietarios', 'proprietario_documentos', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
     'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas'
   ] loop
     execute format('select exists (select 1 from %I where empresa_id is null)', t) into sobra;

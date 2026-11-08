@@ -22,6 +22,7 @@ import {
   TIPOLOGIAS,
   TIPOS_IMOVEL,
   alertaLaranja,
+  proximoPasso,
   contar,
   garantirTarefasSemanais,
   labelEstado,
@@ -316,7 +317,10 @@ export default function ListaCompradores() {
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <span className="rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">{labelEstado(c.estado)}</span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">{labelEstado(c.estado)}</span>
+                        {proximoPasso(c, n) && <span className="max-w-[10rem] text-right text-[11px] leading-tight text-secundario">{proximoPasso(c, n)}</span>}
+                      </div>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -422,6 +426,7 @@ function Funil({
                         {alerta && (
                           <p className="mt-1.5 rounded-md bg-ambar-fundo px-2 py-1 text-[11px] font-medium text-ambar-texto">{alerta}</p>
                         )}
+                        {proximoPasso(c, n) && <p className="mt-1.5 text-[11px] text-secundario">Próximo: {proximoPasso(c, n)}</p>}
                       </Link>
                     </li>
                   );

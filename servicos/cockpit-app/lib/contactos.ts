@@ -14,6 +14,16 @@ export async function ultimosContactos(): Promise<Record<string, string>> {
   return out;
 }
 
+/** Regista uma chamada feita na data e hora indicadas. Devolve o id (para a poder desfazer) ou null se falhar. */
+export async function registarChamada(contactoId: string, quando: Date, observacoes: string | null = null): Promise<string | null> {
+  const { data, error } = await sbBrowser()
+    .from("chamadas")
+    .insert({ contacto_id: contactoId, ocorreu_em: quando.toISOString(), observacoes })
+    .select("id")
+    .single();
+  return error || !data ? null : (data.id as string);
+}
+
 /** Regista uma chamada feita agora. Devolve o id (para a poder desfazer) ou null se falhar. */
 export async function registarChamadaAgora(contactoId: string, observacoes: string | null = null): Promise<string | null> {
   const { data, error } = await sbBrowser()
@@ -22,6 +32,12 @@ export async function registarChamadaAgora(contactoId: string, observacoes: stri
     .select("id")
     .single();
   return error || !data ? null : (data.id as string);
+}
+
+/** Corrige a data/hora e a nota de uma chamada já registada. */
+export async function editarChamada(id: string, ocorreuEm: Date, observacoes: string | null): Promise<boolean> {
+  const { error } = await sbBrowser().from("chamadas").update({ ocorreu_em: ocorreuEm.toISOString(), observacoes }).eq("id", id);
+  return !error;
 }
 
 export async function apagarChamada(id: string): Promise<boolean> {

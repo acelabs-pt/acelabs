@@ -35,7 +35,7 @@ declare t text;
 begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos', 'comprador_zonas',
-    'proprietarios', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
+    'proprietarios', 'proprietario_documentos', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
     'metas', 'metas_config', 'metas_semanas'
   ] loop
     if to_regclass(t) is not null then

@@ -97,6 +97,65 @@ export function contar(imoveis: ImovelComprador[]): Contagens {
   };
 }
 
+/**
+ * Automação "Agendar escritura": com o CPCV fechado e o prazo da escritura definido, cria uma tarefa para marcar o dia da escritura
+ * (uma por comprador). Fecha-se sozinha quando a escritura fica agendada. Pode chamar-se sempre que a ficha carrega.
+ */
+export async function sincronizarTarefaEscritura(c: {
+  id: string;
+  contacto_id: string;
+  nome: string;
+  cpcv_fechado: boolean;
+  escritura_prazo: string | null;
+  escritura_agendada: boolean;
+}): Promise<void> {
+  if (!c.cpcv_fechado) return;
+  const sb = sbBrowser();
+  const chave = `comprador:${c.id}:agendar-escritura`;
+  if (c.escritura_agendada) {
+    await sb.from("tarefas").update({ feita: true, feita_em: new Date().toISOString() }).eq("chave_automacao", chave).eq("feita", false);
+    return;
+  }
+  if (!c.escritura_prazo) return;
+  const { data } = await sb.from("tarefas").select("id").eq("chave_automacao", chave).limit(1);
+  if ((data ?? []).length > 0) return;
+  const [quando] = await distribuirHoras([{ chave, dia: new Date() }]);
+  await sb.from("tarefas").insert({
+    titulo: `Agendar escritura com ${c.nome}`,
+    tipo: "tarefa",
+    inicio: quando.toISOString(),
+    origem: "comprador",
+    comprador_id: c.id,
+    contacto_id: c.contacto_id,
+    chave_automacao: chave,
+  });
+}
+
+// Próximo passo a fazer com o comprador, conforme a fase do funil (e as metas de 10 envios e 5 visitas das tarefas semanais).
+export function proximoPasso(
+  c: Pick<Comprador, "estado" | "escritura_prazo" | "escritura_agendada">,
+  n: Contagens = { enviados: 0, visitas: 0, propostas: 0 }
+): string | null {
+  switch (c.estado) {
+    case "lead_qualificada":
+      return "Enviar opções de imóveis";
+    case "imoveis_enviados":
+      return n.enviados < OBJETIVOS.enviados ? "Enviar opções de imóveis" : "Propor visita";
+    case "visitas_realizadas":
+      return n.visitas < OBJETIVOS.visitas ? "Propor visita" : "Fazer proposta";
+    case "propostas_efetuadas":
+      return "Avançar para CPCV / enviar outras opções";
+    case "cpcv":
+      return !c.escritura_prazo ? "Definir prazo da escritura" : !c.escritura_agendada ? "Agendar escritura" : "Aguardar a escritura";
+    case "escritura":
+      return "Concluir negócio após a escritura";
+    case "negocio_concluido":
+      return "Ligar 6 meses após a escritura";
+    default:
+      return null;
+  }
+}
+
 // Alerta laranja do desenho: lead qualificada há 10+ dias sem passar a imóveis enviados.
 export function alertaLaranja(c: Pick<Comprador, "estado" | "estado_desde">): string | null {
   if (c.estado === "lead_qualificada" && diasDesde(c.estado_desde) >= 10) {
@@ -117,17 +176,10 @@ export const TIPOLOGIAS = ["T0", "T1", "T2", "T3", "T4", "T5 ou mais"];
 export const CANAIS_ORIGEM = ["Idealista", "Imovirtual", "Meta", "Site da imobiliária", "Placa", "Referência", "Outro"];
 export const FINANCIAMENTO = ["Capitais próprios", "Crédito pré-aprovado", "Vai pedir crédito"];
 export const SIMULACAO_CREDITO = ["Feita", "Em processamento", "Por fazer", "Não aplicável"];
-// Documentos habituais do comprador para a escritura. Proposta inicial, a validar pelo Miguel.
-export const DOCUMENTOS_ESCRITURA = [
-  "Cartão de Cidadão (ou passaporte) e NIF dos compradores",
-  "Comprovativo de morada",
-  "Estado civil e regime de bens (certidão de casamento, se aplicável)",
-  "Aprovação do crédito (carta do banco)",
-  "Comprovativo do pagamento do sinal",
-  "Comprovativo de pagamento do IMT e do Imposto do Selo",
-  "IBAN para pagamentos",
-  "Procuração (se alguém assinar em nome do comprador)",
-];
+// Documentos do comprador para a escritura (lista definida pelo Miguel). O cheque bancário leva o valor ao lado.
+export const DOCUMENTOS_ESCRITURA = ["Documento de identificação", "Cheque Bancário"];
+export const comValor = (nome: string) => nome.trim().toLowerCase().startsWith("cheque");
+
 
 export const PREFIXOS = ["+351", "+34", "+33", "+44", "+49", "+41", "+55", "+1"];
 

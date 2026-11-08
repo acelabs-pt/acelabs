@@ -56,6 +56,30 @@ export type Proprietario = {
   };
 };
 
+// Documentos do proprietário para a angariação e a escritura (lista definida pelo Miguel).
+export const DOCUMENTOS_PROPRIETARIO = [
+  "Documentos de Identificação",
+  "Certidão Permanente do Registo Predial",
+  "Caderneta Predial Urbana",
+  "Licença de Utilização",
+  "Certificado Energético",
+  "Ficha Técnica de Habitação (se aplicável)",
+  "Declaração de Não Dívida ao Condomínio",
+  "Procuração (se aplicável)",
+];
+
+/** Etiqueta com a distância à reunião de angariação: "Reunião hoje", "Reunião há 5 dias", "Reunião daqui a 2 dias". */
+export function etiquetaReuniao(iso: string, agora: Date = new Date()): string {
+  const dia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dias = Math.round((dia(agora) - dia(new Date(iso))) / 86400000);
+  if (dias === 0) return "Reunião hoje";
+  if (dias === 1) return "Reunião ontem";
+  if (dias === -1) return "Reunião amanhã";
+  const n = Math.abs(dias);
+  const tempo = n < 14 ? `${n} dias` : n < 60 ? `${Math.floor(n / 7)} semanas` : `${Math.floor(n / 30)} meses`;
+  return dias > 0 ? `Reunião há ${tempo}` : `Reunião daqui a ${tempo}`;
+}
+
 export type Chamada = { id: string; ocorreu_em: string; observacoes: string | null };
 
 const H = 3600_000;
@@ -69,8 +93,8 @@ function plano(nome: string, reuniao: Date) {
     { k: "agradecimento", tipo: "tarefa", quando: em(5 * H), titulo: `Mensagem de agradecimento a ${nome}` },
     { k: "dossier", tipo: "tarefa", quando: em(2 * D), titulo: `Enviar Dossier Digital + página de Instagram a ${nome}` },
     { k: "vendido", tipo: "tarefa", quando: em(7 * D), titulo: `Partilhar um imóvel vendido com ${nome} (exemplo, de forma natural)` },
-    { k: "fu1", tipo: "tarefa", quando: em(14 * D), titulo: `Chamada a ${nome}: ponto de situação da venda por conta própria` },
-    { k: "fu2", tipo: "tarefa", quando: em(22 * D), titulo: `Chamada a ${nome}: ponto de situação da venda por conta própria` },
+    { k: "fu1", tipo: "tarefa", quando: em(14 * D), titulo: `Ligar a ${nome} para marcar a reunião de angariação` },
+    { k: "fu2", tipo: "tarefa", quando: em(22 * D), titulo: `Ligar a ${nome} para marcar a reunião de angariação` },
     { k: "angariar", tipo: "tarefa", quando: em(30 * D), titulo: `Chamada de angariação a ${nome}: fechar angariação` },
   ];
 }

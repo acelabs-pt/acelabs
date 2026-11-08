@@ -10,6 +10,9 @@ import { atualizarPorProprietario, carregarDoProprietario, responder, type Corre
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import BotaoExportar from "@/components/crm/BotaoExportar";
 import ContactosRegistados from "@/components/crm/ContactosRegistados";
+import DocumentosProprietario from "@/components/crm/DocumentosProprietario";
+import AgendarTarefa from "@/components/crm/AgendarTarefa";
+import MensagemAgradecimento from "@/components/crm/MensagemAgradecimento";
 import FormProprietario, { paraContactoProp, paraProprietario, valoresIniciaisProp } from "@/components/crm/FormProprietario";
 import {
   FUNIL_PROP,
@@ -17,6 +20,7 @@ import {
   concluirChamadaDeAngariacao,
   concluirTarefasDaFase,
   ESTADO_POR_TAREFA,
+  etiquetaReuniao,
   indiceFunilProp,
   labelEstadoProp,
   tipoDaTarefa,
@@ -38,6 +42,9 @@ export default function FichaProprietario() {
   const [erro, setErro] = useState<string | null>(null);
   const [editar, setEditar] = useState(false);
   const [fichaAberta, setFichaAberta] = useState(false);
+  const [reuniaoAberta, setReuniaoAberta] = useState(false);
+  // Há um comprador com a escritura marcada para um imóvel deste proprietário (os documentos só interessam a partir daí).
+  const [escrituraMarcada, setEscrituraMarcada] = useState(false);
   const [aGuardar, setAGuardar] = useState(false);
 
   const [reuniao, setReuniao] = useState("");
@@ -66,12 +73,29 @@ export default function FichaProprietario() {
     setTarefas((r3.data ?? []) as Tarefa[]);
     setTemAngariacao((r4.data ?? []).length > 0);
     setRegimeGuardado(r4.data?.[0]?.regime ?? null);
+    const angIds = (r4.data ?? []).map((a) => a.id as string);
+    let marcada = false;
+    if (prop.estado === "angariado" && angIds.length > 0) {
+      const { data: ci } = await sb.from("comprador_imoveis").select("comprador_id").in("angariacao_id", angIds);
+      const cids = [...new Set((ci ?? []).map((x) => x.comprador_id as string))];
+      if (cids.length > 0) {
+        const { data: cs } = await sb.from("compradores").select("id").in("id", cids).eq("escritura_agendada", true);
+        marcada = (cs ?? []).length > 0;
+      }
+    }
+    setEscrituraMarcada(marcada);
     setReuniao((r) => r || (prop.reuniao_em ? isoParaLocal(prop.reuniao_em) : ""));
   }, [id]);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
+
+  // Quando a reunião de angariação é dada como feita, o cartão "Reunião de angariação" fecha-se sozinho.
+  const reuniaoFeita = !!p && tarefas.some((t) => t.chave_automacao === `proprietario:${p.id}:reuniao` && t.feita);
+  useEffect(() => {
+    setReuniaoAberta(false);
+  }, [reuniaoFeita]);
 
   async function atualizar(campos: Record<string, unknown>) {
     setErro(null);
@@ -321,6 +345,11 @@ export default function FichaProprietario() {
                     {t.inicio && (
                       <span className={`block text-xs ${!t.feita && new Date(t.inicio) < new Date() ? "text-ambar-texto" : "text-secundario"}`}>
                         {formatarDia(new Date(t.inicio))} {formatarHora(t.inicio)}
+                        {p.reuniao_em && t.chave_automacao?.startsWith(`proprietario:${p.id}:`) && !t.chave_automacao.endsWith(":reuniao") && (
+                          <span className={`ml-2 inline-block rounded-full px-2 py-0.5 align-middle text-[11px] font-medium transition-colors ${t.feita ? "bg-verde text-white" : "bg-black/5 text-secundario"}`}>
+                            {etiquetaReuniao(p.reuniao_em)}
+                          </span>
+                        )}
                       </span>
                     )}
                   </span>
@@ -335,6 +364,7 @@ export default function FichaProprietario() {
             ))}
           </ul>
         )}
+        <AgendarTarefa origem="proprietario" clienteId={p.id} contactoId={p.contacto_id} aoCriar={carregar} />
       </section>
 
       <section className={cartao}>
@@ -422,7 +452,25 @@ export default function FichaProprietario() {
       )}
 
       <section className={cartao}>
-        <h3 className="text-sm font-semibold text-tinta">Reunião de angariação</h3>
+        {reuniaoFeita ? (
+          <button
+            type="button"
+            onClick={() => setReuniaoAberta((v) => !v)}
+            aria-expanded={reuniaoAberta}
+            className="flex w-full items-center justify-between gap-2 text-left"
+          >
+            <span className="text-sm font-semibold text-tinta">
+              Reunião de angariação <span className="ml-1 rounded-full bg-verde px-2 py-0.5 text-[11px] font-medium text-white">feita</span>
+            </span>
+            <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-secundario transition-transform ${reuniaoAberta ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        ) : (
+          <h3 className="text-sm font-semibold text-tinta">Reunião de angariação</h3>
+        )}
+        {(!reuniaoFeita || reuniaoAberta) && (
+          <>
         {p.reuniao_em && (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm text-tinta">
@@ -445,8 +493,16 @@ export default function FichaProprietario() {
         <p className="text-xs text-secundario">
           Ao marcar, o calendário recebe a reunião e os follow-ups (5 horas, 2, 7, 14, 22 e 30 dias depois).
         </p>
+          </>
+        )}
       </section>
 
+
+      {/* a mensagem de agradecimento só faz sentido depois de a reunião de angariação estar marcada */}
+      {p.reuniao_em && <MensagemAgradecimento nome={p.contactos.nome} feita={tarefas.some((t) => t.chave_automacao === `proprietario:${p.id}:agradecimento` && t.feita)} />}
+
+      {/* só quando o proprietário está angariado, o imóvel está angariado e há escritura marcada */}
+      {p.estado === "angariado" && temAngariacao && escrituraMarcada && <DocumentosProprietario proprietarioId={p.id} />}
 
       <ContactosRegistados contactoId={p.contacto_id} />
 
