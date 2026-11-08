@@ -97,10 +97,10 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
           </Link>
         </div>
 
-        <div className="rounded-[14px] border border-linha p-3 sm:p-4">
+        <div className="rounded-[14px] border border-azul/20 border-l-4 border-l-azul bg-azul-suave/60 p-3 sm:p-4">
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {numeros.map((x) => (
-              <div key={x.rotulo} className="rounded-[14px] border border-linha bg-white px-3 py-3 sm:px-4">
+              <div key={x.rotulo} className="rounded-[14px] border border-azul/15 bg-white px-3 py-3 sm:px-4">
                 <p className="text-3xl font-bold leading-none tracking-tight text-tinta sm:text-4xl">{x.n}</p>
                 <p className={`mt-1.5 text-xs sm:text-sm ${x.atraso ? "font-semibold text-ambar-texto" : "text-secundario"}`}>{x.rotulo}</p>
               </div>
@@ -108,16 +108,16 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
           </div>
         </div>
 
-        <div className="rounded-[14px] border border-linha p-3 sm:p-4">
-          <h3 className="mb-1 text-sm font-semibold text-secundario">{periodo === "hoje" ? "Marcações de hoje" : "Marcações da semana"}</h3>
+        <div className="rounded-[14px] border border-verde/25 border-l-4 border-l-verde bg-verde-suave/50 p-3 sm:p-4">
+          <h3 className="mb-1 text-sm font-semibold text-[#12703a]">{periodo === "hoje" ? "Marcações de hoje" : "Marcações da semana"}</h3>
           {marcacoes.length === 0 ? (
             <p className="py-2 text-sm text-secundario">Nenhuma visita ou reunião marcada {periodo === "hoje" ? "para hoje" : "para esta semana"}.</p>
           ) : (
-            <ul className="divide-y divide-linha">
+            <ul className="divide-y divide-verde/20">
               {marcacoes.map((t) => (
                 <li key={t.id}>
                   <Link href="/calendario" className="flex items-baseline gap-3 py-2.5 text-[15px] text-tinta">
-                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-azul">
+                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-[#12703a]">
                       {periodo === "semana" ? `${formatarDia(new Date(t.inicio!))} ` : ""}
                       {formatarHora(t.inicio!)}
                     </span>
@@ -129,10 +129,10 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
           )}
         </div>
 
-        <div className="rounded-[14px] border border-linha p-3 sm:p-4">
-          <h3 className="text-sm font-semibold text-secundario">Seguimentos</h3>
+        <div className="rounded-[14px] border border-ambar/30 border-l-4 border-l-ambar bg-ambar-fundo/50 p-3 sm:p-4">
+          <h3 className="text-sm font-semibold text-ambar-texto">Seguimentos</h3>
           {seguimentos.atrasados.length > 0 && (
-            <div className="mt-2 rounded-xl bg-ambar-fundo px-3 py-2.5">
+            <div className="mt-2 rounded-xl border border-ambar/40 bg-white px-3 py-2.5">
               <button
                 type="button"
                 onClick={() => setVerAtrasados((v) => !v)}

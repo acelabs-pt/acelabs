@@ -87,7 +87,7 @@ export default function Seguimentos({ dados, itens, vazio }: { dados: Dados; ite
   if (itens.length === 0) return <p className="py-2 text-sm text-secundario">{vazio}</p>;
   return (
     <>
-      <ul className="divide-y divide-linha">
+      <ul className="divide-y divide-ambar/25">
         {mostradas.map(({ t, ficha }) => {
           const atrasada = new Date(t.inicio!) < inicioHoje;
           const cliente = clienteDe(ficha, dados);
