@@ -57,7 +57,7 @@ export default function ResumoAngariacao({ ang, versao }: { ang: Angariacao; ver
         <div key={q.rotulo} className="quadro-glossy rounded-2xl p-3">
           <p className="text-xs font-medium text-secundario">{q.rotulo}</p>
           <p className="mt-0.5 text-3xl font-semibold tracking-tight text-tinta">{q.valor}</p>
-          {q.nota && <p className="text-[11px] text-secundario">{q.nota}</p>}
+          {q.nota && <p className="text-[0.6875rem] text-secundario">{q.nota}</p>}
         </div>
       ))}
     </div>

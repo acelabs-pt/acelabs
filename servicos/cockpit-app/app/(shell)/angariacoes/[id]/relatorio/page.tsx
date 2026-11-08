@@ -189,7 +189,7 @@ export default function Relatorio() {
           <p className="mt-1 text-xs text-secundario">Emitido a {dataLonga(agora)}</p>
         </header>
 
-        <section className="py-5 text-[15px] leading-relaxed">
+        <section className="py-5 text-[0.9375rem] leading-relaxed">
           <p>
             Este relatório resume o trabalho realizado na angariação deste imóvel desde o início do contrato
             {ang.vendido_em
@@ -215,11 +215,11 @@ export default function Relatorio() {
                   {dataCurta(dataDoDia(ang.inicio, de - 1))} a {dataCurta(dataDoDia(ang.inicio, ate - 1))}
                 </span>
               </h2>
-              <p className="mt-1 text-[15px] leading-relaxed text-secundario">{fraseDoPeriodo(lista)}</p>
+              <p className="mt-1 text-[0.9375rem] leading-relaxed text-secundario">{fraseDoPeriodo(lista)}</p>
               <ul className="mt-3 space-y-3">
                 {lista.map((a) => (
                   <li key={a.id} className="break-inside-avoid border-l-2 border-azul pl-3">
-                    <p className="text-[15px] font-medium">{nomeAcao(a)}</p>
+                    <p className="text-[0.9375rem] font-medium">{nomeAcao(a)}</p>
                     <p className="text-xs text-secundario">{a.feita_em ? dataCurta(new Date(a.feita_em)) : ""}</p>
                     {a.feedback && <p className="mt-1 text-sm leading-relaxed">{a.feedback}</p>}
                   </li>
@@ -243,7 +243,7 @@ export default function Relatorio() {
                 <ul className="mt-3 space-y-3">
                   {lista.map((r) => (
                     <li key={r.chave} className="break-inside-avoid border-l-2 border-azul pl-3">
-                      <p className="text-[15px] font-medium">{r.quem}</p>
+                      <p className="text-[0.9375rem] font-medium">{r.quem}</p>
                       <p className="text-xs text-secundario">{dataCurta(new Date(r.data + "T00:00:00"))}</p>
                       {r.obs && <p className="mt-1 text-sm leading-relaxed">{r.obs}</p>}
                     </li>

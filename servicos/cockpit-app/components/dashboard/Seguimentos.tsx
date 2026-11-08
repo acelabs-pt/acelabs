@@ -127,7 +127,7 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
           return (
             <li key={chave} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1">
-                <p className={`text-[11px] font-bold ${ficha.tipo === "comprador" ? "text-azul" : "text-verde"}`}>{ficha.tipo === "comprador" ? "Comprador" : "Proprietário"}</p>
+                <p className={`text-[0.6875rem] font-bold ${ficha.tipo === "comprador" ? "text-azul" : "text-verde"}`}>{ficha.tipo === "comprador" ? "Comprador" : "Proprietário"}</p>
                 <button
                   type="button"
                   onClick={() =>
@@ -141,7 +141,7 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
                   aria-label="Ver detalhes do seguimento"
                   className="flex w-full items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{cliente.nome ?? tarefas[0].titulo}</span>
+                  <span className="min-w-0 truncate text-[0.9375rem] font-bold text-tinta">{cliente.nome ?? tarefas[0].titulo}</span>
                   <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${atrasada ? "bg-ambar-fundo text-ambar-texto" : "bg-azul-suave text-azul-escuro"}`}>{acaoDe(tarefas[0])}</span>
                   {varias && <span className="shrink-0 rounded-full bg-black/5 px-2 py-0.5 text-xs font-semibold text-secundario">+{tarefas.length - 1}</span>}
                   <svg
@@ -169,7 +169,7 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
                             {emAtraso ? " · em atraso" : ""}
                           </p>
                           {varias && onNaoFeito && !t.angariacao_acao_id && (
-                            <button type="button" onClick={() => onNaoFeito(t)} className="shrink-0 rounded-full border border-linha px-2 py-0.5 text-[11px] font-semibold text-secundario hover:bg-black/5">
+                            <button type="button" onClick={() => onNaoFeito(t)} className="shrink-0 rounded-full border border-linha px-2 py-0.5 text-[0.6875rem] font-semibold text-secundario hover:bg-black/5">
                               Não feito
                             </button>
                           )}

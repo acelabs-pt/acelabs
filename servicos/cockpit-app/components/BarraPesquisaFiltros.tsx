@@ -37,7 +37,7 @@ export default function BarraPesquisaFiltros({
           <circle cx="8" cy="17" r="2.5" />
         </svg>
         Filtros
-        {nAtivos > 0 && <span className="rounded-full bg-azul px-1.5 text-[11px] font-semibold text-white">{nAtivos}</span>}
+        {nAtivos > 0 && <span className="rounded-full bg-azul px-1.5 text-[0.6875rem] font-semibold text-white">{nAtivos}</span>}
       </button>
     </div>
   );

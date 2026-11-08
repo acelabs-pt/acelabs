@@ -15,7 +15,7 @@ function Linha({ rotulo, valor, onChange, ajuda }: { rotulo: string; valor: stri
     <label className="block text-xs text-secundario">
       {rotulo}
       <input type="number" inputMode="decimal" min={0} value={valor} onChange={(e) => onChange(e.target.value)} className={`${campo} mt-1 text-tinta`} />
-      {ajuda && <span className="mt-0.5 block text-[11px]">{ajuda}</span>}
+      {ajuda && <span className="mt-0.5 block text-[0.6875rem]">{ajuda}</span>}
     </label>
   );
 }

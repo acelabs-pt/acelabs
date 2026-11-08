@@ -131,7 +131,7 @@ export default function Metas({ dados, onAlterado, plano = false }: { dados: Dad
                   {rotulo === "Faturação" ? eur(valor) : valor}
                 </p>
                 {/* a mesma linha nos dois cartões (vazia nas Angariações), para o objetivo e a barra ficarem alinhados */}
-                <p className={`whitespace-nowrap text-[10px] sm:text-xs ${fechado == null ? "invisible" : "text-secundario"}`} aria-hidden={fechado == null}>
+                <p className={`whitespace-nowrap text-[0.625rem] sm:text-xs ${fechado == null ? "invisible" : "text-secundario"}`} aria-hidden={fechado == null}>
                   negócios fechados <b className="text-tinta">{eur(fechado ?? 0)}</b>
                 </p>
                 <p className={`text-xs text-secundario sm:text-sm ${semObjetivo ? "invisible" : ""}`} aria-hidden={semObjetivo}>{objetivo != null ? `objetivo: ${objetivoTexto}` : "objetivo por definir"}</p>
@@ -153,7 +153,7 @@ export default function Metas({ dados, onAlterado, plano = false }: { dados: Dad
               const meta = anual == null ? null : metaDoPeriodo(anual, periodo, m.semanasUteis);
               return (
                 <li key={x.id} className="flex flex-col rounded-xl quadro-glossy px-3 py-2.5">
-                  <span className="min-h-[2rem] text-[12px] leading-tight text-tinta sm:min-h-0 sm:text-[13px]">{x.label}</span>
+                  <span className="min-h-[2rem] text-[0.75rem] leading-tight text-tinta sm:min-h-0 sm:text-[0.8125rem]">{x.label}</span>
                   <span className="mt-0.5 text-secundario">
                     <b className="text-base text-tinta">{feito}</b>
                     {meta != null ? ` / ${fmtNum(meta)}` : ""}

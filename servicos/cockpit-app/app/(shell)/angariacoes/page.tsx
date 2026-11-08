@@ -329,7 +329,7 @@ function NovaAngariacao({ onCriada, onErro }: { onCriada: () => void; onErro: (m
               />
             </div>
             <Texto label="Valor pedido (EUR)" type="number" value={novo.valor} onChange={setN("valor")} />
-            <p className="text-[11px] text-secundario">O proprietário fica criado em Proprietários, no estado &ldquo;Angariado&rdquo;.</p>
+            <p className="text-[0.6875rem] text-secundario">O proprietário fica criado em Proprietários, no estado &ldquo;Angariado&rdquo;.</p>
           </div>
         )}
       </div>

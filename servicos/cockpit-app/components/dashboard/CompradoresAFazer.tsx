@@ -37,7 +37,7 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
         {mostrados.map(({ c, passo, alerta, tarefas }) => (
           <li key={c.id} className="flex items-center gap-3 py-2.5">
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold text-azul">Comprador</p>
+              <p className="text-[0.6875rem] font-bold text-azul">Comprador</p>
               <button
                 type="button"
                 onClick={() =>
@@ -52,7 +52,7 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
                 aria-label="Ver detalhes do seguimento"
                 className="flex w-full items-center gap-2 text-left"
               >
-                <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{c.contactos.nome}</span>
+                <span className="min-w-0 truncate text-[0.9375rem] font-bold text-tinta">{c.contactos.nome}</span>
                 <span className="shrink-0 rounded-full bg-azul-suave px-2.5 py-0.5 text-xs font-semibold text-azul-escuro">{passo}</span>
                 {tarefas && tarefas.length > 0 && (
                   <>

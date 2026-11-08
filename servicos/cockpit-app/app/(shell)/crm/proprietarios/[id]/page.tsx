@@ -349,7 +349,7 @@ export default function FichaProprietario() {
                     <span className="min-w-0 text-secundario line-through">
                       {t.titulo}
                       <span className="block text-xs no-underline">
-                        <span className="mr-2 inline-block rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-semibold text-secundario">Não feito</span>
+                        <span className="mr-2 inline-block rounded-full bg-black/5 px-2 py-0.5 text-[0.6875rem] font-semibold text-secundario">Não feito</span>
                         {t.inicio ? `${formatarDia(new Date(t.inicio))} ${formatarHora(t.inicio)}` : ""}
                       </span>
                     </span>
@@ -367,7 +367,7 @@ export default function FichaProprietario() {
                       <span className={`block text-xs ${!t.feita && new Date(t.inicio) < new Date() ? "text-ambar-texto" : "text-secundario"}`}>
                         {formatarDia(new Date(t.inicio))} {formatarHora(t.inicio)}
                         {p.reuniao_em && t.chave_automacao?.startsWith(`proprietario:${p.id}:`) && !t.chave_automacao.endsWith(":reuniao") && (
-                          <span className={`ml-2 inline-block rounded-full px-2 py-0.5 align-middle text-[11px] font-medium transition-colors ${t.feita ? "bg-verde text-white" : "bg-black/5 text-secundario"}`}>
+                          <span className={`ml-2 inline-block rounded-full px-2 py-0.5 align-middle text-[0.6875rem] font-medium transition-colors ${t.feita ? "bg-verde text-white" : "bg-black/5 text-secundario"}`}>
                             {etiquetaReuniao(p.reuniao_em)}
                           </span>
                         )}
@@ -483,7 +483,7 @@ export default function FichaProprietario() {
             className="flex w-full items-center justify-between gap-2 text-left"
           >
             <span className="text-sm font-semibold text-tinta">
-              Reunião de angariação <span className="ml-1 rounded-full bg-verde px-2 py-0.5 text-[11px] font-medium text-white">feita</span>
+              Reunião de angariação <span className="ml-1 rounded-full bg-verde px-2 py-0.5 text-[0.6875rem] font-medium text-white">feita</span>
             </span>
             <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-secundario transition-transform ${reuniaoAberta ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9l6 6 6-6" />

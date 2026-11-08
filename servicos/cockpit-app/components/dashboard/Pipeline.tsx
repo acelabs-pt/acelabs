@@ -10,7 +10,7 @@ export default function Pipeline({ dados }: { dados: Dados }) {
     <Link href="/crm/compradores" className="rounded-xl bg-black/[0.04] p-3">
       <p className="text-2xl font-semibold text-tinta">{n}</p>
       <p className="text-xs font-medium text-tinta">{rot}</p>
-      <p className="text-[11px] text-secundario">{sub}</p>
+      <p className="text-[0.6875rem] text-secundario">{sub}</p>
     </Link>
   );
   return (

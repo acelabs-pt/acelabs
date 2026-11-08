@@ -29,7 +29,7 @@ export default function Mes({
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-      <div className="grid grid-cols-7 border-b border-black/10 text-center text-[11px] font-medium text-secundario">
+      <div className="grid grid-cols-7 border-b border-black/10 text-center text-[0.6875rem] font-medium text-secundario">
         {SEMANA.map((d) => (
           <div key={d} className="py-2">
             {d}
@@ -84,7 +84,7 @@ export default function Mes({
                       className={`h-1.5 w-1.5 rounded-full ${o.t.feita ? "bg-black/20" : o.t.tipo === "evento" ? "bg-azul" : "bg-verde"}`}
                     />
                   ))}
-                  {abertas > 3 && <span className="text-[9px] leading-none text-secundario">+</span>}
+                  {abertas > 3 && <span className="text-[0.5625rem] leading-none text-secundario">+</span>}
                 </span>
               )}
               <span className="hidden w-full space-y-0.5 md:block">
@@ -96,13 +96,13 @@ export default function Mes({
                       e.dataTransfer.setData("text/plain", o.t.id);
                       e.dataTransfer.effectAllowed = "move";
                     }}
-                    className={`block truncate rounded border-l-2 px-1 py-0.5 text-[11px] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
+                    className={`block truncate rounded border-l-2 px-1 py-0.5 text-[0.6875rem] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
                   >
                     {!o.diaInteiro && <span className="mr-1 opacity-70">{formatarHora(o.t.inicio!)}</span>}
                     {o.t.titulo}
                   </span>
                 ))}
-                {x.length > 3 && <span className="block px-1 text-[11px] text-secundario">+{x.length - 3} mais</span>}
+                {x.length > 3 && <span className="block px-1 text-[0.6875rem] text-secundario">+{x.length - 3} mais</span>}
               </span>
             </div>
           );

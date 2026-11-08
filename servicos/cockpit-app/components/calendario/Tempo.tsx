@@ -58,7 +58,7 @@ export default function Tempo({
               const eHoje = mesmoDia(d, agora);
               return (
                 <div key={d.toISOString()} className="py-2 text-center">
-                  <p className={`text-[11px] font-medium ${eHoje ? "text-azul" : "text-secundario"}`}>{NOMES[d.getDay()]}</p>
+                  <p className={`text-[0.6875rem] font-medium ${eHoje ? "text-azul" : "text-secundario"}`}>{NOMES[d.getDay()]}</p>
                   <p
                     className={`mx-auto flex h-7 w-7 items-center justify-center rounded-full text-base font-semibold ${
                       eHoje ? "bg-azul text-white" : "text-tinta"
@@ -72,14 +72,14 @@ export default function Tempo({
           </div>
           {haDiaInteiro && (
             <div className="grid border-t border-black/5" style={{ gridTemplateColumns: cols }}>
-              <div className="px-1 py-1.5 text-right text-[10px] leading-tight text-secundario">dia todo</div>
+              <div className="px-1 py-1.5 text-right text-[0.625rem] leading-tight text-secundario">dia todo</div>
               {diasInteiros.map((x, i) => (
                 <div key={i} className="space-y-0.5 border-l border-black/10 p-0.5">
                   {x.map((o) => (
                     <button
                       key={o.t.id}
                       onClick={() => onItem(o)}
-                      className={`block w-full truncate rounded border-l-2 px-1 py-0.5 text-left text-[11px] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
+                      className={`block w-full truncate rounded border-l-2 px-1 py-0.5 text-left text-[0.6875rem] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
                     >
                       {o.t.titulo}
                     </button>
@@ -90,7 +90,7 @@ export default function Tempo({
           )}
           {semana && haTarefas && (
             <div className="grid border-t border-black/5" style={{ gridTemplateColumns: cols }}>
-              <div className="px-1 py-1.5 text-right text-[10px] leading-tight text-secundario">tarefas</div>
+              <div className="px-1 py-1.5 text-right text-[0.625rem] leading-tight text-secundario">tarefas</div>
               {tarefasDoDia.map((x, i) => {
                 const porFazer = x.filter((o) => !o.t.feita).length;
                 return (
@@ -98,7 +98,7 @@ export default function Tempo({
                     {x.length > 0 && (
                       <button
                         onClick={() => onDia?.(dias[i])}
-                        className={`block w-full truncate rounded-md px-1 py-1 text-center text-[11px] font-semibold ${
+                        className={`block w-full truncate rounded-md px-1 py-1 text-center text-[0.6875rem] font-semibold ${
                           porFazer > 0 ? "bg-verde/15 text-tinta" : "bg-black/5 text-secundario"
                         }`}
                       >
@@ -133,7 +133,7 @@ export default function Tempo({
             {Array.from({ length: 23 }, (_, i) => i + 1).map((h) => (
               <span
                 key={h}
-                className="absolute right-1 -translate-y-1/2 text-[10px] text-secundario"
+                className="absolute right-1 -translate-y-1/2 text-[0.625rem] text-secundario"
                 style={{ top: h * HORA_PX }}
               >
                 {String(h).padStart(2, "0")}:00
@@ -191,7 +191,7 @@ export default function Tempo({
                     }}
                   >
                     <span className="block truncate font-medium">{o.t.titulo}</span>
-                    {altura >= 36 && <span className="block text-[10px] opacity-70">{formatarHora(o.t.inicio!)}</span>}
+                    {altura >= 36 && <span className="block text-[0.625rem] opacity-70">{formatarHora(o.t.inicio!)}</span>}
                   </button>
                 ))}
                 {eHoje && (

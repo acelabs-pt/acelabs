@@ -50,7 +50,7 @@ export default function MensagemAgradecimento({ nome, feita = false }: { nome: s
       {feita ? (
         <button type="button" onClick={() => setAberta((v) => !v)} aria-expanded={aberta} className="flex w-full items-center justify-between gap-2 text-left">
           <span className="text-sm font-semibold text-tinta">
-            Mensagem de agradecimento <span className="ml-1 rounded-full bg-verde px-2 py-0.5 text-[11px] font-medium text-white">feita</span>
+            Mensagem de agradecimento <span className="ml-1 rounded-full bg-verde px-2 py-0.5 text-[0.6875rem] font-medium text-white">feita</span>
           </span>
           <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-secundario transition-transform ${aberta ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 9l6 6 6-6" />

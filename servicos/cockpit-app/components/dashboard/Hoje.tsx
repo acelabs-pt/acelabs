@@ -185,7 +185,7 @@ export default function Hoje({ dados, aoAtualizar }: { dados: Dados; aoAtualizar
             <ul className="divide-y divide-linha">
               {marcacoes.map((t) => (
                 <li key={t.id}>
-                  <Link href="/calendario" className="flex items-baseline gap-3 py-2.5 text-[15px] text-tinta">
+                  <Link href="/calendario" className="flex items-baseline gap-3 py-2.5 text-[0.9375rem] text-tinta">
                     <span className="shrink-0 whitespace-nowrap text-sm font-bold tabular-nums text-[#158a48]">
                       {periodo === "semana" ? `${formatarDia(new Date(t.inicio!))} ` : ""}
                       {formatarHora(t.inicio!)}

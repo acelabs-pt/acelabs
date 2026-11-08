@@ -93,7 +93,7 @@ export default function Grelha({
           <tr>
             <th className="sticky left-0 z-10 bg-background" />
             {blocos.map((b) => (
-              <th key={b} className={`h-5 min-w-9 rounded text-[10px] font-medium ${b === atual ? "bg-azul text-white" : "text-secundario"}`}>
+              <th key={b} className={`h-5 min-w-9 rounded text-[0.625rem] font-medium ${b === atual ? "bg-azul text-white" : "text-secundario"}`}>
                 {b === blocoVendido ? "Vendido" : b * 10}
               </th>
             ))}
@@ -102,7 +102,7 @@ export default function Grelha({
         <tbody>
           {linhas.map((nome) => (
             <tr key={nome}>
-              <th className="sticky left-0 z-10 max-w-32 bg-background pr-2 text-left text-[11px] font-semibold leading-tight text-tinta">
+              <th className="sticky left-0 z-10 max-w-32 bg-background pr-2 text-left text-[0.6875rem] font-semibold leading-tight text-tinta">
                 {nome}
               </th>
               {blocos.map((b) => {

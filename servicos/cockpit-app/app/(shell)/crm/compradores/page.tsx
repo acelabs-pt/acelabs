@@ -36,7 +36,7 @@ import {
 function AlertaImoveis({ n }: { n: number }) {
   if (!n) return null;
   return (
-    <span className="shrink-0 rounded-full bg-azul px-2 py-0.5 text-[11px] font-semibold text-white" title="Imóveis que podem servir, por rever">
+    <span className="shrink-0 rounded-full bg-azul px-2 py-0.5 text-[0.6875rem] font-semibold text-white" title="Imóveis que podem servir, por rever">
       {n} {n === 1 ? "imóvel" : "imóveis"}
     </span>
   );
@@ -45,7 +45,7 @@ function AlertaImoveis({ n }: { n: number }) {
 // Escala contínua do vermelho (0) ao verde (10) através do âmbar.
 function BarraMotivacao({ valor }: { valor: number | null }) {
   if (valor == null) {
-    return <span className="shrink-0 text-[11px] text-secundario" title="Motivação por definir">-</span>;
+    return <span className="shrink-0 text-[0.6875rem] text-secundario" title="Motivação por definir">-</span>;
   }
   const cor = corDoProgresso(valor / 10);
   return (
@@ -54,7 +54,7 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
         <span className="block h-full rounded-full" style={{ width: `${Math.max(valor, 0.5) * 10}%`, backgroundColor: cor }} />
       </span>
       {/* o número em tinta: a cor da escala, em letra pequena, não tem contraste suficiente */}
-      <span className="text-[11px] font-medium tabular-nums text-tinta">{valor}</span>
+      <span className="text-[0.6875rem] font-medium tabular-nums text-tinta">{valor}</span>
     </span>
   );
 }
@@ -319,7 +319,7 @@ export default function ListaCompradores() {
                     <div className="flex shrink-0 items-center gap-1.5">
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="rounded-full bg-azul/10 px-2.5 py-1 text-xs font-medium text-azul-escuro">{labelEstado(c.estado)}</span>
-                        {proximoPasso(c, n) && <span className="max-w-[10rem] text-right text-[11px] leading-tight text-secundario">{proximoPasso(c, n)}</span>}
+                        {proximoPasso(c, n) && <span className="max-w-[10rem] text-right text-[0.6875rem] leading-tight text-secundario">{proximoPasso(c, n)}</span>}
                       </div>
                       <button
                         type="button"
@@ -420,13 +420,13 @@ function Funil({
                         <p className="mt-0.5 truncate text-xs text-secundario">
                           {[c.tipo_imovel, c.tipologia_minima, c.concelho || c.distrito].filter(Boolean).join(" · ") || "Sem qualificação"}
                         </p>
-                        <p className="mt-1.5 text-[11px] text-secundario">
+                        <p className="mt-1.5 text-[0.6875rem] text-secundario">
                           {n.enviados} env. · {n.visitas} vis. · {n.propostas} prop.
                         </p>
                         {alerta && (
-                          <p className="mt-1.5 rounded-md bg-ambar-fundo px-2 py-1 text-[11px] font-medium text-ambar-texto">{alerta}</p>
+                          <p className="mt-1.5 rounded-md bg-ambar-fundo px-2 py-1 text-[0.6875rem] font-medium text-ambar-texto">{alerta}</p>
                         )}
-                        {proximoPasso(c, n) && <p className="mt-1.5 text-[11px] text-secundario">Próximo: {proximoPasso(c, n)}</p>}
+                        {proximoPasso(c, n) && <p className="mt-1.5 text-[0.6875rem] text-secundario">Próximo: {proximoPasso(c, n)}</p>}
                       </Link>
                     </li>
                   );

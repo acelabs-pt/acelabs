@@ -76,7 +76,7 @@ export default function Nav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium md:flex-none md:flex-row md:gap-3 md:rounded-2xl md:px-3 md:py-2.5 md:text-sm ${
+            className={`flex flex-1 flex-col items-center gap-1 py-3 text-[0.6875rem] font-medium md:flex-none md:flex-row md:gap-3 md:rounded-2xl md:px-3 md:py-2.5 md:text-sm ${
               ativo ? "text-azul md:bg-azul-suave" : "text-secundario md:hover:bg-black/5"
             }`}
           >

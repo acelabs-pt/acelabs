@@ -260,7 +260,7 @@ function Registos({
           <>
             <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome do cliente" className={campo} />
             <CampoTelemovel prefixo={prefixo} numero={numero} onPrefixo={setPrefixo} onNumero={setNumero} />
-            <p className="text-[11px] text-secundario">O cliente fica criado em Compradores, no estado &ldquo;{cfg.estadoNovo}&rdquo;.</p>
+            <p className="text-[0.6875rem] text-secundario">O cliente fica criado em Compradores, no estado &ldquo;{cfg.estadoNovo}&rdquo;.</p>
           </>
         )}
         {modo === "externo" && (
