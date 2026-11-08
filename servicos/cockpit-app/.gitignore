@@ -55,3 +55,6 @@ next-env.d.ts
 # simulação de uso (dados fictícios gerados, só para colar no Supabase)
 /simulacao_3_meses.sql
 /limpar_para_simulacao.sql
+
+# supabase CLI (funções): estado local do link ao projeto
+/supabase/.temp/
