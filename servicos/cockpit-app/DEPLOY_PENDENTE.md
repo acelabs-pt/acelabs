@@ -20,10 +20,11 @@ Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá e
 
 ## O que mudou
 - **Dashboard (novo desenho, substitui o "relevo definido" do 401f9c4):** fundo branco ligeiramente azulado só no Dashboard, cartões com
-  cabeçalho (ícone, título, linha), cartão **Agenda** (Hoje ou Semana, filtros Todos, Compradores, Proprietários, Angariações,
-  números, marcações e seguimentos), **Precisa de atenção** (junto, filtrável) e **Metas**. Os Seguimentos passaram para dentro da
-  Agenda: "Em atraso (N)" fechado por defeito e a lista do período. Em "Angariações" aparece o painel "As minhas angariações" com o
-  alerta de acções em atraso por angariação. Os avisos de proprietário dizem qual é o passo em atraso.
+  cabeçalho (ícone, título, linha): **Agenda** (Hoje ou Semana, filtros Todos, Compradores, Proprietários; números e marcações),
+  **Seguimentos** (uma só lista: "Em atraso (N)" fechado por defeito com "Não feito", compradores por motivação com a etiqueta
+  Comprador/Proprietário, proprietários a seguir; os follow-ups de angariações contam como Proprietários) e **Metas**. Saíram o
+  cartão "Precisa de atenção", o filtro "Angariações" e o painel "As minhas angariações": as ações do plano das angariações vivem só
+  no Calendário.
 - **Semana de domingo a sábado:** o calendário (semana e mês), a Agenda do Dashboard e as metas da semana passam a contar a semana de
   domingo a sábado. A chave das tarefas semanais automáticas continua na semana ISO (segunda a domingo), para não duplicar tarefas.
 - **Agenda do Dashboard:** painéis brancos; cada secção (Resumo, Marcações, Seguimentos) começa com um título a negrito na sua cor
