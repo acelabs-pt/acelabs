@@ -104,10 +104,21 @@ eu, sem pedir ao Pedro que o faça, e fazer sozinho tudo o que der antes e depoi
 - Antes de abrir, deixar o trabalho preparado: o SQL juntado e copiado para a área de transferência (`Set-Clipboard`), o ficheiro
   aberto no VS Code, o URL direto da página certa (por exemplo `https://supabase.com/dashboard/project/<ref>/sql/new`). Depois
   dizer em poucas linhas o que ele tem de fazer lá (colar, carregar em Run).
-- **Não consigo controlar o Brave normal.** Quando for mesmo preciso automatizar (ler chaves, correr SQL, criar uma chave de API),
-  abrir uma janela SEPARADA do Brave, com perfil numa pasta temporária e `--remote-debugging-port`, onde o Pedro inicia sessão ele
-  próprio (nunca ver nem guardar as credenciais), ligar com Playwright por CDP, e apagar o perfil no fim. Seguir a secção
-  "Verificação no browser": sem MCP, scripts descartáveis, imprimir pouco.
+- **Automatizar no Brave normal do Pedro (decisão do Pedro, 2026-11-08).** Um perfil temporário NÃO serve: o Google recusa o
+  login nesses perfis ("este browser pode não ser seguro"), por isso Firebase/Google Play/Google Cloud ficam inacessíveis.
+  Quando for preciso automatizar (criar chaves, gerar tokens, renomear projetos), usar o perfil real, que já tem as sessões:
+  1. Confirmar SEMPRE com o Pedro antes de fechar o Brave (perde os separadores abertos; as sessões ficam).
+  2. `taskkill //F //IM brave.exe` e relançar com `brave.exe --remote-debugging-port=9222 --user-data-dir="C:\Users\pedro\AppData\Local\BraveSoftware\Brave-Browser\User Data"`.
+  3. Ligar com `chromium.connectOverCDP('http://localhost:9222')` (Playwright de `servicos/cpcv-engine/node_modules`; o script
+     tem de estar dentro dessa pasta para o `import` resolver) e terminar cada script com `process.exit(0)` (sem isso fica pendurado).
+  Nunca `browser.close()` (fecharia o Brave do Pedro).
+- **Screenshots: ler e apagar logo a seguir** (`rm -f` do ficheiro), nunca deixar acumular no scratchpad. Um screenshot que mostre
+  um segredo (token, chave) apaga-se antes de qualquer outro passo. Capturar segredos com `inputValue()` direto para ficheiro, nunca
+  imprimir no terminal.
+- **Eliminar coisas pela interface (tokens, linhas de listas): confirmar o nome no diálogo antes de carregar em "Delete".** Em
+  2026-11-08 um seletor por linha abriu duas vezes o menu do token errado (`acelabs-cli-permanente`, o que está em uso) porque a
+  lista se reordenou; só não se perdeu por se ter tirado screenshot do diálogo de confirmação. Se não der para ter a certeza,
+  deixar a eliminação para o Pedro fazer à mão.
 - Nunca carregar em pagamentos, planos pagos ("Upgrade"), eliminações nem envios sem confirmação do Pedro. Chaves e passwords
   nunca vão para o chat nem para o repositório: gravam-se direto em ficheiros fora do git (`.env.*`).
 
@@ -131,8 +142,13 @@ Commit e push apenas com confirmação explícita do utilizador antes de cada ex
 
 ### Trabalho a dois no Cockpit (Pedro e Miguel, cada um com o seu Claude)
 
-- O Cockpit publicado (`cockpit-gamma-one.vercel.app`) usa o Supabase **Demo** (`gebqaxhwebsmoeqpzzzg`). O projeto de teste
-  antigo `erxnqdadqbmfeyuwaybi` já não é usado: SQL novo corre-se no Demo.
+- O Cockpit publicado (`cockpit-gamma-one.vercel.app`) usa o Supabase `gebqaxhwebsmoeqpzzzg`, que na consola se chama
+  **"Cockpit - partilhado (ex-Ace Labs Demo)"** (renomeado a 2026-11-08; nos documentos antigos aparece como "Demo"). É o
+  projeto único do Cockpit, com todas as empresas separadas por `empresa_id`: SQL novo do Cockpit corre-se SEMPRE aqui.
+  O projeto que se chamava "Cockpit" (`erxnqdadqbmfeyuwaybi`) chama-se agora **"Cockpit ANTIGO - não usar
+  (pré-multiempresa)"**: está parado, sem as migrações novas e sem nada ligado. Não correr SQL nele.
+- Os outros projetos Supabase não são do Cockpit: `cpcv-engine` (`txlrzhltxrjkopjwrdsd`, CPCV com IA), `acelabs-torre`
+  (`umsfewmuqqdfgffgksbg`, Torre, noutra organização) e `base_leads` (`nngmfmhwfezxfqtpyosr`, pausado, sem uso conhecido).
 - Cada tabela nova entra em `create_tables.sql`, nas duas listas de `migracao_multiempresa.sql` e nos dados de exemplo de
   `testes/unidade-multiempresa.mjs` (sem linhas de exemplo o teste falha). `npm run testar -- unidade-multiempresa` passa
   antes de qualquer push.

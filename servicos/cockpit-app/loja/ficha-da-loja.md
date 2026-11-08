@@ -33,13 +33,7 @@ Negócios
 ## Dados de contacto
 - Email: pedro@acelabs.pt
 - Site: https://acelabs.pt
-- Política de privacidade: [FALTA URL PÚBLICA - ver nota abaixo]
-
-## Nota sobre a política de privacidade
-A Google Play **exige um URL público** com a política de privacidade antes de aceitar qualquer
-release, mesmo em teste interno. Hoje só existe o rascunho em `docs/privacidade-rascunho.md`,
-nunca publicado. Antes de submeter à Play Console é preciso publicar uma página (ex.
-`acelabs.pt/privacidade-cockpit`) com esse texto.
+- Política de privacidade: https://www.acelabs.pt/privacidade-cockpit.html (publicada a 2026-11-08)
 
 ## Classificação de conteúdo / Segurança dos dados
 Preenchidos dentro da Play Console (questionário), não são texto livre. Respostas a dar:
