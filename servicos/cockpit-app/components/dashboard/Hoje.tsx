@@ -6,7 +6,7 @@ import Cartao from "@/components/dashboard/Cartao";
 import { IconeAgenda, IconeAtencao, IconeClientes } from "@/components/dashboard/Icones";
 import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
 import CompradoresAFazerLista, { compradoresAFazer, type ProximoPassoComprador } from "@/components/dashboard/CompradoresAFazer";
-import Seguimentos, { seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
+import Seguimentos, { acaoDe, seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
 import { marcarNaoFeita, reporTarefa } from "@/lib/tarefas";
@@ -117,11 +117,22 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const aFazer = compradoresAFazer(dados);
-  // Os compradores com o passo da semana (enviar opções, propor visita...) entram na vista da semana, uma vez por cliente:
-  // se já têm uma tarefa com data na lista, não se repetem.
-  const comTarefa = new Set([...seguimentos.atrasados, ...seguimentos.doPeriodo].filter((x) => x.ficha.tipo === "comprador").map((x) => x.ficha.id));
-  const compradoresDaSemana = periodo === "semana" && (filtro === "todos" || filtro === "comprador") ? aFazer.filter((x) => !comTarefa.has(x.c.id)) : [];
-  const totalSeguimentos = seguimentos.atrasados.length + seguimentos.doPeriodo.length + compradoresDaSemana.length;
+  // Compradores todos juntos, por motivação: os do passo da semana (só na vista Semana) e os que têm tarefa com data no período.
+  // Cada comprador aparece uma vez, com as tarefas dele por baixo. Os proprietários seguem à parte, por data.
+  const mostraCompradores = filtro === "todos" || filtro === "comprador";
+  const linhas = new Map<string, ProximoPassoComprador>();
+  if (periodo === "semana" && mostraCompradores) for (const x of aFazer) linhas.set(x.c.id, { ...x, tarefas: [] });
+  for (const x of seguimentos.doPeriodo) {
+    if (x.ficha.tipo !== "comprador") continue;
+    const c = dados.compradores.find((k) => k.id === x.ficha.id);
+    if (!c) continue;
+    const l = linhas.get(c.id) ?? { c, passo: acaoDe(x.t), alerta: null, tarefas: [] };
+    l.tarefas = [...(l.tarefas ?? []), x.t];
+    linhas.set(c.id, l);
+  }
+  const compradoresDaSemana = [...linhas.values()].sort((a, b) => (b.c.motivacao ?? -1) - (a.c.motivacao ?? -1));
+  const doPeriodoProprietarios = seguimentos.doPeriodo.filter((x) => x.ficha.tipo !== "comprador");
+  const totalSeguimentos = seguimentos.atrasados.length + doPeriodoProprietarios.length + compradoresDaSemana.length;
 
   // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
   async function naoFeito(t: Tarefa) {
@@ -228,7 +239,7 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
         <Datadas
           dados={dados}
           atrasados={seguimentos.atrasados}
-          doPeriodo={seguimentos.doPeriodo}
+          doPeriodo={doPeriodoProprietarios}
           extra={compradoresDaSemana}
           periodo={periodo}
           vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}

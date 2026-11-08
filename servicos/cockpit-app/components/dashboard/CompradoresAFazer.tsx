@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Dados } from "@/lib/painel";
+import type { Tarefa } from "@/lib/types";
+import { formatarDia, formatarHora } from "@/lib/datas";
 import { alertaLaranja, contar, proximoPasso, type Comprador } from "@/lib/comprador";
 
 const VISIVEIS = 8;
 
-export type ProximoPassoComprador = { c: Comprador; passo: string; alerta: string | null };
+export type ProximoPassoComprador = { c: Comprador; passo: string; alerta: string | null; tarefas?: Tarefa[] };
 
 /**
  * O que há para fazer com cada comprador, pela fase em que está (enviar opções, propor visita, agendar escritura...), dos mais
@@ -31,7 +33,7 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
   return (
     <>
       <ul className="divide-y divide-linha">
-        {mostrados.map(({ c, passo, alerta }) => (
+        {mostrados.map(({ c, passo, alerta, tarefas }) => (
           <li key={c.id} className="flex items-center gap-3 py-2.5">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold text-azul">Comprador</p>
@@ -43,6 +45,12 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
                 {c.motivacao != null ? `Motivação ${c.motivacao}/10` : "Motivação por definir"}
                 {alerta ? <span className="font-medium text-ambar-texto"> · {alerta}</span> : null}
               </p>
+              {tarefas?.map((t) => (
+                <p key={t.id} className="truncate text-xs text-secundario">
+                  {t.titulo} · {formatarDia(new Date(t.inicio!))}
+                  {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
+                </p>
+              ))}
             </div>
             <Link href={`/crm/compradores/${c.id}`} className="shrink-0 text-sm font-semibold text-azul">
               Abrir ficha

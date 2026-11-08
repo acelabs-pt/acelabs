@@ -25,7 +25,7 @@ function fichaDe(t: Tarefa, d: Dados): Ficha | null {
 }
 
 // O que há para fazer, em duas palavras (o título completo fica atrás da seta).
-function acaoDe(t: Tarefa): string {
+export function acaoDe(t: Tarefa): string {
   const x = t.titulo.toLowerCase();
   if (x.includes("follow up")) return "Follow up";
   if (x.includes("enviar opções")) return "Enviar opções";
