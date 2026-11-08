@@ -28,6 +28,7 @@ export function compradoresAFazer(dados: Dados): ProximoPassoComprador[] {
 
 export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoComprador[] }) {
   const [todos, setTodos] = useState(false);
+  const [abertos, setAbertos] = useState<Set<string>>(new Set());
   const mostrados = todos ? itens : itens.slice(0, VISIVEIS);
   if (itens.length === 0) return <p className="py-2 text-sm text-secundario">Nenhum comprador com passos por fazer.</p>;
   return (
@@ -37,20 +38,42 @@ export default function CompradoresAFazerLista({ itens }: { itens: ProximoPassoC
           <li key={c.id} className="flex items-center gap-3 py-2.5">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold text-azul">Comprador</p>
-              <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setAbertos((x) => {
+                    const n = new Set(x);
+                    if (!n.delete(c.id)) n.add(c.id);
+                    return n;
+                  })
+                }
+                disabled={!tarefas?.length}
+                aria-expanded={abertos.has(c.id)}
+                aria-label="Ver detalhes do seguimento"
+                className="flex w-full items-center gap-2 text-left"
+              >
                 <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{c.contactos.nome}</span>
                 <span className="shrink-0 rounded-full bg-azul-suave px-2.5 py-0.5 text-xs font-semibold text-azul-escuro">{passo}</span>
-              </div>
+                {tarefas && tarefas.length > 0 && (
+                  <>
+                    <span className="shrink-0 rounded-full bg-black/5 px-2 py-0.5 text-xs font-semibold text-secundario">+{tarefas.length}</span>
+                    <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-secundario transition-transform ${abertos.has(c.id) ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </>
+                )}
+              </button>
               <p className="truncate text-xs text-secundario">
                 {c.motivacao != null ? `Motivação ${c.motivacao}/10` : "Motivação por definir"}
                 {alerta ? <span className="font-medium text-ambar-texto"> · {alerta}</span> : null}
               </p>
-              {tarefas?.map((t) => (
-                <p key={t.id} className="truncate text-xs text-secundario">
-                  {t.titulo} · {formatarDia(new Date(t.inicio!))}
-                  {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
-                </p>
-              ))}
+              {abertos.has(c.id) &&
+                tarefas?.map((t) => (
+                  <p key={t.id} className="mt-0.5 text-xs text-secundario">
+                    {t.titulo} · {formatarDia(new Date(t.inicio!))}
+                    {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
+                  </p>
+                ))}
             </div>
             <Link href={`/crm/compradores/${c.id}`} className="shrink-0 text-sm font-semibold text-azul">
               Abrir ficha

@@ -100,17 +100,29 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
   const [todos, setTodos] = useState(false);
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
   const inicioHoje = inicioDoDia(new Date());
-  const mostradas = todos ? itens : itens.slice(0, VISIVEIS);
+
+  // Um cliente, uma linha: todas as tarefas dele ficam juntas, atrás da seta.
+  const porCliente = new Map<string, { ficha: Ficha; tarefas: Tarefa[] }>();
+  for (const { t, ficha } of itens) {
+    const k = `${ficha.tipo}:${ficha.id}`;
+    const g = porCliente.get(k) ?? { ficha, tarefas: [] };
+    g.tarefas.push(t);
+    porCliente.set(k, g);
+  }
+  const grupos = [...porCliente.entries()];
+  const mostradas = todos ? grupos : grupos.slice(0, VISIVEIS);
 
   if (itens.length === 0) return <p className="py-2 text-sm text-secundario">{vazio}</p>;
   return (
     <>
       <ul className="divide-y divide-linha">
-        {mostradas.map(({ t, ficha }) => {
-          const atrasada = new Date(t.inicio!) < inicioHoje;
+        {mostradas.map(([chave, { ficha, tarefas }]) => {
           const cliente = clienteDe(ficha, dados);
+          const varias = tarefas.length > 1;
+          const atrasada = tarefas.some((t) => new Date(t.inicio!) < inicioHoje);
+          const aberto = abertos.has(chave);
           return (
-            <li key={t.id} className="flex items-center gap-3 py-2.5">
+            <li key={chave} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1">
                 <p className={`text-[11px] font-bold ${ficha.tipo === "comprador" ? "text-azul" : "text-verde"}`}>{ficha.tipo === "comprador" ? "Comprador" : "Proprietário"}</p>
                 <button
@@ -118,19 +130,20 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
                   onClick={() =>
                     setAbertos((a) => {
                       const n = new Set(a);
-                      if (!n.delete(t.id)) n.add(t.id);
+                      if (!n.delete(chave)) n.add(chave);
                       return n;
                     })
                   }
-                  aria-expanded={abertos.has(t.id)}
+                  aria-expanded={aberto}
                   aria-label="Ver detalhes do seguimento"
                   className="flex w-full items-center gap-2 text-left"
                 >
-                  <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{cliente.nome ?? t.titulo}</span>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${atrasada ? "bg-ambar-fundo text-ambar-texto" : "bg-azul-suave text-azul-escuro"}`}>{acaoDe(t)}</span>
+                  <span className="min-w-0 truncate text-[15px] font-bold text-tinta">{cliente.nome ?? tarefas[0].titulo}</span>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${atrasada ? "bg-ambar-fundo text-ambar-texto" : "bg-azul-suave text-azul-escuro"}`}>{acaoDe(tarefas[0])}</span>
+                  {varias && <span className="shrink-0 rounded-full bg-black/5 px-2 py-0.5 text-xs font-semibold text-secundario">+{tarefas.length - 1}</span>}
                   <svg
                     viewBox="0 0 24 24"
-                    className={`h-4 w-4 shrink-0 text-secundario transition-transform ${abertos.has(t.id) ? "rotate-180" : ""}`}
+                    className={`h-4 w-4 shrink-0 text-secundario transition-transform ${aberto ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -141,16 +154,30 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
                   </svg>
                 </button>
                 {cliente.imovel && <p className="truncate text-xs text-secundario">{cliente.imovel}</p>}
-                {abertos.has(t.id) && (
-                  <p className={`mt-0.5 text-xs ${atrasada ? "text-ambar-texto" : "text-secundario"}`}>
-                    {t.titulo} · {formatarDia(new Date(t.inicio!))}
-                    {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
-                    {atrasada ? " · em atraso" : ""}
-                  </p>
+                {aberto && (
+                  <ul className="mt-1 space-y-1">
+                    {tarefas.map((t) => {
+                      const emAtraso = new Date(t.inicio!) < inicioHoje;
+                      return (
+                        <li key={t.id} className="flex items-center gap-2 py-0">
+                          <p className={`min-w-0 flex-1 text-xs ${emAtraso ? "text-ambar-texto" : "text-secundario"}`}>
+                            {t.titulo} · {formatarDia(new Date(t.inicio!))}
+                            {formatarHora(t.inicio!) ? ` · ${formatarHora(t.inicio!)}` : ""}
+                            {emAtraso ? " · em atraso" : ""}
+                          </p>
+                          {varias && onNaoFeito && !t.angariacao_acao_id && (
+                            <button type="button" onClick={() => onNaoFeito(t)} className="shrink-0 rounded-full border border-linha px-2 py-0.5 text-[11px] font-semibold text-secundario hover:bg-black/5">
+                              Não feito
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
               </div>
-              {onNaoFeito && !t.angariacao_acao_id && (
-                <button type="button" onClick={() => onNaoFeito(t)} className="shrink-0 rounded-full border border-linha px-2.5 py-1 text-xs font-semibold text-secundario hover:bg-black/5">
+              {!varias && onNaoFeito && !tarefas[0].angariacao_acao_id && (
+                <button type="button" onClick={() => onNaoFeito(tarefas[0])} className="shrink-0 rounded-full border border-linha px-2.5 py-1 text-xs font-semibold text-secundario hover:bg-black/5">
                   Não feito
                 </button>
               )}
@@ -161,9 +188,9 @@ export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados
           );
         })}
       </ul>
-      {itens.length > VISIVEIS && (
+      {grupos.length > VISIVEIS && (
         <button onClick={() => setTodos((v) => !v)} className="block text-sm text-secundario underline">
-          {todos ? "Ver menos" : `Ver todos (${itens.length})`}
+          {todos ? "Ver menos" : `Ver todos (${grupos.length})`}
         </button>
       )}
     </>
