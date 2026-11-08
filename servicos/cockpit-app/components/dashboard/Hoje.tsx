@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Cartao from "@/components/dashboard/Cartao";
-import { IconeAgenda, IconeAtencao } from "@/components/dashboard/Icones";
+import { IconeAgenda, IconeAtencao, IconeClientes } from "@/components/dashboard/Icones";
 import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
 import CompradoresAFazerLista, { compradoresAFazer } from "@/components/dashboard/CompradoresAFazer";
-import Seguimentos, { seguimentosDe, temCliente } from "@/components/dashboard/Seguimentos";
+import Seguimentos, { seguimentosDe, temCliente, type Seguimento } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
 import type { Tarefa } from "@/lib/types";
 import { marcarNaoFeita, reporTarefa } from "@/lib/tarefas";
@@ -38,6 +38,53 @@ const FILTROS: [Filtro, string][] = [
   ["angariacao", "Angariações"],
 ];
 
+// Tarefas com data de um grupo de clientes: as que ficaram para trás (fechadas por defeito, com "Não feito") e as do período.
+function Datadas({
+  dados,
+  atrasados,
+  doPeriodo,
+  periodo,
+  vazio,
+  onNaoFeito,
+}: {
+  dados: Dados;
+  atrasados: Seguimento[];
+  doPeriodo: Seguimento[];
+  periodo: Periodo;
+  vazio?: string;
+  onNaoFeito: (t: Tarefa) => void;
+}) {
+  const [ver, setVer] = useState(false);
+  return (
+    <>
+      {atrasados.length > 0 && (
+        <div className="mb-2 rounded-xl border border-ambar/50 px-3 py-2.5">
+          <button type="button" onClick={() => setVer((v) => !v)} aria-expanded={ver} className="flex w-full items-center justify-between gap-2 text-left">
+            <span className="text-sm font-bold text-ambar-texto">Em atraso ({atrasados.length})</span>
+            <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-ambar-texto transition-transform ${ver ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {ver && (
+            <div className="mt-2 rounded-lg bg-white px-3">
+              <Seguimentos dados={dados} itens={atrasados} vazio="" onNaoFeito={onNaoFeito} />
+            </div>
+          )}
+        </div>
+      )}
+      {(doPeriodo.length > 0 || vazio) && (
+        <>
+          <h4 className="mb-0.5 mt-1 text-sm font-bold text-tinta">
+            {periodo === "hoje" ? "Para hoje" : "Até ao fim da semana"}
+            {doPeriodo.length ? ` (${doPeriodo.length})` : ""}
+          </h4>
+          <Seguimentos dados={dados} itens={doPeriodo} vazio={vazio ?? ""} />
+        </>
+      )}
+    </>
+  );
+}
+
 // Dois cartões que partilham o período e o filtro: "Agenda" (hoje ou semana: marcações, tarefas e atrasos) e "Precisa de atenção".
 // Tudo vem das tarefas do Calendário e dos dados do CRM, não há números à parte. "Todos" inclui também metas e tarefas criadas à mão.
 export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avisos: Aviso[]; aoAtualizar: () => void | Promise<void> }) {
@@ -63,7 +110,10 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const aFazer = compradoresAFazer(dados);
-  const [verAtrasados, setVerAtrasados] = useState(false);
+  const porTipo = (l: Seguimento[], tipo: "comprador" | "proprietario") => l.filter((x) => x.ficha.tipo === tipo);
+  const segCompradores = { atrasados: porTipo(seguimentos.atrasados, "comprador"), doPeriodo: porTipo(seguimentos.doPeriodo, "comprador") };
+  const segProprietarios = { atrasados: porTipo(seguimentos.atrasados, "proprietario"), doPeriodo: porTipo(seguimentos.doPeriodo, "proprietario") };
+  const nProprietarios = segProprietarios.atrasados.length + segProprietarios.doPeriodo.length;
 
   // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
   async function naoFeito(t: Tarefa) {
@@ -163,45 +213,33 @@ export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avi
           )}
         </Secao>
 
+        {filtro === "angariacao" && <AngariacoesEmAtraso dados={dados} />}
+      </Cartao>
+
+      <Cartao titulo="Seguimentos" icone={<IconeClientes />}>
         {(filtro === "todos" || filtro === "comprador") && (
-          <Secao titulo={`Compradores: o que fazer${aFazer.length ? ` (${aFazer.length})` : ""}`} cor="azul">
+          <Secao titulo={`Compradores${aFazer.length ? ` (${aFazer.length})` : ""}`} cor="azul">
             <CompradoresAFazerLista itens={aFazer} />
+            {(segCompradores.atrasados.length > 0 || segCompradores.doPeriodo.length > 0) && (
+              <div className="mt-3 border-t border-linha pt-3">
+                <p className="mb-1 text-xs font-semibold text-secundario">Tarefas com data</p>
+                <Datadas dados={dados} atrasados={segCompradores.atrasados} doPeriodo={segCompradores.doPeriodo} periodo={periodo} onNaoFeito={naoFeito} />
+              </div>
+            )}
           </Secao>
         )}
-
-        <Secao titulo="Seguimentos" cor="ambar">
-          {seguimentos.atrasados.length > 0 && (
-            <div className="mb-2 rounded-xl border border-ambar/50 px-3 py-2.5">
-              <button
-                type="button"
-                onClick={() => setVerAtrasados((v) => !v)}
-                aria-expanded={verAtrasados}
-                className="flex w-full items-center justify-between gap-2 text-left"
-              >
-                <span className="text-sm font-bold text-ambar-texto">Em atraso ({seguimentos.atrasados.length})</span>
-                <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 text-ambar-texto transition-transform ${verAtrasados ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
-              {verAtrasados && (
-                <div className="mt-2 rounded-lg bg-white px-3">
-                  <Seguimentos dados={dados} itens={seguimentos.atrasados} vazio="" onNaoFeito={naoFeito} />
-                </div>
-              )}
-            </div>
-          )}
-          <h4 className="mb-0.5 mt-1 text-sm font-bold text-tinta">
-            {periodo === "hoje" ? "Para hoje" : "Até ao fim da semana"}
-            {seguimentos.doPeriodo.length ? ` (${seguimentos.doPeriodo.length})` : ""}
-          </h4>
-          <Seguimentos
-            dados={dados}
-            itens={seguimentos.doPeriodo}
-            vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
-          />
-        </Secao>
-
-        {filtro === "angariacao" && <AngariacoesEmAtraso dados={dados} />}
+        {(filtro === "todos" || filtro === "proprietario" || filtro === "angariacao") && (
+          <Secao titulo={`Proprietários${nProprietarios ? ` (${nProprietarios})` : ""}`} cor="verde">
+            <Datadas
+              dados={dados}
+              atrasados={segProprietarios.atrasados}
+              doPeriodo={segProprietarios.doPeriodo}
+              periodo={periodo}
+              vazio={periodo === "hoje" ? "Nenhum seguimento para hoje." : "Nenhum seguimento até ao fim da semana."}
+              onNaoFeito={naoFeito}
+            />
+          </Secao>
+        )}
       </Cartao>
 
       <Cartao titulo={`Precisa de atenção${doFiltro.length ? ` (${doFiltro.length})` : ""}`} icone={<IconeAtencao />} tom="ambar">

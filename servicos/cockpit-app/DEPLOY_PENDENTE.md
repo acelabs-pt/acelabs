@@ -32,10 +32,11 @@ Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá e
   (com "Desfazer"). Fecha a tarefa sem avançar o cliente no funil e fica registada na ficha (proprietário: na lista dos próximos
   passos, com "Repor"; comprador: em "Não feitas (N)" nos próximos passos). As tarefas vindas de uma angariação não têm o botão.
   Sem a coluna `nao_feita_em`, o botão dá erro.
-- **Dashboard, "Compradores: o que fazer":** nova secção na Agenda (em Todos e Compradores) com o próximo passo de cada comprador pela fase
-  (enviar opções, propor visita, agendar escritura...), dos mais motivados para os menos. Vem do estado do comprador, por isso aparece
-  sem ser preciso abrir o CRM. As tarefas semanais "Enviar opções" e "Propor visita" deixam de se repetir nos Seguimentos.
-  O Dashboard também lê as tabelas por páginas (limite de 1000 linhas do Supabase) e cria as tarefas semanais ao abrir.
+- **Dashboard, cartão "Seguimentos":** um só cartão, com duas secções, **Compradores** (o próximo passo de cada comprador pela fase,
+  dos mais motivados para os menos, mais as tarefas com data) e **Proprietários** (as tarefas com data: em atraso, hoje ou até ao
+  fim da semana). Respeita o filtro da Agenda. Os passos dos compradores vêm do estado do comprador, por isso aparecem sem ser preciso
+  abrir o CRM; as tarefas semanais "Enviar opções" e "Propor visita" não se repetem nas tarefas com data. O Dashboard também lê as
+  tabelas por páginas (limite de 1000 linhas do Supabase) e cria as tarefas semanais ao abrir.
 - **Seguimentos dos compradores por motivação:** na lista de seguimentos os compradores vêm primeiro, dos mais motivados para os
   menos, e cada linha mostra "Motivação N/10". Os proprietários seguem por data, depois dos compradores.
 - **Compradores:** próximos passos só com "Enviar novas opções" (uma linha), "Agendar escritura" (automação nova: com o CPCV fechado e
