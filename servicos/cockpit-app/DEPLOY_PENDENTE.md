@@ -9,6 +9,8 @@
    Corre-se depois de `migracao_multiempresa.sql` (já corrida no Demo). Entrou também em `create_tables.sql`, nas listas de
    `migracao_multiempresa.sql` e `migracao_seguranca.sql` e em `testes/unidade-multiempresa.mjs`.
 
+3. `migration_tarefa_nao_feita.sql`: `nao_feita_em` em `tarefas` (tarefas dadas como "não feitas").
+
 Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá erro. Sem a 2.ª, a ficha do proprietário não carrega os documentos.
 
 ## Verificado antes do push
@@ -26,6 +28,12 @@ Podem correr-se duas vezes sem erro. Sem a 1.ª, guardar o valor do cheque dá e
   domingo a sábado. A chave das tarefas semanais automáticas continua na semana ISO (segunda a domingo), para não duplicar tarefas.
 - **Agenda do Dashboard:** painéis brancos; cada secção (Resumo, Marcações, Seguimentos) começa com um título a negrito na sua cor
   (azul, verde, âmbar) com uma linha por baixo.
+- **"Não feito" nos seguimentos em atraso (Dashboard):** cada tarefa em atraso de um comprador ou proprietário tem o botão "Não feito"
+  (com "Desfazer"). Fecha a tarefa sem avançar o cliente no funil e fica registada na ficha (proprietário: na lista dos próximos
+  passos, com "Repor"; comprador: em "Não feitas (N)" nos próximos passos). As tarefas vindas de uma angariação não têm o botão.
+  Sem a coluna `nao_feita_em`, o botão dá erro.
+- **Seguimentos dos compradores por motivação:** na lista de seguimentos os compradores vêm primeiro, dos mais motivados para os
+  menos, e cada linha mostra "Motivação N/10". Os proprietários seguem por data, depois dos compradores.
 - **Compradores:** próximos passos só com "Enviar novas opções" (uma linha), "Agendar escritura" (automação nova: com o CPCV fechado e
   o prazo da escritura definido, cria a tarefa; fecha ao agendar a escritura) e tarefas agendadas à mão. Nota de próximo passo por
   fase na lista. Documentos da escritura: "Documento de identificação" e "Cheque Bancário" (com valor).

@@ -42,7 +42,10 @@ function acaoDe(t: Tarefa): string {
 
 // Nome do cliente e, nos proprietários, o imóvel que têm (só tipologia, freguesia e concelho).
 function clienteDe(f: Ficha, d: Dados): { nome: string | null; imovel: string } {
-  if (f.tipo === "comprador") return { nome: d.compradores.find((c) => c.id === f.id)?.contactos.nome ?? null, imovel: "" };
+  if (f.tipo === "comprador") {
+    const c = d.compradores.find((x) => x.id === f.id);
+    return { nome: c?.contactos.nome ?? null, imovel: c?.motivacao != null ? `Motivação ${c.motivacao}/10` : "" };
+  }
   const p = d.proprietarios.find((x) => x.id === f.id);
   return { nome: p?.contactos.nome ?? null, imovel: p ? [p.tipologia, p.freguesia, p.concelho].filter(Boolean).join(" · ") : "" };
 }
@@ -64,12 +67,22 @@ export function seguimentosDe(
 ): { atrasados: Seguimento[]; doPeriodo: Seguimento[] } {
   const inicioHoje = inicioDoDia(new Date());
   const fim = periodo === "hoje" ? somarDias(inicioHoje, 1) : somarDias(inicioDaSemana(inicioHoje), 7);
+  const motivacoes = new Map(dados.compradores.map((c) => [c.id, c.motivacao]));
   const todos = dados.tarefas
     .filter((t) => t.tipo === "tarefa" && !t.feita && t.inicio && new Date(t.inicio) < fim)
     .filter((t) => filtro === "todos" || t.origem === filtro)
     .map((t) => ({ t, ficha: fichaDe(t, dados) }))
     .filter((x): x is Seguimento => x.ficha !== null)
-    .sort((a, b) => a.t.inicio!.localeCompare(b.t.inicio!));
+    .sort((a, b) => {
+      // Compradores primeiro, dos mais motivados para os menos (sem motivação por último); dentro da mesma motivação, por data.
+      // Os restantes (proprietários) seguem por data, depois dos compradores.
+      const ma = a.ficha.tipo === "comprador" ? motivacoes.get(a.ficha.id) ?? -1 : null;
+      const mb = b.ficha.tipo === "comprador" ? motivacoes.get(b.ficha.id) ?? -1 : null;
+      if (ma !== null && mb !== null && ma !== mb) return mb - ma;
+      if (ma !== null && mb === null) return -1;
+      if (ma === null && mb !== null) return 1;
+      return a.t.inicio!.localeCompare(b.t.inicio!);
+    });
   return {
     atrasados: todos.filter((x) => new Date(x.t.inicio!) < inicioHoje),
     doPeriodo: todos.filter((x) => new Date(x.t.inicio!) >= inicioHoje),
@@ -78,7 +91,7 @@ export function seguimentosDe(
 
 // Lista de seguimentos (dentro da Agenda), uma linha por cliente, separadas por linhas finas, com a ficha à frente.
 // Sem checkbox: o seguimento dá-se como feito na própria ficha (ou no Calendário).
-export default function Seguimentos({ dados, itens, vazio }: { dados: Dados; itens: Seguimento[]; vazio: string }) {
+export default function Seguimentos({ dados, itens, vazio, onNaoFeito }: { dados: Dados; itens: Seguimento[]; vazio: string; onNaoFeito?: (t: Tarefa) => void }) {
   const [todos, setTodos] = useState(false);
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
   const inicioHoje = inicioDoDia(new Date());
@@ -130,6 +143,11 @@ export default function Seguimentos({ dados, itens, vazio }: { dados: Dados; ite
                   </p>
                 )}
               </div>
+              {onNaoFeito && !t.angariacao_acao_id && (
+                <button type="button" onClick={() => onNaoFeito(t)} className="shrink-0 rounded-full border border-linha px-2.5 py-1 text-xs font-semibold text-secundario hover:bg-black/5">
+                  Não feito
+                </button>
+              )}
               <Link href={ficha.href} className="shrink-0 text-sm font-medium text-azul">
                 Abrir ficha
               </Link>

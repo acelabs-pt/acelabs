@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
 import AgendarTarefa from "@/components/crm/AgendarTarefa";
+import { reporTarefa } from "@/lib/tarefas";
 import { formatarDia, formatarHora } from "@/lib/datas";
 import type { ImovelComprador } from "@/lib/comprador";
 
@@ -35,6 +36,8 @@ export default function AgendaDoComprador({
   type Linha = { id: string; titulo: string; chave_automacao: string | null; inicio: string | null };
   const [linhas, setLinhas] = useState<Linha[] | null>(null);
   const [recarregar, setRecarregar] = useState(0);
+  const [naoFeitas, setNaoFeitas] = useState<{ id: string; titulo: string; inicio: string | null; nao_feita_em: string }[]>([]);
+  const [verNaoFeitas, setVerNaoFeitas] = useState(false);
   const primeiro = nome.split(" ")[0];
 
   useEffect(() => {
@@ -48,6 +51,23 @@ export default function AgendaDoComprador({
       .limit(100)
       .then(({ data }) => setLinhas((data ?? []) as Linha[]));
   }, [compradorId, versao, recarregar]);
+
+  // Tarefas dadas como "não feitas" (já não faziam sentido): ficam registadas na ficha, com opção de repor.
+  useEffect(() => {
+    sbBrowser()
+      .from("tarefas")
+      .select("id, titulo, inicio, nao_feita_em")
+      .eq("comprador_id", compradorId)
+      .not("nao_feita_em", "is", null)
+      .order("nao_feita_em", { ascending: false })
+      .limit(30)
+      .then(({ data }) => setNaoFeitas((data ?? []) as { id: string; titulo: string; inicio: string | null; nao_feita_em: string }[]));
+  }, [compradorId, versao, recarregar]);
+
+  async function repor(id: string) {
+    await reporTarefa({ id });
+    setRecarregar((v) => v + 1);
+  }
 
   async function feita(t: Linha) {
     setLinhas((l) => (l ?? []).filter((x) => x.id !== t.id));
@@ -104,6 +124,32 @@ export default function AgendaDoComprador({
       )}
 
       <AgendarTarefa origem="comprador" clienteId={compradorId} contactoId={contactoId} aoCriar={() => setRecarregar((v) => v + 1)} />
+
+      {naoFeitas.length > 0 && (
+        <div className="border-t border-linha pt-3">
+          <button type="button" onClick={() => setVerNaoFeitas((v) => !v)} aria-expanded={verNaoFeitas} className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold text-secundario">
+            <span>Não feitas ({naoFeitas.length})</span>
+            <svg viewBox="0 0 24 24" className={`h-4 w-4 transition-transform ${verNaoFeitas ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {verNaoFeitas && (
+            <ul className="mt-2 divide-y divide-linha">
+              {naoFeitas.map((t) => (
+                <li key={t.id} className="flex items-start justify-between gap-2 py-2 text-sm">
+                  <span className="min-w-0 text-secundario line-through">
+                    {t.titulo}
+                    <span className="block text-xs no-underline">dada como não feita em {formatarDia(new Date(t.nao_feita_em))}</span>
+                  </span>
+                  <button type="button" onClick={() => repor(t.id)} className="shrink-0 text-xs font-medium text-azul underline">
+                    Repor
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }

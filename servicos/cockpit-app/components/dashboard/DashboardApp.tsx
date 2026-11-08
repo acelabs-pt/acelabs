@@ -43,7 +43,7 @@ export default function DashboardApp() {
         !erro && <p className="text-sm text-secundario">A carregar...</p>
       ) : (
         <>
-          <Hoje dados={dados} avisos={avisos(dados)} />
+          <Hoje dados={dados} avisos={avisos(dados)} aoAtualizar={carregar} />
           <Metas dados={dados} onAlterado={carregar} />
         </>
       )}

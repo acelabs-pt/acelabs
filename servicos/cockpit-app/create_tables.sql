@@ -233,6 +233,7 @@ create table tarefas (
   chave_automacao text,      -- evita duplicar a mesma tarefa automática
   google_event_id text,      -- para a sincronização com Google Calendar (fase posterior)
   google_calendar_em timestamptz,   -- quando o agente levou esta tarefa para o seu Google Calendar (caixa "Google Calendar")
+  nao_feita_em timestamptz,  -- dada como "não feita" (já não faz sentido): fica fechada (feita = true) com esta data; ver migration_tarefa_nao_feita.sql
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

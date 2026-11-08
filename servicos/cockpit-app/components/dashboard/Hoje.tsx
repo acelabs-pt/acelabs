@@ -7,6 +7,9 @@ import { IconeAgenda, IconeAtencao } from "@/components/dashboard/Icones";
 import AngariacoesEmAtraso from "@/components/dashboard/AngariacoesEmAtraso";
 import Seguimentos, { seguimentosDe, temCliente } from "@/components/dashboard/Seguimentos";
 import type { Aviso, Dados } from "@/lib/painel";
+import type { Tarefa } from "@/lib/types";
+import { marcarNaoFeita, reporTarefa } from "@/lib/tarefas";
+import { useToast } from "@/components/Toast";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, somarDias } from "@/lib/datas";
 
 // Cada secção da Agenda começa com um título a negrito, na cor da secção, com uma linha da mesma cor por baixo. O corpo fica branco.
@@ -36,7 +39,8 @@ const FILTROS: [Filtro, string][] = [
 
 // Dois cartões que partilham o período e o filtro: "Agenda" (hoje ou semana: marcações, tarefas e atrasos) e "Precisa de atenção".
 // Tudo vem das tarefas do Calendário e dos dados do CRM, não há números à parte. "Todos" inclui também metas e tarefas criadas à mão.
-export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] }) {
+export default function Hoje({ dados, avisos, aoAtualizar }: { dados: Dados; avisos: Aviso[]; aoAtualizar: () => void | Promise<void> }) {
+  const { avisar } = useToast();
   const [periodo, setPeriodo] = useState<Periodo>("hoje");
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
@@ -58,6 +62,20 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
   const quando = periodo === "hoje" ? "hoje" : "na semana";
   const seguimentos = seguimentosDe(dados, periodo, filtro);
   const [verAtrasados, setVerAtrasados] = useState(false);
+
+  // "Não feito": a tarefa em atraso já não faz sentido. Fecha-se (sem avançar o cliente no funil) e fica registada na ficha.
+  async function naoFeito(t: Tarefa) {
+    const e = await marcarNaoFeita(t);
+    if (e) return avisar(e);
+    await aoAtualizar();
+    avisar("Marcada como não feita.", {
+      rotulo: "Desfazer",
+      onAcao: async () => {
+        await reporTarefa(t);
+        await aoAtualizar();
+      },
+    });
+  }
 
   // Avisos: o tipo de cliente vem do início do id (c- e e-: compradores, p-: proprietários, a- e aa-: angariações).
   const tipoDoAviso = (a: Aviso): Filtro => (a.id.startsWith("p-") ? "proprietario" : a.id.startsWith("a") ? "angariacao" : "comprador");
@@ -159,7 +177,7 @@ export default function Hoje({ dados, avisos }: { dados: Dados; avisos: Aviso[] 
               </button>
               {verAtrasados && (
                 <div className="mt-2 rounded-lg bg-white px-3">
-                  <Seguimentos dados={dados} itens={seguimentos.atrasados} vazio="" />
+                  <Seguimentos dados={dados} itens={seguimentos.atrasados} vazio="" onNaoFeito={naoFeito} />
                 </div>
               )}
             </div>

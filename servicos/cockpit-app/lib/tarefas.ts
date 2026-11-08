@@ -15,6 +15,19 @@ export async function marcarTarefa(t: Tarefa, feita: boolean): Promise<string | 
   return null;
 }
 
+/** A tarefa já não faz sentido: fecha-se como "não feita" (não avança o funil nem cria nada) e fica com a data em que foi descartada. */
+export async function marcarNaoFeita(t: Tarefa): Promise<string | null> {
+  const agora = new Date().toISOString();
+  const { error } = await sbBrowser().from("tarefas").update({ feita: true, feita_em: agora, nao_feita_em: agora }).eq("id", t.id);
+  return error ? "Não foi possível guardar. Tenta outra vez." : null;
+}
+
+/** Desfaz o "não feita": a tarefa volta a estar por fazer. */
+export async function reporTarefa(t: Pick<Tarefa, "id">): Promise<string | null> {
+  const { error } = await sbBrowser().from("tarefas").update({ feita: false, feita_em: null, nao_feita_em: null }).eq("id", t.id);
+  return error ? "Não foi possível repor a tarefa." : null;
+}
+
 /**
  * Passa uma tarefa para outro dia, mantendo a hora. Se for uma ação de um plano de angariação,
  * move também a ação no plano (é a mesma coisa vista de dois sítios).

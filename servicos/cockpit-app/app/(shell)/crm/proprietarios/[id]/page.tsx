@@ -1,6 +1,7 @@
 "use client";
 
 import { alternarGoogleCalendar } from "@/lib/googleCalendar";
+import { reporTarefa } from "@/lib/tarefas";
 import { EsqueletoLista } from "@/components/Esqueleto";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -120,6 +121,11 @@ export default function FichaProprietario() {
   }
 
   const tReuniao = p ? tarefas.find((t) => t.chave_automacao === `proprietario:${p.id}:reuniao` && !t.feita) : undefined;
+
+  async function reporNaoFeita(t: Tarefa) {
+    setErro(await reporTarefa(t));
+    await carregar();
+  }
 
   async function alternarGoogle(t: Tarefa) {
     setErro(await alternarGoogleCalendar(t));
@@ -338,6 +344,21 @@ export default function FichaProprietario() {
           <ul className="space-y-1.5">
             {tarefas.map((t) => (
               <li key={t.id}>
+                {t.nao_feita_em ? (
+                  <div className="flex items-start justify-between gap-2 text-sm">
+                    <span className="min-w-0 text-secundario line-through">
+                      {t.titulo}
+                      <span className="block text-xs no-underline">
+                        <span className="mr-2 inline-block rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-semibold text-secundario">Não feito</span>
+                        {t.inicio ? `${formatarDia(new Date(t.inicio))} ${formatarHora(t.inicio)}` : ""}
+                      </span>
+                    </span>
+                    <button type="button" onClick={() => reporNaoFeita(t)} className="shrink-0 text-xs font-medium text-azul underline">
+                      Repor
+                    </button>
+                  </div>
+                ) : (
+                  <>
                 <label className="flex items-start gap-2 text-sm">
                   <input type="checkbox" checked={t.feita} onChange={() => alternarTarefa(t)} className="mt-1" />
                   <span className={t.feita ? "text-secundario line-through" : "text-tinta"}>
@@ -359,6 +380,8 @@ export default function FichaProprietario() {
                     <input type="checkbox" checked={!!t.google_calendar_em} onChange={() => alternarGoogle(t)} />
                     Google Calendar
                   </label>
+                )}
+                  </>
                 )}
               </li>
             ))}
