@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex">
+<title>Cockpit beta - guia rápido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --gray-bg:#f5f5f7;
+    --warm:#EDEBE5;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --blue:#0071e3;
+    --blue-dark:#0059b3;
+    --blue-soft:#eaf2fd;
+    --green:#1fae5a;
+    --green-soft:#e6f6ec;
+    --amber-soft:#fff4e5;
+    --amber-ink:#9a5b00;
+    --night:#0a1620;
+    --line:rgba(0,0,0,.08);
+    --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Inter','Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--gray-bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.55;font-size:16px;}
+  a{color:var(--blue);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.02em;text-wrap:balance;}
+  p{margin:0 0 12px;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px;}
+
+  .topo{background:var(--night);color:#fff;padding:28px 0 36px;}
+  .marca{font-weight:800;font-size:16px;opacity:.9;margin-bottom:22px;}
+  .marca span{color:#4da3ff;}
+  .etiqueta{display:inline-block;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;margin-bottom:14px;}
+  .topo h1{font-size:30px;line-height:1.15;margin-bottom:12px;}
+  .topo p{color:#c9d6e3;font-size:17px;margin:0;}
+
+  nav.indice{display:flex;gap:8px;overflow-x:auto;padding:14px 0;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none;}
+  nav.indice a{flex:0 0 auto;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;color:var(--ink);}
+
+  .cartao{background:var(--white);border-radius:18px;padding:22px 20px;margin:14px 0;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .cartao h2{font-size:21px;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+  .num{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:14px;display:inline-flex;align-items:center;justify-content:center;}
+  .sub{color:var(--ink-2);margin-bottom:14px;}
+
+  .dois{display:grid;grid-template-columns:1fr;gap:12px;}
+  .so{background:var(--gray-bg);border-radius:14px;padding:16px;}
+  .so h3{font-size:16px;margin-bottom:8px;}
+  ol,ul{margin:0;padding-left:20px;}
+  li{margin:6px 0;}
+
+  .botao{display:inline-block;background:var(--blue);color:#fff;font-weight:600;border-radius:12px;padding:12px 18px;margin-top:10px;}
+  .botao:hover{background:var(--blue-dark);text-decoration:none;}
+
+  .aviso{background:var(--amber-soft);color:var(--amber-ink);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:12px;}
+  .bom{background:var(--green-soft);color:#13653a;border-radius:12px;padding:12px 14px;font-size:15px;margin-top:12px;}
+
+  .opcoes{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px;}
+  .opcao{border:1px solid var(--line);border-radius:14px;padding:14px;}
+  .opcao strong{display:block;margin-bottom:4px;}
+  .opcao span{color:var(--ink-2);font-size:15px;}
+
+  .rodape{color:var(--ink-2);font-size:14px;padding:26px 0 44px;text-align:center;}
+
+  @media (min-width:700px){
+    .topo{padding:40px 0 52px;}
+    .topo h1{font-size:40px;}
+    .dois{grid-template-columns:1fr 1fr;}
+    .opcoes{grid-template-columns:repeat(3,1fr);}
+    .cartao{padding:28px 30px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="wrap">
+    <div class="marca">Ace<span>.</span>Labs</div>
+    <div class="etiqueta">Versão beta</div>
+    <h1>Bem-vindo ao Cockpit</h1>
+    <p>A app para o dia a dia do consultor imobiliário: compradores, angariações, tarefas e agenda num só sítio. Obrigado por a
+      testares connosco.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="indice" aria-label="Índice">
+    <a href="#instalar">Instalar</a>
+    <a href="#entrar">Entrar</a>
+    <a href="#primeiros-passos">Primeiros passos</a>
+    <a href="#reportar">Reportar um problema</a>
+    <a href="#beta">Porquê o teu feedback</a>
+  </nav>
+
+  <section class="cartao" id="instalar">
+    <h2><span class="num">1</span>Instalar a app</h2>
+    <p class="sub">Escolhe o teu telemóvel.</p>
+    <div class="dois">
+      <div class="so">
+        <h3>Android</h3>
+        <ol>
+          <li>Abre este link no telemóvel e descarrega a app.</li>
+          <li>Se o telemóvel perguntar, permite instalar apps desta origem (é normal numa versão de teste, que ainda não está na
+            Play Store).</li>
+          <li>Abre o ficheiro descarregado e toca em Instalar.</li>
+          <li>Abre o Cockpit pelo ícone.</li>
+        </ol>
+        <a class="botao" href="https://gebqaxhwebsmoeqpzzzg.supabase.co/storage/v1/object/public/apk/cockpit-beta.apk">Descarregar para Android</a>
+      </div>
+      <div class="so">
+        <h3>iPhone</h3>
+        <ol>
+          <li>Abre este link no <strong>Safari</strong> (não noutro browser).</li>
+          <li>Toca em Partilhar (o quadrado com a seta para cima).</li>
+          <li>Escolhe "Adicionar ao ecrã principal" e toca em Adicionar.</li>
+          <li>Abre o Cockpit sempre pelo ícone que ficou no ecrã.</li>
+        </ol>
+        <a class="botao" href="https://cockpit.acelabs.pt">Abrir no iPhone</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cartao" id="entrar">
+    <h2><span class="num">2</span>Entrar pela primeira vez</h2>
+    <ol>
+      <li>Vais receber um email com o assunto "Convite para o teu Cockpit".</li>
+      <li>Abre o link do email no telemóvel e escolhe a tua password.</li>
+      <li>Abre a app e entra com o teu email e essa password.</li>
+    </ol>
+    <div class="aviso"><strong>O link do convite só funciona uma vez.</strong> Se aparecer que expirou, no ecrã de entrada toca
+      em "Esqueci a password": recebes outro email para escolher a password.</div>
+  </section>
+
+  <section class="cartao" id="primeiros-passos">
+    <h2><span class="num">3</span>Primeiros passos</h2>
+    <p class="sub">Dez minutos chegam para ver o Cockpit a trabalhar para ti.</p>
+    <ol>
+      <li><strong>Traz os teus contactos.</strong> Em Conta, "Importar lista", carrega o teu Excel ou CSV de compradores e
+        proprietários (há um modelo para descarregar na própria página). Ou cria um comprador à mão no botão +.</li>
+      <li><strong>Cria uma angariação.</strong> No separador Angariações, "Nova angariação", com a zona e o tipo de imóvel.</li>
+      <li><strong>Vê os alertas no Dashboard.</strong> Quando um comprador procura na zona de uma angariação, o Cockpit avisa-te.</li>
+      <li><strong>Usa a agenda.</strong> Visitas, reuniões e tarefas ficam no Calendário. Desliza uma tarefa para a marcar como
+        feita ou para a adiar.</li>
+      <li><strong>Ativa as notificações</strong> em Conta, para receberes os lembretes antes de cada visita.</li>
+    </ol>
+  </section>
+
+  <section class="cartao" id="reportar">
+    <h2><span class="num">4</span>Reportar um problema</h2>
+    <p>Algo falhou, não percebeste um ecrã ou tens uma ideia? Toca no <strong>botão de ajuda no canto inferior esquerdo</strong>
+      da app. Escolhe como preferes contar:</p>
+    <div class="opcoes">
+      <div class="opcao"><strong>Escrever</strong><span>Uma linha chega: o que querias fazer e o que aconteceu.</span></div>
+      <div class="opcao"><strong>Captura do ecrã</strong><span>A app tira a captura do ecrã onde estás, para vermos o mesmo que tu.</span></div>
+      <div class="opcao"><strong>Áudio</strong><span>Grava uma mensagem de voz, como no WhatsApp. Ideal quando estás na rua.</span></div>
+    </div>
+    <div class="bom">Recebemos cada reporte na hora e respondemos-te no próprio dia.</div>
+  </section>
+
+  <section class="cartao" id="beta">
+    <h2><span class="num">5</span>Porque é que o teu feedback conta</h2>
+    <p>Esta é uma versão beta: ainda vais encontrar coisas por afinar, e é exatamente isso que queremos descobrir contigo. Cada
+      reporte entra na lista do que mudamos a seguir, e as correções aparecem na app sem teres de instalar nada de novo.</p>
+    <p>Durante o teste vamos falar contigo uma vez por semana, cerca de 10 minutos, para perceber o que usas, o que te irrita e o
+      que falta.</p>
+    <p>Os dados da tua agência só são vistos por quem é da tua agência.</p>
+  </section>
+
+  <section class="cartao">
+    <h2>Precisas de ajuda?</h2>
+    <p>Escreve-nos para <a href="mailto:pedro@acelabs.pt">pedro@acelabs.pt</a> ou usa o botão de ajuda dentro da app.</p>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="wrap">Ace Labs, Braga · <a href="https://www.acelabs.pt">acelabs.pt</a></div>
+</footer>
+
+</body>
+</html>
