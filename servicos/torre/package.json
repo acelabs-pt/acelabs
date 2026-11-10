@@ -13,7 +13,8 @@
     "testar": "tsx testes/correr.ts",
     "socio": "tsx --env-file=.env.local scripts/criar-socio.ts",
     "schema": "tsx --env-file=.env.local scripts/aplicar-schema.ts",
-    "copia": "tsx --env-file=.env.local scripts/copia.ts"
+    "copia": "tsx --env-file=.env.local scripts/copia.ts",
+    "acessos": "tsx --env-file=.env.local scripts/importar-acessos.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",

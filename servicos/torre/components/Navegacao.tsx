@@ -94,6 +94,16 @@ const GRUPOS: Grupo[] = [
     titulo: "Gestão",
     itens: [
       {
+        href: "/acessos",
+        texto: "Acessos",
+        icone: (
+          <>
+            <circle cx="8" cy="15" r="4" />
+            <path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2" />
+          </>
+        ),
+      },
+      {
         href: "/registo",
         texto: "Registo",
         icone: (

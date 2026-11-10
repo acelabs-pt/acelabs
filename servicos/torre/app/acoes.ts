@@ -11,6 +11,7 @@ import { lerData, type Mapa } from "@/lib/extrato";
 import { aplicarRegras, chaveDescricao, reembolsavelPorOmissao } from "@/lib/calculos";
 import { normalizar } from "@/lib/texto";
 import { TAMANHO_PIN, problemaDoPin, senhaDoPin } from "@/lib/pin";
+import { lerAcesso } from "@/lib/acessos";
 import type { Conta, Movimento, Periodicidade, Regra } from "@/lib/tipos";
 
 export type Resposta = { ok?: boolean; erro?: string; aviso?: string };
@@ -490,6 +491,45 @@ export async function apagarEntidade(f: FormData) {
     atualizar();
     redirect("/contactos");
   }
+}
+
+// Acessos -----------------------------------------------------------------------------------------------------------
+
+const CAMPOS_ACESSO = ["servico", "categoria", "para_que", "url", "conta", "dono", "onde_esta", "dois_fatores", "custo_mensal", "renovacao", "estado", "notas"];
+
+function camposAcesso(f: FormData) {
+  return lerAcesso(Object.fromEntries(CAMPOS_ACESSO.map((k) => [k, txt(f, k)])));
+}
+
+function erroAcesso(e: { message: string } | null): Resposta | null {
+  if (e?.message.includes("acessos_servico_conta")) return { erro: "Já existe este serviço com esta conta." };
+  return erroDe(e);
+}
+
+export async function criarAcesso(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s } = await exigirSocio();
+  const c = camposAcesso(f);
+  if ("erro" in c) return { erro: c.erro };
+  const { error } = await s.from("acessos").insert(c);
+  if (error) return erroAcesso(error)!;
+  atualizar();
+  return { ok: true, aviso: "Acesso guardado." };
+}
+
+export async function guardarAcesso(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s } = await exigirSocio();
+  const c = camposAcesso(f);
+  if ("erro" in c) return { erro: c.erro };
+  const { error } = await s.from("acessos").update({ ...c, atualizado_em: new Date().toISOString() }).eq("id", txt(f, "id"));
+  if (error) return erroAcesso(error)!;
+  atualizar();
+  return { ok: true, aviso: "Guardado." };
+}
+
+export async function apagarAcesso(f: FormData) {
+  const { s } = await exigirSocio();
+  await s.from("acessos").delete().eq("id", txt(f, "id"));
+  atualizar();
 }
 
 // Contratos ---------------------------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 Painel de gestão interno dos sócios (Pedro e Miguel): contas, movimentos, débitos diretos, quem pagou o quê e quanto a
 empresa deve a cada sócio. **Publicado** (Vercel). Entra-se a escolher o nome (Pedro ou Miguel) e com um **PIN de 6
-algarismos** (decisão do Pedro, 2026-11-06; sem 2FA). Abre no telemóvel.
+algarismos** (decisão do Pedro, 2026-11-06). Abre no telemóvel.
 
 ## Entrar com PIN
 
@@ -27,6 +27,25 @@ algarismos** (decisão do Pedro, 2026-11-06; sem 2FA). Abre no telemóvel.
 Feitas e publicadas (2026-11-06): fase 1, fase 2 (faturas) e fase 3 (tesouraria,
 clientes e fornecedores, contratos, IVA por trimestre). Seguem-se: 4) painéis do Cockpit e do CPCV (só leitura, pela função
 `admin` com uma chave própria da Torre); 5) faturas apanhadas do email, avisos por email e ligação automática ao banco.
+
+## Acessos (2026-11-10)
+
+Registo de todos os serviços e contas da Ace Labs (GitHub, Vercel, Supabase, Resend, domínio, lojas de apps, IA...) e de
+**onde está cada credencial**. Menu "Gestão" > Acessos (`/acessos`) e pesquisa Ctrl K.
+
+- **Nunca guarda passwords, chaves nem tokens.** O formulário tem o aviso fixo e o servidor recusa qualquer campo com aspeto de
+  segredo (`lib/acessos.ts`, `pareceSegredo`): começos de chaves conhecidos (`sk-`, `sk_`, `sbp_`, `re_`, `eyJ`, `ghp_`,
+  `AIza`...), chaves privadas e cadeias longas aleatórias. Caminhos, emails e domínios passam (são o que se escreve em "onde
+  está"). Testes em `testes/unidade.ts`.
+- Cada acesso: serviço, categoria, para que serve, endereço, conta de entrada, dono, onde está a credencial, 2FA (sim, não, não
+  sei), custo por mês, renovação, estado (ativo, por criar, a cancelar) e notas. A lista agrupa por categoria, pesquisa em
+  todos os campos e destaca "Pedem atenção": os por criar e os ativos sem 2FA confirmado. O mesmo serviço com a mesma conta não
+  entra duas vezes (índice `acessos_servico_conta`). Cada alteração fica no Registo, como as outras tabelas.
+- **Para ativar:** `npm run schema` (cria a tabela `acessos` com a regra "só sócios" e o registo de ações; pode correr-se
+  outra vez). Antes disso a página diz que falta o SQL e o resto da Torre funciona igual.
+- **Lista inicial:** `business-center/torre-acessos-inicial.json` (fora do git: o repositório é público). `npm run acessos --
+  --validar` confere o ficheiro sem ligar à base de dados; `npm run acessos` insere os que faltam, sem duplicar, e recusa
+  importar tudo se alguma linha tiver aspeto de segredo. Precisa da `SUPABASE_SERVICE_ROLE_KEY` no `.env.local`.
 
 ## Melhorias de 2026-11-06 (tarde)
 

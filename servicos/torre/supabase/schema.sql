@@ -20,7 +20,7 @@ create table if not exists public.socios (
 -- PIN temporário: o sócio acabou de ser criado (ou o PIN foi reposto) e tem de escolher o seu antes de usar a Torre.
 alter table public.socios add column if not exists pin_temporario boolean not null default false;
 
--- Quem pode entrar: sócio ativo com sessão iniciada (sem 2FA, decisão do Pedro, 2026-11-06).
+-- Quem pode entrar: sócio ativo com sessão iniciada (só o PIN; o código por email só se pede nos Acessos, ver abaixo).
 create or replace function public.e_socio() returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.socios where user_id = (select auth.uid()) and ativo);
@@ -200,6 +200,27 @@ create table if not exists public.socios_movimentos (
   criado_em timestamptz not null default now()
 );
 
+-- Acessos: serviços e contas da Ace Labs e ONDE está cada credencial -------------------------------------------------
+-- Nunca guarda passwords, chaves nem tokens (a Torre recusa campos com aspeto de segredo, lib/acessos.ts).
+create table if not exists public.acessos (
+  id uuid primary key default gen_random_uuid(),
+  servico text not null check (length(trim(servico)) > 0),
+  categoria text not null default 'Outros',
+  para_que text,
+  url text,
+  conta text,
+  dono text,
+  onde_esta text,
+  dois_fatores text not null default 'não sei' check (dois_fatores in ('sim', 'não', 'não sei')),
+  custo_mensal bigint check (custo_mensal is null or custo_mensal >= 0),
+  renovacao date,
+  estado text not null default 'ativo' check (estado in ('ativo', 'por criar', 'a cancelar')),
+  notas text,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+create unique index if not exists acessos_servico_conta on public.acessos (lower(servico), lower(coalesce(conta, '')));
+
 -- Registo de ações ----------------------------------------------------------------------------------------------------
 create table if not exists public.auditoria (
   id bigserial primary key,
@@ -230,7 +251,7 @@ begin
     tg_table_name,
     lower(tg_op),
     (r ->> 'id')::uuid,
-    left(coalesce(r ->> 'descricao', r ->> 'nome', r ->> 'texto', r ->> 'emitente_nome', r ->> 'ficheiro_nome', r ->> 'ficheiro', r ->> 'tipo', r ->> 'produto', ''), 120)
+    left(coalesce(r ->> 'descricao', r ->> 'nome', r ->> 'texto', r ->> 'emitente_nome', r ->> 'ficheiro_nome', r ->> 'ficheiro', r ->> 'servico', r ->> 'tipo', r ->> 'produto', ''), 120)
   );
   return null;
 end $$;
@@ -248,6 +269,22 @@ begin
     execute format('create trigger auditoria after insert or update or delete on public.%I for each row execute function public.registar_auditoria()', t);
   end loop;
 end $$;
+
+-- Acessos: por agora só o PIN, como o resto da Torre (o código por email foi posto de parte, decisão do Pedro, 2026-11-10).
+-- Limpa o que uma versão anterior deste ficheiro criou.
+do $do$ begin
+  if to_regclass('public.acessos') is not null then drop policy if exists acessos_verificados on public.acessos; end if;
+end $do$;
+drop function if exists public.confirmar_2fa(text);
+drop function if exists public.acesso_verificado();
+drop table if exists public.codigos_2fa;
+drop table if exists public.sessoes_2fa;
+alter table public.acessos enable row level security;
+drop policy if exists acessos_verificados on public.acessos;
+drop policy if exists socios_tudo on public.acessos;
+create policy socios_tudo on public.acessos for all to authenticated using (public.e_socio()) with check (public.e_socio());
+drop trigger if exists auditoria on public.acessos;
+create trigger auditoria after insert or update or delete on public.acessos for each row execute function public.registar_auditoria();
 
 -- Sócios e registo: só leitura (escrevem-se pelo script `npm run socio` e pelo gatilho).
 alter table public.socios enable row level security;

@@ -3,7 +3,7 @@
 import { exigirSocio } from "@/lib/sessao";
 import { carregar } from "@/lib/dados";
 
-export type Resultado = { tipo: "movimento" | "fatura" | "entidade" | "debito" | "conta"; id: string; titulo: string; detalhe: string; valor?: number; moeda?: string; href: string; procura: string };
+export type Resultado = { tipo: "movimento" | "fatura" | "entidade" | "debito" | "conta" | "acesso"; id: string; titulo: string; detalhe: string; valor?: number; moeda?: string; href: string; procura: string };
 
 /** Tudo o que a pesquisa rápida (Ctrl K) encontra. Pequeno o suficiente para ir de uma vez para o browser. */
 export async function indicePesquisa(): Promise<Resultado[]> {
@@ -26,6 +26,10 @@ export async function indicePesquisa(): Promise<Resultado[]> {
   for (const e of t.entidades)
     r.push({ tipo: "entidade", id: e.id, titulo: e.nome, detalhe: [e.tipo === "cliente" ? "Cliente" : "Fornecedor", e.nif].filter(Boolean).join(", "), href: `/contactos/${e.id}`, procura: `${e.nome} ${e.nif ?? ""}` });
   for (const d of t.subscricoes) r.push({ tipo: "debito", id: d.id, titulo: d.nome, detalhe: `Débito ${d.periodicidade}`, valor: d.valor_previsto ? -d.valor_previsto : undefined, href: `/debitos/${d.id}`, procura: `${d.nome} ${d.padrao ?? ""}` });
+  // Antes de correr o SQL dos acessos a tabela não existe: a pesquisa continua a funcionar sem eles.
+  const { data: acessos } = await s.from("acessos").select("id, servico, categoria, conta, dono, onde_esta");
+  for (const a of acessos ?? [])
+    r.push({ tipo: "acesso", id: a.id, titulo: a.servico, detalhe: [a.categoria, a.conta].filter(Boolean).join(", "), href: `/acessos?q=${encodeURIComponent(a.servico)}`, procura: [a.servico, a.categoria, a.conta, a.dono, a.onde_esta, "acesso conta login"].filter(Boolean).join(" ") });
   for (const c of t.contas) r.push({ tipo: "conta", id: c.id, titulo: c.nome, detalhe: "Conta", href: `/movimentos?conta=${c.id}`, procura: `${c.nome} ${c.banco ?? ""}` });
   for (const m of t.movimentos.slice(0, 3000))
     r.push({

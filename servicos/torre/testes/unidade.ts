@@ -14,6 +14,7 @@ import { eFolha, linhasDaFolha } from "../lib/folha";
 import { estadoDebito, saidoEsteMes } from "../lib/debitos";
 import { euroCsv, filtrarMovimentos, folhaCsv } from "../lib/filtros";
 import type { Categoria, Conta, Contrato, Fatura, Movimento, Socio, SocioMovimento, Subscricao } from "../lib/tipos";
+import { agruparAcessos, chaveAcesso, filtrarAcessos, lerAcesso, pareceSegredo, precisaAtencao, type Acesso } from "../lib/acessos";
 
 let n = 0;
 function teste(nome: string, f: () => void) {
@@ -492,6 +493,82 @@ export function correrUnidade() {
     } finally {
       process.env.TORRE_PIN_SEGREDO = antes;
     }
+  });
+
+  teste("acessos: recusa tudo o que tem aspeto de segredo (chaves e tokens inventados)", () => {
+    const segredos = [
+      "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUv",
+      "sk_live_51HxYzAbCdEfGhIjKl",
+      ["sbp", "0123456789abcdef0123456789abcdef01234567"].join("_"),
+      "sb_secret_AbCdEfGh12345678",
+      "re_AbCd1234_EfGh5678IjKl",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.abc",
+      "ghp_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789",
+      "github_pat_11ABCDEFG0123456789",
+      "AIzaSyFAKEfakeFAKEfakeFAKEfakeFAKEfake0",
+      "chave: 3f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a", // hex comprido
+      "aB3dE5gH7jK9mN1pQ3sT5vW7yZ9bC1dF3h", // aleatório comprido
+      "-----BEGIN PRIVATE KEY-----\nMIIEv...",
+      '{"type":"service_account","private_key":"x"}',
+      "https://api.x.com/v1?token=sk_test_AbCdEfGhIjKlMnOp", // token dentro de um endereço
+    ];
+    for (const x of segredos) assert.ok(pareceSegredo(x), `devia recusar: ${x.slice(0, 20)}`);
+    const normais = [
+      "cofre de passwords",
+      ".env.local do Pedro em servicos/torre",
+      "servicos/cockpit-app/android/cockpit-release.keystore, só no PC do Pedro",
+      "segredo FCM_SERVICE_ACCOUNT no Supabase (projeto gebqaxhwebsmoeqpzzzg)",
+      "pedro@acelabs.pt",
+      "https://supabase.com/dashboard/project/gebqaxhwebsmoeqpzzzg/settings/api-keys",
+      "acelabs-cli-permanente",
+      "Plano Hobby, equipa acelabs1, sem membros",
+      "Verificação do domínio: vc-domain-verify=cockpit.acelabs.pt,0000aaaa1111bbbb2222",
+      "C:\\Users\\pedro\\android-tools\\sdk",
+      "",
+      null,
+    ];
+    for (const x of normais) assert.equal(pareceSegredo(x), null, `não devia recusar: ${x}`);
+  });
+
+  teste("acessos: validação dos campos e mensagem do campo com o segredo", () => {
+    const ok = lerAcesso({ servico: " Vercel ", categoria: "Alojamento", conta: "pedro@acelabs.pt", custo_mensal: "20,00", renovacao: "2027-01-15", dois_fatores: "sim" });
+    assert.ok(!("erro" in ok));
+    if (!("erro" in ok)) {
+      assert.equal(ok.servico, "Vercel");
+      assert.equal(ok.custo_mensal, 2000);
+      assert.equal(ok.renovacao, "2027-01-15");
+      assert.equal(ok.estado, "ativo");
+      assert.equal(ok.para_que, null);
+    }
+    const mau = lerAcesso({ servico: "Resend", notas: "a chave é re_AbCd1234_EfGh5678IjKl" });
+    assert.ok("erro" in mau && mau.erro.includes("Notas") && mau.erro.includes("Nunca escrevas"));
+    const onde = lerAcesso({ servico: "Supabase", onde_esta: ["sbp", "0123456789abcdef0123456789abcdef01234567"].join("_") });
+    assert.ok("erro" in onde && onde.erro.includes("Onde está a credencial"));
+    assert.ok("erro" in lerAcesso({ servico: "" }));
+    assert.ok("erro" in lerAcesso({ servico: "X", estado: "talvez" }));
+    assert.ok("erro" in lerAcesso({ servico: "X", dois_fatores: "às vezes" }));
+    assert.ok("erro" in lerAcesso({ servico: "X", url: "vercel.com" }));
+    assert.ok("erro" in lerAcesso({ servico: "X", custo_mensal: "-5" }));
+    assert.equal(chaveAcesso({ servico: "Vercel ", conta: "Pedro@AceLabs.pt" }), chaveAcesso({ servico: "vercel", conta: "pedro@acelabs.pt" }));
+    assert.notEqual(chaveAcesso({ servico: "Vercel", conta: "pedro@acelabs.pt" }), chaveAcesso({ servico: "Vercel", conta: null }));
+  });
+
+  teste("acessos: atenção, filtro e grupos", () => {
+    const base = { para_que: null, url: null, dono: null, onde_esta: null, custo_mensal: null, renovacao: null, notas: null, criado_em: "", atualizado_em: "" };
+    const l: Acesso[] = [
+      { ...base, id: "1", servico: "Vercel", categoria: "Alojamento", conta: "pedro@acelabs.pt", dois_fatores: "sim", estado: "ativo" },
+      { ...base, id: "2", servico: "GitHub", categoria: "Código", conta: null, dois_fatores: "não sei", estado: "ativo" },
+      { ...base, id: "3", servico: "Google Play", categoria: "Lojas de apps", conta: null, dois_fatores: "não sei", estado: "por criar" },
+      { ...base, id: "4", servico: "Coisa antiga", categoria: "Outra", conta: null, dois_fatores: "não", estado: "a cancelar" },
+    ];
+    assert.equal(precisaAtencao(l[0]), null);
+    assert.equal(precisaAtencao(l[1]), "sem 2FA");
+    assert.equal(precisaAtencao(l[2]), "por criar");
+    assert.equal(precisaAtencao(l[3]), null);
+    assert.deepEqual(filtrarAcessos(l, "", "atencao").map((a) => a.id), ["2", "3"]);
+    assert.deepEqual(filtrarAcessos(l, "PEDRO", "todos").map((a) => a.id), ["1"]);
+    assert.deepEqual(filtrarAcessos(l, "", "por criar").map((a) => a.id), ["3"]);
+    assert.deepEqual(agruparAcessos(l).map((g) => g.categoria), ["Código", "Alojamento", "Lojas de apps", "Outra"]);
   });
 
   console.log(`  ${n} testes passaram`);

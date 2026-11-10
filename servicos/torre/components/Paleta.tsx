@@ -22,9 +22,11 @@ const ACOES: { titulo: string; detalhe: string; href: string; procura: string }[
   { titulo: "Clientes", detalhe: "Contratos e mensalidades", href: "/contactos?ver=clientes", procura: "clientes contratos mensalidades mrr" },
   { titulo: "Novo cliente ou fornecedor", detalhe: "Criar a ficha", href: "/contactos?novo=1#novo", procura: "novo cliente fornecedor criar contrato" },
   { titulo: "Mudar PIN", detalhe: "A tua conta", href: "/pin", procura: "mudar pin codigo password palavra passe" },
+  { titulo: "Acessos", detalhe: "Serviços, contas e onde está cada credencial", href: "/acessos", procura: "acessos contas logins servicos credenciais 2fa onde esta chave" },
+  { titulo: "Novo acesso", detalhe: "Registar um serviço ou conta", href: "/acessos?novo=1#novo", procura: "novo acesso registar servico conta login" },
 ];
 
-const ROTULO: Record<Resultado["tipo"], string> = { fatura: "Faturas", entidade: "Fornecedores e clientes", debito: "Débitos diretos", conta: "Contas", movimento: "Movimentos" };
+const ROTULO: Record<Resultado["tipo"], string> = { fatura: "Faturas", entidade: "Fornecedores e clientes", debito: "Débitos diretos", conta: "Contas", movimento: "Movimentos", acesso: "Acessos" };
 
 function dinheiro(v?: number, moeda?: string) {
   if (v === undefined) return null;
@@ -83,7 +85,7 @@ export default function Paleta() {
       if (l.length < (r.tipo === "movimento" ? 8 : 5)) l.push({ grupo: g, titulo: r.titulo, detalhe: r.detalhe, href: r.href, valor: dinheiro(r.valor, r.moeda) });
       grupos.set(g, l);
     }
-    const ordem = ["Faturas", "Fornecedores e clientes", "Débitos diretos", "Contas", "Movimentos"];
+    const ordem = ["Faturas", "Fornecedores e clientes", "Débitos diretos", "Contas", "Acessos", "Movimentos"];
     return [...acoes.slice(0, 3), ...ordem.flatMap((g) => grupos.get(g) ?? [])];
   }, [q, indice]);
 
