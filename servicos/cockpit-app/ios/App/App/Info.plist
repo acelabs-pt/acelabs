@@ -82,5 +82,7 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Cockpit usa o microfone só quando gravas um áudio para nos reportar um problema.</string>
 </dict>
 </plist>

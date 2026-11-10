@@ -269,6 +269,24 @@ create table metas_semanas (
   decisao text not null check (decisao in ('colocada', 'ignorada'))
 );
 
+-- Reportes do beta ("Reportar um problema"): texto, captura do ecrã e áudio. Os ficheiros ficam no Storage, bucket privado
+-- "feedback" (migration_feedback.sql); aqui só os caminhos. Os sócios leem com a chave de administrador.
+create table feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid default auth.uid() references auth.users(id) on delete set null,
+  criado_em timestamptz not null default now(),
+  tipo text not null default 'erro' check (tipo in ('erro', 'sugestao')),
+  texto text,
+  pagina text,
+  captura_path text,
+  audio_path text,
+  aparelho jsonb,
+  versao text,
+  estado text not null default 'novo' check (estado in ('novo', 'visto', 'resolvido')),
+  check (coalesce(texto, '') <> '' or captura_path is not null or audio_path is not null)
+);
+create index on feedback (criado_em desc);
+
 -- ---------------------------------------------------------------------------
 -- Triggers updated_at
 -- ---------------------------------------------------------------------------
@@ -296,3 +314,8 @@ begin
     );
   end loop;
 end $$;
+
+-- Reportes: cada utilizador cria e vê só os seus (sem alterar nem apagar). A multiempresa junta-lhe a empresa.
+alter table feedback enable row level security;
+create policy "feedback: inserir" on feedback for insert to authenticated with check (user_id = (select auth.uid()));
+create policy "feedback: ver os meus" on feedback for select to authenticated using (user_id = (select auth.uid()));

@@ -5,10 +5,10 @@ import { Capacitor } from "@capacitor/core";
 import { naApp } from "@/lib/nativo";
 import { definirFaceId, faceIdLigado } from "@/components/BloqueioFaceId";
 
-// Em Conta, só dentro da app (iPhone ou Android): ligar ou desligar o pedido de Face ID (ou impressão digital) ao abrir.
+// Em Conta, só dentro da app (iPhone ou Android): ligar o pedido de Face ID (ou impressão digital) ao abrir. Opcional e desligado.
 export default function OpcaoFaceId() {
   const [visivel, setVisivel] = useState(false);
-  const [ligado, setLigado] = useState(true);
+  const [ligado, setLigado] = useState(false);
   const [android, setAndroid] = useState(false);
   useEffect(() => {
     if (!naApp()) return;
@@ -21,7 +21,7 @@ export default function OpcaoFaceId() {
     <section className="space-y-3 rounded-3xl border border-linha bg-white p-5">
       <h2 className="text-sm font-semibold text-tinta">{android ? "Desbloqueio" : "Face ID"}</h2>
       <label className="flex min-h-[44px] items-center justify-between gap-4 text-base text-tinta">
-        {android ? "Pedir impressão digital ou rosto ao abrir a app" : "Pedir Face ID ao abrir a app"}
+        {android ? "Pedir impressão digital ou rosto ao abrir a app (opcional)" : "Pedir Face ID ao abrir a app (opcional)"}
         <input
           type="checkbox"
           checked={ligado}
@@ -32,7 +32,7 @@ export default function OpcaoFaceId() {
           className="h-6 w-6 accent-[#0071e3]"
         />
       </label>
-      <p className="text-sm text-secundario">Os teus clientes e contactos ficam protegidos se perderes o telemóvel desbloqueado.</p>
+      <p className="text-sm text-secundario">Desligado por omissão. Se ligares, os teus clientes ficam protegidos se perderes o telemóvel desbloqueado.</p>
     </section>
   );
 }

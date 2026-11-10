@@ -13,10 +13,10 @@ export const metadata: Metadata = {
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
 
-// Corre antes de qualquer conteúdo: na app nativa, com Face ID ligado, marca a página como bloqueada (o CSS esconde tudo)
+// Corre antes de qualquer conteúdo: na app nativa, com Face ID ligado por escolha da pessoa, marca a página como bloqueada (o CSS esconde tudo)
 // até o BloqueioFaceId desbloquear. Sem isto o ecrã ficava visível até o React hidratar.
 const ANTES_DE_HIDRATAR =
-  '(function(){try{var c=window.Capacitor;if(c&&c.isNativePlatform&&c.isNativePlatform()&&localStorage.getItem("cockpit-faceid")!=="0"&&!/^\\/(login|recuperar|nova-password|cliente|convite)/.test(location.pathname))document.documentElement.setAttribute("data-bloqueado","1")}catch(e){}})();';
+  '(function(){try{var c=window.Capacitor;if(c&&c.isNativePlatform&&c.isNativePlatform()&&localStorage.getItem("cockpit-faceid")==="1"&&!/^\\/(login|recuperar|nova-password|cliente|convite)/.test(location.pathname))document.documentElement.setAttribute("data-bloqueado","1")}catch(e){}})();';
 
 // Aspeto escolhido (claro, escuro ou automático): aplica-se antes de a página aparecer, para não piscar branco no modo escuro.
 const TEMA_INICIAL =

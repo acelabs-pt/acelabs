@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { naApp, pedirFaceId } from "@/lib/nativo";
 
-const CHAVE = "cockpit-faceid"; // "0" = desligado; por omissão está ligado dentro da app
+const CHAVE = "cockpit-faceid"; // "1" = ligado; por omissão está DESLIGADO (opcional, escolhido em Conta)
 const SEGUNDOS_FORA = 60; // depois deste tempo em segundo plano volta a pedir
 
 export function faceIdLigado(): boolean {
   try {
-    return localStorage.getItem(CHAVE) !== "0";
+    return localStorage.getItem(CHAVE) === "1";
   } catch {
-    return true;
+    return false;
   }
 }
 export function definirFaceId(ligado: boolean) {
@@ -28,7 +28,7 @@ const marca = (ligada: boolean) => {
   else document.documentElement.removeAttribute("data-bloqueado");
 };
 
-// Dentro da app do iPhone, pede Face ID (ou o código do telemóvel) ao abrir e quando se volta à app depois de mais de um
+// Só se a pessoa o ligar em Conta (desligado por omissão). Dentro da app, pede Face ID (ou o código do telemóvel) ao abrir e quando se volta à app depois de mais de um
 // minuto em segundo plano. Cobre o ecrã até a pessoa se identificar. Fora da app não faz nada.
 export default function BloqueioFaceId() {
   const [bloqueado, setBloqueado] = useState(false);

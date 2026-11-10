@@ -18,6 +18,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob:",
+  // Ouvir o áudio gravado em "Reportar um problema" antes de o enviar.
+  "media-src 'self' blob:",
   `connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com${varios ? origensClientes.map((u) => ` ${u.origin} wss://${u.host}`).join("") : supabase ? ` ${supabase.origin} wss://${supabase.host}` : ""}${dev ? " ws:" : ""}`,
   "worker-src 'self'",
   "manifest-src 'self'",
@@ -47,7 +49,7 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), payment=(), usb=()" },
         ],
       },
     ];

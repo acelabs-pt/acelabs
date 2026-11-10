@@ -13,7 +13,7 @@ const ORDEM = ["create_tables.sql", "migracao_zonas_correspondencias.sql", "migr
 const sql = (f) => readFileSync(path.join(pasta, f), "utf8").replace(/\r\n/g, "\n").replace(/create extension if not exists "pgcrypto";/, "");
 const TABELAS = [
   "contactos", "compradores", "comprador_imoveis", "comprador_documentos", "comprador_zonas", "proprietarios", "proprietario_documentos", "chamadas",
-  "angariacoes", "angariacao_acoes", "tarefas", "correspondencias", "metas", "metas_config", "metas_semanas", "visitas_externas", "propostas_externas",
+  "angariacoes", "angariacao_acoes", "tarefas", "correspondencias", "metas", "metas_config", "metas_semanas", "visitas_externas", "propostas_externas", "feedback",
 ];
 
 const out = [];
@@ -62,7 +62,7 @@ const uuid = async (db, t, p) => {
 };
 
 /** Uma linha em cada uma das 14 tabelas, na empresa dada (chave de administrador, empresa_id explícito). */
-async function semear(db, empresa, tag) {
+async function semear(db, empresa, tag, dono) {
   const e = empresa;
   const c = await uuid(db, "insert into contactos (nome, empresa_id) values ($1, $2) returning id", [`C ${tag}`, e]);
   const cp = await uuid(db, "insert into compradores (contacto_id, empresa_id) values ($1, $2) returning id", [c, e]);
@@ -81,6 +81,7 @@ async function semear(db, empresa, tag) {
   await admin(db, "insert into metas (ano, metrica, valor_anual, empresa_id) values (2026, 'visitas', 10, $1)", [e]);
   await admin(db, "insert into metas_config (ano, empresa_id) values (2026, $1)", [e]);
   await admin(db, "insert into metas_semanas (semana, decisao, empresa_id) values ('2026-W44', 'colocada', $1)", [e]);
+  await admin(db, "insert into feedback (texto, user_id, empresa_id) values ($1, $2, $3)", [`Reporte ${tag}`, dono, e]);
   return { c, cp, pr, an };
 }
 
@@ -106,8 +107,8 @@ await admin(db, "insert into membros (user_id, empresa_id) values ($1, $2)", [ub
 const nu = await uuid(db, "insert into auth.users (email) values ('fora@x.pt') returning id"); // sem empresa
 r = await admin(db, "insert into contactos (nome) values ('ambígua')");
 ok("com duas empresas, o INSERT de administrador sem empresa_id FALHA (nunca escolhe ao acaso)", !!r.erro, r.erro?.slice(0, 80));
-const dadosA = await semear(db, ea, "alfa");
-const dadosB = await semear(db, eb, "beta");
+const dadosA = await semear(db, ea, "alfa", ua);
+const dadosB = await semear(db, eb, "beta", ub);
 ok("administrador semeia as 14 tabelas nas duas empresas com empresa_id explícito", !!dadosA.an && !!dadosB.an);
 
 // 1c. Isolamento tabela a tabela
@@ -144,6 +145,24 @@ r = await como(db, "authenticated", ua, "insert into membros (user_id, empresa_i
 ok("um membro não se pode acrescentar a ninguém na lista de membros", !!r.erro);
 r = await como(db, "authenticated", nu, "insert into membros (user_id, empresa_id) values ($1, $2)", [nu, ea]);
 ok("quem não é membro não se pode juntar a uma empresa", !!r.erro);
+
+// 1d2. Reportes do beta (feedback): só os meus, na minha empresa; ninguém altera nem apaga
+r = await como(db, "authenticated", ua2, "select 1 from feedback");
+ok("feedback: um colega da mesma empresa não vê os reportes de A", (r.rows ?? []).length === 0 && !r.erro, r.erro);
+r = await como(db, "authenticated", ua2, "insert into feedback (texto) values ('o meu reporte') returning empresa_id, user_id");
+ok("feedback: INSERT sem empresa nem utilizador fica na empresa e no nome de quem reporta", r.rows?.[0]?.empresa_id === ea && r.rows?.[0]?.user_id === ua2, r.erro);
+r = await como(db, "authenticated", ua2, "insert into feedback (texto, user_id) values ('em nome de outro', $1)", [ua]);
+ok("feedback: ninguém reporta em nome de outro utilizador", !!r.erro);
+r = await como(db, "authenticated", ua2, "insert into feedback (texto) values ('')");
+ok("feedback: um reporte vazio (sem texto, captura nem áudio) é recusado", !!r.erro);
+r = await como(db, "authenticated", ua, "update feedback set texto = 'mudado' where user_id = $1", [ua]);
+ok("feedback: quem reportou não altera o reporte", (r.afetadas ?? 0) === 0, r.erro);
+r = await como(db, "authenticated", ua, "delete from feedback where user_id = $1", [ua]);
+ok("feedback: quem reportou não apaga o reporte", (r.afetadas ?? 0) === 0, r.erro);
+await db.exec(sql("migration_feedback.sql"));
+await db.exec(sql("migration_feedback.sql"));
+r = await como(db, "authenticated", ua2, "select count(*)::int as n from feedback");
+ok("feedback: migration_feedback.sql corre duas vezes sobre uma base pronta sem mexer nas regras", r.rows?.[0]?.n === 1, r.erro);
 
 // 1e. Empresas e membros
 r = await como(db, "authenticated", ua, "select codigo from empresas");

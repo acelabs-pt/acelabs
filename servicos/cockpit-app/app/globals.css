@@ -103,7 +103,36 @@ a {
 }
 
 button:not(:disabled):active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+}
+a[href]:active {
+  opacity: 0.7;
+}
+
+/* Toque imediato (sem espera do duplo toque) e sem o rectângulo cinzento do browser. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button,
+label,
+summary,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* Na app, o conteúdo começa por baixo da barra de estado (hora, bateria) em vez de ficar por trás dela. */
+body {
+  padding-top: max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px));
+}
+
+/* Cada página aparece com uma subida curta, para a navegação parecer fluida. */
+@keyframes entrar-pagina {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.entrar-pagina {
+  animation: entrar-pagina 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -113,6 +142,9 @@ button:not(:disabled):active {
   }
   button:not(:disabled):active {
     transform: none;
+  }
+  .entrar-pagina {
+    animation: none;
   }
 }
 

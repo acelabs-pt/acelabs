@@ -13,6 +13,7 @@ import { esquecerAparelhoNativo } from "@/lib/nativo";
 import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
 import type { Entidade } from "@/lib/importar/esquemas";
+import CampoPassword from "@/components/CampoPassword";
 
 const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
@@ -24,9 +25,6 @@ export default function Conta() {
   const [msg, setMsg] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
   const [aGuardar, setAGuardar] = useState(false);
   const [aExportar, setAExportar] = useState<string | null>(null);
-  const [aApagar, setAApagar] = useState(false);
-  const [confirmaApagar, setConfirmaApagar] = useState(false);
-  const [erroApagar, setErroApagar] = useState<string | null>(null);
   const { avisar } = useToast();
 
   useEffect(() => {
@@ -72,25 +70,6 @@ export default function Conta() {
     apagarDia();
     await esquecerAparelhoNativo(); // antes do signOut: precisa da sessão para apagar a linha
     await sbBrowser().auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
-
-  async function apagarConta() {
-    setErroApagar(null);
-    setAApagar(true);
-    const { error } = await sbBrowser().rpc("apagar_minha_conta");
-    if (error) {
-      setAApagar(false);
-      setErroApagar(
-        error.message.includes("ultimo_membro")
-          ? "És o único utilizador desta empresa. Fala com a Ace Labs para encerrar o Cockpit."
-          : "Não foi possível apagar a conta. Tenta outra vez ou fala com a Ace Labs."
-      );
-      return;
-    }
-    apagarDia();
-    await sbBrowser().auth.signOut().catch(() => {});
     router.push("/login");
     router.refresh();
   }
@@ -168,8 +147,8 @@ export default function Conta() {
 
       <form onSubmit={mudar} className={cartao}>
         <h2 className="text-sm font-semibold text-tinta">Mudar a password</h2>
-        <input
-          type="password"
+        <CampoPassword
+          
           required
           autoComplete="new-password"
           placeholder="Nova password (mín. 8)"
@@ -178,8 +157,8 @@ export default function Conta() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
         />
-        <input
-          type="password"
+        <CampoPassword
+          
           required
           autoComplete="new-password"
           placeholder="Repete a password"
@@ -205,36 +184,6 @@ export default function Conta() {
       <button onClick={sair} className="w-full rounded-full border border-linha bg-white py-3.5 text-base font-semibold text-red-600">
         Sair
       </button>
-
-      <section className={cartao}>
-        <h2 className="text-sm font-semibold text-tinta">Apagar a minha conta</h2>
-        <p className="text-sm text-secundario">
-          Apaga o teu acesso e os telemóveis ligados às notificações. Os contactos, compradores e angariações ficam na tua empresa; para
-          os apagar usa a ficha de cada contacto ou fala com a Ace Labs.
-        </p>
-        {!confirmaApagar ? (
-          <button onClick={() => setConfirmaApagar(true)} className="w-full rounded-full border border-linha bg-white py-3 text-sm font-medium text-red-600">
-            Apagar a minha conta
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-tinta">Isto não se pode desfazer. Apagar mesmo?</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setConfirmaApagar(false)} disabled={aApagar} className="rounded-full bg-black/5 py-3 text-sm font-medium text-tinta">
-                Cancelar
-              </button>
-              <button onClick={apagarConta} disabled={aApagar} className="rounded-full bg-red-600 py-3 text-sm font-semibold text-white disabled:opacity-60">
-                {aApagar ? "A apagar..." : "Sim, apagar"}
-              </button>
-            </div>
-          </div>
-        )}
-        {erroApagar && (
-          <p role="alert" className="text-sm text-red-600">
-            {erroApagar}
-          </p>
-        )}
-      </section>
     </div>
   );
 }

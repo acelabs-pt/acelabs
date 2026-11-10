@@ -109,7 +109,7 @@ begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos', 'comprador_zonas',
     'proprietarios', 'proprietario_documentos', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
-    'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas'
+    'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas', 'feedback'
   ] loop
     execute format('alter table %I add column if not exists empresa_id uuid references empresas(id) on delete cascade', t);
     execute format('update %I set empresa_id = unica_empresa() where empresa_id is null', t);
@@ -122,7 +122,7 @@ begin
   foreach t in array array[
     'contactos', 'compradores', 'comprador_imoveis', 'comprador_documentos', 'comprador_zonas',
     'proprietarios', 'proprietario_documentos', 'chamadas', 'angariacoes', 'angariacao_acoes', 'tarefas', 'correspondencias',
-    'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas'
+    'metas', 'metas_config', 'metas_semanas', 'visitas_externas', 'propostas_externas', 'feedback'
   ] loop
     execute format('select exists (select 1 from %I where empresa_id is null)', t) into sobra;
     if sobra then
@@ -141,6 +141,21 @@ begin
       t
     );
   end loop;
+end $$;
+
+-- Reportes do beta (feedback): mais apertado do que "da minha empresa". Cada utilizador só cria reportes seus na sua empresa
+-- e só vê os seus; ninguém altera nem apaga (os sócios leem-nos com a chave de administrador).
+do $$
+begin
+  if to_regclass('feedback') is not null then
+    drop policy if exists "da minha empresa" on feedback;
+    drop policy if exists "feedback: inserir" on feedback;
+    drop policy if exists "feedback: ver os meus" on feedback;
+    create policy "feedback: inserir" on feedback for insert to authenticated
+      with check (empresa_id = (select empresa_atual()) and user_id = (select auth.uid()));
+    create policy "feedback: ver os meus" on feedback for select to authenticated
+      using (empresa_id = (select empresa_atual()) and user_id = (select auth.uid()));
+  end if;
 end $$;
 
 -- ---------------------------------------------------------------------------

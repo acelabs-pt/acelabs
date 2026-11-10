@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotaoAbrirReportar } from "@/components/ReportarProblema";
 
 const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
@@ -64,6 +65,12 @@ export default function Ajuda() {
         <Link href="/conta" className="block rounded-full bg-black/5 py-3 text-center text-base font-medium text-tinta">
           Abrir a conta
         </Link>
+      </section>
+
+      <section className={cartao}>
+        <h2 className="text-base font-semibold text-tinta">Reportar um problema</h2>
+        <p className="text-base text-tinta">Algo não funciona, ou tens uma ideia? Toca no botão redondo no canto de baixo, à esquerda, em qualquer ecrã: vai a captura desse ecrã e podes escrever ou gravar um áudio.</p>
+        <BotaoAbrirReportar />
       </section>
 
       <section className={cartao}>

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { desligarPush, estadoPush, ligarPush, type EstadoPush } from "@/lib/push";
-import { enviarTesteNativo, naApp } from "@/lib/nativo";
 
 const TEXTO: Record<EstadoPush, string> = {
   "nao-suportado": "Este browser não suporta notificações. No iPhone é preciso iOS 16.4 ou mais recente.",
@@ -44,21 +43,6 @@ export default function AtivarNotificacoes() {
     setATrabalhar(false);
   }
 
-  async function testar() {
-    setATrabalhar(true);
-    setMsg(null);
-    if (naApp()) {
-      const erro = await enviarTesteNativo();
-      setMsg(erro ? { tipo: "erro", texto: erro } : { tipo: "ok", texto: "Enviada. Deve aparecer daqui a uns segundos." });
-      setATrabalhar(false);
-      return;
-    }
-    const res = await fetch("/api/push/teste", { method: "POST" }).catch(() => null);
-    const body = res ? await res.json().catch(() => ({})) : {};
-    setMsg(res?.ok ? { tipo: "ok", texto: "Enviada. Deve aparecer daqui a uns segundos." } : { tipo: "erro", texto: body.error ?? "Sem ligação." });
-    setATrabalhar(false);
-  }
-
   if (estado === null) return null;
 
   return (
@@ -77,9 +61,6 @@ export default function AtivarNotificacoes() {
       )}
       {estado === "ligado" && (
         <div className="flex flex-wrap gap-2">
-          <button onClick={testar} disabled={aTrabalhar} className="min-h-[44px] rounded-full bg-azul px-5 text-sm font-semibold text-white disabled:opacity-60">
-            Enviar teste
-          </button>
           <button onClick={desligar} disabled={aTrabalhar} className="min-h-[44px] rounded-full border border-linha px-5 text-sm font-semibold text-tinta disabled:opacity-60">
             Desligar
           </button>

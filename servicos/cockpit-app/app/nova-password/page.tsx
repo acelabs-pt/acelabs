@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { sbBrowser } from "@/lib/supabase-browser";
+import CampoPassword from "@/components/CampoPassword";
 
 // Destino dos links de convite e de recuperação. Aceita os dois formatos de link do Supabase:
 // "?code=" (o aparelho que pediu tem de ser o mesmo) e "#access_token=" (convites e links gerados pelo administrador).
@@ -72,8 +73,8 @@ export default function NovaPassword() {
 
         {estado === "pronto" && (
           <form onSubmit={guardar} className="mt-8 space-y-3 rounded-3xl border border-linha bg-white p-5">
-            <input
-              type="password"
+            <CampoPassword
+              
               required
               autoComplete="new-password"
               placeholder="Nova password (mín. 8)"
@@ -82,8 +83,8 @@ export default function NovaPassword() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
             />
-            <input
-              type="password"
+            <CampoPassword
+              
               required
               autoComplete="new-password"
               placeholder="Repete a password"

@@ -33,11 +33,6 @@ const falha = (msg) => {
   console.error(msg);
   process.exit(1);
 };
-if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) falha("Falta NEXT_PUBLIC_SUPABASE_URL (.env.local) ou SUPABASE_SERVICE_ROLE_KEY (.env.testes).");
-if (!env.TESTES_PERMITIDOS_EM || !env.NEXT_PUBLIC_SUPABASE_URL.includes(`//${env.TESTES_PERMITIDOS_EM}.`)) {
-  falha(`Proteção: o .env.local aponta para ${env.NEXT_PUBLIC_SUPABASE_URL}, que não é o projeto de teste indicado em TESTES_PERMITIDOS_EM. Os testes escrevem dados: nunca correm num cliente.`);
-}
-
 const TODOS = [
   "unidade-importacao.ts", "unidade-correspondencias.ts", "unidade-ics.ts", "conta.js", "dashboard.js", "gestos.js", "gestos-crm.js",
   "pesquisa.js", "chamadas.js", "proximos-comprador.js", "funis.js", "calendario.js", "calendario-telemovel.js", "exportar.js", "exportar-tudo.js", "whatsapp.js", "importar.js",
@@ -45,6 +40,14 @@ const TODOS = [
 ];
 const pedidos = process.argv.slice(2);
 const lista = pedidos.length ? pedidos.map((n) => TODOS.find((t) => t.startsWith(n + ".")) ?? (n === "publicado" ? "publicado.js" : n)) : TODOS;
+
+// Os testes "unidade-*" não tocam em nenhum Supabase (correm em memória): não precisam de chaves nem da proteção.
+if (!lista.every((t) => t.startsWith("unidade"))) {
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) falha("Falta NEXT_PUBLIC_SUPABASE_URL (.env.local) ou SUPABASE_SERVICE_ROLE_KEY (.env.testes).");
+  if (!env.TESTES_PERMITIDOS_EM || !env.NEXT_PUBLIC_SUPABASE_URL.includes(`//${env.TESTES_PERMITIDOS_EM}.`)) {
+    falha(`Proteção: o .env.local aponta para ${env.NEXT_PUBLIC_SUPABASE_URL}, que não é o projeto de teste indicado em TESTES_PERMITIDOS_EM. Os testes escrevem dados: nunca correm num cliente.`);
+  }
+}
 
 if (lista.some((t) => !t.startsWith("unidade") && t !== "publicado.js")) {
   try {

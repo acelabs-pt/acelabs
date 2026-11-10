@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sbBrowser } from "@/lib/supabase-browser";
 import { apagarDia } from "@/lib/semRede";
+import CampoPassword from "@/components/CampoPassword";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,8 +60,8 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-2xl border border-linha bg-white px-4 py-3.5 text-base"
           />
-          <input
-            type="password"
+          <CampoPassword
+            
             required
             autoComplete="current-password"
             placeholder="Password"

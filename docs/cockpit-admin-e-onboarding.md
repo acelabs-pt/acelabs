@@ -97,3 +97,5 @@ podem ir para a base).
 3. Estados de uma empresa: piloto, ativa, suspensa, terminada. Faltam alguns?
 4. Contacto de suporte e prazo de resposta que prometemos ao cliente.
 5. Quem acompanha cada cliente (uma pessoa responsável por empresa, ou os dois)?
+
+Guias do beta (2026-11-10): `docs/cockpit-beta-guia-interno.md` (dar acesso e acompanhar) e `docs/cockpit-beta-guia-agente.html` (página para o agente).

@@ -21,6 +21,7 @@ const chaves = {
   NSCalendarsWriteOnlyAccessUsageDescription: "O Cockpit põe as tuas visitas, tarefas e reuniões na agenda do telemóvel.",
   NSCalendarsFullAccessUsageDescription: "O Cockpit põe as tuas visitas, tarefas e reuniões na agenda do telemóvel.",
   NSContactsUsageDescription: "O Cockpit importa o contacto que escolheres para criar um comprador ou proprietário.",
+  NSMicrophoneUsageDescription: "O Cockpit usa o microfone só quando gravas um áudio para nos reportar um problema.",
 };
 let acrescentos = "";
 for (const [k, v] of Object.entries(chaves)) {

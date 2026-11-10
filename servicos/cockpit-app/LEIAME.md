@@ -239,6 +239,26 @@ O Demo serve a Apple (TestFlight e App Store) e as demonstrações. Dados só fi
    (`npm run clientes` e `COCKPIT_CLIENTES` só servem para o modo de projetos separados.)
 9. SMTP (Resend) e Redirect URLs do Demo: secções 2 e 10 acima.
 
+## 14. Reportar um problema (beta)
+
+Botão redondo no canto inferior esquerdo de todos os ecrãs (e entrada na página Ajuda). Ao tocar, tira uma captura do ecrã
+(`modern-screenshot`) e abre uma folha com texto, a captura (retirar ou trocar por uma imagem da galeria) e um áudio de até 2
+minutos. Código em `components/ReportarProblema.tsx` e `lib/reportar.ts`.
+
+Para ligar num projeto que já existe (o partilhado), por esta ordem:
+1. SQL Editor: `migration_feedback.sql` (tabela `feedback` com empresa, regras "só os meus", e o bucket privado `feedback` do
+   Storage, 8 MB por ficheiro, só imagens e áudio). Pode correr-se duas vezes. Num projeto novo a tabela já vem em
+   `create_tables.sql` + `migracao_multiempresa.sql`, mas o bucket só nasce com `migration_feedback.sql`.
+2. Segredo da função: `supabase secrets set RESEND_API_KEY=...` (a mesma chave do Resend, domínio acelabs.pt verificado).
+   Opcional: `FEEDBACK_PARA=pedro@acelabs.pt,miguel@acelabs.pt` (é o que usa por omissão).
+3. Publicar: `supabase functions deploy avisar-feedback` (com verificação de sessão, o normal).
+4. Testar: carregar no botão, escrever "teste" e enviar. Chega um email com a captura e o áudio (links de 7 dias).
+
+Os utilizadores só criam reportes na sua empresa e só veem os seus; não alteram nem apagam. Os ficheiros só se escrevem dentro
+da pasta da empresa e ninguém os lê pela app: os sócios leem pelo email (links assinados) ou com a chave de administrador.
+Se a função ou o Resend falharem, o reporte fica gravado na mesma. App nativa: o microfone precisa de `NSMicrophoneUsageDescription`
+(iOS, `scripts/configurar-ios.mjs`) e de `RECORD_AUDIO` (Android, manifesto); só entram na app das lojas numa compilação nova.
+
 ## O que ainda não existe
 
 - **Vários utilizadores no mesmo cliente** (agência com agentes e gestor): hoje quem entra vê tudo. Está desenhado, não construído.
