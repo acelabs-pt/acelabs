@@ -113,6 +113,9 @@ a[href]:active {
 html {
   -webkit-tap-highlight-color: transparent;
 }
+body {
+  touch-action: pan-x pan-y;
+}
 a,
 button,
 label,

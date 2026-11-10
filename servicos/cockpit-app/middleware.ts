@@ -40,11 +40,13 @@ export async function middleware(req: NextRequest) {
     },
   });
 
-  // getUser() valida o token contra o servidor Supabase, não só lê o cookie -
-  // importante num middleware que faz de gate de acesso.
+  // getClaims() verifica a assinatura e a validade do token localmente (chaves públicas do Supabase, em cache) e só
+  // vai ao Supabase para renovar uma sessão expirada: poupa uma viagem de rede em cada navegação. Para o gate de acesso
+  // chega; os dados continuam protegidos pelas regras da base de dados (RLS), que validam o token em cada pedido.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: claims,
+  } = await supabase.auth.getClaims();
+  const user = claims?.claims ?? null;
 
   if (!user && !isPublica) {
     const url = req.nextUrl.clone();

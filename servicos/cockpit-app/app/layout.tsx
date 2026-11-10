@@ -26,6 +26,9 @@ export const viewport: Viewport = {
   themeColor: "#0071e3",
   width: "device-width",
   initialScale: 1,
+  // Sem zoom da página: num app, o zoom desloca o menu de baixo e os botões fixos. A ajuda do telemóvel (letra maior) continua a funcionar.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 

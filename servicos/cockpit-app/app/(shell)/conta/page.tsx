@@ -14,6 +14,7 @@ import { apagarDia } from "@/lib/semRede";
 import { exportarCopiaCompleta, exportarLista } from "@/lib/exportarTudo";
 import type { Entidade } from "@/lib/importar/esquemas";
 import CampoPassword from "@/components/CampoPassword";
+import ApagarConta from "@/components/ApagarConta";
 
 const cartao = "space-y-3 rounded-3xl border border-linha bg-white p-5";
 
@@ -184,6 +185,8 @@ export default function Conta() {
       <button onClick={sair} className="w-full rounded-full border border-linha bg-white py-3.5 text-base font-semibold text-red-600">
         Sair
       </button>
+
+      <ApagarConta />
     </div>
   );
 }
