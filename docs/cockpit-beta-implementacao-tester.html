@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cockpit beta: implementar um tester</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --fundo: #ffffff; --suave: #f5f5f7; --bege: #EDEBE5; --tinta: #1d1d1f; --sec: #6e6e73;
+    --azul: #0071e3; --azul-esc: #0059b3; --escuro: #0a1620; --verde: #1fae5a;
+    --ambar: #ff9f0a; --ambar-fundo: #fff4e5; --ambar-texto: #9a5b00; --linha: #e3e3e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fundo); color: var(--tinta);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  .pagina { max-width: 820px; margin: 0 auto; padding: 48px 40px 64px; }
+  .marca { font-weight: 700; letter-spacing: -0.02em; font-size: 15px; }
+  .marca span { color: var(--azul); }
+  .capa { background: var(--escuro); color: #fff; border-radius: 24px; padding: 36px 36px 32px; margin: 18px 0 28px; }
+  .capa h1 { font-size: 34px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 10px; }
+  .capa p { color: rgba(255,255,255,.75); margin: 0; font-size: 15px; max-width: 58ch; }
+  .capa .meta { margin-top: 18px; font-size: 12.5px; color: rgba(255,255,255,.55); }
+  h2 { font-size: 21px; letter-spacing: -0.02em; margin: 34px 0 10px; }
+  h3 { font-size: 15.5px; margin: 20px 0 6px; }
+  p { margin: 0 0 10px; }
+  ul, ol { margin: 0 0 12px; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .sec { color: var(--sec); }
+  .cartao { border: 1px solid var(--linha); border-radius: 18px; padding: 18px 20px; margin: 12px 0; background: #fff; }
+  .suave { background: var(--suave); border: none; }
+  .bege { background: var(--bege); border: none; }
+  .aviso { background: var(--ambar-fundo); color: var(--ambar-texto); border-radius: 14px; padding: 12px 16px; margin: 12px 0; }
+  .aviso strong { color: var(--ambar-texto); }
+  code, pre { font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 12.5px; }
+  pre { font-size: 11px; }
+  code { background: var(--suave); padding: 1px 6px; border-radius: 6px; }
+  pre { background: var(--escuro); color: #e8eef3; padding: 14px 16px; border-radius: 14px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 12px; }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  th { color: var(--sec); font-weight: 600; font-size: 12px; }
+  .ok { color: var(--verde); font-weight: 600; white-space: nowrap; }
+  .falta { color: var(--ambar-texto); font-weight: 600; white-space: nowrap; }
+  .passo { display: grid; grid-template-columns: 44px 1fr; gap: 14px; margin: 18px 0; }
+  .num { width: 36px; height: 36px; border-radius: 50%; background: var(--azul); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .passo h3 { margin-top: 6px; }
+  .quando { display: inline-block; font-size: 12px; font-weight: 600; color: var(--azul-esc); background: #e8f1fc; border-radius: 999px; padding: 2px 10px; margin-left: 6px; vertical-align: 2px; }
+  blockquote { margin: 8px 0 12px; padding: 14px 18px; background: var(--suave); border-radius: 14px; }
+  blockquote p { margin: 0 0 8px; }
+  .esquema { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .esquema div { border-radius: 14px; padding: 12px 14px; font-size: 13px; }
+  .esquema .e1 { background: #e8f1fc; }
+  .esquema .e2 { background: #e7f6ed; }
+  .esquema .e3 { background: var(--ambar-fundo); }
+  .esquema b { display: block; margin-bottom: 4px; }
+  .rodape { margin-top: 24px; page-break-inside: avoid; padding-top: 14px; border-top: 1px solid var(--linha); color: var(--sec); font-size: 12px; }
+  @media (max-width: 640px) { .pagina { padding: 28px 16px 48px; } .esquema { grid-template-columns: 1fr; } .capa h1 { font-size: 27px; } }
+  @page { size: A4; margin: 16mm 14mm; }
+  @media print {
+    .pagina { padding: 0; max-width: none; }
+    h2 { page-break-after: avoid; }
+    .cartao, blockquote, pre, .aviso, tr { page-break-inside: avoid; }
+    h3 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<div class="marca">Ace Labs<span>.</span></div>
+
+<div class="capa">
+  <h1>Cockpit beta: implementar um tester</h1>
+  <p>Passo a passo prático, do primeiro contacto ao fim do beta, com um exemplo: o João Silva, consultor da agência fictícia "Casa Minho Imóveis".</p>
+  <div class="meta">Para o Miguel e o Pedro, uso interno. Versão de 10/11/2026.</div>
+</div>
+
+<h2>1. O que quer dizer "a empresa certa"</h2>
+<p>O Cockpit corre num só projeto Supabase, o <b>"Cockpit - partilhado"</b> (<code>gebqaxhwebsmoeqpzzzg</code>). Lá dentro, cada cliente é uma <b>empresa</b>. Cada pessoa pertence a uma só empresa e só vê os dados dessa empresa: contactos, compradores, angariações e tarefas. É a base de dados que garante esta separação, não a app.</p>
+
+<div class="esquema">
+  <div class="e1"><b>Uma agência = uma empresa</b>A "Casa Minho Imóveis" é uma empresa. Todos os consultores dela entram nessa empresa e partilham os dados.</div>
+  <div class="e2"><b>Um agente sozinho = uma empresa</b>Se o João trabalha por conta própria, criamos uma empresa só para ele (por exemplo <code>joaosilva</code>).</div>
+  <div class="e3"><b>Nunca na <code>demo</code> nem na <code>ensaio</code></b>A <code>demo</code> é a nossa (tem a conta de teste e a da Apple) e a <code>ensaio</code> é onde correm os testes. Um tester lá dentro veria os nossos dados, e nós os dele.</div>
+</div>
+
+<p>Resumindo: antes de convidar o João, criamos (ou escolhemos) a empresa dele e convidamo-lo <b>para essa empresa</b>. É esta a "empresa certa".</p>
+
+<h2>2. O que já está pronto e o que falta</h2>
+<table>
+  <tr><th>Ponto</th><th>Estado</th><th>Nota</th></tr>
+  <tr><td>Domínio <code>cockpit.acelabs.pt</code></td><td class="ok">Pronto</td><td>Ligado à Vercel desde 10/11.</td></tr>
+  <tr><td>App publicada com o trabalho do beta</td><td class="ok">Pronto</td><td>Reportar um problema, mais rapidez, ver a password, Face ID opcional.</td></tr>
+  <tr><td>SQL do beta no Supabase partilhado</td><td class="ok">Pronto</td><td>Incluindo a tabela <code>feedback</code>.</td></tr>
+  <tr><td>Reportes por email</td><td class="ok">Pronto</td><td>Chegam ao Pedro e ao Miguel, com links de 7 dias para o áudio e a captura.</td></tr>
+  <tr><td>Android (APK por link)</td><td class="ok">Pronto</td><td>Instalado no Android do Pedro. Atualiza-se sozinho: a app abre o endereço publicado.</td></tr>
+  <tr><td>PC e desktop</td><td class="ok">Pronto</td><td>No browser, em <code>https://cockpit.acelabs.pt</code>.</td></tr>
+  <tr><td>iPhone</td><td class="falta">Só Safari</td><td>"Adicionar ao ecrã principal". A app nativa (TestFlight) espera pela conta Apple da empresa.</td></tr>
+  <tr><td>Notificações e impressão digital num Android real</td><td class="falta">Por testar</td><td>Testar no telemóvel do Pedro antes do primeiro tester.</td></tr>
+  <tr><td>Quem responde aos reportes e em quanto tempo</td><td class="falta">Por combinar</td><td>O guia do agente promete resposta "no próprio dia".</td></tr>
+  <tr><td>Medir o uso por função (analytics)</td><td class="falta">Por decidir</td><td>Até lá, usamos o painel da plataforma de controlo.</td></tr>
+</table>
+
+<div class="aviso"><strong>Chaves.</strong> Os passos 2 e 3 abaixo precisam da chave de administrador do Supabase partilhado (ficheiro <code>.env.demo</code>, fora do git) ou da plataforma de controlo, que corre só no computador de quem tem as chaves. Hoje estão no computador do Pedro. Se não as tiveres, o Pedro faz estes dois passos, ou passa-te o ficheiro em mão (nunca por email nem WhatsApp).</div>
+
+<h2>3. O caso João Silva, passo a passo</h2>
+
+<div class="passo"><div class="num">1</div><div>
+  <h3>Recolher os dados<span class="quando">2 dias antes</span></h3>
+  <ul>
+    <li>Nome e <b>email</b> do João (ex.: <code>joao.silva@exemplo.pt</code>). O convite vai para este email.</li>
+    <li>Agência: "Casa Minho Imóveis". Há mais colegas dele no beta? Se sim, ficam todos na mesma empresa.</li>
+    <li>Telemóvel: Android ou iPhone. Muda o passo 4.</li>
+    <li>Pedir que traga os contactos num Excel. A app tem um modelo, em Conta &gt; Importar contactos.</li>
+  </ul>
+</div></div>
+
+<div class="passo"><div class="num">2</div><div>
+  <h3>Criar a empresa<span class="quando">1 dia antes</span></h3>
+  <p><b>Pela plataforma de controlo (recomendado, fica registado):</b> em <code>servicos/controlo</code>, correr <code>npm run dev</code> e abrir <code>http://localhost:3002</code>. Ir a Painel do Cockpit &gt; Nova empresa, código <code>casaminho</code>, nome "Casa Minho Imóveis", estado <b>piloto</b>, quem acompanha: miguel.</p>
+  <p><b>Ou pela linha de comandos</b>, em <code>servicos/cockpit-app</code>:</p>
+<pre><code>node scripts/empresa.mjs listar --env .env.demo
+node scripts/empresa.mjs criar casaminho "Casa Minho Imóveis" --env .env.demo</code></pre>
+  <p class="sec">Primeiro faz-se o <code>listar</code>, para não criar a mesma agência duas vezes.</p>
+</div></div>
+
+<div class="passo"><div class="num">3</div><div>
+  <h3>Convidar o João<span class="quando">1 dia antes</span></h3>
+  <p>O João recebe um email "Convite para o teu Cockpit", abre o link e escolhe a password dele. <b>Nenhuma password passa por nós.</b></p>
+  <p><b>Na plataforma de controlo:</b> página da empresa &gt; Utilizadores &gt; Convidar. <b>Ou na linha de comandos</b>, em <code>servicos/cockpit-app</code>:</p>
+<pre><code>export NEXT_PUBLIC_SUPABASE_URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.demo | cut -d= -f2-)
+export SUPABASE_SERVICE_ROLE_KEY=$(grep '^SUPABASE_SERVICE_ROLE_KEY=' .env.demo | cut -d= -f2-)
+node scripts/convidar.mjs joao.silva@exemplo.pt https://cockpit.acelabs.pt casaminho</code></pre>
+  <p>Tem de responder "Convite enviado" e "Juntado à lista de membros". Antes de convidar o primeiro tester real, convém fazer um convite de teste para um email nosso.</p>
+</div></div>
+
+<div class="passo"><div class="num">4</div><div>
+  <h3>Mandar a mensagem e o guia<span class="quando">no mesmo dia do convite</span></h3>
+  <p>Por WhatsApp ou email, com o PDF <code>docs/cockpit-beta-guia-agente.pdf</code> em anexo:</p>
+  <blockquote>
+    <p>Olá João. Obrigado por testares o Cockpit, a app da Ace Labs para o dia a dia do consultor imobiliário.</p>
+    <p>1. Vais receber um email "Convite para o teu Cockpit". Abre o link <b>uma só vez</b>, no telemóvel, e escolhe a tua password.</p>
+    <p>2. Instala a app. Android: https://gebqaxhwebsmoeqpzzzg.supabase.co/storage/v1/object/public/apk/cockpit-beta.apk (o telemóvel vai pedir para permitir instalar desta fonte). iPhone: abre https://cockpit.acelabs.pt no Safari, toca em Partilhar e em "Adicionar ao ecrã principal".</p>
+    <p>3. Entra com o teu email e a password.</p>
+    <p style="margin:0">Em anexo vai o guia rápido. Se alguma coisa falhar ou não fizer sentido, usa o botão de ajuda no canto inferior esquerdo da app: podes escrever, enviar a captura do ecrã ou gravar um áudio.</p>
+  </blockquote>
+</div></div>
+
+<div class="passo"><div class="num">5</div><div>
+  <h3>Sessão de arranque<span class="quando">dia 0, 20 a 45 minutos</span></h3>
+  <p>Presencial ou por videochamada. Fazer com ele, no telemóvel dele:</p>
+  <ol>
+    <li>Abrir o convite, escolher a password e instalar a app.</li>
+    <li>Entrar e guardar a password no gestor do telemóvel, para não a ter de escrever outra vez.</li>
+    <li>Em Conta: ativar as notificações. A impressão digital é opcional e vem desligada.</li>
+    <li>Importar os contactos do Excel (Conta &gt; Importar contactos).</li>
+    <li>Criar um comprador a sério, com uma tarefa ou visita para esta semana.</li>
+    <li>Enviar um reporte de teste com o botão de ajuda, para ele ver como funciona. Confirmamos que nos chega o email.</li>
+  </ol>
+</div></div>
+
+<div class="passo"><div class="num">6</div><div>
+  <h3>Acompanhar<span class="quando">4 a 6 semanas</span></h3>
+  <table>
+    <tr><th>Quando</th><th>O quê</th><th>Onde</th></tr>
+    <tr><td>Todos os dias, 5 min</td><td>Ver reportes novos e responder ao João, mesmo que seja "visto, vamos corrigir"</td><td>Email do reporte</td></tr>
+    <tr><td>Dia 1</td><td>Entrou? Importou contactos? Tem notificações? Se não, ligar-lhe</td><td>Plataforma de controlo &gt; Painel</td></tr>
+    <tr><td>Semanas 1 e 2</td><td>Primeira tarefa guiada, dúvidas</td><td>Chamada ou WhatsApp</td></tr>
+    <tr><td>Semanas 3 e 4</td><td>Check-in de 10 min: o que usou, o que irritou, o que falta</td><td>Notas na Torre</td></tr>
+    <tr><td>Semanas 5 e 6</td><td>Entrevista final: "De 0 a 10, recomendarias o Cockpit a um colega?"</td><td>Chamada</td></tr>
+  </table>
+</div></div>
+
+<h2>4. Onde ver o que o João envia</h2>
+<div class="cartao suave">
+  <ul style="margin:0">
+    <li><b>Email:</b> cada reporte chega ao Pedro e ao Miguel, com o texto, a página, o aparelho e os links para o áudio e a captura (válidos 7 dias).</li>
+    <li><b>Tabela <code>feedback</code></b> do Supabase partilhado: todos os reportes, com a empresa e quem enviou.</li>
+    <li><b>Ficheiros</b> no bucket privado <code>feedback</code>: <code>empresa/reporte/captura.jpg</code> e <code>audio.m4a</code>.</li>
+    <li><b>Uso:</b> o painel da plataforma de controlo mostra o último acesso, os telemóveis com notificações e os registos novos dos últimos 7 dias, por empresa.</li>
+  </ul>
+</div>
+
+<h2>5. Se alguma coisa falhar</h2>
+<table>
+  <tr><th>Problema</th><th>O que fazer</th></tr>
+  <tr><td>O link do convite diz "expirado" (<code>otp_expired</code>)</td><td>O link só funciona uma vez; às vezes o programa de email abre-o sozinho para o verificar. Não se pode convidar o mesmo email outra vez: o João toca em "Esqueci a password" no ecrã de entrar, ou mandamos-lhe o link de recuperação pela plataforma de controlo.</td></tr>
+  <tr><td>Entra mas não vê nada</td><td>Não ficou ligado a nenhuma empresa. Confirmar na plataforma de controlo, em Utilizadores.</td></tr>
+  <tr><td>O Android não deixa instalar</td><td>Permitir "instalar apps desconhecidas" para o browser ou para a pasta de transferências, e voltar a abrir o ficheiro.</td></tr>
+  <tr><td>Não recebe notificações</td><td>Em Conta, desligar e voltar a ligar as notificações. Confirmar nas definições do telemóvel que o Cockpit pode enviar notificações.</td></tr>
+  <tr><td>O áudio do reporte não grava</td><td>O telemóvel pediu acesso ao microfone e ele recusou. Autorizar nas definições do telemóvel, no Cockpit.</td></tr>
+</table>
+
+<h2>6. No fim do beta</h2>
+<ul>
+  <li><b>Se continua:</b> passa a cliente, com contrato e acordo de tratamento de dados. A empresa e os dados ficam como estão.</li>
+  <li><b>Se não continua:</b> descarregamos a cópia dos dados da empresa, para lhe entregar se a pedir, e <b>suspendemos</b> a empresa. Os membros deixam de ver os dados, mas nada se apaga:
+<pre><code>node scripts/empresa.mjs suspender casaminho --env .env.demo</code></pre></li>
+</ul>
+
+<h2>7. Quem faz o quê</h2>
+<table>
+  <tr><th>Tarefa</th><th>Quem</th></tr>
+  <tr><td>Escolher os testers, recolher os dados, sessão de arranque, acompanhamento</td><td>Miguel ou Pedro (quem acompanha a empresa)</td></tr>
+  <tr><td>Criar a empresa e convidar (precisa das chaves)</td><td>Pedro, ou o Miguel se tiver o <code>.env.demo</code></td></tr>
+  <tr><td>Publicar a app (deploy)</td><td>Só o Pedro</td></tr>
+  <tr><td>Responder aos reportes</td><td>Por combinar</td></tr>
+</table>
+
+<div class="rodape">Ace Labs, Braga. Documento interno, não enviar a clientes. Guia interno completo: <code>docs/cockpit-beta-guia-interno.md</code>. Guia para o agente: <code>docs/cockpit-beta-guia-agente.pdf</code>.</div>
+
+</div>
+</body>
+</html>
