@@ -638,41 +638,6 @@
     .dy-day b,.dy-day i{transition:none;}
   }
 
-  /* ===== novidades ===== */
-  .nv{padding:112px 0 104px;}
-  .nv h2{font-size:clamp(34px,4.6vw,58px);line-height:1.03;letter-spacing:-.04em;max-width:16ch;}
-  .nv-lead{margin-top:16px;font-size:18px;line-height:1.55;color:var(--ink-2);max-width:54ch;}
-  .nv-filter{margin-top:34px;display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:22px;background:var(--gray-bg);}
-  .nv-filter button{border:0;background:none;font:600 14px var(--font);color:#55555a;padding:10px 18px;border-radius:980px;cursor:pointer;transition:background .2s ease,color .2s ease,box-shadow .2s ease;}
-  .nv-filter button:hover{color:#1d1d1f;}
-  .nv-filter button[aria-pressed="true"]{background:#fff;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.08);}
-  .nv-filter button span{font-weight:500;color:#6e6e73;margin-left:4px;font-variant-numeric:tabular-nums;}
-  .nv-list{list-style:none;margin:40px 0 0;padding:0;position:relative;}
-  .nv-day{display:grid;grid-template-columns:150px minmax(0,1fr);gap:28px;position:relative;}
-  .nv-day + .nv-day{margin-top:8px;}
-  .nv-day > time{position:relative;padding-top:20px;font-size:22px;font-weight:700;letter-spacing:-.02em;color:#1d1d1f;font-variant-numeric:tabular-nums;}
-  .nv-day > time small{display:block;margin-top:2px;font-size:13px;font-weight:500;letter-spacing:0;color:var(--ink-2);}
-  .nv-day > ul{list-style:none;margin:0;padding:0;border-top:2px solid #1d1d1f;}
-  .nv-it{display:grid;grid-template-columns:118px minmax(0,1fr);gap:18px;padding:18px 0 20px;border-bottom:1px solid var(--line);}
-  .nv-it[hidden]{display:none;}
-  .nv-tag{align-self:start;justify-self:start;margin-top:2px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;}
-  .nv-tag.cpcv{background:var(--blue-soft-bg);color:#0059b3;}
-  .nv-tag.ck{background:var(--green-soft);color:#13703a;}
-  .nv-it h3{font-size:17px;letter-spacing:-.012em;line-height:1.35;}
-  .nv-it p{margin-top:4px;font-size:15px;line-height:1.55;color:var(--ink-2);max-width:62ch;}
-  .nv-it.is-new{animation:fl-in .45s ease both;}
-  .nv-more{margin-top:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-  .nv-day.is-empty{display:none;}
-  .nv-day.is-folded{display:none;}
-  @media (max-width:760px){
-    .nv{padding:80px 0 72px;}
-    .nv-day{grid-template-columns:1fr;gap:6px;}
-    .nv-day > time{padding-top:18px;font-size:18px;}
-    .nv-day > time small{display:inline;margin-left:8px;}
-    .nv-it{grid-template-columns:1fr;gap:8px;}
-  }
-  @media (max-width:520px){.nv-filter{display:flex;width:100%;}.nv-filter button{flex:1 1 auto;padding:10px 8px;font-size:13.5px;}}
-  @media (prefers-reduced-motion:reduce){.nv-it.is-new{animation:none;}}
 </style>
 </head>
 <body>
@@ -991,67 +956,6 @@
         </ol>
       </div>
       <p class="dy-note">Exemplo ilustrativo, com dados fictícios.</p>
-    </div>
-  </section>
-
-  <section class="nv" id="novidades" aria-labelledby="nv-title">
-    <div class="wrap">
-      <h2 id="nv-title" data-reveal>O que mudou nos serviços em outubro.</h2>
-      <p class="nv-lead" data-reveal style="--n:1">Construímos todas as semanas. Muitas destas novidades vieram do que nos pediram nas agências onde testamos.</p>
-      <div class="nv-filter" role="group" aria-label="Filtrar novidades" data-reveal style="--n:2">
-        <button type="button" data-f="all" aria-pressed="true">Tudo<span></span></button>
-        <button type="button" data-f="cpcv" aria-pressed="false">CPCV com IA<span></span></button>
-        <button type="button" data-f="ck" aria-pressed="false">Cockpit<span></span></button>
-      </div>
-      <ol class="nv-list" id="nv-list">
-        <li class="nv-day">
-          <time datetime="2026-10-25">25 out<small></small></time>
-          <ul>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Revisão final do contrato</h3><p>Depois de gerado, a IA lê o contrato de ponta a ponta e aponta campos em branco, numeração e valores que não batem com o processo.</p></div></li>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Identificação conferida duas vezes</h3><p>O nome lido no Cartão de Cidadão é comparado com a banda de leitura automática do documento. Se o ficheiro tiver mais do que uma pessoa, a IA avisa.</p></div></li>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Página de entrega em inglês</h3><p>Para clientes estrangeiros, com passaporte e título de residência.</p></div></li>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Casais e várias partes do mesmo lado</h3><p>Os casais ligam-se no formulário e o contrato numera as partes como na minuta da agência.</p></div></li>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Redação revista com uma solicitadora</h3><p>Negritos, fim de cada ponto trancado, estado civil, hipotecas e reserva, como nos contratos assinados.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Relatório A4 por períodos</h3><p>O relatório para o proprietário escolhe o período e sai pronto a imprimir.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Várias zonas por comprador, com freguesias</h3><p>Os alertas de correspondência cruzam todas as zonas que cada comprador procura.</p></div></li>
-          </ul>
-        </li>
-        <li class="nv-day">
-          <time datetime="2026-10-24">24 out<small></small></time>
-          <ul>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Enviar o imóvel por WhatsApp a partir do alerta</h3><p>Quando uma angariação bate com um comprador, envias num toque. O envio fica registado e o funil avança.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Pôr no calendário do telemóvel</h3><p>Visitas, tarefas e reuniões de angariação vão para o calendário do telemóvel, com alarme 30 minutos antes.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Relatório para o proprietário</h3><p>O que foi feito pelo imóvel, agrupado, para copiar, mandar por WhatsApp ou guardar em PDF.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Sem rede, o dia continua</h3><p>A lista de hoje e o botão de ligar ficam guardados no telemóvel, para os sítios sem sinal.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Próximos passos na ficha do comprador</h3><p>Marcar visita a um imóvel enviado, ver o que está por fazer e dar como feito, com desfazer.</p></div></li>
-          </ul>
-        </li>
-        <li class="nv-day">
-          <time datetime="2026-10-23">23 out<small></small></time>
-          <ul>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Importar do Excel</h3><p>Compradores, proprietários e angariações entram a partir de Excel ou CSV, com validação e duplicados assinalados.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Dashboard com metas</h3><p>Anéis de metas, faturação contra o objetivo, comissões previstas e funis com taxa de passagem e tempo parado.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Gestos no telemóvel</h3><p>Deslizar uma tarefa para a dar como feita ou adiar, puxar para atualizar e um botão + com ações rápidas.</p></div></li>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Registo de chamadas</h3><p>Ligar com um gesto regista a chamada, e cada comprador mostra quando foi o último contacto.</p></div></li>
-          </ul>
-        </li>
-        <li class="nv-day">
-          <time datetime="2026-10-20">20 out<small></small></time>
-          <ul>
-            <li class="nv-it" data-p="ck"><span class="nv-tag ck">Cockpit</span><div><h3>Nova versão do Cockpit</h3><p>CRM de compradores e proprietários, angariações, calendário e dashboard, numa app que se instala no telemóvel.</p></div></li>
-          </ul>
-        </li>
-        <li class="nv-day">
-          <time datetime="2026-10-19">19 out<small></small></time>
-          <ul>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Documentos entregues pelo cliente</h3><p>Um link privado por comprador ou vendedor, válido 14 dias e revogável. O cliente não cria conta e o agente aceita ou rejeita cada ficheiro.</p></div></li>
-            <li class="nv-it" data-p="cpcv"><span class="nv-tag cpcv">CPCV com IA</span><div><h3>Contrato testado em 11 cenários</h3><p>Cada alteração é verificada em PDF e Word, de pessoas singulares a empresas com representante, com e sem hipoteca.</p></div></li>
-          </ul>
-        </li>
-      </ol>
-      <div class="nv-more">
-        <button type="button" class="ctl-btn" id="nv-more" aria-expanded="false" aria-controls="nv-list">Ver mais novidades</button>
-      </div>
     </div>
   </section>
 
@@ -1463,50 +1367,6 @@
       window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
       window.addEventListener('resize', onScroll);
       onScroll();
-    })();
-
-    /* novidades: filtro e mostrar mais */
-    (function(){
-      var list = document.getElementById('nv-list');
-      if(!list) return;
-      var btns = Array.prototype.slice.call(document.querySelectorAll('.nv-filter button'));
-      var more = document.getElementById('nv-more');
-      var its = Array.prototype.slice.call(list.querySelectorAll('.nv-it'));
-      var days = Array.prototype.slice.call(list.querySelectorAll('.nv-day'));
-      var f = 'all', open = false, LIMIT = 6;
-      function match(it){ return f === 'all' || it.getAttribute('data-p') === f; }
-      function plural(n){ return n + (n === 1 ? ' novidade' : ' novidades'); }
-      btns.forEach(function(b){
-        var k = b.getAttribute('data-f');
-        b.querySelector('span').textContent = its.filter(function(it){ return k === 'all' || it.getAttribute('data-p') === k; }).length;
-      });
-      function apply(animate){
-        var m = its.filter(match), fold = m.length > LIMIT + 2;
-        its.forEach(function(it){
-          var idx = m.indexOf(it), show = idx > -1 && (open || !fold || idx < LIMIT), was = !it.hidden;
-          it.hidden = !show;
-          if(show && animate && !was && !reduce){ it.classList.remove('is-new'); void it.offsetWidth; it.classList.add('is-new'); }
-        });
-        days.forEach(function(d){
-          var all = Array.prototype.filter.call(d.querySelectorAll('.nv-it'), match).length;
-          var shown = d.querySelectorAll('.nv-it:not([hidden])').length;
-          d.classList.toggle('is-empty', shown === 0);
-          d.querySelector('time small').textContent = plural(all);
-        });
-        var rest = m.length - LIMIT;
-        more.hidden = !fold;
-        more.textContent = open ? 'Mostrar menos' : 'Ver mais ' + plural(rest);
-        more.setAttribute('aria-expanded', open ? 'true' : 'false');
-      }
-      btns.forEach(function(b){
-        b.addEventListener('click', function(){
-          f = b.getAttribute('data-f'); open = false;
-          btns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-          apply(true);
-        });
-      });
-      more.addEventListener('click', function(){ open = !open; apply(true); });
-      apply(false);
     })();
   })();
 </script>
