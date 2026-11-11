@@ -40,6 +40,17 @@ const GRUPOS: Grupo[] = [
         ),
       },
       { href: "/movimentos", texto: "Movimentos", contador: "movimentos", icone: <path d="M4 7h13l-3-3M20 17H7l3 3" /> },
+      {
+        href: "/contactos",
+        texto: "Clientes e fornecedores",
+        icone: (
+          <>
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <circle cx="12" cy="10" r="2.5" />
+            <path d="M7.5 17c.8-2 2.4-3 4.5-3s3.7 1 4.5 3" />
+          </>
+        ),
+      },
     ],
   },
   {
@@ -52,17 +63,6 @@ const GRUPOS: Grupo[] = [
           <>
             <path d="M3 17l5-5 4 3 8-9" />
             <path d="M14 6h6v6" />
-          </>
-        ),
-      },
-      {
-        href: "/contactos",
-        texto: "Clientes e fornecedores",
-        icone: (
-          <>
-            <rect x="4" y="3" width="16" height="18" rx="2" />
-            <circle cx="12" cy="10" r="2.5" />
-            <path d="M7.5 17c.8-2 2.4-3 4.5-3s3.7 1 4.5 3" />
           </>
         ),
       },
