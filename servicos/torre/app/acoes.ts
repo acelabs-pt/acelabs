@@ -493,6 +493,74 @@ export async function apagarEntidade(f: FormData) {
   }
 }
 
+// Testers do Cockpit ------------------------------------------------------------------------------------------------
+
+const ESTADOS_TESTER = ["convidado", "a_testar", "a_avaliar", "convertido", "desistiu"];
+
+function camposTester(f: FormData): { erro: string } | Record<string, unknown> {
+  const nome = txt(f, "nome");
+  if (!nome) return { erro: "Falta o nome." };
+  const estado = txt(f, "estado") || "convidado";
+  if (!ESTADOS_TESTER.includes(estado)) return { erro: "Estado inválido." };
+  const email = opc(f, "email");
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { erro: "O email não parece válido." };
+  const inicio = lerData(txt(f, "inicio")) ?? new Date().toISOString().slice(0, 10);
+  const fim = lerData(txt(f, "fim")) ?? "2026-12-31";
+  if (fim < inicio) return { erro: "O fim não pode ser antes do início." };
+  return { nome, agencia: opc(f, "agencia"), email, telemovel: opc(f, "telemovel"), estado, inicio, fim, feedback: opc(f, "feedback") };
+}
+
+export async function criarTester(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s } = await exigirSocio();
+  const c = camposTester(f);
+  if ("erro" in c) return { erro: c.erro as string };
+  const { error } = await s.from("testers").insert(c);
+  if (error) return erroDe(error)!;
+  atualizar();
+  return { ok: true, aviso: "Tester guardado." };
+}
+
+export async function guardarTester(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s } = await exigirSocio();
+  const c = camposTester(f);
+  if ("erro" in c) return { erro: c.erro as string };
+  const { error } = await s.from("testers").update(c).eq("id", txt(f, "id"));
+  if (error) return erroDe(error)!;
+  atualizar();
+  return { ok: true, aviso: "Guardado." };
+}
+
+export async function apagarTester(f: FormData) {
+  const { s } = await exigirSocio();
+  const { error } = await s.from("testers").delete().eq("id", txt(f, "id"));
+  if (!error) {
+    atualizar();
+    redirect("/contactos?ver=testers");
+  }
+}
+
+/** O tester passa a cliente: cria a ficha de cliente (com o nome da agência, se houver) e deixa o tester ligado a ela. */
+export async function converterTester(f: FormData) {
+  const { s } = await exigirSocio();
+  const id = txt(f, "id");
+  const { data: t } = await s.from("testers").select("*").eq("id", id).maybeSingle();
+  if (!t) return;
+  const nome = (t.agencia as string | null) || (t.nome as string);
+  let entidadeId = t.entidade_id as string | null;
+  if (!entidadeId) {
+    const { data: existente } = await s.from("entidades").select("id").eq("nome", nome).maybeSingle();
+    if (existente) entidadeId = existente.id as string;
+    else {
+      const { data: nova, error } = await s.from("entidades").insert({ nome, email: t.email, tipo: "cliente" }).select("id").single();
+      if (error || !nova) return;
+      entidadeId = nova.id as string;
+    }
+  }
+  await s.from("testers").update({ estado: "convertido", entidade_id: entidadeId }).eq("id", id);
+  atualizar();
+  redirect(`/contactos/${entidadeId}`);
+}
+
 // Acessos -----------------------------------------------------------------------------------------------------------
 
 const CAMPOS_ACESSO = ["servico", "categoria", "para_que", "url", "conta", "dono", "onde_esta", "dois_fatores", "custo_mensal", "renovacao", "estado", "notas"];

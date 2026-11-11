@@ -23,6 +23,30 @@ export type Categoria = { id: string; nome: string; tipo: TipoCategoria; grupo: 
 
 export type Entidade = { id: string; nome: string; nif: string | null; email: string | null; tipo: "fornecedor" | "cliente" | "ambos" };
 
+export type EstadoTester = "convidado" | "a_testar" | "a_avaliar" | "convertido" | "desistiu";
+
+export type Tester = {
+  id: string;
+  nome: string;
+  agencia: string | null;
+  email: string | null;
+  telemovel: string | null;
+  estado: EstadoTester;
+  inicio: string;
+  fim: string;
+  feedback: string | null;
+  entidade_id: string | null;
+  criado_em: string;
+};
+
+export const ROTULO_TESTER: Record<EstadoTester, { texto: string; cor: "azul" | "verde" | "ambar" | "cinza" }> = {
+  convidado: { texto: "Convidado", cor: "cinza" },
+  a_testar: { texto: "A testar", cor: "azul" },
+  a_avaliar: { texto: "A avaliar", cor: "ambar" },
+  convertido: { texto: "Passou a cliente", cor: "verde" },
+  desistiu: { texto: "Desistiu", cor: "cinza" },
+};
+
 export type Periodicidade = "mensal" | "trimestral" | "anual";
 
 export type Subscricao = {

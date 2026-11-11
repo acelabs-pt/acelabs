@@ -37,7 +37,7 @@ export default async function Contacto({ params }: { params: { id: string } }) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href={`/contactos?ver=${cliente ? "clientes" : "fornecedores"}`} className="text-sm font-semibold text-azul">Clientes e fornecedores</Link>
+        <Link href="/contactos?ver=clientes" className="text-sm font-semibold text-azul">Clientes</Link>
       </div>
       <Titulo titulo={e.nome} texto={[cliente && fornecedor ? "Cliente e fornecedor" : cliente ? "Cliente" : "Fornecedor", e.nif && `NIF ${e.nif}`, e.email].filter(Boolean).join(", ")} />
 

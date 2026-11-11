@@ -188,6 +188,24 @@ create table if not exists public.contratos (
 );
 create index if not exists contratos_entidade on public.contratos (entidade_id);
 
+-- Testers do Cockpit: quem está a experimentar a app até ao fim do ano (regras de acesso e auditoria na lista mais abaixo).
+create table if not exists public.testers (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  agencia text,
+  email text,
+  telemovel text,
+  estado text not null default 'convidado' check (estado in ('convidado', 'a_testar', 'a_avaliar', 'convertido', 'desistiu')),
+  inicio date not null default current_date,
+  fim date not null default date '2026-12-31',
+  feedback text,
+  entidade_id uuid references public.entidades (id) on delete set null,   -- preenchido quando passa a cliente
+  criado_por uuid default auth.uid(),
+  criado_em timestamptz not null default now()
+);
+create index if not exists testers_estado on public.testers (estado);
+
+
 -- Capital, suprimentos e reembolsos entre cada sócio e a empresa ----------------------------------------------------
 create table if not exists public.socios_movimentos (
   id uuid primary key default gen_random_uuid(),
@@ -261,7 +279,7 @@ revoke all on function public.registar_auditoria() from public, anon, authentica
 do $$
 declare t text;
 begin
-  foreach t in array array['contas', 'categorias', 'entidades', 'subscricoes', 'importacoes', 'movimentos', 'regras', 'socios_movimentos', 'faturas', 'contratos'] loop
+  foreach t in array array['contas', 'categorias', 'entidades', 'subscricoes', 'importacoes', 'movimentos', 'regras', 'socios_movimentos', 'faturas', 'contratos', 'testers'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists socios_tudo on public.%I', t);
     execute format('create policy socios_tudo on public.%I for all to authenticated using (public.e_socio()) with check (public.e_socio())', t);

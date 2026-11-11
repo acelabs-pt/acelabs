@@ -42,7 +42,7 @@ const GRUPOS: Grupo[] = [
       { href: "/movimentos", texto: "Movimentos", contador: "movimentos", icone: <path d="M4 7h13l-3-3M20 17H7l3 3" /> },
       {
         href: "/contactos",
-        texto: "Clientes e fornecedores",
+        texto: "Clientes e testers",
         icone: (
           <>
             <rect x="4" y="3" width="16" height="18" rx="2" />

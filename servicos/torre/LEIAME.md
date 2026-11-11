@@ -209,3 +209,13 @@ Depois de publicar, confirmar o login e um ecrã em `https://acelabs-torre.verce
 2. **Integração** (com `TORRE_TESTES_PERMITIDOS=1` no `.env.local`): sem sessão e conta que não é sócia não leem nem
    escrevem; sócio sim; sócio desativado perde o acesso logo; importar duas vezes não duplica; o registo guarda quem fez;
    regras da base de dados. Cria contas e dados de teste próprios e apaga-os no fim.
+
+## Clientes e testers (2026-11-11)
+
+- "Clientes e testers" está no grupo "Dia a dia" do menu. A lista deixou de ter fornecedores (as fichas dos fornecedores continuam a
+  existir para as faturas e os movimentos, abrem a partir deles).
+- **Clientes:** quem adquire o Cockpit, com o estado do contrato do Cockpit (proposta, ativo, pausado, terminado), a mensalidade e o
+  recebido no ano.
+- **Testers:** quem está a experimentar o Cockpit até ao fim do ano (nome, agência, contacto, estado, data limite, feedback). Um tester
+  pode passar a cliente com um botão, que cria a ficha de cliente. Tabela `testers`: correr `supabase/migration_testers.sql` no Supabase
+  da Torre (`umsfewmuqqdfgffgksbg`) antes do deploy, senão a vista Testers mostra um aviso.
