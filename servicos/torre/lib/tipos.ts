@@ -34,6 +34,8 @@ export type Tester = {
   estado: EstadoTester;
   inicio: string;
   fim: string;
+  tabela_enviada: boolean;
+  dados_importados: boolean;
   feedback: string | null;
   entidade_id: string | null;
   criado_em: string;

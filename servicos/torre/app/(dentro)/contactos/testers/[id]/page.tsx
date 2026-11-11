@@ -40,7 +40,7 @@ export default async function Tester({ params }: { params: { id: string } }) {
               <input id="t-email" name="email" type="email" defaultValue={x.email ?? ""} className={campo} />
             </div>
             <div>
-              <label htmlFor="t-tel" className={rotulo}>Telemóvel</label>
+              <label htmlFor="t-tel" className={rotulo}>Contacto</label>
               <input id="t-tel" name="telemovel" inputMode="tel" defaultValue={x.telemovel ?? ""} className={campo} />
             </div>
             <div>
@@ -60,6 +60,10 @@ export default async function Tester({ params }: { params: { id: string } }) {
                 <label htmlFor="t-fim" className={rotulo}>Testa até</label>
                 <input id="t-fim" name="fim" type="date" defaultValue={x.fim} className={campo} />
               </div>
+            </div>
+            <div className="flex flex-col justify-end gap-2 sm:col-span-2">
+              <label className="flex items-center gap-2 text-base text-tinta"><input type="checkbox" name="tabela_enviada" defaultChecked={x.tabela_enviada} className="h-5 w-5" /> Já enviou a tabela de clientes</label>
+              <label className="flex items-center gap-2 text-base text-tinta"><input type="checkbox" name="dados_importados" defaultChecked={x.dados_importados} className="h-5 w-5" /> Os dados já foram importados</label>
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="t-feedback" className={rotulo}>Feedback e notas</label>

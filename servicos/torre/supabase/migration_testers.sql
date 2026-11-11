@@ -8,11 +8,16 @@ create table if not exists public.testers (
   estado text not null default 'convidado' check (estado in ('convidado', 'a_testar', 'a_avaliar', 'convertido', 'desistiu')),
   inicio date not null default current_date,
   fim date not null default date '2026-12-31',
+  tabela_enviada boolean not null default false,    -- o tester já enviou a tabela de clientes preenchida
+  dados_importados boolean not null default false,  -- os dados dele já foram importados para o Cockpit
   feedback text,
   entidade_id uuid references public.entidades (id) on delete set null,   -- preenchido quando passa a cliente
   criado_por uuid default auth.uid(),
   criado_em timestamptz not null default now()
 );
+-- Se a tabela já existia (versão anterior deste ficheiro), acrescenta as colunas novas.
+alter table public.testers add column if not exists tabela_enviada boolean not null default false;
+alter table public.testers add column if not exists dados_importados boolean not null default false;
 create index if not exists testers_estado on public.testers (estado);
 
 alter table public.testers enable row level security;

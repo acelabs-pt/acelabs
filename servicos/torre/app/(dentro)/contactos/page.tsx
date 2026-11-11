@@ -84,7 +84,7 @@ export default async function Contactos({ searchParams }: { searchParams: { ver?
                   <input id="t-email" name="email" type="email" className={campo} />
                 </div>
                 <div>
-                  <label htmlFor="t-tel" className={rotulo}>Telemóvel</label>
+                  <label htmlFor="t-tel" className={rotulo}>Contacto</label>
                   <input id="t-tel" name="telemovel" inputMode="tel" className={campo} />
                 </div>
                 <div>
@@ -98,6 +98,10 @@ export default async function Contactos({ searchParams }: { searchParams: { ver?
                 <div>
                   <label htmlFor="t-fim" className={rotulo}>Testa até</label>
                   <input id="t-fim" name="fim" type="date" defaultValue="2026-12-31" className={campo} />
+                </div>
+                <div className="flex flex-col justify-end gap-2 sm:col-span-2">
+                  <label className="flex items-center gap-2 text-base text-tinta"><input type="checkbox" name="tabela_enviada" className="h-5 w-5" /> Já enviou a tabela de clientes</label>
+                  <label className="flex items-center gap-2 text-base text-tinta"><input type="checkbox" name="dados_importados" className="h-5 w-5" /> Os dados já foram importados</label>
                 </div>
               </div>
             </Formulario>
@@ -139,6 +143,8 @@ export default async function Contactos({ searchParams }: { searchParams: { ver?
                         <span className="block truncate text-base font-medium text-tinta">{x.nome}{x.agencia ? ` · ${x.agencia}` : ""}</span>
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-secundario">
                           <Etiqueta cor={ROTULO_TESTER[x.estado].cor}>{ROTULO_TESTER[x.estado].texto}</Etiqueta>
+                          {x.tabela_enviada ? <Etiqueta cor="verde">Tabela enviada</Etiqueta> : <Etiqueta cor="ambar">Falta a tabela</Etiqueta>}
+                          {x.dados_importados ? <Etiqueta cor="verde">Dados importados</Etiqueta> : x.tabela_enviada ? <Etiqueta cor="ambar">Por importar</Etiqueta> : null}
                           {x.email && <span>{x.email}</span>}
                           {x.feedback && <span>com feedback</span>}
                         </span>

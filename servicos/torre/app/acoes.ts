@@ -507,7 +507,7 @@ function camposTester(f: FormData): { erro: string } | Record<string, unknown> {
   const inicio = lerData(txt(f, "inicio")) ?? new Date().toISOString().slice(0, 10);
   const fim = lerData(txt(f, "fim")) ?? "2026-12-31";
   if (fim < inicio) return { erro: "O fim não pode ser antes do início." };
-  return { nome, agencia: opc(f, "agencia"), email, telemovel: opc(f, "telemovel"), estado, inicio, fim, feedback: opc(f, "feedback") };
+  return { nome, agencia: opc(f, "agencia"), email, telemovel: opc(f, "telemovel"), estado, inicio, fim, tabela_enviada: f.get("tabela_enviada") === "on", dados_importados: f.get("dados_importados") === "on", feedback: opc(f, "feedback") };
 }
 
 export async function criarTester(_: Resposta, f: FormData): Promise<Resposta> {

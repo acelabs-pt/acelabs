@@ -198,6 +198,8 @@ create table if not exists public.testers (
   estado text not null default 'convidado' check (estado in ('convidado', 'a_testar', 'a_avaliar', 'convertido', 'desistiu')),
   inicio date not null default current_date,
   fim date not null default date '2026-12-31',
+  tabela_enviada boolean not null default false,
+  dados_importados boolean not null default false,
   feedback text,
   entidade_id uuid references public.entidades (id) on delete set null,   -- preenchido quando passa a cliente
   criado_por uuid default auth.uid(),
