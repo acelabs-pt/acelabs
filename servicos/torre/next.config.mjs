@@ -7,9 +7,18 @@ const dev = process.env.NODE_ENV !== "production";
 // própria Torre (a pré-visualização na revisão). Tudo o resto não entra em iframes de ninguém.
 const FICHEIRO = "/faturas/:id/ficheiro";
 
+// As capturas e os áudios do feedback dos testers vêm do Storage do Supabase do Cockpit (links temporários): só esse endereço se permite.
+const hostCockpit = (() => {
+  try {
+    return new URL(process.env.COCKPIT_FEEDBACK_URL || "https://gebqaxhwebsmoeqpzzzg.supabase.co").origin;
+  } catch {
+    return "https://gebqaxhwebsmoeqpzzzg.supabase.co";
+  }
+})();
+
 const csp = (moldura) =>
   `default-src 'self'; script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; ` +
-  `img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; ` +
+  `img-src 'self' data: blob: ${hostCockpit}; media-src 'self' ${hostCockpit}; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; ` +
   `frame-ancestors ${moldura}; base-uri 'self'; form-action 'self'; object-src 'none'`;
 
 const comuns = [

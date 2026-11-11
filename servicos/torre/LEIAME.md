@@ -219,3 +219,19 @@ Depois de publicar, confirmar o login e um ecrã em `https://acelabs-torre.verce
 - **Testers:** quem está a experimentar o Cockpit até ao fim do ano (nome, agência, contacto, estado, data limite, feedback). Um tester
   pode passar a cliente com um botão, que cria a ficha de cliente. Tabela `testers`: correr `supabase/migration_testers.sql` no Supabase
   da Torre (`umsfewmuqqdfgffgksbg`) antes do deploy, senão a vista Testers mostra um aviso.
+
+## Feedback dos testers (2026-11-11)
+
+"Feedback dos testers" (menu, grupo "Dia a dia") mostra o que os testers reportam no Cockpit ("Reportar um problema"): texto, captura do
+ecrã e áudio, com o estado (novo, visto, resolvido) e o tester (pelo email, se estiver registado em Clientes e testers).
+
+Os reportes ficam no Supabase do Cockpit (tabela `feedback` e bucket privado). A Torre lê-os pela função
+`servicos/cockpit-app/supabase/functions/ler-feedback`, com um segredo partilhado; a chave de administrador do Cockpit não vem para a
+Torre. Uma vez, pelo Pedro:
+
+1. `supabase functions deploy ler-feedback --no-verify-jwt` (projeto do Cockpit, `gebqaxhwebsmoeqpzzzg`).
+2. `supabase secrets set FEEDBACK_LEITURA_TOKEN=<texto longo e aleatório, 24+ caracteres>`.
+3. Na Torre (Vercel e `.env.local`): `COCKPIT_FEEDBACK_URL=https://gebqaxhwebsmoeqpzzzg.supabase.co/functions/v1/ler-feedback` e
+   `COCKPIT_FEEDBACK_TOKEN=<o mesmo texto>`.
+
+Sem isto a página mostra as instruções. A CSP da Torre só permite imagens e áudio desse endereço do Supabase.

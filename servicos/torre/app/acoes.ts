@@ -12,6 +12,7 @@ import { aplicarRegras, chaveDescricao, reembolsavelPorOmissao } from "@/lib/cal
 import { normalizar } from "@/lib/texto";
 import { TAMANHO_PIN, problemaDoPin, senhaDoPin } from "@/lib/pin";
 import { lerAcesso } from "@/lib/acessos";
+import { marcarFeedback } from "@/lib/feedback";
 import type { Conta, Movimento, Periodicidade, Regra } from "@/lib/tipos";
 
 export type Resposta = { ok?: boolean; erro?: string; aviso?: string };
@@ -559,6 +560,14 @@ export async function converterTester(f: FormData) {
   await s.from("testers").update({ estado: "convertido", entidade_id: entidadeId }).eq("id", id);
   atualizar();
   redirect(`/contactos/${entidadeId}`);
+}
+
+/** Marca um reporte do Cockpit como novo, visto ou resolvido. */
+export async function estadoFeedback(f: FormData) {
+  await exigirSocio();
+  const estado = txt(f, "estado");
+  if (estado === "novo" || estado === "visto" || estado === "resolvido") await marcarFeedback(txt(f, "id"), estado);
+  atualizar();
 }
 
 // Acessos -----------------------------------------------------------------------------------------------------------
