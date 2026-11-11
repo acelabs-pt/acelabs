@@ -127,19 +127,16 @@ export default async function Movimentos({ searchParams }: { searchParams: Filtr
       </form>
 
       {/* O formulário só aparece quando se pede (botão "Lançar à mão") ou quando ainda não há nada. */}
-      {(novo || (!t.movimentos.length && t.contas.length > 0)) && (
+      {(novo || !t.movimentos.length) && (
         <section id="lancar" className="scroll-mt-24 rounded-3xl border border-linha bg-white p-5" aria-label="Lançar à mão">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-tinta">Lançar à mão</h2>
             {novo && <Link href="/movimentos" className="text-sm font-semibold text-secundario hover:text-tinta">Fechar</Link>}
           </div>
-          {t.contas.length ? (
-            <Formulario acao={criarMovimento} botao="Guardar movimento">
-              <CamposMovimento t={t} hoje={hoje} />
-            </Formulario>
-          ) : (
-            <Vazio texto="Primeiro cria as contas." link="/definicoes?s=contas" rotuloLink="Criar as contas" />
-          )}
+          {/* Sem contas bancárias também se lança: escolhe-se "Sem conta" e diz-se quem pagou. */}
+          <Formulario acao={criarMovimento} botao="Guardar movimento">
+            <CamposMovimento t={t} hoje={hoje} />
+          </Formulario>
         </section>
       )}
 
