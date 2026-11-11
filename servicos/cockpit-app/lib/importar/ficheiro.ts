@@ -49,11 +49,18 @@ const textoDe = (v: unknown): string => {
   return String(v);
 };
 
-export async function lerFicheiro(f: File): Promise<string[][]> {
+/**
+ * Lê o ficheiro. Num Excel com várias folhas (como o modelo, com "Compradores", "Proprietários" e "Angariações") usa a folha com o
+ * nome pedido em `folha`; se não houver nenhuma com esse nome, a primeira.
+ */
+export async function lerFicheiro(f: File, folha?: string): Promise<string[][]> {
   const nome = f.name.toLowerCase();
   if (nome.endsWith(".xlsx")) {
-    const { default: readXlsxFile } = await import("read-excel-file");
-    const linhas = await readXlsxFile(f);
+    const { default: readXlsxFile, readSheetNames } = await import("read-excel-file");
+    const sem = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    const folhas = folha ? await readSheetNames(f) : [];
+    const escolhida = folha ? folhas.find((x) => sem(x) === sem(folha)) : undefined;
+    const linhas = escolhida ? await readXlsxFile(f, { sheet: escolhida }) : await readXlsxFile(f);
     return linhas.map((l) => l.map(textoDe)).filter((l) => l.some((c) => c.trim() !== ""));
   }
   if (nome.endsWith(".xls")) {

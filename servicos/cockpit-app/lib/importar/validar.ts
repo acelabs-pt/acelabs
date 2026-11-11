@@ -62,6 +62,20 @@ export function daLista(valor: string, lista: string[]): string | null {
   return lista.find((o) => semAcentos(o) === v) ?? null;
 }
 
+/**
+ * Freguesia pelo nome que as pessoas usam: "São Vítor" para "Braga (São Vítor)", "Ferreiros e Gondizalves" para "União das freguesias
+ * de Ferreiros e Gondizalves". Primeiro o nome igual; depois um nome oficial que o contenha, se só houver um. Se houver vários,
+ * devolve a lista deles (para a mensagem de erro).
+ */
+export function freguesiaDe(valor: string, lista: string[]): string | string[] {
+  const exata = daLista(valor, lista);
+  if (exata) return exata;
+  const v = semAcentos(valor);
+  if (v.length < 3) return [];
+  const contem = lista.filter((o) => semAcentos(o).includes(v));
+  return contem.length === 1 ? contem[0] : contem;
+}
+
 export function lerTipologia(s: string): string | null {
   const v = semAcentos(s).replace(/\s/g, "");
   const direto = TIPOLOGIAS.find((t) => semAcentos(t).replace(/\s/g, "") === v);
@@ -91,8 +105,10 @@ export function resolverZona(d: string, c: string, f: string): { zona?: Zona; er
   let freg = "";
   if (f.trim()) {
     if (!conc) return { erro: "Há freguesia mas falta o concelho" };
-    const achada = daLista(f, freguesiasDe(dist!, conc));
-    if (!achada) return { erro: `Freguesia "${f.trim()}" não existe em ${conc}` };
+    const achada = freguesiaDe(f, freguesiasDe(dist!, conc));
+    if (typeof achada !== "string") {
+      return { erro: achada.length ? `Freguesia "${f.trim()}" pode ser: ${achada.join(", ")}. Escreve o nome completo` : `Freguesia "${f.trim()}" não existe em ${conc}` };
+    }
     freg = achada;
   }
   if (!dist) return {};

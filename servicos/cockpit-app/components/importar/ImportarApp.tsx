@@ -54,7 +54,7 @@ export default function ImportarApp() {
     setErro(null);
     setALer(true);
     try {
-      const todas = await lerFicheiro(f);
+      const todas = await lerFicheiro(f, ESQUEMAS[entidade].titulo);
       if (todas.length < 2) throw new Error("O ficheiro não tem linhas de dados. A primeira linha tem de ser o cabeçalho.");
       const [cab, ...resto] = todas;
       setExistentes(await carregarExistentes());
