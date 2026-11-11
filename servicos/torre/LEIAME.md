@@ -222,8 +222,9 @@ Depois de publicar, confirmar o login e um ecrã em `https://acelabs-torre.verce
 
 ## Feedback dos testers (2026-11-11)
 
-"Feedback dos testers" (menu, grupo "Dia a dia") mostra o que os testers reportam no Cockpit ("Reportar um problema"): texto, captura do
-ecrã e áudio, com o estado (novo, visto, resolvido) e o tester (pelo email, se estiver registado em Clientes e testers).
+O feedback aparece **dentro da ficha de cada tester** (Clientes e testers, Testers, abrir um tester), no cartão "Feedback": o que o tester
+reporta no Cockpit ("Reportar um problema"), com texto, captura do ecrã e áudio, o estado (novo, visto, resolvido) e botões para o mudar.
+A ligação ao tester é pelo **email**: tem de ser o mesmo com que ele entra no Cockpit.
 
 Os reportes ficam no Supabase do Cockpit (tabela `feedback` e bucket privado). A Torre lê-os pela função
 `servicos/cockpit-app/supabase/functions/ler-feedback`, com um segredo partilhado; a chave de administrador do Cockpit não vem para a
@@ -234,4 +235,4 @@ Torre. Uma vez, pelo Pedro:
 3. Na Torre (Vercel e `.env.local`): `COCKPIT_FEEDBACK_URL=https://gebqaxhwebsmoeqpzzzg.supabase.co/functions/v1/ler-feedback` e
    `COCKPIT_FEEDBACK_TOKEN=<o mesmo texto>`.
 
-Sem isto a página mostra as instruções. A CSP da Torre só permite imagens e áudio desse endereço do Supabase.
+Sem isto o cartão do tester mostra a indicação. A CSP da Torre só permite imagens e áudio desse endereço do Supabase.

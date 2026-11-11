@@ -51,16 +51,6 @@ const GRUPOS: Grupo[] = [
           </>
         ),
       },
-      {
-        href: "/feedback",
-        texto: "Feedback dos testers",
-        icone: (
-          <>
-            <path d="M4 5h16v11H9l-5 4V5Z" />
-            <path d="M8 9h8M8 12h5" />
-          </>
-        ),
-      },
     ],
   },
   {

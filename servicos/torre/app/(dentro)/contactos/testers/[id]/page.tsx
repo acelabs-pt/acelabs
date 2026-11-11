@@ -6,6 +6,7 @@ import { ROTULO_TESTER, type Tester } from "@/lib/tipos";
 import { apagarTester, converterTester, guardarTester } from "../../../../acoes";
 import { Formulario } from "@/components/Formulario";
 import BotaoConfirmar from "@/components/BotaoConfirmar";
+import FeedbackDoTester from "@/components/FeedbackDoTester";
 import { Cartao, Etiqueta, Titulo, campo, rotulo } from "@/components/ui";
 
 export default async function Tester({ params }: { params: { id: string } }) {
@@ -72,6 +73,8 @@ export default async function Tester({ params }: { params: { id: string } }) {
           </div>
         </Formulario>
       </Cartao>
+
+      <FeedbackDoTester email={x.email} />
 
       <Cartao titulo="Passar a cliente">
         {x.entidade_id ? (
