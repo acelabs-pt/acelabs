@@ -35,7 +35,7 @@ export default async function FeedbackDoTester({ email }: { email: string | null
       {erro ? (
         <p role="alert" className="rounded-xl bg-ambar-fundo px-4 py-3 text-sm text-ambar-texto">{erro}</p>
       ) : meus.length === 0 ? (
-        <p className="text-base text-secundario">Ainda não reportou nada. Quando usar o botão "Reportar um problema" no Cockpit com o email {email}, aparece aqui.</p>
+        <p className="text-base text-secundario">Ainda não reportou nada. Quando usar o botão “Reportar um problema” no Cockpit com o email {email}, aparece aqui.</p>
       ) : (
         <ul className="divide-y divide-linha">
           {meus.map((r) => (
