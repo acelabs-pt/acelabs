@@ -1,13 +1,33 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HORA_PX, colocar, corItem, doDia, type Ocorrencia } from "@/lib/calendario";
 import { formatarHora, mesmoDia } from "@/lib/datas";
+
 
 const NOMES = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 // Grelha de horas para o Dia (1 coluna) e a Semana (7 colunas). Tocar num espaço vazio cria uma marcação
 // nessa hora; os itens "dia inteiro" ficam numa faixa por cima.
+const ZOOM_MIN = 24;
+const ZOOM_MAX = 140;
+const CHAVE_ZOOM = "cockpit-cal-hora";
+function lerZoom(): number {
+  try {
+    const v = Number(localStorage.getItem(CHAVE_ZOOM));
+    return v >= ZOOM_MIN && v <= ZOOM_MAX ? v : HORA_PX;
+  } catch {
+    return HORA_PX;
+  }
+}
+function gravarZoom(v: number) {
+  try {
+    localStorage.setItem(CHAVE_ZOOM, String(Math.round(v)));
+  } catch {
+    // sem armazenamento: o zoom vale só até fechar
+  }
+}
+
 export default function Tempo({
   dias,
   ocs,
@@ -24,6 +44,12 @@ export default function Tempo({
   onMover?: (id: string, d: Date) => void;
 }) {
   const cont = useRef<HTMLDivElement>(null);
+  const grelha = useRef<HTMLDivElement>(null);
+  // Zoom da grelha (dois dedos, ou Ctrl e roda do rato): muda a altura de cada hora, e só da grelha. O resto do ecrã
+  // (título, menu de baixo) fica igual. Lembra-se do último zoom neste aparelho.
+  const [horaPx, setHoraPx] = useState(lerZoom);
+  const horaRef = useRef(horaPx);
+  const ancora = useRef<{ horas: number; y: number } | null>(null);
   const [agora, setAgora] = useState(() => new Date());
   const n = dias.length;
   const cols = `44px repeat(${n}, minmax(0, 1fr))`;
@@ -34,10 +60,72 @@ export default function Tempo({
   }, []);
   useEffect(() => {
     const el = cont.current;
-    if (el) el.scrollTop = Math.max(0, ((dias.some((d) => mesmoDia(d, new Date())) ? new Date().getHours() : 8) - 1.5) * HORA_PX);
+    if (el) el.scrollTop = Math.max(0, ((dias.some((d) => mesmoDia(d, new Date())) ? new Date().getHours() : 8) - 1.5) * horaRef.current);
     // só ao abrir a vista
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [n]);
+
+  // Depois de mudar o zoom, a hora que estava debaixo dos dedos fica no mesmo sítio.
+  useLayoutEffect(() => {
+    const el = cont.current;
+    const a = ancora.current;
+    if (!el || !a) return;
+    ancora.current = null;
+    el.scrollTop = a.horas * horaPx + (grelha.current?.offsetTop ?? 0) - a.y;
+  }, [horaPx]);
+
+  useEffect(() => {
+    const el = cont.current;
+    if (!el) return;
+    const aplicar = (novo: number, y: number) => {
+      const v = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, novo));
+      if (Math.abs(v - horaRef.current) < 0.5) return;
+      ancora.current = { horas: (el.scrollTop + y - (grelha.current?.offsetTop ?? 0)) / horaRef.current, y };
+      horaRef.current = v;
+      setHoraPx(v);
+    };
+    let d0 = 0;
+    let h0 = 0;
+    let y0 = 0;
+    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const inicio = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      d0 = dist(e.touches);
+      h0 = horaRef.current;
+      y0 = (e.touches[0].clientY + e.touches[1].clientY) / 2 - el.getBoundingClientRect().top;
+      e.stopPropagation(); // não é um deslizar para mudar de semana
+    };
+    const mover = (e: TouchEvent) => {
+      if (e.touches.length !== 2 || !d0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      aplicar((h0 * dist(e.touches)) / d0, y0);
+    };
+    const fim = (e: TouchEvent) => {
+      if (d0 && e.touches.length < 2) {
+        d0 = 0;
+        gravarZoom(horaRef.current);
+      }
+    };
+    const roda = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      aplicar(horaRef.current * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientY - el.getBoundingClientRect().top);
+      gravarZoom(horaRef.current);
+    };
+    el.addEventListener("touchstart", inicio, { passive: true });
+    el.addEventListener("touchmove", mover, { passive: false });
+    el.addEventListener("touchend", fim);
+    el.addEventListener("touchcancel", fim);
+    el.addEventListener("wheel", roda, { passive: false });
+    return () => {
+      el.removeEventListener("touchstart", inicio);
+      el.removeEventListener("touchmove", mover);
+      el.removeEventListener("touchend", fim);
+      el.removeEventListener("touchcancel", fim);
+      el.removeEventListener("wheel", roda);
+    };
+  }, []);
 
   // Tarefas (muitas, quase sempre às 9h) não vão para a grelha, porque ficavam em tiras ilegíveis:
   // na semana viram um contador por dia (toca para abrir o dia) e no dia uma lista. Marcações com hora ficam na grelha.
@@ -128,13 +216,13 @@ export default function Tempo({
           </ul>
         )}
 
-        <div className="grid" style={{ gridTemplateColumns: cols }}>
-          <div className="relative" style={{ height: 24 * HORA_PX }}>
+        <div ref={grelha} className="grid" style={{ gridTemplateColumns: cols }}>
+          <div className="relative" style={{ height: 24 * horaPx }}>
             {Array.from({ length: 23 }, (_, i) => i + 1).map((h) => (
               <span
                 key={h}
                 className="absolute right-1 -translate-y-1/2 text-[0.625rem] text-secundario"
-                style={{ top: h * HORA_PX }}
+                style={{ top: h * horaPx }}
               >
                 {String(h).padStart(2, "0")}:00
               </span>
@@ -142,17 +230,17 @@ export default function Tempo({
           </div>
 
           {dias.map((d) => {
-            const colocadas = colocar(doDia(ocs, d).filter((o) => !eTarefa(o)), d);
+            const colocadas = colocar(doDia(ocs, d).filter((o) => !eTarefa(o)), d, horaPx);
             const eHoje = mesmoDia(d, agora);
-            const topoAgora = ((agora.getHours() * 60 + agora.getMinutes()) / 60) * HORA_PX;
+            const topoAgora = ((agora.getHours() * 60 + agora.getMinutes()) / 60) * horaPx;
             return (
               <div
                 key={d.toISOString()}
                 className="relative border-l border-black/10"
                 style={{
-                  height: 24 * HORA_PX,
+                  height: 24 * horaPx,
                   backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,.07) 1px, transparent 1px)",
-                  backgroundSize: `100% ${HORA_PX}px`,
+                  backgroundSize: `100% ${horaPx}px`,
                 }}
                 onDragOver={(e) => onMover && e.preventDefault()}
                 onDrop={(e) => {
@@ -162,7 +250,7 @@ export default function Tempo({
                 }}
                 onClick={(e) => {
                   const r = e.currentTarget.getBoundingClientRect();
-                  const minutos = Math.floor((e.clientY - r.top) / HORA_PX * 2) * 30;
+                  const minutos = Math.floor((e.clientY - r.top) / horaPx * 2) * 30;
                   const quando = new Date(d);
                   quando.setHours(0, minutos, 0, 0);
                   onSlot(quando);

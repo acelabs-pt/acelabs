@@ -29,7 +29,7 @@ const CARTOES = [
 // Entrada do CRM: dois cartões grandes, compradores à esquerda e proprietários à direita.
 export default function Page() {
   return (
-    <div className="grid min-h-[55vh] grid-cols-2 gap-4 py-6 md:gap-6">
+    <div className="grid min-h-[calc(100dvh-var(--topo)-15.5rem)] grid-cols-2 gap-4 py-4 md:min-h-[55vh] md:gap-6 md:py-6">
       {CARTOES.map((c) => (
         <Link
           key={c.href}

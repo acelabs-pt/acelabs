@@ -35,6 +35,8 @@ const nextConfig = {
   // a pasta .next do servidor de desenvolvimento, que está sempre a correr. Sem a variável, fica .next.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  // Voltar a um separador já visto não volta a pedir a página ao servidor durante 30 s (os dados atualizam-se na mesma).
+  experimental: { staleTimes: { dynamic: 30 } },
   async headers() {
     return [
       // A Apple pede este ficheiro sem extensão e espera JSON (links universais: convites a abrir na app).

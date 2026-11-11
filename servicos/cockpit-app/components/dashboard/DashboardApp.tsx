@@ -5,9 +5,10 @@ import Metas from "@/components/dashboard/Metas";
 import Hoje from "@/components/dashboard/Hoje";
 import { carregarDados, type Dados } from "@/lib/painel";
 import { contar, garantirTarefasSemanais, type Contagens } from "@/lib/comprador";
+import { guardarEcra, lerEcra } from "@/lib/cacheEcra";
 
 export default function DashboardApp() {
-  const [dados, setDados] = useState<Dados | null>(null);
+  const [dados, setDados] = useState<Dados | null>(() => lerEcra<Dados>("dashboard") ?? null);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
@@ -16,6 +17,7 @@ export default function DashboardApp() {
     else {
       setErro(null);
       setDados(r);
+      guardarEcra("dashboard", r);
     }
   }, []);
 
@@ -50,7 +52,7 @@ export default function DashboardApp() {
 
   return (
     <div className="space-y-5">
-      <div>
+      <div className="cabecalho-fixo">
         <h1 className="text-3xl font-bold tracking-tight text-tinta">Dashboard</h1>
         <p className="text-sm text-secundario first-letter:uppercase">
           {new Date().toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}

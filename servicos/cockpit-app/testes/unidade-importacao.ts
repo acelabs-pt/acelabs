@@ -1,6 +1,8 @@
-import { lerNumero, lerTelemovel, lerData, lerTipologia, resolverZona, mapearAutomatico, daLista, validar } from "../lib/importar/validar";
+import { lerNumero, lerTelemovel, lerData, lerTipologia, resolverZona, mapearAutomatico, daLista, validar, acharCabecalho, juntarNomes } from "../lib/importar/validar";
 import { paraCsv } from "../lib/exportarTudo";
 import { lerCsv } from "../lib/importar/ficheiro";
+import { ESQUEMAS } from "../lib/importar/esquemas";
+import path from "node:path";
 
 let mal = 0;
 const eq = (nome: string, obtido: unknown, esperado: unknown) => {
@@ -37,6 +39,22 @@ eq("zona completa", resolverZona("braga", "guimaraes", "creixomil").zona, { dist
 eq("zona so concelho descobre distrito", resolverZona("", "Guimarães", "").zona, { distrito: "Braga", concelho: "Guimarães", freguesia: "" });
 eq("zona concelho errado", !!resolverZona("Braga", "Porto", "").erro, true);
 eq("zona freguesia sem concelho", !!resolverZona("Braga", "", "Creixomil").erro, true);
+eq("freguesia sem 'União das freguesias de'", resolverZona("Braga", "Braga", "Ferreiros e Gondizalves").zona?.freguesia, "União das freguesias de Ferreiros e Gondizalves");
+eq("freguesia entre parênteses", resolverZona("Braga", "Braga", "São Vítor").zona?.freguesia, "Braga (São Vítor)");
+eq("freguesia com o nome do concelho", resolverZona("Porto", "Maia", "Maia").zona?.freguesia, "Cidade da Maia");
+eq("freguesia desconhecida não bloqueia", [resolverZona("Braga", "Braga", "Inventada").zona?.concelho, !!resolverZona("Braga", "Braga", "Inventada").aviso, resolverZona("Braga", "Braga", "Inventada").erro], ["Braga", true, undefined]);
+// Ficheiros de outros CRMs e Excel feitos à mão
+eq("numero com k e mil", [lerNumero("300k"), lerNumero("200 mil"), lerNumero("1,2M")], [300000, 200000, 1200000]);
+eq("telemovel com dois numeros (Google)", lerTelemovel("926 222 333 ::: 253 444 555"), "+351926222333");
+eq("tipologia T2/T3 fica a primeira", lerTipologia("T2/T3"), "T2");
+eq("cabecalho por baixo de um titulo", acharCabecalho("compradores", [["Lista de clientes 2026"], ["Nome do Cliente", "Tlm", "E-mail"], ["Ana", "912345678", "a@b.pt"]]), 1);
+eq("nome proprio e apelido juntam-se", juntarNomes(["First Name", "Last Name", "Phone 1 - Value"], [["Paulo", "Ribeiro", "910000111"]]).linhas[0][3], "Paulo Ribeiro");
+{
+  const cab = ["Proprietário", "Contacto", "Phone 1 - Label", "Email"];
+  const m = mapearAutomatico("proprietarios", cab, [["António", "919 876 543", "Mobile", "a@b.pt"], ["Fátima", "+351932222333", "Mobile", ""]]);
+  eq("Contacto com numeros e o telemovel, nao o nome", [m.nome, m.telemovel, m.email], [0, 1, 3]);
+}
+eq("zona numa so celula", resolverZona("", "Braga, Gualtar", "").zona?.concelho, "Braga");
 eq("mapear cabecalhos livres", mapearAutomatico("compradores", ["Cliente", "Tlm", "E-mail", "Orçamento", "Zona"]).nome, 0);
 const m = mapearAutomatico("compradores", ["Cliente", "Tlm", "E-mail", "Orçamento", "Concelho"]);
 eq("mapear telemovel/email/valor/concelho", [m.telemovel, m.email, m.expectativa_valor, m.concelho], [1, 2, 3, 4]);
@@ -55,4 +73,21 @@ eq("ida e volta: email incompleto fica com aviso", volta.avisos.some((a) => a.in
 eq("ida e volta: nome com ; e notas com aspas e mudança de linha", [volta.contacto?.nome, volta.contacto?.observacoes], ["Ana; Ferreira", "disse \"talvez\"\nligar à tarde"]);
 eq("ida e volta: valores", [volta.dados.expectativa_valor, volta.dados.estado, volta.dados.precisa_vender, volta.dados.financiamento, volta.zonas.length], [250000.5, "visitas_realizadas", false, "Crédito pré-aprovado", 3]);
 
-console.log(mal ? `${mal} FALHAS` : "todos ok");
+// O modelo Excel que se descarrega (public/modelo-cockpit.xlsx, o modelo dos consultores sem os dados de teste) tem de ter
+// todas as colunas que a app espera, e cada uma tem de ligar sozinha à coluna certa.
+import("read-excel-file/node").then(async ({ default: lerXlsx, readSheetNames }) => {
+  const ficheiro = path.join(__dirname, "..", "public", "modelo-cockpit.xlsx");
+  const folhas = await readSheetNames(ficheiro);
+  for (const e of ["compradores", "proprietarios", "angariacoes"] as const) {
+    const titulo = ESQUEMAS[e].titulo;
+    eq(`modelo Excel: tem a folha ${titulo}`, folhas.includes(titulo), true);
+    const linhas = await lerXlsx(ficheiro, { sheet: titulo });
+    const cab = linhas[0].map(String);
+    eq(`modelo Excel: ${titulo} sem linhas de dados`, linhas.length, 1);
+    eq(`modelo Excel: ${titulo} tem as colunas da app`, ESQUEMAS[e].colunas.map((c) => c.rotulo).filter((r) => !cab.includes(r)), []);
+    const mapa = mapearAutomatico(e, cab);
+    eq(`modelo Excel: ${titulo} liga cada coluna à certa`, ESQUEMAS[e].colunas.filter((c) => mapa[c.chave] !== cab.indexOf(c.rotulo)).map((c) => c.rotulo), []);
+  }
+  console.log(mal ? `${mal} FALHAS` : "todos ok");
+});
+

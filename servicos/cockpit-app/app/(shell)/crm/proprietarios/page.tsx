@@ -16,16 +16,20 @@ import SeletorLocalizacao, { type Localizacao } from "@/components/crm/SeletorLo
 import { TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
 import { FUNIL_PROP, labelEstadoProp, type EstadoProprietario, type Proprietario } from "@/lib/proprietario";
 import { formatarDia, formatarHora } from "@/lib/datas";
+import { guardarEcra, lerEcra } from "@/lib/cacheEcra";
 
 type ProximaAcao = { titulo: string; inicio: string };
 type FiltroEstado = "seguimento" | "angariado" | "perdido" | "todos";
 
 const SEM_LOCAL: Localizacao = { distrito: "", concelho: "", freguesia: "" };
 
+type EcraProprietarios = { props: Proprietario[]; proximas: Record<string, ProximaAcao> };
+
 export default function ListaProprietarios() {
-  const [props, setProps] = useState<Proprietario[]>([]);
-  const [proximas, setProximas] = useState<Record<string, ProximaAcao>>({});
-  const [aCarregar, setACarregar] = useState(true);
+  const [guardado] = useState(() => lerEcra<EcraProprietarios>("proprietarios"));
+  const [props, setProps] = useState<Proprietario[]>(guardado?.props ?? []);
+  const [proximas, setProximas] = useState<Record<string, ProximaAcao>>(guardado?.proximas ?? {});
+  const [aCarregar, setACarregar] = useState(!guardado);
   const [erro, setErro] = useState<string | null>(null);
   const [vista, setVista] = useState<"lista" | "funil">("lista");
 
@@ -79,6 +83,7 @@ export default function ListaProprietarios() {
       setProps(r1.data as unknown as Proprietario[]);
       setProximas(prox);
       setACarregar(false);
+      guardarEcra<EcraProprietarios>("proprietarios", { props: r1.data as unknown as Proprietario[], proximas: prox });
     })();
   }, []);
 

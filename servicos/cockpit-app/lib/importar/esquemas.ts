@@ -14,17 +14,17 @@ export type Coluna = {
 };
 
 const CONTACTO: Coluna[] = [
-  { chave: "nome", rotulo: "Nome", obrigatoria: true, apelidos: ["nome", "cliente", "contacto", "name", "nome completo"], exemplo: "Ana Ferreira" },
-  { chave: "telemovel", rotulo: "Telemóvel", apelidos: ["telemovel", "telefone", "tlm", "tlf", "contacto telefonico", "phone", "numero"], exemplo: "912 345 678", ajuda: "Sem indicativo assume +351" },
-  { chave: "email", rotulo: "Email", apelidos: ["email", "e-mail", "mail", "correio"], exemplo: "ana@exemplo.pt" },
-  { chave: "canal_origem", rotulo: "Canal de origem", apelidos: ["canal", "canal origem", "origem", "fonte", "lead"], exemplo: "Idealista" },
-  { chave: "observacoes", rotulo: "Observações", apelidos: ["observacoes", "notas", "nota", "comentarios", "obs"], exemplo: "Prefere contacto à tarde" },
+  { chave: "nome", rotulo: "Nome", obrigatoria: true, apelidos: ["nome", "cliente", "contacto", "name", "nome completo", "nome do cliente", "nome cliente", "proprietario", "proprietaria", "comprador", "compradora", "full name", "display name", "lead name"], exemplo: "Ana Ferreira" },
+  { chave: "telemovel", rotulo: "Telemóvel", apelidos: ["telemovel", "telefone", "tlm", "tlf", "contacto telefonico", "phone", "numero", "movel", "mobile", "mobile phone", "celular", "tel", "telef", "telemovel 1", "telefone 1"], exemplo: "912 345 678", ajuda: "Sem indicativo assume +351" },
+  { chave: "email", rotulo: "Email", apelidos: ["email", "e-mail", "mail", "correio", "correio eletronico", "endereco de email", "email address"], exemplo: "ana@exemplo.pt" },
+  { chave: "canal_origem", rotulo: "Canal de origem", apelidos: ["canal", "canal origem", "origem", "fonte", "lead", "source", "origem do lead", "origem do contacto", "proveniencia"], exemplo: "Idealista" },
+  { chave: "observacoes", rotulo: "Observações", apelidos: ["observacoes", "notas", "nota", "comentarios", "obs", "notes", "observacao", "comentario", "descricao"], exemplo: "Prefere contacto à tarde" },
 ];
 
 const IMOVEL: Coluna[] = [
   { chave: "tipo_imovel", rotulo: "Tipo de imóvel", apelidos: ["tipo", "tipo imovel", "tipo de imovel", "imovel"], exemplo: "Apartamento", ajuda: "Apartamento, Moradia, Terreno, Armazém, Loja, Prédio, Outro" },
   { chave: "distrito", rotulo: "Distrito", apelidos: ["distrito"], exemplo: "Braga" },
-  { chave: "concelho", rotulo: "Concelho", apelidos: ["concelho", "municipio", "cidade"], exemplo: "Guimarães" },
+  { chave: "concelho", rotulo: "Concelho", apelidos: ["concelho", "municipio", "cidade", "localidade", "zona", "zona pretendida", "localizacao"], exemplo: "Guimarães" },
   { chave: "freguesia", rotulo: "Freguesia", apelidos: ["freguesia"], exemplo: "Creixomil" },
 ];
 
@@ -45,7 +45,7 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
         ajuda: "Zonas além da primeira, separadas por uma barra vertical (|), no formato Distrito/Concelho/Freguesia (concelho e freguesia são opcionais)",
       },
       { chave: "tipologia_minima", rotulo: "Tipologia mínima", apelidos: ["tipologia", "tipologia minima", "quartos"], exemplo: "T2" },
-      { chave: "expectativa_valor", rotulo: "Expectativa de valor (EUR)", apelidos: ["valor", "orcamento", "preco", "expectativa", "expectativa valor", "budget"], exemplo: "250000" },
+      { chave: "expectativa_valor", rotulo: "Expectativa de valor (EUR)", apelidos: ["valor", "orcamento", "preco", "expectativa", "expectativa valor", "budget", "orcamento maximo", "valor maximo", "preco maximo"], exemplo: "250000" },
       { chave: "financiamento", rotulo: "Financiamento", apelidos: ["financiamento", "credito"], exemplo: "Crédito pré-aprovado", ajuda: "Capitais próprios, Crédito pré-aprovado, Vai pedir crédito" },
       { chave: "precisa_vender", rotulo: "Precisa de vender?", apelidos: ["precisa vender", "precisa de vender", "vende primeiro"], exemplo: "Não", ajuda: "Sim ou Não" },
       { chave: "estado", rotulo: "Fase do funil", apelidos: ["estado", "fase", "funil", "etapa"], exemplo: "Imóveis enviados", ajuda: FUNIL.map((f) => f.label).join(", ") + ". Em branco = Lead qualificada" },
@@ -59,7 +59,7 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
       { chave: "tipo_negocio", rotulo: "Tipo de negócio", apelidos: ["negocio", "tipo negocio", "tipo de negocio"], exemplo: "Habitação", ajuda: "Habitação ou Comercial" },
       ...IMOVEL,
       { chave: "tipologia", rotulo: "Tipologia", apelidos: ["tipologia", "quartos"], exemplo: "T3" },
-      { chave: "valor", rotulo: "Preço pedido (EUR)", apelidos: ["valor", "preco", "preco pedido", "pedido"], exemplo: "320000" },
+      { chave: "valor", rotulo: "Preço pedido (EUR)", apelidos: ["valor", "preco", "preco pedido", "pedido", "valor pedido", "preco de venda", "valor de venda", "pvp"], exemplo: "320000" },
       { chave: "link_imovel", rotulo: "Link do anúncio", apelidos: ["link", "anuncio", "url", "link imovel", "link do anuncio"], exemplo: "https://www.idealista.pt/imovel/123" },
       { chave: "estado", rotulo: "Fase do funil", apelidos: ["estado", "fase", "funil", "etapa"], exemplo: "FSBO", ajuda: FUNIL_PROP.map((f) => f.label).join(", ") + ". Em branco = FSBO" },
     ],
@@ -74,7 +74,7 @@ export const ESQUEMAS: Record<Entidade, { titulo: string; singular: string; colu
       { chave: "regime", rotulo: "Regime", apelidos: ["regime", "exclusividade", "exclusivo"], exemplo: "Exclusivo", ajuda: "Exclusivo ou Não exclusivo" },
       ...IMOVEL,
       { chave: "tipologia", rotulo: "Tipologia", apelidos: ["tipologia", "quartos"], exemplo: "T3" },
-      { chave: "valor", rotulo: "Preço pedido (EUR)", apelidos: ["valor", "preco", "preco pedido", "pedido"], exemplo: "400000" },
+      { chave: "valor", rotulo: "Preço pedido (EUR)", apelidos: ["valor", "preco", "preco pedido", "pedido", "valor pedido", "preco de venda", "valor de venda", "pvp"], exemplo: "400000" },
     ],
   },
 };

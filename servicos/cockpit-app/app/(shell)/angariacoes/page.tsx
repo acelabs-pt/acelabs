@@ -18,14 +18,17 @@ import SeletorLocalizacao from "@/components/crm/SeletorLocalizacao";
 import { paraContactoProp, paraProprietario, valoresIniciaisProp, type ValoresProprietario } from "@/components/crm/FormProprietario";
 import { TIPOLOGIAS, TIPOS_IMOVEL } from "@/lib/comprador";
 import { concluirTarefasDaFase } from "@/lib/proprietario";
+import { guardarEcra, lerEcra } from "@/lib/cacheEcra";
 
 const REGIME = { exclusivo: "Em exclusivo", nao_exclusivo: "Não exclusivo" } as const;
 
+type EcraAngariacoes = { lista: Angariacao[]; resumo: Record<string, ResumoAng> };
+
 export default function Angariacoes() {
   const router = useRouter();
-  const [lista, setLista] = useState<Angariacao[]>([]);
-  const [resumo, setResumo] = useState<Record<string, ResumoAng>>({});
-  const [aCarregar, setACarregar] = useState(true);
+  const [lista, setLista] = useState<Angariacao[]>(() => lerEcra<EcraAngariacoes>("angariacoes")?.lista ?? []);
+  const [resumo, setResumo] = useState<Record<string, ResumoAng>>(() => lerEcra<EcraAngariacoes>("angariacoes")?.resumo ?? {});
+  const [aCarregar, setACarregar] = useState(() => !lerEcra("angariacoes"));
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarVendidas, setMostrarVendidas] = useState(false);
   const [novo, setNovo] = useState(false);
@@ -54,6 +57,7 @@ export default function Angariacoes() {
     setLista(r1.data as unknown as Angariacao[]);
     setResumo(r2);
     setACarregar(false);
+    guardarEcra<EcraAngariacoes>("angariacoes", { lista: r1.data as unknown as Angariacao[], resumo: r2 });
   }
 
   useEffect(() => {
@@ -65,7 +69,7 @@ export default function Angariacoes() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="cabecalho-fixo flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-tinta">Angariações</h1>
         <button onClick={() => setNovo((x) => !x)} className="rounded-xl bg-azul px-4 py-2.5 text-sm font-semibold text-white">
           Nova angariação

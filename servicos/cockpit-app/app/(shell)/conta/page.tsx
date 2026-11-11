@@ -77,7 +77,7 @@ export default function Conta() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="cabecalho-fixo">
         <h1 className="text-4xl font-bold tracking-tight text-tinta md:text-5xl">Conta</h1>
         <p className="text-sm text-secundario">{email ?? "A carregar..."}</p>
       </div>

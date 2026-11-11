@@ -31,6 +31,7 @@ import {
   type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
+import { guardarEcra, lerEcra } from "@/lib/cacheEcra";
 
 // Alertas de imóveis que podem servir ao comprador, ao lado da barra de motivação.
 function AlertaImoveis({ n }: { n: number }) {
@@ -59,12 +60,21 @@ function BarraMotivacao({ valor }: { valor: number | null }) {
   );
 }
 
+type EcraCompradores = {
+  compradores: Comprador[];
+  contagens: Record<string, Contagens>;
+  novas: Record<string, number>;
+  zonas: Record<string, Local[]>;
+  ultimos: Record<string, string>;
+};
+
 export default function ListaCompradores() {
-  const [compradores, setCompradores] = useState<Comprador[]>([]);
-  const [contagens, setContagens] = useState<Record<string, Contagens>>({});
-  const [novas, setNovas] = useState<Record<string, number>>({});
-  const [zonas, setZonas] = useState<Record<string, Local[]>>({});
-  const [aCarregar, setACarregar] = useState(true);
+  const [guardado] = useState(() => lerEcra<EcraCompradores>("compradores"));
+  const [compradores, setCompradores] = useState<Comprador[]>(guardado?.compradores ?? []);
+  const [contagens, setContagens] = useState<Record<string, Contagens>>(guardado?.contagens ?? {});
+  const [novas, setNovas] = useState<Record<string, number>>(guardado?.novas ?? {});
+  const [zonas, setZonas] = useState<Record<string, Local[]>>(guardado?.zonas ?? {});
+  const [aCarregar, setACarregar] = useState(!guardado);
   const [erro, setErro] = useState<string | null>(null);
 
   const [tipo, setTipo] = useState("");
@@ -76,7 +86,7 @@ export default function ListaCompradores() {
   const [soAlertas, setSoAlertas] = useState(false);
   const [pesquisa, setPesquisa] = useState("");
   const [painel, setPainel] = useState(false);
-  const [ultimos, setUltimos] = useState<Record<string, string>>({});
+  const [ultimos, setUltimos] = useState<Record<string, string>>(guardado?.ultimos ?? {});
   const [ordem, setOrdem] = useState<"recentes" | "motivacao" | "parados" | "nome">("recentes");
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
   const { avisar } = useToast();
@@ -91,12 +101,15 @@ export default function ListaCompradores() {
   useEffect(() => {
     (async () => {
       const sb = sbBrowser();
-      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }, { data: zs }] = await Promise.all([
+      const [{ data: cs, error: e1 }, { data: imoveis, error: e2 }, { data: zs }, nv, ul] = await Promise.all([
         todas((de, ate) => sb.from("compradores").select("*, contactos(*)").order("created_at", { ascending: false }).order("id").range(de, ate)),
         todas((de, ate) => sb.from("comprador_imoveis").select("*").order("id").range(de, ate)),
         todas<{ comprador_id: string; distrito: string; concelho: string | null; freguesia: string | null }>((de, ate) =>
           sb.from("comprador_zonas").select("comprador_id, distrito, concelho, freguesia").order("id").range(de, ate)
         ),
+        // em paralelo com o resto (antes vinham depois, um a seguir ao outro)
+        contarNovasPorComprador(),
+        ultimosContactos(),
       ]);
       if (e1 || e2) {
         setErro("Não foi possível carregar os compradores.");
@@ -112,11 +125,12 @@ export default function ListaCompradores() {
       const porZona: Record<string, Local[]> = {};
       for (const z of zs) (porZona[z.comprador_id] ??= []).push({ distrito: z.distrito, concelho: z.concelho ?? undefined, freguesia: z.freguesia ?? undefined });
       setZonas(porZona);
-      setNovas(await contarNovasPorComprador());
-      setUltimos(await ultimosContactos());
+      setNovas(nv);
+      setUltimos(ul);
       setCompradores(lista);
       setContagens(cont);
       setACarregar(false);
+      guardarEcra<EcraCompradores>("compradores", { compradores: lista, contagens: cont, novas: nv, zonas: porZona, ultimos: ul });
       // tarefas semanais automáticas (uma por comprador e semana)
       garantirTarefasSemanais(lista, cont).catch(() => {});
     })();

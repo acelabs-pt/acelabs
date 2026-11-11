@@ -38,6 +38,12 @@ export type Opcoes = {
 };
 export type Resultado = { importadas: number; erro: string | null };
 
+/** Data de hoje (aaaa-mm-dd) no fuso do telemóvel. */
+function hojeLocal(): string {
+  const h = new Date();
+  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, "0")}-${String(h.getDate()).padStart(2, "0")}`;
+}
+
 const em = <T,>(l: T[]): T[][] => Array.from({ length: Math.ceil(l.length / LOTE) }, (_, i) => l.slice(i * LOTE, (i + 1) * LOTE));
 
 /** Grava as linhas válidas, em lotes. Se um lote falhar, desfaz esse lote e para (os anteriores ficam gravados). */
@@ -57,7 +63,9 @@ export async function gravar(
       avanco("A guardar angariações");
       const linhas = lote.map((l) => {
         const d = { ...l.dados };
-        if (!d.inicio) delete d.inicio; // sem data, a base põe a data de hoje
+        // Sem data, conta a partir de hoje. Vai sempre preenchida: num lote em que umas linhas têm data e outras não,
+        // a base recebia o campo vazio nas que não tinham e recusava o lote inteiro.
+        if (!d.inicio) d.inicio = hojeLocal();
         return { id: crypto.randomUUID(), ...d };
       });
       const { error } = await sb.from("angariacoes").insert(linhas);

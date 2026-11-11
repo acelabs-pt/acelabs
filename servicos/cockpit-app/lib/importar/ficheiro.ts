@@ -49,18 +49,31 @@ const textoDe = (v: unknown): string => {
   return String(v);
 };
 
+const simples = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+// Folhas do modelo do Cockpit que não são dados.
+const FOLHAS_DE_APOIO = ["como preencher", "listas", "instrucoes", "ajuda"];
+
 /**
- * Lê o ficheiro. Num Excel com várias folhas (como o modelo, com "Compradores", "Proprietários" e "Angariações") usa a folha com o
- * nome pedido em `folha`; se não houver nenhuma com esse nome, a primeira.
+ * Com várias folhas (o modelo do Cockpit tem Compradores, Proprietários e Angariações), lê a folha com o nome pedido em
+ * `folha`; se nenhuma tiver esse nome, a primeira que não seja de apoio. Antes lia sempre a primeira ("Como preencher").
  */
+function escolherFolha(nomes: string[], folha?: string): string | undefined {
+  if (nomes.length <= 1) return undefined;
+  const alvo = folha ? simples(folha) : "";
+  return (
+    nomes.find((n) => alvo && simples(n) === alvo) ??
+    nomes.find((n) => alvo && simples(n).startsWith(alvo.slice(0, 6))) ??
+    nomes.find((n) => !FOLHAS_DE_APOIO.includes(simples(n)))
+  );
+}
+
 export async function lerFicheiro(f: File, folha?: string): Promise<string[][]> {
   const nome = f.name.toLowerCase();
   if (nome.endsWith(".xlsx")) {
     const { default: readXlsxFile, readSheetNames } = await import("read-excel-file");
-    const sem = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-    const folhas = folha ? await readSheetNames(f) : [];
-    const escolhida = folha ? folhas.find((x) => sem(x) === sem(folha)) : undefined;
-    const linhas = escolhida ? await readXlsxFile(f, { sheet: escolhida }) : await readXlsxFile(f);
+    const escolhida = escolherFolha(await readSheetNames(f), folha);
+    const linhas = await readXlsxFile(f, escolhida ? { sheet: escolhida } : undefined);
     return linhas.map((l) => l.map(textoDe)).filter((l) => l.some((c) => c.trim() !== ""));
   }
   if (nome.endsWith(".xls")) {

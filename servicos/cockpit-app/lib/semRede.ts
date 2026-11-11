@@ -3,6 +3,7 @@
 // ou ao abrir o login (sessão terminada). A página sem rede só a mostra se for de hoje.
 import type { Tarefa } from "@/lib/types";
 import { apagarDiaNativo, guardarDiaNativo } from "@/lib/nativo";
+import { limparEcras } from "@/lib/cacheEcra";
 
 export const CHAVE_DIA = "cockpit-dia";
 
@@ -42,6 +43,7 @@ export function guardarDia(tarefas: Tarefa[], telefone: (t: Tarefa) => string | 
 }
 
 export function apagarDia() {
+  limparEcras();
   try {
     localStorage.removeItem(CHAVE_DIA);
   } catch {

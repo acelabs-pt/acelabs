@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ESQUEMAS, modeloCsv, type Entidade } from "@/lib/importar/esquemas";
 import { lerFicheiro } from "@/lib/importar/ficheiro";
-import { mapearAutomatico, validar, type Mapeamento } from "@/lib/importar/validar";
+import { acharCabecalho, juntarNomes, mapearAutomatico, validar, type Mapeamento } from "@/lib/importar/validar";
 import { carregarExistentes, gravar, type Progresso } from "@/lib/importar/gravar";
 import type { Existentes } from "@/lib/importar/validar";
 import { atualizarTodas } from "@/lib/oportunidades";
@@ -56,11 +56,14 @@ export default function ImportarApp() {
     try {
       const todas = await lerFicheiro(f, ESQUEMAS[entidade].titulo);
       if (todas.length < 2) throw new Error("O ficheiro não tem linhas de dados. A primeira linha tem de ser o cabeçalho.");
-      const [cab, ...resto] = todas;
+      // Títulos e linhas por cima do cabeçalho (exportações de CRMs) ficam de fora; nome e apelido separados juntam-se.
+      const inicio = acharCabecalho(entidade, todas);
+      const { cabecalho: cab, linhas: resto } = juntarNomes(todas[inicio], todas.slice(inicio + 1));
+      if (resto.length === 0) throw new Error("O ficheiro não tem linhas de dados por baixo do cabeçalho.");
       setExistentes(await carregarExistentes());
       setCabecalho(cab.map((c) => c.trim()));
       setLinhas(resto);
-      setMapa(mapearAutomatico(entidade, cab));
+      setMapa(mapearAutomatico(entidade, cab, resto));
       setNomeFicheiro(f.name);
       setFase("rever");
     } catch (e) {
@@ -127,9 +130,15 @@ export default function ImportarApp() {
             <p className="text-sm text-secundario">
               A primeira linha tem os nomes das colunas. Podes usar o nosso modelo ou o teu ficheiro: reconhecemos os nomes mais comuns e podes ligar as colunas no passo seguinte.
             </p>
-            <button onClick={() => descarregarModelo(entidade)} className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
-              Descarregar modelo ({esquema.titulo.toLowerCase()})
-            </button>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {/* Um só Excel com as três folhas (compradores, proprietários e angariações), listas para escolher e instruções */}
+              <a href="/modelo-cockpit.xlsx" download="modelo-cockpit.xlsx" className="rounded-full bg-black/5 px-4 py-2 text-sm font-medium text-tinta">
+                Descarregar modelo Excel
+              </a>
+              <button onClick={() => descarregarModelo(entidade)} className="text-sm text-azul">
+                ou CSV de {esquema.titulo.toLowerCase()}
+              </button>
+            </div>
             <details className="text-sm text-secundario">
               <summary className="cursor-pointer text-azul">Ver as colunas</summary>
               <ul className="mt-2 space-y-1">
@@ -309,7 +318,8 @@ export default function ImportarApp() {
         <section className={cartao}>
           <h2 className="text-lg font-semibold text-tinta">{resultado.erro ? "Importação interrompida" : "Importação concluída"}</h2>
           <p className="text-sm text-tinta">
-            {resultado.importadas} {resultado.importadas === 1 ? esquema.singular : esquema.titulo.toLowerCase()} importados.
+            {resultado.importadas} {resultado.importadas === 1 ? esquema.singular : esquema.titulo.toLowerCase()}{" "}
+            {entidade === "angariacoes" ? (resultado.importadas === 1 ? "importada" : "importadas") : resultado.importadas === 1 ? "importado" : "importados"}.
           </p>
           {resultado.erro && (
             <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -318,7 +328,7 @@ export default function ImportarApp() {
           )}
           {resultado.alertas > 0 && (
             <p className="rounded-2xl bg-azul-suave px-4 py-3 text-sm text-azul-escuro">
-              Encontrámos {resultado.alertas} {resultado.alertas === 1 ? "imóvel" : "imóveis"} que podem servir a compradores. Vê no Dashboard.
+              Encontrámos {resultado.alertas} {resultado.alertas === 1 ? "imóvel que pode" : "imóveis que podem"} servir a compradores. Vê no Dashboard.
             </p>
           )}
           <div className="flex gap-2">

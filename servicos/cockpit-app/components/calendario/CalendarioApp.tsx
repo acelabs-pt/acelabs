@@ -19,6 +19,7 @@ import Tempo from "@/components/calendario/Tempo";
 import DetalheItem from "@/components/calendario/DetalheItem";
 import NovoItem, { type NovoValores } from "@/components/calendario/NovoItem";
 import { pontoNoCalendario } from "@/lib/nativo";
+import { guardarEcra, lerEcra } from "@/lib/cacheEcra";
 
 type Vista = "tarefas" | "dia" | "semana" | "mes";
 
@@ -75,6 +76,13 @@ export default function CalendarioApp() {
   const chaveJanela = vista === "tarefas" ? "tarefas" : `${vista}:${ref.getTime()}`;
   const carregar = useCallback(
     async (silencioso = false) => {
+      // Já vimos esta janela (mês, semana ou dia): mostra-a logo e atualiza por trás.
+      const guardadas = vista === "tarefas" ? undefined : lerEcra<Tarefa[]>("cal:" + chaveJanela);
+      if (guardadas) {
+        setTarefas(guardadas);
+        setACarregar(false);
+        silencioso = true;
+      }
       if (!silencioso) setACarregar(true);
       const sb = sbBrowser();
       const base = () => sb.from("tarefas").select("*", { count: "exact" }).eq("no_calendario", true);
@@ -100,7 +108,10 @@ export default function CalendarioApp() {
           base().gte("inicio", ini.toISOString()).lt("inicio", fim.toISOString()).order("inicio").order("id").range(de, ate)
         );
         if (error) setErro("Não foi possível carregar as tarefas.");
-        else setTarefas(data);
+        else {
+          setTarefas(data);
+          guardarEcra("cal:" + chaveJanela, data);
+        }
       }
       setACarregar(false);
     },
@@ -208,7 +219,7 @@ export default function CalendarioApp() {
 
   return (
     <div className="space-y-4" {...(vista !== "tarefas" ? nav : {})}>
-      <div className="flex items-center justify-between gap-2">
+      <div className="cabecalho-fixo flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold text-tinta">Calendário</h1>
         <button
           onClick={() => setNovo(vista === "tarefas" ? inicioDoDia(new Date()) : ref)}

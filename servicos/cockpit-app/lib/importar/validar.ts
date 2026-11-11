@@ -20,6 +20,13 @@ export const semAcentos = (s: string) =>
 export function lerNumero(s: string): number | null {
   let t = s.replace(/€|eur(os)?/gi, "").replace(/\s+/g, "").trim();
   if (t === "") return null;
+  // "300k", "200mil", "1,2M", "1.5 milhões"
+  const mult = t.match(/^(.*?)(k|mil|m|milhoes|milhões|milhao|milhão)$/i);
+  if (mult) {
+    const base = lerNumero(mult[1]);
+    if (base == null || Number.isNaN(base)) return NaN;
+    return base * (/^(k|mil)$/i.test(mult[2]) ? 1000 : 1000000);
+  }
   if (t.includes(".") && t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
   else if (t.includes(",")) t = t.replace(",", ".");
   else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
@@ -28,7 +35,8 @@ export function lerNumero(s: string): number | null {
 
 /** Telemóvel com indicativo. Sem indicativo assume Portugal. Devolve null se vazio e undefined se inválido. */
 export function lerTelemovel(s: string): string | null | undefined {
-  let t = s.replace(/[\s.\-()]/g, "");
+  // vários números na mesma célula (Google Contactos usa " ::: "): fica o primeiro
+  let t = s.split(/:::|[;,/|]| ou /)[0].replace(/[\s.\-()]/g, "");
   if (t === "") return null;
   if (t.startsWith("00")) t = "+" + t.slice(2);
   if (/^\d{9}$/.test(t)) return "+351" + t;
@@ -77,6 +85,15 @@ export function freguesiaDe(valor: string, lista: string[]): string | string[] {
 }
 
 export function lerTipologia(s: string): string | null {
+  const primeira = s.match(/t\s?\d+\+?/i)?.[0] ?? s.match(/^(\d+)\s*(quartos?|assoalhadas)?$/i)?.[1];
+  if (primeira && primeira !== s) {
+    const r = lerTipologiaExata(primeira.replace(/\s/g, "").replace(/^(\d)/, "T$1"));
+    if (r) return r;
+  }
+  return lerTipologiaExata(s);
+}
+
+function lerTipologiaExata(s: string): string | null {
   const v = semAcentos(s).replace(/\s/g, "");
   const direto = TIPOLOGIAS.find((t) => semAcentos(t).replace(/\s/g, "") === v);
   if (direto) return direto;
@@ -87,10 +104,39 @@ export function lerTipologia(s: string): string | null {
 
 export type Zona = { distrito: string; concelho: string; freguesia: string };
 
+/**
+ * Freguesia como o agente a escreve: "Ferreiros e Gondizalves" (oficial: "União das freguesias de Ferreiros e Gondizalves"),
+ * "São Vítor" ("Braga (São Vítor)"), "Maia" ("Cidade da Maia"). Primeiro o nome exato; depois sem o "União das freguesias
+ * de" e com o que está entre parênteses; por fim a única freguesia do concelho que contém o nome escrito.
+ */
+export function acharFreguesia(valor: string, lista: string[]): string | null {
+  const exata = daLista(valor, lista);
+  if (exata) return exata;
+  const limpar = (s: string) => semAcentos(s).replace(/^uniao das freguesias de /, "").replace(/[().,]/g, " ").replace(/\s+/g, " ").trim();
+  const v = limpar(valor);
+  if (!v) return null;
+  const formas = (o: string) => {
+    const dentro = o.match(/\(([^)]+)\)/)?.[1];
+    return [limpar(o), ...(dentro ? [limpar(dentro)] : [])];
+  };
+  const iguais = lista.filter((o) => formas(o).includes(v));
+  if (iguais.length === 1) return iguais[0];
+  const contem = lista.filter((o) => formas(o).some((x) => ` ${x} `.includes(` ${v} `)));
+  if (contem.length === 1) return contem[0];
+  // "Maia" no concelho da Maia: várias contêm o nome; a que o agente quer dizer é a "Cidade da Maia".
+  const cidade = contem.filter((o) => new RegExp(`^cidade d[aeo]s? ${v}$`).test(limpar(o)));
+  return cidade.length === 1 ? cidade[0] : null;
+}
+
 /** Resolve distrito, concelho e freguesia contra a lista oficial (CAOP). Aceita só o concelho (descobre o distrito). */
-export function resolverZona(d: string, c: string, f: string): { zona?: Zona; erro?: string } {
+export function resolverZona(d: string, c: string, f: string): { zona?: Zona; erro?: string; aviso?: string } {
   let dist = d.trim() ? daLista(d, DISTRITOS) : null;
   if (d.trim() && !dist) return { erro: `Distrito "${d.trim()}" não existe` };
+  if (c.trim() && !f.trim() && /,| - /.test(c)) {
+    const [c1, ...resto] = c.split(/,| - /).map((x) => x.trim());
+    const r = resolverZona(d, c1, resto.join(" "));
+    if (!r.erro) return r;
+  }
   let conc = "";
   if (c.trim()) {
     if (!dist) {
@@ -103,16 +149,20 @@ export function resolverZona(d: string, c: string, f: string): { zona?: Zona; er
     conc = achado;
   }
   let freg = "";
+  let aviso: string | undefined;
   if (f.trim()) {
     if (!conc) return { erro: "Há freguesia mas falta o concelho" };
-    const achada = freguesiaDe(f, freguesiasDe(dist!, conc));
-    if (typeof achada !== "string") {
-      return { erro: achada.length ? `Freguesia "${f.trim()}" pode ser: ${achada.join(", ")}. Escreve o nome completo` : `Freguesia "${f.trim()}" não existe em ${conc}` };
-    }
-    freg = achada;
+    const lista = freguesiasDe(dist!, conc);
+    const achada = acharFreguesia(f, lista) ?? freguesiaDe(f, lista);
+    // Freguesia que não se reconhece não deita fora o cliente: entra com o distrito e o concelho, e avisa (com as hipóteses, se houver).
+    if (typeof achada === "string") freg = achada;
+    else
+      aviso = achada.length
+        ? `Freguesia "${f.trim()}" pode ser: ${achada.join(", ")}. Fica só o concelho; escreve o nome completo para ficar a freguesia`
+        : `Freguesia "${f.trim()}" não reconhecida em ${conc}, fica só o concelho`;
   }
   if (!dist) return {};
-  return { zona: { distrito: dist, concelho: conc, freguesia: freg } };
+  return { zona: { distrito: dist, concelho: conc, freguesia: freg }, aviso };
 }
 
 // ---------------------------------------------------------------------------
@@ -121,15 +171,74 @@ export function resolverZona(d: string, c: string, f: string): { zona?: Zona; er
 
 export type Mapeamento = Record<string, number | null>;
 
-/** Liga cada coluna do Cockpit à coluna do ficheiro que tem o nome (ou um apelido) correspondente. */
-export function mapearAutomatico(e: Entidade, cabecalho: string[]): Mapeamento {
+const nomesDe = (e: Entidade) => ESQUEMAS[e].colunas.flatMap((c) => [c.rotulo, c.chave, ...c.apelidos]).map(semAcentos);
+
+/**
+ * Linha do cabeçalho: os CRMs e os Excel feitos à mão têm muitas vezes um título, a data da exportação ou linhas vazias por
+ * cima. É a primeira das 15 primeiras linhas com pelo menos duas colunas com nomes conhecidos (senão, a primeira).
+ */
+export function acharCabecalho(e: Entidade, linhas: string[][]): number {
+  const nomes = nomesDe(e);
+  const conhecida = (h: string) => {
+    const v = semAcentos(h);
+    return v !== "" && nomes.some((n) => v === n || (n.length > 3 && v.startsWith(n)));
+  };
+  const i = linhas.slice(0, 15).findIndex((l) => l.filter(conhecida).length >= 2);
+  return i < 0 ? 0 : i;
+}
+
+/** Nome próprio e apelido em colunas separadas (Google Contactos, Outlook, alguns CRMs): junta numa coluna "Nome". */
+export function juntarNomes(cabecalho: string[], linhas: string[][]): { cabecalho: string[]; linhas: string[][] } {
   const norm = cabecalho.map(semAcentos);
+  if (norm.some((h) => ["nome", "nome completo", "name", "full name", "nome do cliente"].includes(h))) return { cabecalho, linhas };
+  const partes = [
+    norm.findIndex((h) => ["first name", "given name", "nome proprio", "primeiro nome"].includes(h)),
+    norm.findIndex((h) => ["middle name", "nome do meio"].includes(h)),
+    norm.findIndex((h) => ["last name", "family name", "apelido", "ultimo nome", "sobrenome"].includes(h)),
+  ].filter((i) => i >= 0);
+  if (partes.length < 2) return { cabecalho, linhas };
+  return {
+    cabecalho: [...cabecalho, "Nome"],
+    linhas: linhas.map((l) => [...l, partes.map((i) => (l[i] ?? "").trim()).filter(Boolean).join(" ")]),
+  };
+}
+
+/**
+ * Liga cada coluna do Cockpit à coluna do ficheiro que tem o nome (ou um apelido) correspondente. Com uma amostra das linhas,
+ * olha também para o conteúdo: a coluna "Contacto" cheia de números é o telemóvel e não o nome, e o "Phone 1 - Value" do
+ * Google ganha ao "Phone 1 - Label" (que só diz "Mobile").
+ */
+export function mapearAutomatico(e: Entidade, cabecalho: string[], amostra: string[][] = []): Mapeamento {
+  const norm = cabecalho.map(semAcentos);
+  const linhasAmostra = amostra.slice(0, 30);
+  const fracao = (k: number, teste: (v: string) => boolean) => {
+    const vals = linhasAmostra.map((l) => (l[k] ?? "").trim()).filter(Boolean);
+    return vals.length ? vals.filter(teste).length / vals.length : 0;
+  };
+  const eTel = (v: string) => typeof lerTelemovel(v) === "string";
+  const eMail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const pareceTel = cabecalho.map((_, k) => fracao(k, eTel) >= 0.6);
+  const pareceMail = cabecalho.map((_, k) => fracao(k, eMail) >= 0.6);
+  const comAmostra = linhasAmostra.length > 0;
+  const serve = (chave: string, k: number) => {
+    if (!comAmostra) return true;
+    if (chave === "nome") return !pareceTel[k] && !pareceMail[k];
+    if (chave === "telemovel") return pareceTel[k];
+    if (chave === "email") return pareceMail[k];
+    return !(pareceTel[k] || pareceMail[k]) || ["observacoes"].includes(chave);
+  };
   const usadas = new Set<number>();
   const mapa: Mapeamento = {};
-  for (const col of ESQUEMAS[e].colunas) {
+  // o telemóvel e o email primeiro: assim uma coluna "Contacto" com números não vai parar ao nome
+  const ordem = [...ESQUEMAS[e].colunas].sort((a, b) => Number(["telemovel", "email"].includes(b.chave)) - Number(["telemovel", "email"].includes(a.chave)));
+  for (const col of ordem) {
     const nomes = [col.rotulo, col.chave, ...col.apelidos].map(semAcentos);
-    let i = norm.findIndex((h, k) => !usadas.has(k) && nomes.includes(h));
-    if (i < 0) i = norm.findIndex((h, k) => !usadas.has(k) && h !== "" && nomes.some((n) => n.length > 3 && h.startsWith(n)));
+    const livre = (k: number) => !usadas.has(k) && serve(col.chave, k);
+    let i = norm.findIndex((h, k) => livre(k) && nomes.includes(h));
+    if (i < 0) i = norm.findIndex((h, k) => livre(k) && h !== "" && nomes.some((n) => n.length > 3 && h.startsWith(n)));
+    // sem nome conhecido, mas o conteúdo não deixa dúvidas
+    if (i < 0 && comAmostra && col.chave === "telemovel") i = pareceTel.findIndex((p, k) => p && !usadas.has(k));
+    if (i < 0 && comAmostra && col.chave === "email") i = pareceMail.findIndex((p, k) => p && !usadas.has(k));
     if (i >= 0) usadas.add(i);
     mapa[col.chave] = i >= 0 ? i : null;
   }
@@ -174,6 +283,9 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       return i == null ? "" : (cels[i] ?? "").trim();
     };
     const out: LinhaValida = { n, erros, avisos, duplicada: null, dados: {}, zonas: [] };
+    // Compradores e proprietários vindos de outro CRM: um campo que não se percebe fica vazio, com aviso, e o cliente entra.
+    // Nas angariações o imóvel e o contrato contam para o plano, por isso aí continuam a ser erros.
+    const suave = (msg: string) => (e === "angariacoes" ? erros : avisos).push(msg);
 
     // --- contacto (compradores e proprietários) ---
     if (e !== "angariacoes") {
@@ -181,7 +293,7 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       if (!nome) erros.push("Falta o nome");
       const telRaw = get("telemovel");
       const tel = lerTelemovel(telRaw);
-      if (tel === undefined) erros.push(`Telemóvel "${telRaw}" inválido`);
+      if (tel === undefined) suave(`Telemóvel "${telRaw}" não reconhecido, não foi guardado`);
       const email = get("email");
       // um email mal escrito não deve deixar a pessoa de fora: fica como está, com aviso
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) avisos.push(`Email "${email}" parece incompleto, guardado como está`);
@@ -210,20 +322,21 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
     let tipo: string | null = null;
     if (tipoRaw) {
       tipo = daLista(tipoRaw, TIPOS_IMOVEL);
-      if (!tipo) erros.push(`Tipo de imóvel "${tipoRaw}" não reconhecido (${TIPOS_IMOVEL.join(", ")})`);
+      if (!tipo) suave(`Tipo de imóvel "${tipoRaw}" não reconhecido (${TIPOS_IMOVEL.join(", ")})`);
     }
     const negRaw = get("tipo_negocio");
     const negocio = negRaw ? daLista(negRaw, TIPOS_NEGOCIO) : null;
     if (negRaw && !negocio) avisos.push(`Tipo de negócio "${negRaw}" não reconhecido (Habitação ou Comercial), ignorado`);
     const z1 = resolverZona(get("distrito"), get("concelho"), get("freguesia"));
-    if (z1.erro) erros.push(z1.erro);
+    if (z1.erro) suave(e === "angariacoes" ? z1.erro : `${z1.erro}: fica sem zona`);
+    if (z1.aviso) avisos.push(z1.aviso);
     if (z1.zona) out.zonas.push(z1.zona);
 
     const tipolRaw = get(e === "compradores" ? "tipologia_minima" : "tipologia");
     let tipologia: string | null = null;
     if (tipolRaw) {
       tipologia = lerTipologia(tipolRaw);
-      if (!tipologia) erros.push(`Tipologia "${tipolRaw}" não reconhecida (T0 a T5 ou mais)`);
+      if (!tipologia) suave(`Tipologia "${tipolRaw}" não reconhecida (T0 a T5 ou mais)`);
     }
 
     const numero = (k: string, rotulo: string, min = 0): number | null => {
@@ -231,7 +344,7 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       if (!raw) return null;
       const v = lerNumero(raw);
       if (v == null || Number.isNaN(v) || v < min) {
-        erros.push(`${rotulo} "${raw}" não é um número válido`);
+        avisos.push(`${rotulo} "${raw}" não é um número, ficou vazio`);
         return null;
       }
       return v;
@@ -241,19 +354,20 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
       for (const par of get("outras_zonas").split(/[;|]/).map((x) => x.trim()).filter(Boolean)) {
         const [d, c = "", f = ""] = par.split("/").map((x) => x.trim());
         const r = resolverZona(d, c, f);
-        if (r.erro) erros.push(`Outras zonas: ${r.erro}`);
+        if (r.erro) avisos.push(`Outras zonas: ${r.erro}, ignorada`);
         else if (r.zona) out.zonas.push(r.zona);
+        if (r.aviso) avisos.push(`Outras zonas: ${r.aviso}`);
       }
       const motRaw = get("motivacao");
       let motivacao: number | null = null;
       if (motRaw) {
         const m = lerNumero(motRaw);
-        if (m == null || Number.isNaN(m) || m < 0 || m > 10) erros.push(`Motivação "${motRaw}" tem de ser de 0 a 10`);
+        if (m == null || Number.isNaN(m) || m < 0 || m > 10) avisos.push(`Motivação "${motRaw}" tem de ser de 0 a 10, ficou vazia`);
         else motivacao = Math.round(m);
       }
       const estRaw = get("estado");
       const estado = estRaw ? lerEstado(estRaw, ESTADOS_C) : "lead_qualificada";
-      if (!estado) erros.push(`Fase "${estRaw}" não reconhecida`);
+      if (!estado) avisos.push(`Fase "${estRaw}" não reconhecida, entra como ${FUNIL[0].label}`);
       const finRaw = get("financiamento");
       const fin = finRaw ? daLista(finRaw, FINANCIAMENTO) : null;
       if (finRaw && !fin) avisos.push(`Financiamento "${finRaw}" não reconhecido, ignorado`);
@@ -277,7 +391,7 @@ export function validar(e: Entidade, linhas: string[][], mapa: Mapeamento, exist
     } else if (e === "proprietarios") {
       const estRaw = get("estado");
       const estado = estRaw ? lerEstado(estRaw, ESTADOS_P) : "fsbo";
-      if (!estado) erros.push(`Fase "${estRaw}" não reconhecida`);
+      if (!estado) avisos.push(`Fase "${estRaw}" não reconhecida, entra como ${ESTADOS_P.find((x) => x.id === "fsbo")?.label ?? "a primeira fase"}`);
       const link = get("link_imovel");
       if (link && !/^https?:\/\//i.test(link)) avisos.push("O link não começa por http, guardado como está");
       out.dados = {

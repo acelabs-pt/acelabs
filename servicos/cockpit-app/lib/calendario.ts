@@ -20,7 +20,7 @@ export const doDia = (ocs: Ocorrencia[], dia: Date) => ocs.filter((o) => sameDay
 export type Colocada = { o: Ocorrencia; col: number; cols: number; topo: number; altura: number };
 
 // Põe as ocorrências com hora lado a lado quando se sobrepõem (como no calendário da Apple).
-export function colocar(ocs: Ocorrencia[], dia: Date): Colocada[] {
+export function colocar(ocs: Ocorrencia[], dia: Date, horaPx = HORA_PX): Colocada[] {
   const inicioDia = new Date(dia); inicioDia.setHours(0, 0, 0, 0);
   const fimDia = new Date(inicioDia); fimDia.setDate(fimDia.getDate() + 1);
   const minutos = (d: Date) => (d.getTime() - inicioDia.getTime()) / 60000;
@@ -35,8 +35,8 @@ export function colocar(ocs: Ocorrencia[], dia: Date): Colocada[] {
   const fechar = () => {
     const cols = Math.max(1, ...grupo.map((g) => g.col + 1));
     for (const g of grupo) {
-      const altura = Math.max(((g.b - g.a) / 60) * HORA_PX, 22);
-      out.push({ o: g.o, col: g.col, cols, topo: (g.a / 60) * HORA_PX, altura });
+      const altura = Math.max(((g.b - g.a) / 60) * horaPx, 22);
+      out.push({ o: g.o, col: g.col, cols, topo: (g.a / 60) * horaPx, altura });
     }
     grupo = [];
   };
@@ -45,7 +45,7 @@ export function colocar(ocs: Ocorrencia[], dia: Date): Colocada[] {
     if (grupo.length && e.a >= fimGrupo) { fechar(); fimPorColuna.length = 0; }
     let col = fimPorColuna.findIndex((f) => f <= e.a);
     if (col === -1) col = fimPorColuna.length;
-    fimPorColuna[col] = Math.max(e.b, e.a + (22 / HORA_PX) * 60);
+    fimPorColuna[col] = Math.max(e.b, e.a + (22 / horaPx) * 60);
     grupo.push({ ...e, col });
     fimGrupo = Math.max(fimGrupo, fimPorColuna[col]);
   }

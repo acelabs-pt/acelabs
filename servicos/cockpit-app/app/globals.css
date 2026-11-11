@@ -125,8 +125,46 @@ summary,
 }
 
 /* Na app, o conteúdo começa por baixo da barra de estado (hora, bateria) em vez de ficar por trás dela. */
+:root {
+  --topo: max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px));
+}
 body {
-  padding-top: max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px));
+  padding-top: var(--topo);
+}
+/* Faixa por trás da hora e da bateria: o conteúdo que passa por baixo ao fazer scroll não aparece lá. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--topo);
+  background: var(--background);
+  z-index: 40;
+  pointer-events: none;
+}
+/* Título de cada separador: fica sempre no topo, mesmo com scroll (como nas apps nativas). */
+.cabecalho-fixo {
+  position: sticky;
+  top: var(--topo);
+  z-index: 15;
+  margin: -1rem -1rem 0;
+  padding: 1rem 1rem 0.625rem;
+  background: color-mix(in srgb, var(--background) 86%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+}
+@media (min-width: 768px) {
+  .cabecalho-fixo {
+    margin: -2rem -2rem 0;
+    padding: 2rem 2rem 0.75rem;
+  }
+}
+@media print {
+  .cabecalho-fixo {
+    position: static;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
 }
 
 /* Cada página aparece com uma subida curta, para a navegação parecer fluida. */
