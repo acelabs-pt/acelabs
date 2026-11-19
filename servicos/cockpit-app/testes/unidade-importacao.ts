@@ -58,6 +58,12 @@ eq("zona numa so celula", resolverZona("", "Braga, Gualtar", "").zona?.concelho,
 eq("mapear cabecalhos livres", mapearAutomatico("compradores", ["Cliente", "Tlm", "E-mail", "Orçamento", "Zona"]).nome, 0);
 const m = mapearAutomatico("compradores", ["Cliente", "Tlm", "E-mail", "Orçamento", "Concelho"]);
 eq("mapear telemovel/email/valor/concelho", [m.telemovel, m.email, m.expectativa_valor, m.concelho], [1, 2, 3, 4]);
+// "Tipologia" é da tipologia, não do tipo de imóvel (o apelido "tipo" apanhava-a por começar igual)
+const mt = mapearAutomatico("compradores", ["Nome", "Tipologia", "Tipo"]);
+eq("mapear Tipologia vs Tipo (compradores)", [mt.tipologia_minima, mt.tipo_imovel], [1, 2]);
+eq("mapear so Tipologia (compradores)", [mapearAutomatico("compradores", ["Nome", "Tipologia"]).tipologia_minima, mapearAutomatico("compradores", ["Nome", "Tipologia"]).tipo_imovel], [1, null]);
+eq("mapear so Tipologia (proprietarios)", [mapearAutomatico("proprietarios", ["Nome", "Tipologia"]).tipologia, mapearAutomatico("proprietarios", ["Nome", "Tipologia"]).tipo_imovel], [1, null]);
+eq("mapear so Tipologia (angariacoes)", [mapearAutomatico("angariacoes", ["Morada", "Tipologia"]).tipologia, mapearAutomatico("angariacoes", ["Morada", "Tipologia"]).tipo_imovel], [1, null]);
 eq("csv ponto e virgula e aspas", lerCsv('Nome;Notas\r\n"Ana; Silva";"disse ""sim"""\r\nRui;ok\r\n'), [["Nome", "Notas"], ["Ana; Silva", 'disse "sim"'], ["Rui", "ok"]]);
 eq("csv virgula (Google Sheets)", lerCsv("a,b,c\n1,2,3\n"), [["a", "b", "c"], ["1", "2", "3"]]);
 eq("csv com BOM e linhas vazias", lerCsv("\uFEFFa;b\n\n1;2\n"), [["a", "b"], ["1", "2"]]);

@@ -231,11 +231,21 @@ export function mapearAutomatico(e: Entidade, cabecalho: string[], amostra: stri
   const mapa: Mapeamento = {};
   // o telemóvel e o email primeiro: assim uma coluna "Contacto" com números não vai parar ao nome
   const ordem = [...ESQUEMAS[e].colunas].sort((a, b) => Number(["telemovel", "email"].includes(b.chave)) - Number(["telemovel", "email"].includes(a.chave)));
+  const nomesDaColuna = (col: (typeof ordem)[number]) => [col.rotulo, col.chave, ...col.apelidos].map(semAcentos);
+  const livre = (chave: string, k: number) => !usadas.has(k) && serve(chave, k);
+  // 1.ª volta: só nomes exatos, para todas as colunas. Antes cada coluna tentava logo "começa por" e o "Tipo de imóvel"
+  // (apelido "tipo") ficava com a coluna "Tipologia" do ficheiro, que é da tipologia.
   for (const col of ordem) {
-    const nomes = [col.rotulo, col.chave, ...col.apelidos].map(semAcentos);
-    const livre = (k: number) => !usadas.has(k) && serve(col.chave, k);
-    let i = norm.findIndex((h, k) => livre(k) && nomes.includes(h));
-    if (i < 0) i = norm.findIndex((h, k) => livre(k) && h !== "" && nomes.some((n) => n.length > 3 && h.startsWith(n)));
+    const nomes = nomesDaColuna(col);
+    const i = norm.findIndex((h, k) => livre(col.chave, k) && nomes.includes(h));
+    if (i >= 0) usadas.add(i);
+    mapa[col.chave] = i >= 0 ? i : null;
+  }
+  // 2.ª volta: para as que ficaram sem coluna, nomes que começam por um apelido e, por fim, o conteúdo
+  for (const col of ordem) {
+    if (mapa[col.chave] != null) continue;
+    const nomes = nomesDaColuna(col);
+    let i = norm.findIndex((h, k) => livre(col.chave, k) && h !== "" && nomes.some((n) => n.length > 3 && h.startsWith(n)));
     // sem nome conhecido, mas o conteúdo não deixa dúvidas
     if (i < 0 && comAmostra && col.chave === "telemovel") i = pareceTel.findIndex((p, k) => p && !usadas.has(k));
     if (i < 0 && comAmostra && col.chave === "email") i = pareceMail.findIndex((p, k) => p && !usadas.has(k));

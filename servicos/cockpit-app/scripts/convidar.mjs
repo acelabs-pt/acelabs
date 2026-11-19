@@ -55,10 +55,13 @@ if (re.ok) {
   process.exit(1);
 }
 
-const r = await fetch(`${url}/auth/v1/invite`, {
+// O Supabase só lê o destino do convite no endereço (?redirect_to=); no corpo é ignorado e o link ia para a página
+// inicial, que mandava para o login em vez de deixar escolher a password.
+const destino = `${app.replace(/\/$/, "")}/nova-password`;
+const r = await fetch(`${url}/auth/v1/invite?redirect_to=${encodeURIComponent(destino)}`, {
   method: "POST",
   headers: { apikey: chave, Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
-  body: JSON.stringify({ email, data: {}, redirect_to: `${app.replace(/\/$/, "")}/nova-password` }),
+  body: JSON.stringify({ email, data: {} }),
 });
 const corpo = await r.json().catch(() => ({}));
 if (!r.ok) {

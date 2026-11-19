@@ -136,7 +136,10 @@ export async function criarUtilizador(c: Ctx, n: NovoUtilizador): Promise<{ id: 
   if (n.modo === "convite") {
     if (c.produto !== "cockpit") throw new Error("O convite por email só existe no Cockpit. No CPCV cria-se com password temporária.");
     if (!c.appUrl) throw new Error("Falta o endereço da app deste cliente (para o link do convite).");
-    const r = await pedir(c, "/auth/v1/invite", { method: "POST", body: JSON.stringify({ email, data: {}, redirect_to: `${c.appUrl.replace(/\/$/, "")}${c.codigoApp ? "/convite/" + encodeURIComponent(c.codigoApp) : "/nova-password"}` }) });
+    // O Supabase só lê o destino do convite no endereço (?redirect_to=); no corpo é ignorado e o link ia para a página
+    // inicial, que mandava para o login em vez de deixar escolher a password.
+    const destino = `${c.appUrl.replace(/\/$/, "")}${c.codigoApp ? "/convite/" + encodeURIComponent(c.codigoApp) : "/nova-password"}`;
+    const r = await pedir(c, `/auth/v1/invite?redirect_to=${encodeURIComponent(destino)}`, { method: "POST", body: JSON.stringify({ email, data: {} }) });
     if (!r.ok || !(r.corpo as { id?: string })?.id) throw new Error(mensagem(r.corpo, "Não foi possível enviar o convite."));
     id = (r.corpo as { id: string }).id;
   } else {
