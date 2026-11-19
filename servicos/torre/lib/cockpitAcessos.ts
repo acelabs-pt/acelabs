@@ -31,8 +31,12 @@ async function pedir<T>(corpo: Record<string, unknown>): Promise<{ dados?: T; er
 
 export const estadoAcesso = (email: string) => pedir<EstadoAcesso>({ acao: "estado", email });
 
-export const criarAcesso = (a: { email: string; nome: string; empresa: string; empresa_nome: string; responsavel: string; quem: string }) =>
-  pedir<{ ok: true; empresa: { codigo: string; nome: string }; empresa_criada: boolean }>({ acao: "criar", ...a });
+/** modo "password": a conta fica logo pronta com uma password temporária (devolvida uma vez), sem depender do email. */
+export const criarAcesso = (a: { email: string; nome: string; empresa: string; empresa_nome: string; responsavel: string; quem: string; modo: "convite" | "password" }) =>
+  pedir<{ ok: true; empresa: { codigo: string; nome: string }; empresa_criada: boolean; password: string | null }>({ acao: "criar", ...a });
+
+/** Password temporária nova para quem já tem conta (plano B quando o email não chega). */
+export const novaPassword = (email: string, quem: string) => pedir<{ ok: true; password: string }>({ acao: "nova_password", email, quem });
 
 export const reenviarAcesso = (email: string, quem: string) => pedir<{ ok: true }>({ acao: "reenviar", email, quem });
 

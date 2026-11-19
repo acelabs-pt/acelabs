@@ -13,10 +13,11 @@ import { normalizar } from "@/lib/texto";
 import { TAMANHO_PIN, problemaDoPin, senhaDoPin } from "@/lib/pin";
 import { lerAcesso } from "@/lib/acessos";
 import { marcarFeedback } from "@/lib/feedback";
-import { criarAcesso as criarContaCockpit, reenviarAcesso as reenviarLinkCockpit } from "@/lib/cockpitAcessos";
+import { criarAcesso as criarContaCockpit, novaPassword as novaPasswordConta, reenviarAcesso as reenviarLinkCockpit } from "@/lib/cockpitAcessos";
 import type { Conta, Movimento, Periodicidade, Regra } from "@/lib/tipos";
 
-export type Resposta = { ok?: boolean; erro?: string; aviso?: string };
+/** segredo: uma password temporária a mostrar uma única vez (acessos ao Cockpit). */
+export type Resposta = { ok?: boolean; erro?: string; aviso?: string; segredo?: string };
 
 // Campos dos formulários --------------------------------------------------------------------------------------------
 
@@ -563,8 +564,10 @@ export async function converterTester(f: FormData) {
   redirect(`/contactos/${entidadeId}`);
 }
 
-/** Marca um reporte do Cockpit como novo, visto ou resolvido. */
-/** Cria a conta do tester no Cockpit: empresa (a escolhida ou uma nova) e convite por email para ele escolher a password. */
+/**
+ * Cria a conta do tester no Cockpit: empresa (a escolhida ou uma nova) e, conforme o botão, convite por email ou password
+ * temporária (mostrada uma vez, sem depender do email).
+ */
 export async function criarAcessoCockpit(_: Resposta, f: FormData): Promise<Resposta> {
   const { s, socio } = await exigirSocio();
   const id = txt(f, "id");
@@ -580,10 +583,25 @@ export async function criarAcessoCockpit(_: Resposta, f: FormData): Promise<Resp
     empresa_nome: existente ? "" : txt(f, "empresa_nome"),
     responsavel: txt(f, "responsavel"),
     quem: socio.nome,
+    modo: txt(f, "modo") === "password" ? "password" : "convite",
   });
   if (r.erro || !r.dados) return { erro: r.erro ?? "Não foi possível criar a conta." };
+  const onde = r.dados.empresa_criada ? `empresa nova: ${r.dados.empresa.nome}` : `empresa ${r.dados.empresa.nome}`;
+  // Com password não se atualiza a página: a caixa com a password ficava sem efeito antes de a copiares.
+  if (r.dados.password) return { ok: true, segredo: r.dados.password, aviso: `Conta criada (${onde}). Entra com ${email} e esta password.` };
   atualizar();
-  return { ok: true, aviso: `Conta criada${r.dados.empresa_criada ? ` (empresa nova: ${r.dados.empresa.nome})` : ` na empresa ${r.dados.empresa.nome}`}. Convite enviado para ${email}.` };
+  return { ok: true, aviso: `Conta criada (${onde}). Convite enviado para ${email}.` };
+}
+
+/** Password temporária nova para quem já tem conta: plano B quando o email não chega. */
+export async function novaPasswordCockpit(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s, socio } = await exigirSocio();
+  const { data: t } = await s.from("testers").select("email").eq("id", txt(f, "id")).maybeSingle();
+  const email = String(t?.email ?? "").trim().toLowerCase();
+  if (!email) return { erro: "O tester não tem email." };
+  const r = await novaPasswordConta(email, socio.nome);
+  if (r.erro || !r.dados) return { erro: r.erro ?? "Não foi possível mudar a password." };
+  return { ok: true, segredo: r.dados.password, aviso: `Password nova para ${email}. A anterior deixou de funcionar.` };
 }
 
 /** Email para escolher a password outra vez (convite expirado ou password esquecida). */
@@ -597,6 +615,7 @@ export async function reenviarAcessoCockpit(_: Resposta, f: FormData): Promise<R
   return { ok: true, aviso: `Enviado para ${email}: o link abre "Escolhe a tua password".` };
 }
 
+/** Marca um reporte do Cockpit como novo, visto ou resolvido. */
 export async function estadoFeedback(f: FormData) {
   await exigirSocio();
   const estado = txt(f, "estado");

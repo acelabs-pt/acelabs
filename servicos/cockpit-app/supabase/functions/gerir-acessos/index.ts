@@ -10,7 +10,9 @@
 //   { acao: "estado", email }                                     conta, empresa e se já entrou; lista das empresas
 //   { acao: "criar", email, nome, empresa, empresa_nome?, responsavel?, quem }
 //        empresa = código. Se não existir, cria-a (precisa de empresa_nome) em estado piloto. Envia o convite e junta a pessoa.
+//        modo: "password" cria a conta já com uma password temporária (devolvida uma vez), sem email.
 //   { acao: "reenviar", email, quem }                             email para escolher a password (serve quando o convite expirou)
+//   { acao: "nova_password", email, quem }                        password temporária nova para quem já tem conta (sem email)
 // Cada criação e reenvio fica na tabela auditoria (quem = "torre:<sócio>").
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -27,6 +29,14 @@ function igual(a: string, b: string): boolean {
   let r = 0;
   for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
+}
+
+/** Password temporária fácil de ditar: sem letras que se confundem (0/O, 1/l/I). Ex.: "Cockpit-7Kmq-4Xtw". */
+function passwordTemporaria(): string {
+  const letras = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const s = Array.from(bytes, (b) => letras[b % letras.length]).join("");
+  return `Cockpit-${s.slice(0, 4)}-${s.slice(4)}`;
 }
 
 const responder = (corpo: unknown, status = 200) => Response.json(corpo, { status });
@@ -122,16 +132,28 @@ Deno.serve(async (req) => {
         await auditar(nova.id, nova.codigo, "criar_empresa");
       }
 
-      // Convite. O destino vai no endereço (?redirect_to=): no corpo o Supabase ignora-o e o link ia para o login.
-      const r = await fetch(`${url}/auth/v1/invite?redirect_to=${encodeURIComponent(DESTINO)}`, {
-        method: "POST",
-        headers: H,
-        body: JSON.stringify({ email, data: nome ? { nome } : {} }),
-      });
-      const c = await r.json().catch(() => ({}));
-      if (!r.ok || !c.id) {
-        if (criada) await sb.from("empresas").delete().eq("id", emp.id); // não deixar uma empresa vazia por um convite falhado
-        return erro(`Não foi possível enviar o convite (${c.msg ?? c.message ?? r.status}).`, 502);
+      // Com password temporária: a conta fica pronta logo, sem depender do email. Sem ela: convite por email.
+      const comPassword = p.modo === "password";
+      const temporaria = comPassword ? passwordTemporaria() : null;
+      let c: { id?: string; msg?: string; message?: string } = {};
+      let estado = 0;
+      if (comPassword) {
+        const { data, error } = await sb.auth.admin.createUser({ email, password: temporaria!, email_confirm: true, user_metadata: nome ? { nome } : {} });
+        c = { id: data.user?.id, msg: error?.message };
+        estado = error ? 500 : 200;
+      } else {
+        // O destino vai no endereço (?redirect_to=): no corpo o Supabase ignora-o e o link ia para o login.
+        const r = await fetch(`${url}/auth/v1/invite?redirect_to=${encodeURIComponent(DESTINO)}`, {
+          method: "POST",
+          headers: H,
+          body: JSON.stringify({ email, data: nome ? { nome } : {} }),
+        });
+        c = await r.json().catch(() => ({}));
+        estado = r.status;
+      }
+      if (!c.id) {
+        if (criada) await sb.from("empresas").delete().eq("id", emp.id); // não deixar uma empresa vazia por uma conta falhada
+        return erro(`Não foi possível criar a conta (${c.msg ?? c.message ?? estado}).`, 502);
       }
       const { error: em } = await sb.from("membros").insert({ user_id: c.id, empresa_id: emp.id });
       if (em) {
@@ -139,8 +161,20 @@ Deno.serve(async (req) => {
         if (criada) await sb.from("empresas").delete().eq("id", emp.id);
         return erro("Não foi possível juntar a pessoa à empresa. Nada ficou criado.", 500);
       }
-      await auditar(emp.id, emp.codigo, "convidar");
-      return responder({ ok: true, empresa: { codigo: emp.codigo, nome: emp.nome }, empresa_criada: criada });
+      await auditar(emp.id, emp.codigo, comPassword ? "criar_com_password_temporaria" : "convidar");
+      return responder({ ok: true, empresa: { codigo: emp.codigo, nome: emp.nome }, empresa_criada: criada, password: temporaria });
+    }
+
+    if (acao === "nova_password") {
+      // Plano B para quem já tem conta: password temporária nova, sem email. A pessoa muda-a em Conta.
+      const u = await acharUtilizador();
+      if (!u) return erro("Este email ainda não tem conta no Cockpit.");
+      const temporaria = passwordTemporaria();
+      const { error } = await sb.auth.admin.updateUserById(u.id, { password: temporaria, email_confirm: true });
+      if (error) return erro("Não foi possível mudar a password.", 500);
+      const e = await empresaDe(u.id);
+      await auditar(null, e?.codigo ?? null, "password_temporaria");
+      return responder({ ok: true, password: temporaria });
     }
 
     return erro("Ação desconhecida.");

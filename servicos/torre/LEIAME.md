@@ -242,11 +242,16 @@ Sem isto o cartão do tester mostra a indicação. A CSP da Torre só permite im
 Na ficha de cada tester há o cartão **"Acesso ao Cockpit"**: a alavanca para dar conta a alguém sem abrir a plataforma de controlo.
 
 - **Sem conta:** escolhe-se uma empresa que já existe (um colega de uma agência que já lá está) ou cria-se uma nova (nome, código e quem
-  acompanha; fica em estado piloto). "Criar conta e enviar convite" cria a empresa, envia o convite para o email do tester (o link abre
-  "Escolhe a tua password" em `cockpit.acelabs.pt`), guarda o nome dele na conta e junta-o à empresa. Se alguma coisa falhar a meio,
-  não fica nada criado. As empresas `demo` e `ensaio` não aparecem nem se aceitam.
-- **Com conta:** mostra a empresa, quando foi o convite e o último acesso ("Ainda não entrou" / "Já entrou"), e o botão "Reenviar link da
-  password" (para o convite expirado ou a password esquecida).
+  acompanha; fica em estado piloto). Dois botões:
+  - **"Criar com password temporária"** (o recomendado): a conta fica logo pronta, sem depender do email. A password (ex.
+    `Cockpit-7Kmq-4Xtw`, sem letras que se confundem) aparece uma única vez no cartão, com botão para copiar; a pessoa entra e muda-a em
+    Conta > "Mudar a password" (ou "Esqueci a password"). A página não se atualiza sozinha, para a password não desaparecer antes de a
+    copiares.
+  - **"Criar e enviar convite por email"**: o link abre "Escolhe a tua password" em `cockpit.acelabs.pt`.
+  Os dois guardam o nome na conta e juntam a pessoa à empresa. Se alguma coisa falhar a meio, não fica nada criado. As empresas `demo` e
+  `ensaio` não aparecem nem se aceitam.
+- **Com conta:** mostra a empresa, quando foi criada e o último acesso ("Ainda não entrou" / "Já entrou"), o botão **"Password
+  temporária nova"** (a anterior deixa de funcionar) e "Reenviar link por email".
 - Cada criação e reenvio fica na tabela `auditoria` do Cockpit, com `quem = torre:<nome do sócio>`.
 
 Funciona pela função `servicos/cockpit-app/supabase/functions/gerir-acessos`, com um segredo **próprio** (diferente do do feedback:

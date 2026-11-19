@@ -1,6 +1,7 @@
 import { acessosConfigurados, codigoDe, estadoAcesso } from "@/lib/cockpitAcessos";
-import { criarAcessoCockpit, reenviarAcessoCockpit } from "@/app/acoes";
+import { criarAcessoCockpit, novaPasswordCockpit, reenviarAcessoCockpit } from "@/app/acoes";
 import { Formulario } from "@/components/Formulario";
+import { FormAcesso } from "@/components/FormAcesso";
 import { Cartao, Etiqueta, campo, rotulo } from "@/components/ui";
 import type { Tester } from "@/lib/tipos";
 
@@ -57,12 +58,18 @@ export default async function AcessoCockpit({ tester, socio }: { tester: Tester;
           <dt className="text-secundario">Último acesso</dt>
           <dd className="text-tinta">{u.ultimo_acesso ? quando(u.ultimo_acesso) : "Ainda não escolheu a password"}</dd>
         </dl>
-        <Formulario acao={reenviarAcessoCockpit} botao="Reenviar link da password" limpar={false} className="space-y-3">
-          <input type="hidden" name="id" value={tester.id} />
-          <p className="text-sm text-secundario">
-            Para quando o convite expirou ou esqueceu a password: recebe um email que abre &ldquo;Escolhe a tua password&rdquo;. O link só funciona uma vez.
-          </p>
-        </Formulario>
+        <div className="space-y-5">
+          <FormAcesso acao={novaPasswordCockpit} botoes={[{ texto: "Password temporária nova", principal: true }]}>
+            <input type="hidden" name="id" value={tester.id} />
+            <p className="text-sm text-secundario">
+              Não consegue entrar? Gera uma password temporária, dás-lha e ela muda-a em Conta. Não depende do email. A anterior deixa de funcionar.
+            </p>
+          </FormAcesso>
+          <Formulario acao={reenviarAcessoCockpit} botao="Reenviar link por email" limpar={false} className="space-y-3">
+            <input type="hidden" name="id" value={tester.id} />
+            <p className="text-sm text-secundario">Ou um email que abre &ldquo;Escolhe a tua password&rdquo; (o link só funciona uma vez).</p>
+          </Formulario>
+        </div>
       </Cartao>
     );
   }
@@ -72,11 +79,18 @@ export default async function AcessoCockpit({ tester, socio }: { tester: Tester;
   const meu = ["pedro", "miguel"].find((n) => socio.toLowerCase().startsWith(n)) ?? "";
   return (
     <Cartao titulo="Acesso ao Cockpit" acao={<Etiqueta cor="cinza">Sem conta</Etiqueta>}>
-      <Formulario acao={criarAcessoCockpit} botao="Criar conta e enviar convite" limpar={false}>
+      <FormAcesso
+        acao={criarAcessoCockpit}
+        botoes={[
+          { texto: "Criar com password temporária", modo: "password", principal: true },
+          { texto: "Criar e enviar convite por email", modo: "convite" },
+        ]}
+      >
         <input type="hidden" name="id" value={tester.id} />
         <p className="text-base text-secundario">
-          Cria a conta de <b className="text-tinta">{tester.nome}</b> no Cockpit e envia o convite para <b className="text-tinta">{tester.email}</b>. Abre o link
-          uma só vez e escolhe a password. Cada pessoa só vê os dados da sua empresa.
+          Cria a conta de <b className="text-tinta">{tester.nome}</b> ({tester.email}) no Cockpit. Com <b className="text-tinta">password temporária</b> a conta fica
+          logo pronta e a password aparece aqui: dás-lha e ela muda-a depois. Com <b className="text-tinta">convite</b>, ela recebe um email para escolher a password.
+          Cada pessoa só vê os dados da sua empresa.
         </p>
         {dados.empresas.length > 0 && (
           <div>
@@ -108,7 +122,7 @@ export default async function AcessoCockpit({ tester, socio }: { tester: Tester;
             </select>
           </div>
         </div>
-      </Formulario>
+      </FormAcesso>
     </Cartao>
   );
 }
