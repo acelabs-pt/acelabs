@@ -236,3 +236,26 @@ Torre. Uma vez, pelo Pedro:
    `COCKPIT_FEEDBACK_TOKEN=<o mesmo texto>`.
 
 Sem isto o cartão do tester mostra a indicação. A CSP da Torre só permite imagens e áudio desse endereço do Supabase.
+
+## Acessos ao Cockpit (2026-11-19)
+
+Na ficha de cada tester há o cartão **"Acesso ao Cockpit"**: a alavanca para dar conta a alguém sem abrir a plataforma de controlo.
+
+- **Sem conta:** escolhe-se uma empresa que já existe (um colega de uma agência que já lá está) ou cria-se uma nova (nome, código e quem
+  acompanha; fica em estado piloto). "Criar conta e enviar convite" cria a empresa, envia o convite para o email do tester (o link abre
+  "Escolhe a tua password" em `cockpit.acelabs.pt`), guarda o nome dele na conta e junta-o à empresa. Se alguma coisa falhar a meio,
+  não fica nada criado. As empresas `demo` e `ensaio` não aparecem nem se aceitam.
+- **Com conta:** mostra a empresa, quando foi o convite e o último acesso ("Ainda não entrou" / "Já entrou"), e o botão "Reenviar link da
+  password" (para o convite expirado ou a password esquecida).
+- Cada criação e reenvio fica na tabela `auditoria` do Cockpit, com `quem = torre:<nome do sócio>`.
+
+Funciona pela função `servicos/cockpit-app/supabase/functions/gerir-acessos`, com um segredo **próprio** (diferente do do feedback:
+criar contas é mais do que ler reportes). A chave de administrador do Cockpit não vem para a Torre. Uma vez, pelo Pedro:
+
+1. `supabase functions deploy gerir-acessos --no-verify-jwt` (projeto do Cockpit, `gebqaxhwebsmoeqpzzzg`).
+2. `supabase secrets set ACESSOS_TOKEN=<texto longo e aleatório, 24+ caracteres>`.
+3. Na Torre (Vercel e `.env.local`): `COCKPIT_ACESSOS_URL=https://gebqaxhwebsmoeqpzzzg.supabase.co/functions/v1/gerir-acessos` e
+   `COCKPIT_ACESSOS_TOKEN=<o mesmo texto>`.
+
+Rodar o segredo: gerar um novo e repetir os passos 2 e 3 (e um deploy da Torre). Quem tiver o segredo consegue criar contas no Cockpit:
+nunca o pôr no repositório nem enviá-lo por mensagem.

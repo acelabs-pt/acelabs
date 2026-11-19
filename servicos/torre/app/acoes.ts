@@ -13,6 +13,7 @@ import { normalizar } from "@/lib/texto";
 import { TAMANHO_PIN, problemaDoPin, senhaDoPin } from "@/lib/pin";
 import { lerAcesso } from "@/lib/acessos";
 import { marcarFeedback } from "@/lib/feedback";
+import { criarAcesso as criarContaCockpit, reenviarAcesso as reenviarLinkCockpit } from "@/lib/cockpitAcessos";
 import type { Conta, Movimento, Periodicidade, Regra } from "@/lib/tipos";
 
 export type Resposta = { ok?: boolean; erro?: string; aviso?: string };
@@ -563,6 +564,39 @@ export async function converterTester(f: FormData) {
 }
 
 /** Marca um reporte do Cockpit como novo, visto ou resolvido. */
+/** Cria a conta do tester no Cockpit: empresa (a escolhida ou uma nova) e convite por email para ele escolher a password. */
+export async function criarAcessoCockpit(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s, socio } = await exigirSocio();
+  const id = txt(f, "id");
+  const { data: t } = await s.from("testers").select("*").eq("id", id).maybeSingle();
+  if (!t) return { erro: "Tester não encontrado." };
+  const email = String(t.email ?? "").trim().toLowerCase();
+  if (!email) return { erro: "Põe primeiro o email do tester (em Dados e feedback) e guarda." };
+  const existente = txt(f, "empresa_existente");
+  const r = await criarContaCockpit({
+    email,
+    nome: String(t.nome),
+    empresa: existente || txt(f, "empresa_codigo").toLowerCase(),
+    empresa_nome: existente ? "" : txt(f, "empresa_nome"),
+    responsavel: txt(f, "responsavel"),
+    quem: socio.nome,
+  });
+  if (r.erro || !r.dados) return { erro: r.erro ?? "Não foi possível criar a conta." };
+  atualizar();
+  return { ok: true, aviso: `Conta criada${r.dados.empresa_criada ? ` (empresa nova: ${r.dados.empresa.nome})` : ` na empresa ${r.dados.empresa.nome}`}. Convite enviado para ${email}.` };
+}
+
+/** Email para escolher a password outra vez (convite expirado ou password esquecida). */
+export async function reenviarAcessoCockpit(_: Resposta, f: FormData): Promise<Resposta> {
+  const { s, socio } = await exigirSocio();
+  const { data: t } = await s.from("testers").select("email").eq("id", txt(f, "id")).maybeSingle();
+  const email = String(t?.email ?? "").trim().toLowerCase();
+  if (!email) return { erro: "O tester não tem email." };
+  const r = await reenviarLinkCockpit(email, socio.nome);
+  if (r.erro) return { erro: r.erro };
+  return { ok: true, aviso: `Enviado para ${email}: o link abre "Escolhe a tua password".` };
+}
+
 export async function estadoFeedback(f: FormData) {
   await exigirSocio();
   const estado = txt(f, "estado");

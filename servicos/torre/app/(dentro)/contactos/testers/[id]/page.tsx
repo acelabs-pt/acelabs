@@ -7,10 +7,11 @@ import { apagarTester, converterTester, guardarTester } from "../../../../acoes"
 import { Formulario } from "@/components/Formulario";
 import BotaoConfirmar from "@/components/BotaoConfirmar";
 import FeedbackDoTester from "@/components/FeedbackDoTester";
+import AcessoCockpit from "@/components/AcessoCockpit";
 import { Cartao, Etiqueta, Titulo, campo, rotulo } from "@/components/ui";
 
 export default async function Tester({ params }: { params: { id: string } }) {
-  const { s } = await exigirSocio();
+  const { s, socio } = await exigirSocio();
   const { data: linha } = await s.from("testers").select("*").eq("id", params.id).maybeSingle();
   if (!linha) notFound();
   const x = linha as Tester;
@@ -73,6 +74,8 @@ export default async function Tester({ params }: { params: { id: string } }) {
           </div>
         </Formulario>
       </Cartao>
+
+      <AcessoCockpit tester={x} socio={socio.nome} />
 
       <FeedbackDoTester email={x.email} />
 
