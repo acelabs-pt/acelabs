@@ -30,7 +30,7 @@ export function promptParaClaude(nome: string, agencia: string | null, email: st
     "",
     "Começa por me dar, em poucas linhas, um resumo do que esta pessoa está a pedir (temas, o que é bug e o que é sugestão).",
     "Depois trata os reportes um a um:",
-    "1. Lê cada reporte e vê a captura: vêm da função ler-feedback (ver servicos/torre/lib/feedback.ts, segredo em servicos/torre/.env.local); filtra por este email. Se houver áudio, diz-me que não o consegues ouvir e usa o texto. Apaga as capturas depois de as veres (podem ter dados de clientes).",
+    "1. Lê cada reporte e vê a captura: vêm da função ler-feedback (ver servicos/torre/lib/feedback.ts, segredo em servicos/torre/.env.local); filtra por este email. Se houver áudio, descarrega-o e transcreve-o no computador com `bash ~/ferramentas/whisper/transcrever.sh <ficheiro>` (local, nada sai para fora); usa a transcrição junto com o texto e apaga o áudio a seguir. Faz o mesmo com os áudios de WhatsApp que eu puser em business-center/cockpit-beta/feedback/. Apaga as capturas depois de as veres (podem ter dados de clientes).",
     "2. Encaixa cada um em servicos/cockpit-app/PLANO-FEEDBACK.md: junta-o a um ponto que já exista ou cria um novo (B bug, R melhoria rápida, F funcionalidade). Responde-me numa linha por reporte: o que é, o ponto do plano e o que vais fazer.",
     "3. Corrige pela ordem do plano (bugs primeiro). Testa no browser com uma conta de teste temporária e dados inventados no projeto partilhado, e apaga tudo no fim. Marca o ponto como feito no plano.",
     "4. Se algum ponto pedir uma decisão minha, pergunta antes de o fazer e segue para o próximo.",
