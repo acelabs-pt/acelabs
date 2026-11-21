@@ -43,13 +43,13 @@ export default function DetalheItem({
   const hora = t.inicio ? formatarHora(t.inicio) : "";
   const fim = t.fim ? formatarHora(t.fim) : "";
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40 md:items-center" onClick={onFechar}>
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4" onClick={onFechar}>
       <div
         {...arrasto.painel}
-        className="w-full max-w-md space-y-3 rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] md:rounded-3xl"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md space-y-3 overflow-y-auto rounded-3xl bg-white p-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div {...arrasto.pega} className="-mt-2 flex justify-center py-2 md:hidden" aria-hidden="true">
+        <div {...arrasto.pega} className="hidden" aria-hidden="true">
           <span className="h-1.5 w-10 rounded-full bg-black/15" />
         </div>
         <div className="flex items-start justify-between gap-2">
