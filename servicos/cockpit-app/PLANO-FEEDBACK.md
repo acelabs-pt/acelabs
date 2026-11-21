@@ -33,15 +33,17 @@ Um só circuito, para nada se perder:
 
 Feitos a 21/11, à espera de deploy: B1 (tarefas na hora certa na vista Dia, arrastar para outra hora, e "Mudar dia e hora" no detalhe para o telemóvel), B2 (tarefas automáticas do comprador sem hora inventada), B8 (as folhas ficavam presas à página por causa da animação de entrada) e B9 ("+ Nova tarefa" abre na página onde se está).
 
+Feitos a 21/11 (segunda volta), à espera de deploy: B3 (PDF do relatório descarregado logo, sempre claro, com a base `lib/pdf.ts`), B4 (exportar a ficha em Excel e PDF "Ficha de cliente"; o ficheiro com tudo fica para pedidos de acesso aos dados), B5 ("Copiar número" no computador), B6 (Ligar, WhatsApp e Email sempre à vista nas fichas), B7 (visita marcada em âmbar até à hora; depois fica "Visitado" e o funil avança sozinho; escolhi "dá-se como feita sozinha", tocar em "Visitado" desfaz) e R2 (WhatsApp em cada link, conta como enviado).
+
 | # | Problema | Solução proposta | Esforço |
 |---|---|---|---|
 | B1 (feito) | Calendário, vista Dia: as tarefas ficam numa lista no topo, não na hora, e não se arrastam. | Hoje é propositado: as tarefas automáticas vão todas para as 9h e ficavam ilegíveis na grelha (`Tempo.tsx`). Mudar para: uma tarefa **com hora escolhida pela pessoa** vai para a grelha e arrasta-se como um evento; as automáticas ficam na lista "Para hoje" e podem ser arrastadas da lista para uma hora. Precisa de saber se a hora foi escolhida (coluna nova `com_hora` em `tarefas`). | M |
 | B2 (feito) | A tarefa "Enviar novas opções de imóveis" nasce com data e hora que ninguém escolheu. | Mesma raiz que o B1: as automáticas ganham uma hora inventada. Passam a ter só dia (sem hora), e o dia segue uma regra clara (ex. 2 dias depois de criar o comprador, ou o dia do último envio mais 7). Rever a regra em `AgendaDoComprador.tsx` e nas automações. | S (com o B1) |
-| B3 | Relatório da angariação: "Guardar em PDF" abre a impressão do browser e o PDF sai cortado. | Gerar um PDF a sério, descarregado logo, com paginação própria (cabeçalho, rodapé com data, quebras de página). Fazer uma **base de PDF** reutilizável, porque serve também o R3 e o F2. | M |
-| B4 | Exportar o contacto descarrega um `.json`. | Trocar pelo Excel (já existe para "Descarregar os teus dados", reutilizar) e pelo PDF do R3. | S |
-| B5 | "Ligar" no computador: o Windows pergunta que aplicação usar. | Em ecrãs sem telefone (sem toque), o botão passa a "Copiar número" e mostra "Copiado". | S |
-| B6 | Ações rápidas (Ligar, WhatsApp, Email) escondidas atrás do nome na ficha do comprador. | Barra fixa no topo da ficha com os 3 botões sempre visíveis; o resto dos detalhes fica recolhido como está. | S |
-| B7 | O comprador aparece como "visitado" quando a visita só está agendada (reporte de 20/11). | O funil só avança para "Visitas realizadas" depois da hora da visita passar e de ela confirmar: na visita aparece "Aconteceu?" com Sim / Não. Até lá fica "Visita agendada" (âmbar). Cuidado: o funil automático foi validado, mexer só neste passo. | S/M |
+| B3 (feito) | Relatório da angariação: "Guardar em PDF" abre a impressão do browser e o PDF sai cortado. | Gerar um PDF a sério, descarregado logo, com paginação própria (cabeçalho, rodapé com data, quebras de página). Fazer uma **base de PDF** reutilizável, porque serve também o R3 e o F2. | M |
+| B4 (feito) | Exportar o contacto descarrega um `.json`. | Trocar pelo Excel (já existe para "Descarregar os teus dados", reutilizar) e pelo PDF do R3. | S |
+| B5 (feito) | "Ligar" no computador: o Windows pergunta que aplicação usar. | Em ecrãs sem telefone (sem toque), o botão passa a "Copiar número" e mostra "Copiado". | S |
+| B6 (feito) | Ações rápidas (Ligar, WhatsApp, Email) escondidas atrás do nome na ficha do comprador. | Barra fixa no topo da ficha com os 3 botões sempre visíveis; o resto dos detalhes fica recolhido como está. | S |
+| B7 (feito) | O comprador aparece como "visitado" quando a visita só está agendada (reporte de 20/11). | O funil só avança para "Visitas realizadas" depois da hora da visita passar e de ela confirmar: na visita aparece "Aconteceu?" com Sim / Não. Até lá fica "Visita agendada" (âmbar). Cuidado: o funil automático foi validado, mexer só neste passo. | S/M |
 | B8 (feito) | Calendário: o popup da tarefa aparece em baixo e tem de se descer a página (reporte de 19/11). | Abrir o popup como folha a partir do fundo no telemóvel e centrado no computador, sempre visível sem descer. | S |
 | B9 (feito) | "+" > Nova tarefa: o popup aparece e desaparece logo, e vai parar à lista de tarefas (reportes de 19/11). | O "+" abre logo o formulário de nova tarefa onde a pessoa está, sem mudar de página. | S |
 
@@ -50,7 +52,7 @@ Feitos a 21/11, à espera de deploy: B1 (tarefas na hora certa na vista Dia, arr
 | # | Pedido | Solução proposta | Esforço |
 |---|---|---|---|
 | R1 | WhatsApp com imóvel manda o ID, que não diz nada ao cliente. | Campo novo **"Link do anúncio"** na angariação; a mensagem passa a levar o link. Sem link, leva a descrição (tipologia, zona, preço) em vez do ID. Sem API do WhatsApp: continua a abrir com o texto escrito. | S |
-| R2 | Na secção de links do comprador, abrir o WhatsApp com o link sem copiar e colar (reporte de 20/11). | Botão WhatsApp ao lado de cada link, com o texto já escrito. Junta-se ao R1. | S |
+| R2 (feito) | Na secção de links do comprador, abrir o WhatsApp com o link sem copiar e colar (reporte de 20/11). | Botão WhatsApp ao lado de cada link, com o texto já escrito. Junta-se ao R1. | S |
 | R3 | Relatório ao proprietário: texto robótico, saudação sem nome, botão pouco visível. | (a) Antes de enviar, o texto aparece numa caixa editável ("Personalizar mensagem"); (b) sem proprietário, aviso "Associar proprietário" com o botão ali mesmo; (c) botão "Enviar relatório" no topo da angariação. Reescrever o texto base num tom mais humano. | S |
 | R4 | Exportar a ficha do contacto em Excel e PDF. | Menu "Exportar" com 2 opções: Excel e PDF "Ficha de cliente" (usa a base do B3). | S |
 | R5 | Follow-up do plano fixo de 10 em 10 dias. | Escolher **semanal, quinzenal ou mensal** ao criar a angariação (e mudar depois), com o dia da semana (ex. sexta). Ver nota técnica do F4: o plano está feito em blocos de 10 dias. | M |

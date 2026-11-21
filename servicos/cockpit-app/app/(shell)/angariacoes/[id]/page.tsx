@@ -34,6 +34,7 @@ import DadosImovel, { imovelDe, imovelParaBd, resumoImovel, type DadosImovelForm
 import ListaCorrespondencias from "@/components/oportunidades/ListaCorrespondencias";
 import { atualizarPorAngariacao, carregarDaAngariacao, responder, type Correspondencia } from "@/lib/oportunidades";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import { BotaoLigar } from "@/components/crm/BotoesContacto";
 
 const BLOCOS_POR_VISTA = { mes: 3, trimestre: 9 } as const;
 type Vista = "tudo" | "mes" | "trimestre";
@@ -469,9 +470,7 @@ export default function PlanoAngariacao() {
         {ang.proprietarios?.contactos.telemovel && (
           // falar com o proprietário sem sair da angariação (feedback das visitas, relatório)
           <div className="flex gap-2">
-            <a href={`tel:${ang.proprietarios.contactos.telemovel}`} className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white">
-              Ligar ao proprietário
-            </a>
+            <BotaoLigar tel={ang.proprietarios.contactos.telemovel} rotulo="Ligar ao proprietário" className="flex-1 rounded-full bg-azul py-2.5 text-center text-sm font-semibold text-white" />
             <a
               href={linkWhatsapp(ang.proprietarios.contactos.telemovel)}
               target="_blank"

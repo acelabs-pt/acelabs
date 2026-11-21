@@ -237,6 +237,11 @@ Torre. Uma vez, pelo Pedro:
 
 Sem isto o cartão do tester mostra a indicação. A CSP da Torre só permite imagens e áudio desse endereço do Supabase.
 
+**Resumo e prompt para o Claude (2026-11-21).** No topo do cartão: quantos reportes estão novos, vistos e resolvidos, e por que zonas
+da app estão os que faltam resolver. O botão **"Copiar prompt para o Claude"** copia um texto com os reportes por resolver e o que
+fazer com eles (resumo, encaixar cada um em `servicos/cockpit-app/PLANO-FEEDBACK.md`, corrigir um a um, testar com dados inventados,
+relatório antes e depois e mensagem para o tester). Cola-se no Claude Code. O texto é montado em `lib/promptFeedback.ts`.
+
 ## Acessos ao Cockpit (2026-11-19)
 
 Na ficha de cada tester há o cartão **"Acesso ao Cockpit"**: a alavanca para dar conta a alguém sem abrir a plataforma de controlo.

@@ -31,6 +31,7 @@ import {
 import { formatarDia, formatarHora, hojeISO, isoParaLocal, localParaISO } from "@/lib/datas";
 import type { Tarefa } from "@/lib/types";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import BotoesContacto from "@/components/crm/BotoesContacto";
 import { eur } from "@/lib/graficos";
 
 export default function FichaProprietario() {
@@ -288,6 +289,9 @@ export default function FichaProprietario() {
           </div>
         </div>
 
+        {/* Ligar, WhatsApp e Email sempre à vista; os detalhes ficam recolhidos */}
+        <BotoesContacto tel={tel} email={p.contactos.email} />
+
         {fichaAberta && (
         <>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -316,16 +320,6 @@ export default function FichaProprietario() {
           </a>
         )}
 
-        {tel && (
-          <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
-              Ligar
-            </a>
-            <a href={linkWhatsapp(tel)} target="_blank" rel="noreferrer" className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta">
-              WhatsApp
-            </a>
-          </div>
-        )}
         </>
         )}
       </section>
@@ -546,7 +540,7 @@ export default function FichaProprietario() {
         </section>
       )}
 
-      <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} />
+      <BotaoExportar contactoId={p.contacto_id} nome={p.contactos.nome} tipo="proprietarios" />
 
       <button onClick={apagar} className="w-full py-2 text-sm font-medium text-red-700">Apagar proprietário</button>
     </div>

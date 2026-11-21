@@ -29,7 +29,7 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     await page.click('button[type=submit]');
     await page.waitForURL('**/dashboard', { timeout: 20000 });
     await page.goto('http://localhost:3001/crm/compradores/' + alvo.id);
-    const botao = page.locator('button', { hasText: 'Exportar os dados deste contacto' });
+    const botao = page.locator('button', { hasText: 'Todos os dados desta pessoa' });
     await botao.waitFor({ timeout: 15000 });
     await botao.scrollIntoViewIfNeeded();
     const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), botao.click()]);
@@ -51,7 +51,7 @@ const ok = (n, c, extra = '') => out.push(`${c ? 'OK   ' : 'FALHA'} ${n} ${extra
     // proprietário
     const ps = await get('proprietarios?select=id,contacto_id,contactos(nome)&limit=1');
     await page.goto('http://localhost:3001/crm/proprietarios/' + ps[0].id);
-    const b2 = page.locator('button', { hasText: 'Exportar os dados deste contacto' });
+    const b2 = page.locator('button', { hasText: 'Todos os dados desta pessoa' });
     await b2.waitFor({ timeout: 15000 });
     await b2.scrollIntoViewIfNeeded();
     const [dl2] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), b2.click()]);

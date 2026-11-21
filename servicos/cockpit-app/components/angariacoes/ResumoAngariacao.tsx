@@ -6,9 +6,11 @@ import { dataLocal, diaDeHoje, type Angariacao } from "@/lib/angariacao";
 import { inicioDoDia } from "@/lib/datas";
 
 // Contagens de uma tabela (0 se a tabela ainda não existir)
-async function contar(tabela: string, coluna: string | null, angariacaoId: string): Promise<number> {
+async function contar(tabela: string, coluna: string | null, angariacaoId: string, ateHoje = false): Promise<number> {
   let q = sbBrowser().from(tabela).select("id", { count: "exact", head: true }).eq("angariacao_id", angariacaoId);
   if (coluna) q = q.not(coluna, "is", null);
+  // visitas marcadas para depois de hoje ainda não são visitas realizadas
+  if (coluna && ateHoje) q = q.lte(coluna, new Date().toLocaleDateString("sv-SE"));
   const { count, error } = await q;
   return error ? 0 : count ?? 0;
 }
@@ -22,7 +24,7 @@ export default function ResumoAngariacao({ ang, versao }: { ang: Angariacao; ver
     let ativo = true;
     (async () => {
       const [v1, v2, p1, p2] = await Promise.all([
-        contar("comprador_imoveis", "visitado_em", ang.id),
+        contar("comprador_imoveis", "visitado_em", ang.id, true),
         contar("visitas_externas", null, ang.id),
         contar("comprador_imoveis", "proposta_em", ang.id),
         contar("propostas_externas", null, ang.id),

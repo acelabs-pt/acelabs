@@ -26,11 +26,15 @@ import {
   contar,
   indiceFunil,
   labelEstado,
+  visitaJaFoi,
   type Comprador,
   type EstadoComprador,
   type ImovelComprador,
 } from "@/lib/comprador";
 import type { Proprietario } from "@/lib/proprietario";
+
+/** "2026-11-22" -> "22/11" */
+const diaMes = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 import BarraProgresso from "@/components/BarraProgresso";
 import EditorVisita from "@/components/crm/EditorVisita";
 import CampoData from "@/components/crm/CampoData";
@@ -38,6 +42,7 @@ import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
 import { eur } from "@/lib/graficos";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import BotoesContacto from "@/components/crm/BotoesContacto";
 
 type Documento = { id: string; nome: string; entregue: boolean; valor: number | null };
 type AngMinha = { id: string; titulo: string; vendido_em: string | null };
@@ -104,6 +109,16 @@ export default function FichaComprador() {
     }
     setC(r1.data as unknown as Comprador);
     setImoveis((r2.data ?? []) as ImovelComprador[]);
+    // Uma visita marcada cuja hora já passou: o comprador passa a "Visitas realizadas" (o funil nunca recua).
+    const cAtual = r1.data as unknown as Comprador;
+    if (
+      ((r2.data ?? []) as ImovelComprador[]).some((i) => visitaJaFoi(i)) &&
+      indiceFunil("visitas_realizadas") > indiceFunil(cAtual.estado) &&
+      cAtual.estado !== "perdido"
+    ) {
+      await sbBrowser().from("compradores").update({ estado: "visitas_realizadas", estado_desde: new Date().toISOString() }).eq("id", id);
+      setC({ ...cAtual, estado: "visitas_realizadas" });
+    }
     setDocs((r3.data ?? []) as Documento[]);
     setAngs((r4.data ?? []) as AngMinha[]);
     setZonas(((r5.data ?? []) as { distrito: string; concelho: string | null; freguesia: string | null }[]).map((z) => ({ distrito: z.distrito, concelho: z.concelho ?? "", freguesia: z.freguesia ?? "" })));
@@ -223,8 +238,9 @@ export default function FichaComprador() {
     setAgendar(null);
     const eCal = await sincronizarEventoVisita({ id: c.id, contacto_id: c.contacto_id, nome: c.contactos.nome }, i.id, descricaoImovel(i), agendar.data, agendar.hora);
     if (eCal) setErro(eCal);
+    // Marcar uma visita já conta como "propor visita" feito; o funil só passa a "Visitas realizadas" depois da hora da visita.
     await concluirTarefasSemanais(c.id, "visita");
-    await avancarPara("visitas_realizadas", c.estado);
+    if (visitaJaFoi({ visitado_em: agendar.data, visita_hora: agendar.hora })) await avancarPara("visitas_realizadas", c.estado);
     await carregar();
   }
 
@@ -363,6 +379,9 @@ export default function FichaComprador() {
           </div>
         </div>
 
+        {/* Ligar, WhatsApp e Email sempre à vista; os detalhes ficam recolhidos */}
+        <BotoesContacto tel={tel} email={c.contactos.email} />
+
         {fichaAberta && (
         <>
 
@@ -389,21 +408,6 @@ export default function FichaComprador() {
             ))}
         </dl>
 
-        {tel && (
-          <div className="flex gap-2">
-            <a href={`tel:${tel}`} className="flex-1 rounded-full bg-azul py-3 text-center text-base font-semibold text-white">
-              Ligar
-            </a>
-            <a
-              href={linkWhatsapp(tel)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-full bg-verde py-3 text-center text-base font-semibold text-tinta"
-            >
-              WhatsApp
-            </a>
-          </div>
-        )}
         </>
         )}
       </section>
@@ -476,7 +480,23 @@ export default function FichaComprador() {
                 ) : (
                   <p className="min-w-0 truncate text-sm text-tinta">{i.descricao}</p>
                 )}
-                <button onClick={() => apagarImovel(i)} aria-label="Remover" className="text-secundario">&times;</button>
+                <div className="flex shrink-0 items-center gap-2">
+                  {i.link && tel && (
+                    // mandar o link ao comprador sem copiar e colar; conta como enviado
+                    <a
+                      href={linkWhatsapp(tel, `Olá ${c.contactos.nome.split(" ")[0]}, envio-lhe este imóvel que pode ser do seu interesse: ${i.link}`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => {
+                        if (!i.enviado_em) void alternarMarco(i, "enviado_em");
+                      }}
+                      className="rounded-full bg-verde/15 px-3 py-1 text-xs font-semibold text-tinta"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                  <button onClick={() => apagarImovel(i)} aria-label="Remover" className="text-secundario">&times;</button>
+                </div>
               </div>
               {i.angariacao_id && (
                 <Link href={`/angariacoes/${i.angariacao_id}`} className="mt-0.5 block truncate text-xs text-azul">
@@ -486,20 +506,32 @@ export default function FichaComprador() {
               <div className="mt-2 flex gap-1.5">
                 {([
                   ["enviado_em", "Enviado"],
-                  ["visitado_em", i.visitado_em ? "Visitado" : "Agendar visita"],
+                  ["visitado_em", !i.visitado_em ? "Agendar visita" : visitaJaFoi(i) ? "Visitado" : `Visita ${diaMes(i.visitado_em)}${i.visita_hora ? `, ${i.visita_hora}` : ""}`],
                   ["proposta_em", "Proposta"],
                   ["sem_interesse_em", "Sem interesse"],
-                ] as const).map(([campo, rotulo]) => (
+                ] as const).map(([campo, rotulo]) => {
+                  // Visita marcada para mais tarde: âmbar, e tocar não a apaga (muda-se a data ou a hora em baixo).
+                  const marcada = campo === "visitado_em" && !!i.visitado_em && !visitaJaFoi(i);
+                  return (
                   <button
                     key={campo}
-                    onClick={() => (campo === "visitado_em" && !i.visitado_em ? abrirAgendar(i) : alternarMarco(i, campo))}
+                    onClick={() => (marcada ? undefined : campo === "visitado_em" && !i.visitado_em ? abrirAgendar(i) : alternarMarco(i, campo))}
+                    aria-disabled={marcada || undefined}
+                    title={marcada ? "Visita marcada. Fica Visitado depois da hora da visita." : undefined}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${
-                      i[campo] ? (campo === "sem_interesse_em" ? "bg-red-600 text-white" : "bg-verde text-white") : "bg-black/5 text-secundario"
+                      marcada
+                        ? "bg-ambar-fundo text-ambar-texto"
+                        : i[campo]
+                        ? campo === "sem_interesse_em"
+                          ? "bg-red-600 text-white"
+                          : "bg-verde text-white"
+                        : "bg-black/5 text-secundario"
                     }`}
                   >
                     {rotulo}
                   </button>
-                ))}
+                  );
+                })}
               </div>
               {agendar?.id === i.id && !i.visitado_em && (
                 <div className="mt-2 space-y-2 rounded-xl bg-black/[0.03] p-3">
@@ -733,7 +765,7 @@ export default function FichaComprador() {
         </section>
       )}
 
-      <BotaoExportar contactoId={c.contacto_id} nome={c.contactos.nome} />
+      <BotaoExportar contactoId={c.contacto_id} nome={c.contactos.nome} tipo="compradores" />
 
       <button onClick={apagarComprador} className="w-full py-2 text-sm font-medium text-red-700">
         Apagar comprador

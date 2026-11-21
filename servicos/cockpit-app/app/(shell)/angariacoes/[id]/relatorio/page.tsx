@@ -9,6 +9,8 @@ import { sbBrowser } from "@/lib/supabase-browser";
 import { dataDoDia, dataLocal, diaDeHoje, NOME_FOLLOW_UP, type Acao, type Angariacao } from "@/lib/angariacao";
 import { formatarDia, inicioDoDia } from "@/lib/datas";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import { nomeFicheiro, novoPdf } from "@/lib/pdf";
+import { visitaJaFoi } from "@/lib/comprador";
 
 const REGIME = { exclusivo: "em exclusivo", nao_exclusivo: "não exclusivo" } as const;
 const DIAS_PERIODO = 30;
@@ -58,6 +60,7 @@ export default function Relatorio() {
   const [propostas, setPropostas] = useState<Registo[]>([]);
   const [copiado, setCopiado] = useState(false);
   const [nativa, setNativa] = useState(false);
+  const [aGerar, setAGerar] = useState(false);
   useEffect(() => setNativa(naApp()), []);
 
   useEffect(() => {
@@ -66,19 +69,19 @@ export default function Relatorio() {
       const [r1, r2, r3, r4, r5] = await Promise.all([
         sb.from("angariacoes").select("*, proprietarios(contactos(nome, telemovel))").eq("id", id).single(),
         sb.from("angariacao_acoes").select("*").eq("angariacao_id", id).order("dia"),
-        sb.from("comprador_imoveis").select("id, visitado_em, visita_obs, proposta_em, proposta_obs, compradores(contactos(nome))").eq("angariacao_id", id),
+        sb.from("comprador_imoveis").select("id, visitado_em, visita_hora, visita_obs, proposta_em, proposta_obs, compradores(contactos(nome))").eq("angariacao_id", id),
         sb.from("visitas_externas").select("*").eq("angariacao_id", id),
         sb.from("propostas_externas").select("*").eq("angariacao_id", id),
       ]);
       if (r1.data) setAng(r1.data as unknown as AngComContacto);
       setAcoes((r2.data ?? []) as Acao[]);
-      type Linha = { id: string; visitado_em: string | null; visita_obs: string | null; proposta_em: string | null; proposta_obs: string | null; compradores: { contactos: { nome: string } } | null };
+      type Linha = { id: string; visitado_em: string | null; visita_hora: string | null; visita_obs: string | null; proposta_em: string | null; proposta_obs: string | null; compradores: { contactos: { nome: string } } | null };
       type Externa = { id: string; consultor: string; data: string; obs: string | null };
       const meus = (r3.data ?? []) as unknown as Linha[];
       const ordem = (l: Registo[]) => l.sort((a, b) => a.data.localeCompare(b.data));
       setVisitas(
         ordem([
-          ...meus.filter((l) => l.visitado_em).map((l) => ({ chave: l.id, data: l.visitado_em!, quem: l.compradores?.contactos.nome ?? "Cliente", obs: l.visita_obs })),
+          ...meus.filter((l) => visitaJaFoi(l)).map((l) => ({ chave: l.id, data: l.visitado_em!, quem: l.compradores?.contactos.nome ?? "Cliente", obs: l.visita_obs })),
           ...((r4.data ?? []) as Externa[]).map((x) => ({ chave: x.id, data: x.data, quem: `Cliente de ${x.consultor}`, obs: x.obs })),
         ])
       );
@@ -136,6 +139,59 @@ export default function Relatorio() {
     .filter((l, i) => l !== "" || i > 2)
     .join("\n");
 
+  const meta = `${proprietario ? `${proprietario} · ` : ""}${ang.regime ? `Contrato ${REGIME[ang.regime]} · ` : "Contrato "}${ang.duracao_dias} dias, de ${dataCurta(inicio)} a ${dataLonga(fim)}`;
+  const intro =
+    "Este relatório resume o trabalho realizado na angariação deste imóvel desde o início do contrato" +
+    (ang.vendido_em
+      ? `, até à venda, a ${dataLonga(new Date(ang.vendido_em + "T00:00:00"))}`
+      : dia >= 1 && dia <= ang.duracao_dias
+      ? `, e reflete o ponto em que estamos, o dia ${dia} de ${ang.duracao_dias}`
+      : "") +
+    ". " +
+    (feitas.length === 0
+      ? "Ainda não há ações realizadas para apresentar."
+      : `Foram realizadas ${feitas.length} ${feitas.length === 1 ? "ação" : "ações"}, apresentadas por período e pela ordem em que aconteceram.`);
+  const tituloPeriodo = (p: number) => (p === 0 ? "Primeiros 30 dias" : `Dias ${p * DIAS_PERIODO + 1} a ${(p + 1) * DIAS_PERIODO}`);
+  const datasPeriodo = (p: number) =>
+    `${dataCurta(dataDoDia(ang.inicio, p * DIAS_PERIODO))} a ${dataCurta(dataDoDia(ang.inicio, (p + 1) * DIAS_PERIODO - 1))}`;
+  const blocos = [
+    { titulo: "Visitas realizadas", lista: visitas },
+    { titulo: "Propostas recebidas", lista: propostas },
+  ];
+
+  // PDF descarregado logo (antes abria a impressão do browser e saía cortado e, em modo escuro, com fundo escuro).
+  async function guardarPdf() {
+    if (!ang) return;
+    setAGerar(true);
+    try {
+      const pdf = await novoPdf(`${ang.titulo} · relatório emitido a ${dataLonga(agora)}`);
+      pdf.rotulo("Relatório de angariação");
+      pdf.titulo(ang.titulo);
+      pdf.texto(meta, { cor: "sec", tamanho: 9.5 });
+      pdf.texto(`Emitido a ${dataLonga(agora)}`, { cor: "sec", tamanho: 8.5 });
+      pdf.linha();
+      pdf.texto(intro);
+      for (const [p, lista] of ordenados) {
+        pdf.secao(tituloPeriodo(p), datasPeriodo(p));
+        pdf.texto(fraseDoPeriodo(lista), { cor: "sec" });
+        pdf.espaco(1);
+        for (const a of lista) pdf.item(nomeAcao(a), a.feita_em ? dataCurta(new Date(a.feita_em)) : null, a.feedback);
+      }
+      for (const { titulo, lista } of blocos) {
+        if (lista.length === 0) continue;
+        pdf.secao(titulo, String(lista.length));
+        for (const r of lista) pdf.item(r.quem, dataCurta(new Date(r.data + "T00:00:00")), r.obs);
+      }
+      if (feitas.length > 0) {
+        pdf.linha();
+        pdf.texto("Ficamos ao dispor para qualquer esclarecimento.", { cor: "sec", tamanho: 9.5 });
+      }
+      pdf.guardar(nomeFicheiro(`relatorio ${ang.titulo}`));
+    } finally {
+      setAGerar(false);
+    }
+  }
+
   async function copiar() {
     try {
       await navigator.clipboard.writeText(resumo);
@@ -171,8 +227,8 @@ export default function Relatorio() {
               Enviar por WhatsApp
             </a>
           )}
-          <button onClick={() => window.print()} className="rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white">
-            Guardar em PDF
+          <button onClick={guardarPdf} disabled={aGerar} className="rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            {aGerar ? "A preparar o PDF..." : "Descarregar PDF"}
           </button>
         </div>
       </div>
@@ -181,39 +237,20 @@ export default function Relatorio() {
         <header className="border-b border-black/10 pb-5">
           <p className="text-xs font-medium text-azul-escuro">Relatório de angariação</p>
           <h1 className="mt-1 text-3xl font-semibold leading-tight">{ang.titulo}</h1>
-          <p className="mt-2 text-sm text-secundario">
-            {proprietario ? `${proprietario} · ` : ""}
-            {ang.regime ? `Contrato ${REGIME[ang.regime]} · ` : "Contrato "}
-            {ang.duracao_dias} dias, de {dataCurta(inicio)} a {dataLonga(fim)}
-          </p>
+          <p className="mt-2 text-sm text-secundario">{meta}</p>
           <p className="mt-1 text-xs text-secundario">Emitido a {dataLonga(agora)}</p>
         </header>
 
         <section className="py-5 text-[0.9375rem] leading-relaxed">
-          <p>
-            Este relatório resume o trabalho realizado na angariação deste imóvel desde o início do contrato
-            {ang.vendido_em
-              ? `, até à venda, a ${dataLonga(new Date(ang.vendido_em + "T00:00:00"))}`
-              : dia >= 1 && dia <= ang.duracao_dias
-              ? `, e reflete o ponto em que estamos, o dia ${dia} de ${ang.duracao_dias}`
-              : ""}
-            .{" "}
-            {feitas.length === 0
-              ? "Ainda não há ações realizadas para apresentar."
-              : `Foram realizadas ${feitas.length} ${feitas.length === 1 ? "ação" : "ações"}, apresentadas por período e pela ordem em que aconteceram.`}
-          </p>
+          <p>{intro}</p>
         </section>
 
         {ordenados.map(([p, lista]) => {
-          const de = p * DIAS_PERIODO + 1;
-          const ate = (p + 1) * DIAS_PERIODO;
           return (
             <section key={p} className="break-inside-avoid border-t border-black/10 py-5">
               <h2 className="text-lg font-semibold">
-                {p === 0 ? "Primeiros 30 dias" : `Dias ${de} a ${ate}`}
-                <span className="ml-2 text-sm font-normal text-secundario">
-                  {dataCurta(dataDoDia(ang.inicio, de - 1))} a {dataCurta(dataDoDia(ang.inicio, ate - 1))}
-                </span>
+                {tituloPeriodo(p)}
+                <span className="ml-2 text-sm font-normal text-secundario">{datasPeriodo(p)}</span>
               </h2>
               <p className="mt-1 text-[0.9375rem] leading-relaxed text-secundario">{fraseDoPeriodo(lista)}</p>
               <ul className="mt-3 space-y-3">
@@ -229,10 +266,7 @@ export default function Relatorio() {
           );
         })}
 
-        {[
-          { titulo: "Visitas realizadas", lista: visitas },
-          { titulo: "Propostas recebidas", lista: propostas },
-        ].map(
+        {blocos.map(
           ({ titulo, lista }) =>
             lista.length > 0 && (
               <section key={titulo} className="break-inside-avoid border-t border-black/10 py-5">

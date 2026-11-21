@@ -1,5 +1,5 @@
 import { sbBrowser } from "@/lib/supabase-browser";
-import { alertaLaranja, type Comprador, type ImovelComprador } from "@/lib/comprador";
+import { alertaLaranja, visitaJaFoi, type Comprador, type ImovelComprador } from "@/lib/comprador";
 import type { Proprietario } from "@/lib/proprietario";
 import { blocoDeDia, dataDoDia, dataLocal, diaDeHoje, type Acao, type Angariacao } from "@/lib/angariacao";
 import type { Tarefa } from "@/lib/types";
@@ -84,7 +84,7 @@ export type Feitos = Record<Metrica, number> & {
 /** Quanto foi feito em cada métrica no período (contagens diretas dos dados, sem estimativas). */
 export function feitos(d: Dados, p: Periodo, agora: Date = new Date()): Feitos {
   const l = limites(p, agora);
-  const visitas = d.imoveis.filter((i) => i.visitado_em && dentro(dataLocal(i.visitado_em), l)).length;
+  const visitas = d.imoveis.filter((i) => visitaJaFoi(i, agora) && dentro(dataLocal(i.visitado_em!), l)).length;
   const reunioes = d.proprietarios.filter((x) => {
     if (!x.reuniao_em) return false;
     const q = new Date(x.reuniao_em);

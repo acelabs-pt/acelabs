@@ -94,10 +94,19 @@ export type ImovelComprador = {
 
 export type Contagens = { enviados: number; visitas: number; propostas: number };
 
+/**
+ * A visita já aconteceu? visitado_em guarda o dia da visita, marcada ou feita. Com hora, só conta depois dessa hora; sem hora
+ * (marcada como feita à mão), conta a partir desse dia. Antes disso é uma visita marcada: não fica "Visitado" nem avança o funil.
+ */
+export function visitaJaFoi(i: { visitado_em: string | null; visita_hora?: string | null }, agora: Date = new Date()): boolean {
+  if (!i.visitado_em) return false;
+  return new Date(`${i.visitado_em}T${i.visita_hora || "00:00"}:00`).getTime() <= agora.getTime();
+}
+
 export function contar(imoveis: ImovelComprador[]): Contagens {
   return {
     enviados: imoveis.filter((i) => i.enviado_em).length,
-    visitas: imoveis.filter((i) => i.visitado_em).length,
+    visitas: imoveis.filter((i) => visitaJaFoi(i)).length,
     propostas: imoveis.filter((i) => i.proposta_em).length,
   };
 }

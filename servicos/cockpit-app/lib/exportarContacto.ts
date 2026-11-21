@@ -1,4 +1,6 @@
 import { sbBrowser } from "@/lib/supabase-browser";
+import { descarregar, linhaDaFicha, paraCsv } from "@/lib/exportarTudo";
+import { nomeFicheiro, novoPdf } from "@/lib/pdf";
 
 type Linha = Record<string, unknown>;
 
@@ -67,4 +69,90 @@ export async function exportarContacto(contactoId: string, nome: string): Promis
   a.click();
   URL.revokeObjectURL(url);
   return ficheiro;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Ficha em Excel e em PDF: o que o consultor usa no dia a dia (passar a lead a alguém, um dashboard próprio, imprimir).
+// O ficheiro acima (JSON, com tudo) fica para os pedidos de acesso aos dados.
+
+type Tipo = "compradores" | "proprietarios";
+
+async function lerFicha(tipo: Tipo, contactoId: string) {
+  const sb = sbBrowser();
+  const { data, error } = await sb.from(tipo).select("*, contactos(*)").eq("contacto_id", contactoId).limit(1);
+  const ficha = (data ?? [])[0] as Linha | undefined;
+  if (error || !ficha) throw new Error("Ficha não encontrada.");
+  const zonas = tipo === "compradores" ? ((await sb.from("comprador_zonas").select("*").eq("comprador_id", ficha.id as string)).data ?? []) : [];
+  return { ficha, zonas: zonas as Linha[] };
+}
+
+/** Uma linha em Excel (CSV) com as mesmas colunas do modelo de importação: abre no Excel e importa-se noutro Cockpit. */
+export async function exportarFichaExcel(tipo: Tipo, contactoId: string, nome: string): Promise<void> {
+  const { ficha, zonas } = await lerFicha(tipo, contactoId);
+  descarregar(paraCsv(tipo, [linhaDaFicha(tipo, ficha, zonas)]), nomeFicheiro(`ficha ${nome}`, "csv"), "text/csv;charset=utf-8");
+}
+
+const eur = (v: unknown) => (v == null || v === "" ? "" : `${Number(v).toLocaleString("pt-PT")} euros`);
+const dia = (v: unknown) => (typeof v === "string" && v ? new Date(v.slice(0, 10) + "T00:00:00").toLocaleDateString("pt-PT") : "");
+
+/** PDF "Ficha de cliente": os dados e o que procura (ou o imóvel), pronto a imprimir ou a enviar. */
+export async function exportarFichaPdf(tipo: Tipo, contactoId: string, nome: string): Promise<void> {
+  const { ficha: f, zonas } = await lerFicha(tipo, contactoId);
+  const c = (f.contactos ?? {}) as Linha;
+  const l = linhaDaFicha(tipo, f, zonas);
+  const sb = sbBrowser();
+  const pdf = await novoPdf(`Ficha de ${nome} · ${new Date().toLocaleDateString("pt-PT")}`);
+  pdf.rotulo(tipo === "compradores" ? "Ficha de cliente comprador" : "Ficha de cliente proprietário");
+  pdf.titulo(nome);
+  pdf.texto(`Emitida a ${new Date().toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}`, { cor: "sec", tamanho: 8.5 });
+  pdf.secao("Contacto");
+  pdf.campos([
+    ["Telemóvel", c.telemovel as string],
+    ["Email", c.email as string],
+    ["Origem", c.canal_origem as string],
+  ]);
+  const zona = [l.freguesia, l.concelho, l.distrito].filter(Boolean).join(", ");
+  if (tipo === "compradores") {
+    pdf.secao("O que procura");
+    pdf.campos([
+      ["Tipo de imóvel", l.tipo_imovel],
+      ["Tipologia", l.tipologia_minima ? `${l.tipologia_minima} ou mais` : ""],
+      ["Orçamento até", eur(f.expectativa_valor)],
+      ["Zona", zona],
+      ["Outras zonas", l.outras_zonas.split(" | ").join(", ")],
+      ["Financiamento", l.financiamento],
+      ["Precisa de vender", l.precisa_vender],
+      ["Motivação", l.motivacao ? `${l.motivacao} em 10` : ""],
+      ["Fase", l.estado],
+    ]);
+    const { data } = await sb.from("comprador_imoveis").select("*").eq("comprador_id", f.id as string).order("created_at");
+    const imoveis = (data ?? []) as Linha[];
+    if (imoveis.length) {
+      pdf.secao("Imóveis enviados", String(imoveis.length));
+      for (const i of imoveis) {
+        const marcos = [
+          i.enviado_em && `enviado a ${dia(i.enviado_em)}`,
+          i.visitado_em && `visita a ${dia(i.visitado_em)}${i.visita_hora ? ` às ${i.visita_hora}` : ""}`,
+          i.proposta_em && `proposta a ${dia(i.proposta_em)}`,
+          i.sem_interesse_em && "sem interesse",
+        ].filter(Boolean).join(" · ");
+        pdf.item(String(i.descricao || i.link || "Imóvel"), marcos || null, [i.visita_obs, i.proposta_obs].filter(Boolean).join(" ") || null);
+      }
+    }
+  } else {
+    pdf.secao("O imóvel");
+    pdf.campos([
+      ["Tipo de imóvel", l.tipo_imovel],
+      ["Tipologia", l.tipologia],
+      ["Valor pretendido", eur(f.valor)],
+      ["Zona", zona],
+      ["Anúncio", l.link_imovel],
+      ["Fase", l.estado],
+    ]);
+  }
+  if (c.observacoes) {
+    pdf.secao("Notas");
+    pdf.texto(String(c.observacoes));
+  }
+  pdf.guardar(nomeFicheiro(`ficha ${nome}`));
 }

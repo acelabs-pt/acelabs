@@ -1,6 +1,8 @@
 import { feedbackConfigurado, lerFeedback, type Reporte } from "@/lib/feedback";
 import { estadoFeedback } from "@/app/acoes";
 import { Cartao, Etiqueta } from "@/components/ui";
+import { PromptClaude } from "@/components/PromptClaude";
+import { promptParaClaude as prompt, zona } from "@/lib/promptFeedback";
 
 const ESTADO: Record<Reporte["estado"], { texto: string; cor: "azul" | "verde" | "ambar" | "cinza" }> = {
   novo: { texto: "Novo", cor: "ambar" },
@@ -12,7 +14,15 @@ const quando = (iso: string) =>
   new Date(iso).toLocaleString("pt-PT", { timeZone: "Europe/Lisbon", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 /** Os reportes que este tester fez no Cockpit (texto, captura do ecrã, áudio), ligados pelo email. */
-export default async function FeedbackDoTester({ email }: { email: string | null }) {
+export default async function FeedbackDoTester({
+  email,
+  nome = "tester",
+  agencia = null,
+}: {
+  email: string | null;
+  nome?: string;
+  agencia?: string | null;
+}) {
   if (!email) {
     return (
       <Cartao titulo="Feedback">
@@ -29,6 +39,11 @@ export default async function FeedbackDoTester({ email }: { email: string | null
   }
   const { reportes, erro } = await lerFeedback();
   const meus = reportes.filter((r) => r.email?.toLowerCase() === email.toLowerCase());
+  const porResolver = meus.filter((r) => r.estado !== "resolvido");
+  const conta = (e: Reporte["estado"]) => meus.filter((r) => r.estado === e).length;
+  const porZona = new Map<string, number>();
+  for (const r of porResolver) porZona.set(zona(r.pagina), (porZona.get(zona(r.pagina)) ?? 0) + 1);
+  const zonas = [...porZona].sort((a, b) => b[1] - a[1]);
 
   return (
     <Cartao titulo="Feedback" acao={<span className="text-sm text-secundario">{meus.length}</span>}>
@@ -37,6 +52,19 @@ export default async function FeedbackDoTester({ email }: { email: string | null
       ) : meus.length === 0 ? (
         <p className="text-base text-secundario">Ainda não reportou nada. Quando usar o botão “Reportar um problema” no Cockpit com o email {email}, aparece aqui.</p>
       ) : (
+        <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Etiqueta cor="ambar">{conta("novo")} novos</Etiqueta>
+            <Etiqueta cor="azul">{conta("visto")} vistos</Etiqueta>
+            <Etiqueta cor="verde">{conta("resolvido")} resolvidos</Etiqueta>
+          </div>
+          <p className="text-sm text-secundario">
+            {zonas.length > 0 ? `Por resolver: ${zonas.map(([z, n]) => `${z} (${n})`).join(", ")}. ` : "Tudo resolvido. "}
+            Último reporte a {quando(meus[0].criado_em)}.
+          </p>
+          <PromptClaude texto={prompt(nome, agencia, email, porResolver)} porResolver={porResolver.length} />
+        </div>
         <ul className="divide-y divide-linha">
           {meus.map((r) => (
             <li key={r.id} className="space-y-3 py-4 first:pt-0 last:pb-0">
@@ -80,6 +108,7 @@ export default async function FeedbackDoTester({ email }: { email: string | null
             </li>
           ))}
         </ul>
+        </div>
       )}
     </Cartao>
   );

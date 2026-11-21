@@ -8,7 +8,7 @@ type Linha = Record<string, unknown>;
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 
-function descarregar(conteudo: string, ficheiro: string, tipo: string) {
+export function descarregar(conteudo: string, ficheiro: string, tipo: string) {
   const url = URL.createObjectURL(new Blob([conteudo], { type: tipo }));
   const a = document.createElement("a");
   a.href = url;
@@ -62,7 +62,11 @@ export async function linhasParaCsv(e: Entidade): Promise<Record<string, string>
       zonasPorComprador.set(k, [...(zonasPorComprador.get(k) ?? []), z]);
     }
   }
-  return fichas.map((f) => {
+  return fichas.map((f) => linhaDaFicha(e, f, zonasPorComprador.get(f.id as string) ?? []));
+}
+
+/** Uma ficha (comprador ou proprietário, com o contacto) numa linha com as colunas do modelo de importação. */
+export function linhaDaFicha(e: "compradores" | "proprietarios", f: Linha, zonas: Linha[] = []): Record<string, string> {
     const c = (f.contactos ?? {}) as Linha;
     const contacto = {
       nome: txt(c.nome),
@@ -79,7 +83,7 @@ export async function linhasParaCsv(e: Entidade): Promise<Record<string, string>
       return { ...contacto, tipologia: txt(f.tipologia), valor: txt(f.valor), link_imovel: txt(f.link_imovel), estado: labelEstadoProp(f.estado as EstadoProprietario) };
     }
     const principal = zonaTxt(f);
-    const outras = (zonasPorComprador.get(f.id as string) ?? []).map(zonaTxt).filter((z) => z && z !== principal);
+    const outras = zonas.map(zonaTxt).filter((z) => z && z !== principal);
     return {
       ...contacto,
       motivacao: txt(f.motivacao),
@@ -91,7 +95,6 @@ export async function linhasParaCsv(e: Entidade): Promise<Record<string, string>
       referencia_imovel: txt(f.referencia_imovel),
       estado: labelEstado(f.estado as EstadoComprador),
     };
-  });
 }
 
 /** CSV com ";" e BOM (o Excel em português abre bem), cabeçalho igual ao do modelo de importação. */

@@ -77,7 +77,7 @@ export default async function Tester({ params }: { params: { id: string } }) {
 
       <AcessoCockpit tester={x} socio={socio.nome} />
 
-      <FeedbackDoTester email={x.email} />
+      <FeedbackDoTester email={x.email} nome={x.nome} agencia={x.agencia} />
 
       <Cartao titulo="Passar a cliente">
         {x.entidade_id ? (
