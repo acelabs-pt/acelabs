@@ -1,6 +1,11 @@
 import { sbBrowser } from "@/lib/supabase-browser";
-import { semanaISO, diasDesde } from "@/lib/datas";
-import { distribuirHoras } from "@/lib/horas";
+import { semanaISO, diasDesde, inicioDoDia } from "@/lib/datas";
+
+/**
+ * As tarefas automáticas do comprador ficam no dia, sem hora (00:00 = "dia todo" em toda a app): a hora é do consultor,
+ * que a arrasta no calendário se quiser. Antes levavam uma hora livre escolhida pela app, e parecia que alguém a tinha marcado.
+ */
+const semHora = (d: Date = new Date()) => inicioDoDia(d).toISOString();
 
 export type EstadoComprador =
   | "lead_qualificada"
@@ -119,11 +124,10 @@ export async function sincronizarTarefaEscritura(c: {
   if (!c.escritura_prazo) return;
   const { data } = await sb.from("tarefas").select("id").eq("chave_automacao", chave).limit(1);
   if ((data ?? []).length > 0) return;
-  const [quando] = await distribuirHoras([{ chave, dia: new Date() }]);
   await sb.from("tarefas").insert({
     titulo: `Agendar escritura com ${c.nome}`,
     tipo: "tarefa",
-    inicio: quando.toISOString(),
+    inicio: semHora(),
     origem: "comprador",
     comprador_id: c.id,
     contacto_id: c.contacto_id,
@@ -215,11 +219,10 @@ export async function garantirTarefasSemanais(
   const jaExiste = new Set((existentes ?? []).map((e) => e.chave_automacao));
 
   const porCriar = candidatas.filter((c) => !jaExiste.has(c.chave));
-  const horas = await distribuirHoras(porCriar.map((c) => ({ chave: c.chave, dia: new Date() })));
-  const novas = porCriar.map((c, i) => ({
+  const novas = porCriar.map((c) => ({
     titulo: c.titulo,
     tipo: "tarefa",
-    inicio: horas[i].toISOString(),
+    inicio: semHora(),
     origem: "comprador",
     comprador_id: c.comprador.id,
     contacto_id: c.comprador.contacto_id,

@@ -36,7 +36,6 @@ import EditorVisita from "@/components/crm/EditorVisita";
 import CampoData from "@/components/crm/CampoData";
 import Comissao from "@/components/crm/Comissao";
 import { diasAte, hojeISO } from "@/lib/datas";
-import { distribuirHoras } from "@/lib/horas";
 import { eur } from "@/lib/graficos";
 import { linkWhatsapp } from "@/lib/whatsapp";
 
@@ -155,12 +154,12 @@ export default function FichaComprador() {
     const em6meses = new Date();
     em6meses.setMonth(em6meses.getMonth() + 6);
     const chave = `comprador:${c.id}:pos-escritura`;
-    const [quando6meses] = await distribuirHoras([{ chave, dia: em6meses }]);
+    em6meses.setHours(0, 0, 0, 0); // sem hora: fica no dia, a hora escolhe-a o consultor
     const { data } = await sb.from("tarefas").select("id").eq("chave_automacao", chave);
     if (!data || data.length === 0) {
       await sb.from("tarefas").insert({
         titulo: `Ligar a ${c.contactos.nome} (6 meses após a escritura)`,
-        inicio: quando6meses.toISOString(),
+        inicio: em6meses.toISOString(),
         origem: "comprador",
         comprador_id: c.id,
         contacto_id: c.contacto_id,

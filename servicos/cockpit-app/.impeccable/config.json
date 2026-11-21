@@ -8,6 +8,15 @@
         "value": "inter",
         "createdAt": "2026-10-22T20:30:39.283Z",
         "reason": "Brand rule in project CLAUDE.md: Inter is the sanctioned fallback for SF Pro on non-Apple systems (Identidade visual); not a per-session user confirmation"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "components/calendario/Tempo.tsx"
+        ],
+        "createdAt": "2026-11-21T13:20:10.459Z",
+        "reason": "Claude: barra lateral dos itens de calendário já existia antes desta sessão e segue o padrão de calendário (Apple); não é um cartão"
       }
     ]
   }

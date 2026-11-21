@@ -64,3 +64,19 @@ export async function adiarTarefa(t: Tarefa, dia: Date): Promise<string | null> 
   }
   return null;
 }
+
+/**
+ * Passa uma tarefa ou marcação para um dia e uma hora (arrastar na grelha do calendário). Se mudar de dia, usa o adiarTarefa
+ * (que move também a ação do plano de angariação e a data da visita); depois acerta a hora. A duração mantém-se.
+ */
+export async function moverTarefaPara(t: Tarefa, quando: Date): Promise<string | null> {
+  const orig = t.inicio ? new Date(t.inicio) : null;
+  if (!orig || inicioDoDia(orig).getTime() !== inicioDoDia(quando).getTime()) {
+    const e = await adiarTarefa(t, quando);
+    if (e) return e;
+  }
+  const campos: Record<string, string> = { inicio: quando.toISOString() };
+  if (orig && t.fim) campos.fim = new Date(quando.getTime() + (new Date(t.fim).getTime() - orig.getTime())).toISOString();
+  const { error } = await sbBrowser().from("tarefas").update(campos).eq("id", t.id);
+  return error ? "Não foi possível mudar a hora." : null;
+}

@@ -35,6 +35,7 @@ export default function Tempo({
   onItem,
   onDia,
   onMover,
+  onMoverHora,
 }: {
   dias: Date[];
   ocs: Ocorrencia[];
@@ -42,8 +43,12 @@ export default function Tempo({
   onItem: (o: Ocorrencia) => void;
   onDia?: (d: Date) => void;
   onMover?: (id: string, d: Date) => void;
+  /** Largar um item na grelha: passa para esse dia e essa hora (arredondada a 15 minutos). */
+  onMoverHora?: (id: string, quando: Date) => void;
 }) {
   const cont = useRef<HTMLDivElement>(null);
+  // Distância entre o rato e o topo do item agarrado, para o item ficar onde se larga (e não um bocado abaixo).
+  const pega = useRef(0);
   const grelha = useRef<HTMLDivElement>(null);
   // Zoom da grelha (dois dedos, ou Ctrl e roda do rato): muda a altura de cada hora, e só da grelha. O resto do ecrã
   // (título, menu de baixo) fica igual. Lembra-se do último zoom neste aparelho.
@@ -60,10 +65,15 @@ export default function Tempo({
   }, []);
   useEffect(() => {
     const el = cont.current;
-    if (el) el.scrollTop = Math.max(0, ((dias.some((d) => mesmoDia(d, new Date())) ? new Date().getHours() : 8) - 1.5) * horaRef.current);
-    // só ao abrir a vista
+    // Abre na hora atual (hoje) ou às 8h; se houver alguma coisa por fazer mais cedo nesse dia, abre aí, para não ficar escondida.
+    const base = (dias.some((d) => mesmoDia(d, new Date())) ? new Date().getHours() : 8) - 1.5;
+    const cedo = ocs
+      .filter((o) => !o.diaInteiro && !o.t.feita && (n === 1 || o.t.tipo === "evento") && dias.some((d) => mesmoDia(d, o.ini)))
+      .map((o) => o.ini.getHours() + o.ini.getMinutes() / 60 - 0.5);
+    if (el) el.scrollTop = Math.max(0, Math.min(base, ...cedo) * horaRef.current);
+    // ao abrir a vista, ao mudar de dia e quando os itens chegam (não a cada arrastar, para a grelha não saltar)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [n]);
+  }, [n, dias[0]?.getTime(), ocs.length > 0]);
 
   // Depois de mudar o zoom, a hora que estava debaixo dos dedos fica no mesmo sítio.
   useLayoutEffect(() => {
@@ -127,13 +137,21 @@ export default function Tempo({
     };
   }, []);
 
-  // Tarefas (muitas, quase sempre às 9h) não vão para a grelha, porque ficavam em tiras ilegíveis:
-  // na semana viram um contador por dia (toca para abrir o dia) e no dia uma lista. Marcações com hora ficam na grelha.
+  // Na semana, as tarefas (muitas) ficavam em tiras ilegíveis nas 7 colunas: viram um contador por dia (toca para abrir o dia).
+  // No dia, há espaço: as tarefas com hora ficam na grelha, na sua hora, como as marcações, e arrastam-se para outra hora;
+  // as que não têm hora ficam na faixa "dia todo" e podem ser arrastadas para uma hora.
   const semana = n > 1;
   const eTarefa = (o: Ocorrencia) => o.t.tipo !== "evento";
+  const naGrelha = (o: Ocorrencia) => !semana || !eTarefa(o);
   const tarefasDoDia = dias.map((d) => doDia(ocs, d).filter(eTarefa).sort((a, b) => a.ini.getTime() - b.ini.getTime()));
   const haTarefas = tarefasDoDia.some((x) => x.length > 0);
-  const diasInteiros = dias.map((d) => doDia(ocs, d).filter((o) => o.diaInteiro && !eTarefa(o)));
+  const diasInteiros = dias.map((d) => doDia(ocs, d).filter((o) => o.diaInteiro && naGrelha(o)));
+
+  const agarrar = (e: React.DragEvent<HTMLElement>, o: Ocorrencia) => {
+    pega.current = o.diaInteiro ? 0 : e.clientY - e.currentTarget.getBoundingClientRect().top;
+    e.dataTransfer.setData("text/plain", o.t.id);
+    e.dataTransfer.effectAllowed = "move";
+  };
   const haDiaInteiro = diasInteiros.some((x) => x.length > 0);
 
   return (
@@ -166,6 +184,8 @@ export default function Tempo({
                   {x.map((o) => (
                     <button
                       key={o.t.id}
+                      draggable={!o.t.feita && !!onMoverHora}
+                      onDragStart={(e) => agarrar(e, o)}
                       onClick={() => onItem(o)}
                       className={`block w-full truncate rounded border-l-2 px-1 py-0.5 text-left text-[0.6875rem] ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
                     >
@@ -200,22 +220,6 @@ export default function Tempo({
           )}
         </div>
 
-        {!semana && tarefasDoDia[0].length > 0 && (
-          <ul className="space-y-1 border-b border-black/10 p-2">
-            {tarefasDoDia[0].map((o) => (
-              <li key={o.t.id}>
-                <button
-                  onClick={() => onItem(o)}
-                  className={`flex w-full items-center gap-2 rounded-lg border-l-4 px-2 py-1.5 text-left text-sm ${corItem(o.t)} ${o.t.feita ? "line-through" : ""}`}
-                >
-                  <span className="shrink-0 text-xs opacity-70">{o.diaInteiro ? "dia todo" : formatarHora(o.t.inicio!)}</span>
-                  <span className="min-w-0 truncate">{o.t.titulo}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
         <div ref={grelha} className="grid" style={{ gridTemplateColumns: cols }}>
           <div className="relative" style={{ height: 24 * horaPx }}>
             {Array.from({ length: 23 }, (_, i) => i + 1).map((h) => (
@@ -230,7 +234,7 @@ export default function Tempo({
           </div>
 
           {dias.map((d) => {
-            const colocadas = colocar(doDia(ocs, d).filter((o) => !eTarefa(o)), d, horaPx);
+            const colocadas = colocar(doDia(ocs, d).filter(naGrelha), d, horaPx);
             const eHoje = mesmoDia(d, agora);
             const topoAgora = ((agora.getHours() * 60 + agora.getMinutes()) / 60) * horaPx;
             return (
@@ -242,11 +246,17 @@ export default function Tempo({
                   backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,.07) 1px, transparent 1px)",
                   backgroundSize: `100% ${horaPx}px`,
                 }}
-                onDragOver={(e) => onMover && e.preventDefault()}
+                onDragOver={(e) => (onMover || onMoverHora) && e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
                   const id = e.dataTransfer.getData("text/plain");
-                  if (id) onMover?.(id, d);
+                  if (!id) return;
+                  if (!onMoverHora) return onMover?.(id, d);
+                  const y = e.clientY - e.currentTarget.getBoundingClientRect().top - pega.current;
+                  const minutos = Math.min(23 * 60 + 45, Math.max(0, Math.round((y / horaPx) * 4) * 15));
+                  const quando = new Date(d);
+                  quando.setHours(0, minutos, 0, 0);
+                  onMoverHora(id, quando);
                 }}
                 onClick={(e) => {
                   const r = e.currentTarget.getBoundingClientRect();
@@ -259,11 +269,8 @@ export default function Tempo({
                 {colocadas.map(({ o, col, cols: nc, topo, altura }) => (
                   <button
                     key={o.t.id}
-                    draggable={!o.t.feita && n > 1}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", o.t.id);
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
+                    draggable={!o.t.feita && (!!onMoverHora || n > 1)}
+                    onDragStart={(e) => agarrar(e, o)}
                     onClick={(e) => {
                       e.stopPropagation();
                       onItem(o);

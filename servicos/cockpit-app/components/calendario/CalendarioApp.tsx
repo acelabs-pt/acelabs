@@ -9,7 +9,7 @@ import { tipoTarefaComprador } from "@/lib/comprador";
 import type { Tarefa } from "@/lib/types";
 import { formatarDia, formatarHora, inicioDaSemana, inicioDoDia, mesmoDia, somarDias, somarMeses } from "@/lib/datas";
 import { doDia, ocorrencia, type Ocorrencia } from "@/lib/calendario";
-import { adiarTarefa, marcarTarefa } from "@/lib/tarefas";
+import { adiarTarefa, marcarTarefa, moverTarefaPara } from "@/lib/tarefas";
 import SwipeLinha from "@/components/gestos/SwipeLinha";
 import AdiarFolha from "@/components/gestos/AdiarFolha";
 import { useSwipeNav } from "@/components/gestos/useGestos";
@@ -196,6 +196,26 @@ export default function CalendarioApp() {
     moverPara(t, dia);
   }
 
+  // Largada na grelha do Dia ou da Semana: passa para esse dia e essa hora.
+  async function arrastarParaHora(id: string, quando: Date) {
+    const t = tarefas.find((x) => x.id === id);
+    if (!t || t.feita || (t.inicio && new Date(t.inicio).getTime() === quando.getTime())) return;
+    const antes = t.inicio ? new Date(t.inicio) : null;
+    const e = await moverTarefaPara(t, quando);
+    if (e) setErro(e);
+    else {
+      const dia = antes && mesmoDia(quando, antes) ? "" : `${formatarDia(quando)}, `;
+      avisar(`Passou para ${dia}${formatarHora(quando.toISOString())}.`, {
+        rotulo: "Desfazer",
+        onAcao: async () => {
+          if (antes) await moverTarefaPara({ ...t, inicio: quando.toISOString(), fim: t.fim && t.inicio ? new Date(quando.getTime() + new Date(t.fim).getTime() - new Date(t.inicio).getTime()).toISOString() : t.fim }, antes);
+          await carregar(true);
+        },
+      });
+    }
+    await carregar(true);
+  }
+
   async function moverPara(t: Tarefa, dia: Date) {
     const e = await adiarTarefa(t, dia);
     if (e) setErro(e);
@@ -307,6 +327,7 @@ export default function CalendarioApp() {
           onSlot={setNovo}
           onItem={(o) => setAberta(o.t.id)}
           onMover={arrastarPara}
+          onMoverHora={arrastarParaHora}
           onDia={(d) => {
             setRef(inicioDoDia(d));
             setVista("dia");
@@ -320,6 +341,10 @@ export default function CalendarioApp() {
           onFechar={() => setAberta(null)}
           onAlternar={() => alternarFeita(itemAberto)}
           onApagar={() => apagar(itemAberto)}
+          onMudar={(quando) => {
+            setAberta(null);
+            arrastarParaHora(itemAberto.id, quando);
+          }}
         />
       )}
       {adiar && <AdiarFolha titulo={adiar.titulo} onEscolher={adiarPara} onFechar={() => setAdiar(null)} />}
